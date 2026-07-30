@@ -52,6 +52,8 @@ const stopPolling = () => {
 
 // Stable [] so a world with no markers doesn't churn the memo every poll.
 const EMPTY_MARKERS = [];
+// Stable [] for worlds without sea regions, same reasoning.
+const EMPTY_SEAS = [];
 
 const areEqualShallow = (a, b) => {
   if (a === b) return true;
@@ -91,6 +93,12 @@ export function useWorldState() {
     regionClaimants: state?.regionClaimants ?? {},
     polityOverrides: state?.polityOverrides ?? {},
     markers: Array.isArray(state?.markers) ? state.markers : EMPTY_MARKERS,
+    // Sea-region geometry lives ON the world state (per-game and writable —
+    // the scenario's regions.geojson is a static shared asset the runtime may
+    // not write). Compared by LENGTH below, not content: the set only ever
+    // swaps wholesale (enable/remove), and content-comparing megabytes of
+    // geometry every 5s poll would be waste.
+    seaRegions: Array.isArray(state?.seaRegions) && state.seaRegions.length ? state.seaRegions : EMPTY_SEAS,
     cityRenames: state?.cityRenames ?? {},
     labelFont: state?.labelFont ?? "",
     labelHaloColor: state?.labelHaloColor ?? "",
@@ -114,6 +122,7 @@ export function useWorldState() {
     JSON.stringify(prev.regionClaimants) === JSON.stringify(derived.regionClaimants) &&
     // Markers are an array of small objects; same content-compare reasoning.
     JSON.stringify(prev.markers) === JSON.stringify(derived.markers) &&
+    prev.seaRegions.length === derived.seaRegions.length &&
     JSON.stringify(prev.cityRenames) === JSON.stringify(derived.cityRenames) &&
     areEqualShallow(prev.polityOverrides, derived.polityOverrides)
       ? prev

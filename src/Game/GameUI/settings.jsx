@@ -1,12 +1,15 @@
 /*! Open Historia — portions (reasoning toggle + small-screen menu) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useEffect, useState } from "react";
 import {
+    AI_ROLES,
     DEFAULT_PROVIDER,
     PROVIDER_OPTIONS,
     getProviderMeta,
     getReasoningEnabled,
+    getRoleConfigs,
     providerSupportsModelDiscovery,
     setReasoningEnabled,
+    setRoleConfig,
 } from "../AI/providerConfig.js";
 import {
     getLanguageOptions,
@@ -20,6 +23,13 @@ import {
     getMapSetting,
     setMapSetting,
 } from "../../runtime/mapSettings.js";
+import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
+import {
+    PROMPT_SECTION_DEFINITIONS,
+    normalizePromptPack,
+    serializePromptPack,
+} from "../AI/gameplayPrompts.js";
+import { useDragWindow } from "./useDragWindow.js";
 
 const baseStyle = {
     position: "fixed",
@@ -613,6 +623,89 @@ const ProviderSettingsPanel = ({ provider, settings, onSettingChange }) => {
         needs a model that supports it.
         </div>
         </div>
+
+        <RoleModelSettings />
+        </div>
+    );
+};
+
+// Per-role model routing: each game function (events, advisor, diplomacy,
+// translation) can inherit the main provider or pin its own provider, model
+// and reasoning mode. The classic split: a strong model for turn simulation,
+// a small fast one for translation batches — so translating the UI never
+// queues behind (or hogs) the model that runs the world.
+const roleSelectStyle = {
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "8px",
+    color: "white",
+    fontSize: "0.78rem",
+    padding: "0.35rem 0.4rem",
+};
+
+const RoleModelSettings = () => {
+    const [configs, setConfigs] = useState(() => getRoleConfigs());
+
+    const update = (roleKey, field, value) => {
+        setRoleConfig(roleKey, { [field]: value });
+        setConfigs(getRoleConfigs());
+    };
+
+    return (
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "1rem", paddingTop: "0.9rem" }}>
+        <div style={{ color: "rgba(255,255,255,0.9)", fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.2rem" }}>
+        Role models
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.74rem", lineHeight: 1.5, marginBottom: "0.7rem" }}>
+        Route each game function to its own provider, model, and reasoning mode.
+        "Inherit" follows the main provider above. Tip: keep Events on a strong
+        model and point Translation/Diplomacy at a small fast one; turning
+        Reasoning off for a role also disables local model thinking (Qwen3 etc).
+        </div>
+
+        {AI_ROLES.map((role) => {
+            const cfg = configs[role.key];
+            return (
+                <div key={role.key} style={{ marginBottom: "0.75rem" }}>
+                <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.78rem", fontWeight: 600 }}>
+                {role.label}
+                <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 400, marginLeft: "0.4rem" }}>{role.blurb}</span>
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.3rem" }}>
+                <select
+                value={cfg.provider}
+                onChange={(event) => update(role.key, "provider", event.target.value)}
+                data-no-translate=""
+                style={{ ...roleSelectStyle, flex: "1 1 9rem" }}
+                >
+                <option value="inherit">Inherit provider</option>
+                {PROVIDER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+                </select>
+                <input
+                type="text"
+                value={cfg.model}
+                onChange={(event) => update(role.key, "model", event.target.value)}
+                placeholder="Model (blank = inherit)"
+                spellCheck={false}
+                data-no-translate=""
+                style={{ ...roleSelectStyle, flex: "1 1 9rem", boxSizing: "border-box" }}
+                />
+                <select
+                value={cfg.reasoning}
+                onChange={(event) => update(role.key, "reasoning", event.target.value)}
+                data-no-translate=""
+                style={{ ...roleSelectStyle, flex: "0 1 8rem" }}
+                >
+                <option value="inherit">Reasoning: inherit</option>
+                <option value="on">Reasoning: on</option>
+                <option value="off">Reasoning: off</option>
+                </select>
+                </div>
+                </div>
+            );
+        })}
         </div>
     );
 };
@@ -762,6 +855,183 @@ const SettingsButton = ({ onToggle, topOffset = "0.5rem" }) => (
     </button>
 );
 
+// Collapsible section — the settings drawer used to be one undifferentiated
+// scroll of every feature; grouping mirrors the original game's tidy menu.
+const Section = ({ title, icon, defaultOpen = false, children }) => {
+    const [open, setOpen] = useState(defaultOpen);
+    return (
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", margin: "0 -1rem", padding: "0 1rem" }}>
+        <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        style={{
+            alignItems: "center",
+            background: "none",
+            border: "none",
+            color: "white",
+            cursor: "pointer",
+            display: "flex",
+            fontSize: "0.9rem",
+            fontWeight: 700,
+            justifyContent: "space-between",
+            padding: "0.8rem 0",
+            width: "100%",
+        }}
+        >
+        <span>{icon} {title}</span>
+        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem" }}>{open ? "▾" : "▸"}</span>
+        </button>
+        {open && <div style={{ paddingBottom: "0.9rem" }}>{children}</div>}
+        </div>
+    );
+};
+
+// "Prompts & Rules" — the original game's in-game prompt editor, recreated:
+// a player-authored Simulation Rules text that rides on every simulation task
+// (the local equivalent of a preset's 시뮬레이션 규칙), plus per-mechanism AI
+// prompt editing for this game's frozen prompt pack.
+const promptAreaStyle = {
+    background: "rgba(0,0,0,0.3)",
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "8px",
+    boxSizing: "border-box",
+    color: "white",
+    fontFamily: "monospace",
+    fontSize: "0.72rem",
+    lineHeight: 1.45,
+    minHeight: "8rem",
+    outline: "none",
+    padding: "0.5rem 0.6rem",
+    resize: "vertical",
+    width: "100%",
+};
+
+const promptSaveStyle = {
+    background: "#3b82f6",
+    border: "none",
+    borderRadius: "8px",
+    color: "white",
+    cursor: "pointer",
+    fontSize: "0.76rem",
+    fontWeight: 600,
+    marginTop: "0.4rem",
+    padding: "0.35rem 0.9rem",
+};
+
+const PromptsRulesPanel = () => {
+    const [rules, setRules] = useState("");
+    const [pack, setPack] = useState(null);
+    const [openTask, setOpenTask] = useState("");
+    const [drafts, setDrafts] = useState({});
+    const [status, setStatus] = useState("");
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            const world = await readJson(JSON_URLS.world, { defaultValue: {}, force: true }).catch(() => ({}));
+            if (!cancelled) setRules(typeof world?.customRules === "string" ? world.customRules : "");
+            const rawPack = await readJson(JSON_URLS.prompts, { defaultValue: {}, force: true }).catch(() => ({}));
+            if (!cancelled) setPack(normalizePromptPack(rawPack));
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    const saveRules = async () => {
+        try {
+            const world = await readJson(JSON_URLS.world, { defaultValue: {}, force: true }).catch(() => ({}));
+            await writeJson(JSON_URLS.world, { ...(world && typeof world === "object" ? world : {}), customRules: rules }, { pretty: true });
+            setStatus("Simulation rules saved — they apply from the next AI task.");
+        } catch (error) {
+            setStatus(`Save failed: ${error?.message || error}`);
+        }
+    };
+
+    const saveTask = async (key) => {
+        if (!pack) return;
+        try {
+            const nextPack = { ...pack, tasks: { ...pack.tasks, [key]: drafts[key] ?? pack.tasks[key] } };
+            await writeJson(JSON_URLS.prompts, serializePromptPack(nextPack), { pretty: true });
+            setPack(nextPack);
+            setStatus("Prompt saved — it applies from the next AI task.");
+        } catch (error) {
+            setStatus(`Save failed: ${error?.message || error}`);
+        }
+    };
+
+    const taskKeys = pack ? Object.keys(pack.tasks) : [];
+    const labelFor = (key) => PROMPT_SECTION_DEFINITIONS.find((def) => def.key === key)?.label || key;
+
+    return (
+        <div>
+        <div style={{ fontSize: "0.8rem", fontWeight: 700, marginBottom: "0.2rem" }}>Simulation rules</div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", lineHeight: 1.45, marginBottom: "0.4rem" }}>
+        Constraints and directives for the AI: allowed behavior, restrictions,
+        goals, special mechanics. Applied to time skips, action brainstorming,
+        catalysts and event consolidation — like a preset's simulation rules.
+        </div>
+        <textarea
+        value={rules}
+        onChange={(event) => setRules(event.target.value)}
+        placeholder={"e.g.\n- Never leave a region unowned.\n- Every revolt forms its own polity.\n- Transfer a one-region polity only when fully occupied."}
+        spellCheck={false}
+        data-no-translate=""
+        style={promptAreaStyle}
+        />
+        <button type="button" onClick={saveRules} style={promptSaveStyle}>Save rules</button>
+
+        <div style={{ fontSize: "0.8rem", fontWeight: 700, margin: "1rem 0 0.2rem" }}>AI prompts</div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", lineHeight: 1.45, marginBottom: "0.4rem" }}>
+        Edit the individual AI prompt for each game mechanism (this game's own copy).
+        </div>
+        {!pack && (
+            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.75rem" }}>Loading prompts…</div>
+        )}
+        {taskKeys.map((key) => (
+            <div key={key} style={{ marginBottom: "0.35rem" }}>
+            <button
+            type="button"
+            onClick={() => {
+                setOpenTask((current) => (current === key ? "" : key));
+                setDrafts((current) => ({ ...current, [key]: current[key] ?? pack.tasks[key] }));
+            }}
+            style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "8px",
+                color: "rgba(255,255,255,0.85)",
+                cursor: "pointer",
+                display: "flex",
+                fontSize: "0.76rem",
+                justifyContent: "space-between",
+                padding: "0.4rem 0.6rem",
+                textAlign: "left",
+                width: "100%",
+            }}
+            >
+            <span>{labelFor(key)}</span>
+            <span style={{ color: "rgba(255,255,255,0.4)" }}>{openTask === key ? "▾" : "▸"}</span>
+            </button>
+            {openTask === key && (
+                <div style={{ marginTop: "0.3rem" }}>
+                <textarea
+                value={drafts[key] ?? pack.tasks[key]}
+                onChange={(event) => setDrafts((current) => ({ ...current, [key]: event.target.value }))}
+                spellCheck={false}
+                data-no-translate=""
+                style={{ ...promptAreaStyle, minHeight: "12rem" }}
+                />
+                <button type="button" onClick={() => saveTask(key)} style={promptSaveStyle}>Save prompt</button>
+                </div>
+            )}
+            </div>
+        ))}
+        {status && (
+            <div style={{ color: "rgba(134,239,172,0.9)", fontSize: "0.72rem", marginTop: "0.4rem" }}>{status}</div>
+        )}
+        </div>
+    );
+};
+
 const SettingsMenu = ({
     topOffset = "0.5rem",
     isFullscreenEnabled,
@@ -775,6 +1045,7 @@ const SettingsMenu = ({
     providerSettings,
     onProviderSettingChange,
     onOpenCheats,
+    onOpenEvents,
     discordUrl,
     redditUrl,
     githubUrl,
@@ -787,6 +1058,8 @@ const SettingsMenu = ({
         disableEventCamera: getMapSetting(MAP_SETTING_KEYS.disableEventCamera),
         limitAiGeneration: getMapSetting(MAP_SETTING_KEYS.limitAiGeneration),
     }));
+    // Drag-to-move by the title, like the original's windows.
+    const drag = useDragWindow();
 
     const updateMapSetting = (stateKey, settingKey, value) => {
         setMapSetting(settingKey, value);
@@ -810,20 +1083,28 @@ const SettingsMenu = ({
             alignItems: "stretch",
             justifyContent: "flex-start",
             height: "auto",
+            transform: drag.transform,
         }}
         >
         <h3
+        onPointerDown={drag.onPointerDown}
         style={{
             margin: "0 -1rem 1rem -1rem",
             padding: "0 1rem 1rem 1rem",
             fontSize: "1.1rem",
             textAlign: "left",
             borderBottom: "1px solid rgba(255,255,255,0.1)",
+            cursor: "grab",
+            touchAction: "none",
+            userSelect: "none",
         }}
         >
         Game Settings
         </h3>
 
+        {/* Grouped like the original's tidy menu: each area is a collapsible
+            section instead of one undifferentiated scroll of everything. */}
+        <Section title="AI Provider & Models" icon="🤖" defaultOpen={false}>
         <ApiProviderSelector
         provider={selectedProvider}
         onProviderChange={onApiProviderChange ?? (() => {})}
@@ -835,9 +1116,28 @@ const SettingsMenu = ({
         onSettingChange={onProviderSettingChange ?? (() => {})}
         />
 
+        <div style={{ marginTop: "0.8rem" }}>
+        <Toggle
+        label="Limit AI generation"
+        enabled={mapSettings.limitAiGeneration}
+        onToggle={() => updateMapSetting("limitAiGeneration", MAP_SETTING_KEYS.limitAiGeneration, !mapSettings.limitAiGeneration)}
+        />
+        <div style={{ marginTop: "-0.7rem", fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.35 }}>
+        On: time skips give the model 5 minutes, then fall back to canned events. Off (default): generation waits as long as the model needs. Cancel works either way.
+        </div>
+        </div>
+        </Section>
+
+        <Section title="Prompts & Rules" icon="📜" defaultOpen={false}>
+        <PromptsRulesPanel />
+        </Section>
+
+        <Section title="Language" icon="🌐" defaultOpen={false}>
         <LanguageSelector />
         <ChatLanguageSelector />
+        </Section>
 
+        <Section title="Display & Map" icon="🗺️" defaultOpen={false}>
         <Toggle label="Fullscreen" enabled={isFullscreenEnabled} onToggle={onToggleFullscreen} />
         <Toggle label="3D Globe" enabled={isGlobeEnabled} onToggle={onToggleGlobe} />
         <div style={{ marginTop: "-0.85rem", marginBottom: "1rem" }}>
@@ -857,7 +1157,7 @@ const SettingsMenu = ({
         </span>
         </div>
         <Toggle label="3D Terrain" enabled={isTerrainEnabled} onToggle={onToggleTerrain} />
-        <div style={{ margin: "0.5rem 0 1rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+        <div style={{ margin: "0.5rem 0 0", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
         <div style={{ fontSize: "0.84rem", fontWeight: 700, marginBottom: "0.6rem" }}>Map</div>
         <Toggle
         label="Hide country labels"
@@ -887,18 +1187,36 @@ const SettingsMenu = ({
         onToggle={() => updateMapSetting("disableEventCamera", MAP_SETTING_KEYS.disableEventCamera, !mapSettings.disableEventCamera)}
         />
         </div>
+        </Section>
 
-        <div style={{ margin: "0.5rem 0 1rem", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
-        <div style={{ fontSize: "0.84rem", fontWeight: 700, marginBottom: "0.6rem" }}>AI</div>
-        <Toggle
-        label="Limit AI generation"
-        enabled={mapSettings.limitAiGeneration}
-        onToggle={() => updateMapSetting("limitAiGeneration", MAP_SETTING_KEYS.limitAiGeneration, !mapSettings.limitAiGeneration)}
-        />
-        <div style={{ marginTop: "-0.7rem", marginBottom: "0.4rem", fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.35 }}>
-        On: time skips give the model 5 minutes, then fall back to canned events. Off (default): generation waits as long as the model needs. Cancel works either way.
-        </div>
-        </div>
+        <div style={{ margin: "0 0 1rem" }} />
+
+        {/* The Event Manager is its own window (like the original's Ctrl+E),
+            not a settings subsection — this button just launches it. */}
+        {typeof onOpenEvents === "function" && (
+            <button
+            type="button"
+            onClick={onOpenEvents}
+            style={{
+                alignItems: "center",
+                background: "rgba(16,185,129,0.18)",
+                border: "1px solid rgba(52,211,153,0.4)",
+                borderRadius: "8px",
+                color: "white",
+                cursor: "pointer",
+                display: "flex",
+                fontSize: "0.9rem",
+                fontWeight: 600,
+                gap: "0.5rem",
+                justifyContent: "center",
+                marginBottom: "1rem",
+                padding: "0.6rem 0.7rem",
+                width: "100%",
+            }}
+            >
+            🕰️ Event Manager
+            </button>
+        )}
 
         {typeof onOpenCheats === "function" && (
             <button

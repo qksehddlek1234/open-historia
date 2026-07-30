@@ -1,7 +1,7 @@
 /*! Open Historia — portions (custom-regions tier-2 rendering) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Layer, Source, useMap } from "react-map-gl/maplibre";
-import { onRegionSelected, dismissRegionPopup } from "../Selection/Regions";
+import { hasRegionClickInterceptor, onRegionSelected, dismissRegionPopup } from "../Selection/Regions";
 import { onUnitSelected, dismissUnitPopup } from "../Selection/Units";
 import { onFeatureSelected, dismissFeaturePopup } from "../Selection/Features";
 import {
@@ -464,6 +464,7 @@ const WorldMap = ({ isGlobe = false }) => {
     regionOwnershipOverrides,
     regionClaimants,
     polityOverrides,
+    seaRegions,
     labelFont,
     labelHaloColor,
     labelTextColor,
@@ -476,7 +477,17 @@ const WorldMap = ({ isGlobe = false }) => {
   const [customRegionData, setCustomRegionData] = useState(EMPTY_FEATURE_COLLECTION);
   const countriesUrl = PMTILES_PROTOCOL_URLS.countries;
   const regionsUrl = PMTILES_PROTOCOL_URLS.regions;
-  const customActive = customFlag && Array.isArray(customRegionData?.features) && customRegionData.features.length > 0;
+  // Sea regions come from world.seaRegions (per-game, WRITABLE, on the 5s
+  // world poll) rather than the scenario's static regions.geojson — the server
+  // refuses runtime writes to scenario geometry, which is exactly why the old
+  // "merge seas into regionsGeojson" approach silently failed. Merging here
+  // also means enabling seas shows up within one poll, no reload needed.
+  const regionData = useMemo(() => {
+    if (!seaRegions.length) return customRegionData;
+    const base = Array.isArray(customRegionData?.features) ? customRegionData.features : [];
+    return { type: "FeatureCollection", features: [...base, ...seaRegions] };
+  }, [customRegionData, seaRegions]);
+  const customActive = customFlag && Array.isArray(regionData?.features) && regionData.features.length > 0;
   // True for maps with their OWN drawn/generated geometry (region ids like
   // "reg_fmg_…", no dot) rather than re-ownership on the stock GADM tiles (ids like
   // "USA.1_1"). On such a map the stock regions-fill layer is Earth left over
@@ -485,9 +496,23 @@ const WorldMap = ({ isGlobe = false }) => {
   const hasDrawnGeometry = useMemo(
     () =>
       customActive &&
-      Array.isArray(customRegionData?.features) &&
-      customRegionData.features.some((feature) => !/\./.test(String(feature?.properties?.id ?? ""))),
-    [customActive, customRegionData],
+      Array.isArray(regionData?.features) &&
+      // Sea regions (kind:"sea", dot-less "sea_…" ids) are an OVERLAY on
+      // whatever map they were merged into, not a sign the map's land is
+      // hand-drawn — counting them here would stop stock-tile land clicks
+      // from resolving on a stock map with seas enabled.
+      regionData.features.some((feature) =>
+        feature?.properties?.kind !== "sea" && !/\./.test(String(feature?.properties?.id ?? ""))),
+    [customActive, regionData],
+  );
+  // Does the map's geometry include stock GADM regions (dotted ids)? A hybrid
+  // map (GADM seed + some drawn shapes) still needs the stock tiles for
+  // high-zoom click resolution; only a fully-drawn fantasy map does not.
+  const hasStockGeometry = useMemo(
+    () =>
+      Array.isArray(regionData?.features) &&
+      regionData.features.some((feature) => /\./.test(String(feature?.properties?.id ?? ""))),
+    [regionData],
   );
   // Re-read on each render so a runtime token change (switching games/scenarios)
   // refetches the geometry, mirroring the live-URL world poll below.
@@ -496,12 +521,12 @@ const WorldMap = ({ isGlobe = false }) => {
   // that don't exist in this scenario (e.g. modern states over medieval land).
   const ownedCountryCodes = useMemo(() => {
     const set = new Set();
-    for (const feature of customRegionData?.features ?? []) {
+    for (const feature of regionData?.features ?? []) {
       const props = feature.properties || {};
       if (props.owner && props.gid0) set.add(props.gid0);
     }
     return set;
-  }, [customRegionData]);
+  }, [regionData]);
   const ownedCodesKey = useMemo(() => [...ownedCountryCodes].sort().join(","), [ownedCountryCodes]);
 
   // Bumped when the translator learns new strings, so labels rebuild with
@@ -540,14 +565,14 @@ const WorldMap = ({ isGlobe = false }) => {
   // Geometry-only, so it survives ownership polls — rebuilt only when the
   // world's region geometry itself changes.
   const regionAdjacency = useMemo(
-    () => (customActive ? buildRegionAdjacency(customRegionData) : null),
-    [customActive, customRegionData],
+    () => (customActive ? buildRegionAdjacency(regionData) : null),
+    [customActive, regionData],
   );
 
   const ownerLabelData = useMemo(() => {
     if (!customActive) return EMPTY_FEATURE_COLLECTION;
     return buildOwnerLabelCollection(
-      customRegionData,
+      regionData,
       regionOwnershipOverrides,
       polityOverrides,
       (raw, owner) => translateLabel(resolveCountryDisplayName(raw, owner)),
@@ -555,7 +580,7 @@ const WorldMap = ({ isGlobe = false }) => {
     );
     // labelEpoch: rebuild once new translations land.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customActive, customRegionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelEpoch]);
+  }, [customActive, regionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelEpoch]);
 
   // On custom maps the stock modern-country labels are replaced wholesale by the
   // owner labels (no more "Russia"/"Ukraine" floating over the Soviet Union).
@@ -630,33 +655,54 @@ const WorldMap = ({ isGlobe = false }) => {
       return;
     }
 
+    // While a cheat click-mode is armed (annex, region picker…), units and
+    // features must NOT swallow the click with their popups — the cheat wants
+    // the region under the cursor, so fall straight through to the region
+    // resolution below (whose interceptor consumes it). The unit/feature under
+    // the cursor still gets REPORTED to the interceptor (unitHit/featureHit),
+    // so pick-a-feature cheats can detect cities, structures and units.
+    const intercepted = hasRegionClickInterceptor();
+    let pickExtras = null;
+    if (intercepted) {
+      const unitHits = unitsAt();
+      pickExtras = {
+        unitHit: unitHits.length ? { id: unitHits[0].properties.id } : null,
+        featureHit: featureAt(),
+      };
+    }
+
     // Normal selection: a unit click wins over the region beneath it.
-    const unitHits = unitsAt();
-    if (unitHits.length) {
-      dismissRegionPopup();
+    if (!intercepted) {
+      const unitHits = unitsAt();
+      if (unitHits.length) {
+        dismissRegionPopup();
+        dismissFeaturePopup();
+        onUnitSelected({ id: unitHits[0].properties.id, lngLat: event.lngLat });
+        return;
+      }
+
+      dismissUnitPopup();
+
+      const featureHit = featureAt();
+      if (featureHit) {
+        dismissRegionPopup();
+        onFeatureSelected(featureHit);
+        return;
+      }
+
       dismissFeaturePopup();
-      onUnitSelected({ id: unitHits[0].properties.id, lngLat: event.lngLat });
-      return;
     }
-
-    dismissUnitPopup();
-
-    const featureHit = featureAt();
-    if (featureHit) {
-      dismissRegionPopup();
-      onFeatureSelected(featureHit);
-      return;
-    }
-
-    dismissFeaturePopup();
-    // Custom (editor) regions render on top of the stock regions. On a map with its
-    // OWN drawn/generated geometry, query only the custom layers — a click on empty
-    // sea must resolve to nothing, not the leftover Earth country underneath. On a
-    // re-ownership map (stock GADM geometry), keep querying regions-fill: it IS the
-    // map, and its high-zoom hit-testing has no custom-layer equivalent.
-    const queryLayers = (hasDrawnGeometry
+    // Custom (editor) regions render on top of the stock regions. Only a map
+    // whose geometry is ENTIRELY hand-drawn (no GADM ids anywhere — a fantasy
+    // world) may skip the stock tiles: there a click on its empty sea must
+    // resolve to nothing, not the leftover Earth country underneath. A HYBRID
+    // map — GADM seed geometry plus a few drawn shapes — must keep querying
+    // regions-fill: above z~6.5 the seed far-layer has faded out and the stock
+    // tiles are the only clickable geometry for every GADM region, so skipping
+    // them made region clicks silently dead when zoomed in.
+    const queryLayers = (hasDrawnGeometry && !hasStockGeometry
       ? ["custom-regions-fill", "custom-regions-fill-far"]
-      : ["custom-regions-fill", "regions-fill"]
+      : ["custom-regions-fill", "custom-regions-fill-far", "regions-fill"]
     ).filter((id) => map.getLayer(id));
     const features = map.queryRenderedFeatures(event.point, { layers: queryLayers });
     if (!features.length) return;
@@ -664,8 +710,13 @@ const WorldMap = ({ isGlobe = false }) => {
     const props = features[0].properties ?? {};
     const regionId = props.GID_1 ?? props.id ?? "";
     // On custom maps, stock-tile hits carry modern props only — resolve the era
-    // owner (possibly "" = unclaimed) from the ownership lookup.
-    const owner = props.owner ?? (ownerLookupRef.current.size ? ownerLookupRef.current.get(regionId) : undefined);
+    // owner (possibly "" = unclaimed) from the ownership lookup. The lookup
+    // WINS over the feature's own `owner` prop: the prop is the scenario's
+    // SEED owner baked into the geojson, so after a live transfer (an override)
+    // it goes stale — a conquered region's popup kept naming the old owner,
+    // and a claimed sea region stayed "Unclaimed".
+    const liveOwner = ownerLookupRef.current.size ? ownerLookupRef.current.get(regionId) : undefined;
+    const owner = liveOwner ?? props.owner;
     // The region's underlying real country, as GADM knows it. A code, and staying
     // one: it comes off the baked tiles.
     const gid0 = props.gid0 ?? props.GID_0 ?? "";
@@ -690,8 +741,9 @@ const WorldMap = ({ isGlobe = false }) => {
       gid0,
       owner,
       lngLat: event.lngLat,
+      ...(pickExtras ?? {}),
     });
-  }, [hasDrawnGeometry, map]);
+  }, [hasDrawnGeometry, hasStockGeometry, map]);
 
   useEffect(() => {
     if (!map) return;
@@ -863,7 +915,7 @@ const WorldMap = ({ isGlobe = false }) => {
   // colours, owner-based colours, and the neutral fallback are all computed in
   // fast JS and baked into the GeoJSON data itself.
   const enrichedCustomRegionData = useMemo(() => {
-    if (!customRegionData?.features) return customRegionData;
+    if (!regionData?.features) return regionData;
 
     const overrideColor = {};
     for (const [regionId, ownerCode] of Object.entries(regionOwnershipOverrides)) {
@@ -873,12 +925,31 @@ const WorldMap = ({ isGlobe = false }) => {
     const rgbForOwner = (owner) => resolveOwnerRgb(owner) ?? fallbackRgbFromOwner(owner);
 
     return {
-      ...customRegionData,
-      features: customRegionData.features.map((f) => {
+      ...regionData,
+      features: regionData.features.map((f) => {
         const props = f.properties || {};
         const id = props.id;
+        // Sea regions (public/data/sea-regions.json, merged in via the cheats
+        // "Sea Regions" tool; dot-less "sea_…" ids so the authored-geometry
+        // layers render them at every zoom) work like territory — ownable,
+        // transferable — but paint like water: invisible while unclaimed (the
+        // basemap ocean shows through; only the hairline borders hint at the
+        // grid), and a translucent tint of the owner's color once claimed, so
+        // the sea never reads as solid land.
+        const isSea = props.kind === "sea";
+        const liveOwner = regionOwnershipOverrides[id] ?? props.owner ?? "";
         let fillColor;
-        if (overrideColor[id]) {
+        if (isSea) {
+          if (liveOwner) {
+            const rgb = rgbForOwner(liveOwner);
+            fillColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.4)`;
+          } else {
+            // FAINTLY visible, never fully transparent: the whisper of blue
+            // makes the sea grid discoverable (and hoverable/clickable beyond
+            // doubt — a 0-alpha fill invites "is this even interactive?").
+            fillColor = "rgba(96, 165, 250, 0.07)";
+          }
+        } else if (overrideColor[id]) {
           fillColor = overrideColor[id];
         } else if (props.owner) {
           fillColor = ownerColorCss(props.owner);
@@ -899,7 +970,6 @@ const WorldMap = ({ isGlobe = false }) => {
             ? props.claimants
             : null;
         if (claimants) {
-          const liveOwner = regionOwnershipOverrides[id] ?? props.owner ?? "";
           const seen = new Set();
           const stripeRgbs = [];
           for (const name of (liveOwner ? [liveOwner, ...claimants] : claimants)) {
@@ -918,7 +988,7 @@ const WorldMap = ({ isGlobe = false }) => {
         };
       }),
     };
-  }, [customRegionData, colorMap, regionOwnershipOverrides, regionClaimants, ownerColorCss, resolveOwnerRgb]);
+  }, [regionData, colorMap, regionOwnershipOverrides, regionClaimants, ownerColorCss, resolveOwnerRgb]);
 
   // GADM disputed regions also paint the stock tiles (the crisp z>6.5 layer):
   // GID_1 -> stripe-tile id stops for the tile twin of the disputed layer.
@@ -937,13 +1007,13 @@ const WorldMap = ({ isGlobe = false }) => {
   const ownerByRegionId = useMemo(() => {
     const lookup = new Map();
     if (!customActive) return lookup;
-    for (const feature of customRegionData?.features ?? []) {
+    for (const feature of regionData?.features ?? []) {
       const props = feature.properties || {};
       if (!props.id) continue;
       lookup.set(props.id, regionOwnershipOverrides[props.id] ?? props.owner ?? "");
     }
     return lookup;
-  }, [customActive, customRegionData, regionOwnershipOverrides]);
+  }, [customActive, regionData, regionOwnershipOverrides]);
 
   const ownerLookupRef = useRef(new Map());
   useEffect(() => {
@@ -962,12 +1032,12 @@ const WorldMap = ({ isGlobe = false }) => {
   const editedStockIds = useMemo(() => {
     if (!customActive) return [];
     const ids = [];
-    for (const f of customRegionData?.features ?? []) {
+    for (const f of regionData?.features ?? []) {
       const props = f.properties || {};
       if (props.edited && String(props.id ?? "").includes(".")) ids.push(String(props.id));
     }
     return ids;
-  }, [customActive, customRegionData]);
+  }, [customActive, regionData]);
 
   const stockRegionsFillPaint = useMemo(() => {
     if (!customActive) return { "fill-opacity": 0 };

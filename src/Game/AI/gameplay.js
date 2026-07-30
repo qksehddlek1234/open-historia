@@ -1,5 +1,6 @@
 /*! Open Historia — portions (briefing dossiers + timeout/fallback hardening) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import { callAI } from "./main.jsx";
+import { getStoredLanguage, languageDisplayName } from "../../runtime/i18n.js";
 import { normalizePromptPack } from "./gameplayPrompts.js";
 import { getGameplayTool, validateGameplayPayload } from "./gameplaySchemas.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
@@ -22,6 +23,7 @@ import {
 } from "../../runtime/assets.js";
 import {
   applyEventImpactsToWorld,
+  buildActionDisplayText,
   normalizeActionEntry,
   normalizeActions,
   normalizeChatEntry,
@@ -229,13 +231,79 @@ const maybeJsonParse = (value) => {
 // most: trailing commas before } or ], and curly "smart" quotes as string
 // delimiters. Repairs are only ever attempted AFTER a strict parse failed, so
 // well-formed output is never touched.
+// Raw control characters INSIDE string literals are invalid JSON but a common
+// local-model habit — especially once descriptions are written in Korean prose
+// with real newlines. Escape them, string-aware, so the parse survives.
+const escapeControlCharsInStrings = (value) => {
+  let out = "";
+  let inString = false;
+  let escaped = false;
+  for (const ch of value) {
+    if (escaped) { out += ch; escaped = false; continue; }
+    if (ch === "\\") { out += ch; escaped = inString; continue; }
+    if (ch === '"') { inString = !inString; out += ch; continue; }
+    if (inString && ch === "\n") { out += "\\n"; continue; }
+    if (inString && ch === "\r") { out += "\\r"; continue; }
+    if (inString && ch === "\t") { out += "\\t"; continue; }
+    out += ch;
+  }
+  return out;
+};
+
 const lenientJsonParse = (value) => {
   const direct = maybeJsonParse(value);
   if (direct) return direct;
   const repaired = value
     .replace(/[“”]/g, '"')
     .replace(/,\s*([}\]])/g, "$1");
-  return maybeJsonParse(repaired);
+  return maybeJsonParse(repaired) ?? maybeJsonParse(escapeControlCharsInStrings(repaired));
+};
+
+// Truncation salvage: a response cut off mid-JSON leaves ONE unbalanced object
+// and the balanced-candidate walk finds nothing — the whole turn then used to
+// fall back to canned events (field report: "fallback에 의해 생성된 턴",
+// repeatedly). Close whatever is still open — terminating an open string,
+// dropping a dangling half-written pair — and parse that. Losing the final
+// half-event beats losing the entire turn.
+// Close an unbalanced JSON fragment: terminate an open string, drop a trailing
+// comma/colon, then append the closers the bracket stack still owes. Returns
+// null when the fragment is already balanced.
+const closeJsonFragment = (fragment) => {
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+  for (const ch of fragment) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === "\\") { escaped = inString; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (!inString) {
+      if (ch === "{" || ch === "[") stack.push(ch);
+      else if (ch === "}" || ch === "]") stack.pop();
+    }
+  }
+  if (stack.length === 0 && !inString) return null;
+  const base = (inString ? `${fragment}"` : fragment).replace(/[,:]\s*$/, "");
+  return base + stack.map((opener) => (opener === "{" ? "}" : "]")).reverse().join("");
+};
+
+const salvageTruncatedJson = (text) => {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let fragment = text.slice(start);
+  if (closeJsonFragment(fragment) === null) return null; // balanced — truncation isn't the problem
+  // Close and parse; when the very tail is a half-written key or value that no
+  // amount of closing fixes, trim back to the previous comma/opener and try
+  // again — each trim drops one broken tail element, bounded so a hopeless
+  // fragment can't loop.
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const closed = closeJsonFragment(fragment) ?? fragment;
+    const parsed = lenientJsonParse(closed);
+    if (parsed && typeof parsed === "object") return parsed;
+    const cut = Math.max(fragment.lastIndexOf(","), fragment.lastIndexOf("{"), fragment.lastIndexOf("["));
+    if (cut <= 0) return null;
+    fragment = fragment.slice(0, cut);
+  }
+  return null;
 };
 
 // Every balanced top-level {...} or [...] block in the text, string-aware, in
@@ -306,7 +374,8 @@ export const extractJsonPayload = (rawText) => {
     if (parsed && typeof parsed === "object") return parsed;
   }
 
-  return null;
+  // Last resort: the output was cut off mid-JSON — close it and salvage.
+  return salvageTruncatedJson(text);
 };
 
 const loadPromptCatalog = async ({ force = false } = {}) =>
@@ -389,6 +458,11 @@ const ACTIONS_REFERENCE = "[Actions You Can Take]\nThis is the full menu of leve
 
 const runJsonTask = async (taskKey, {
   fallback,
+  // Called on every parsed candidate BEFORE schema validation, so a task can
+  // fill in fields the model dropped. Local models write a flawless answer and
+  // then omit one required scalar (captured: 18 perfect events, no "summary"),
+  // which used to discard the whole turn over a field the engine can derive.
+  repairPayload,
   signal,
   timeoutMs = getMapSetting(MAP_SETTING_KEYS.limitAiGeneration) ? 120000 : 0,
   userMessage,
@@ -410,6 +484,20 @@ const runJsonTask = async (taskKey, {
     // Without game data the task still runs at its default temperament.
   }
 
+  // Player-authored simulation rules (Settings → Prompts & Rules) ride on every
+  // simulation task — the in-game equivalent of a preset's simulation rules.
+  if (["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor", "eventConsolidator"].includes(taskKey)) {
+    try {
+      const worldForRules = normalizeWorldState(await readWorldState());
+      const customRules = normalizeString(worldForRules.customRules);
+      if (customRules) {
+        systemPrompt = `${systemPrompt}\n\n[Simulation Rules]\nThe player has authored the following simulation rules for this campaign. Treat them as binding preset rules, on par with the directives above:\n${customRules}`;
+      }
+    } catch {
+      // Rules unavailable — the task still runs without them.
+    }
+  }
+
   // Player agency: jumps must never sign the player up for landmark decisions.
   // Appended here (not only in defaultPrompts.json) because every game carries
   // its own frozen copy of the task prompts — a directive added at call time is
@@ -426,6 +514,12 @@ const runJsonTask = async (taskKey, {
     // reaches them. This also disarms an over-cautious reading of the agency
     // rule above ("don't act for the player") as "don't move the map".
     systemPrompt = `${systemPrompt}\n\n[Map Truth]\nTerritorial narration and the map must never disagree. If an event's title or description says territory was captured, seized, occupied, annexed, ceded, liberated, retaken, or otherwise changed hands, that SAME event MUST carry impacts.regionTransfers entries covering every region it names or implies — a capture claim with no regionTransfers is invalid output that breaks the map. When you do not know a region's exact id, put its plain name in regionId and the engine will resolve it; emit one entry per affected region. Resolving ${playerName}'s own ordered military operations into their territorial outcomes is REQUIRED and is never a player-agency violation: the agency rule restricts unprompted decisions, not the map consequences of offensives the player actually ordered. In an active war, sustained successful offensives normally transfer regions every jump. If nothing genuinely changed hands this period, keep capture language out of the event text.`;
+    // The world must move on its own (field report: "내 행동만 진행되고 있어" —
+    // only the player's actions advanced; other polities sat still, unlike the
+    // original game where the world visibly acts every turn). Local models
+    // anchor hard on the queued-actions list and answer with player-echo
+    // events only, so the simultaneity rule is stated explicitly, with a floor.
+    systemPrompt = `${systemPrompt}\n\n[World Activity]\n${playerName} is ONE actor among many — the world NEVER waits for the player. Every jump MUST also advance the wider world on its own: alongside the events resolving the player's actions, include AT LEAST 3 events (more on longer jumps) in which OTHER polities act on their OWN initiative and interests, with no involvement from ${playerName} — offensives and fronts moving in ongoing wars elsewhere, rival powers maneuvering against each other, coups, elections, uprisings, economic booms and crashes, disasters, technological and cultural developments. These world events carry their own impacts (regionTransfers, unitOps, polityChanges) exactly like player-related ones — an off-screen war that never moves the map is not happening. Aim for a rough balance: about half the events player-related, half the wider world.`;
     // No restating: the model is shown the recent timeline as context and, left
     // unchecked, re-narrates events it already reported — each restatement gets a
     // fresh id, so the same event stacks up and shows turn after turn. A content-key
@@ -437,6 +531,16 @@ const runJsonTask = async (taskKey, {
     // Place renaming: appended at call time so existing frozen-prompt campaigns get it
     // too; the markerOps rename op ships via the LIVE tool schema either way.
     systemPrompt = `${systemPrompt}\n\n[Place Renaming]\nYou may rename places when the story warrants it (a city renamed after a leader or ideology, a capital re-designated, a colonial name replaced, a conquered city given the conqueror's name). Emit an impacts.markerOps entry {"op":"rename","name":"<current name>","newName":"<new name>","note":"<why>"}. This works on structures you built AND on existing map cities. Do it sparingly and only when a real event motivates it.`;
+    // Action bookkeeping: pairs with the precise resolution in applySimulationResult —
+    // resolving an action means naming its id, and clearActions stops being a blanket
+    // "wipe the queue" flag (field report: unexecuted actions kept disappearing).
+    systemPrompt = `${systemPrompt}\n\n[Queued Actions Bookkeeping]\nEvery queued player action shown in the context has an id (the [id: …] tag on its line). When one of your events resolves, executes, or consumes a queued action, list that action's id in that event's impacts.actionIds. Set clearActions to true ONLY if every queued action was genuinely resolved this jump; if any action remains pending or unaddressed, set clearActions to false so it stays queued for the player's next turn.`;
+    // Long-queue coverage: part of why this project exists — the original
+    // game's habit of executing the FIRST few stacked actions and silently
+    // discarding the rest of a long queue. State full coverage as a hard
+    // requirement; the coverage validator + supplemental pass in
+    // simulateTimelineJump enforce it mechanically.
+    systemPrompt = `${systemPrompt}\n\n[Action Coverage]\nCover EVERY queued action listed in the context — the LAST entries in the list matter exactly as much as the first. Each queued action must be executed, attempted, or explicitly frustrated by one of your events, and that event must list the action's id in impacts.actionIds (one event may cover several related actions). With a long queue, keep each event concise rather than dropping later actions. Only an action that genuinely cannot occur in this period may stay queued — exclude its id and set clearActions to false.`;
   }
 
   // Reputation context: how the world currently regards the player, and how the
@@ -447,6 +551,30 @@ const runJsonTask = async (taskKey, {
   // take-the-whole-region (default) vs capture-only-the-city (markerOps) distinction.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
     systemPrompt = `${systemPrompt}\n\n[Region and City Capture]\nOn this map, territory is owned by REGIONS, and impacts.regionTransfers MUST name a region exactly as it appears in the [Game Map Description] above — never a city, town, port, or landmark. Cities such as Toulouse or Narbonne are only markers that sit INSIDE a region; a regionTransfer whose regionId is a city name matches no region and is silently discarded, so the border never moves even though the event says it did. To capture a place and the ground around it, transfer the REGION that contains it, and set fromCode to that region\u2019s current owner.\nTaking a region takes everything inside it, cities included — that is the normal case, so a city changing hands usually means transferring its whole region. To capture ONLY a city while its region stays with its current owner (a besieged holdout, an occupied port, an enclave), do NOT name it in regionTransfers; instead emit an impacts.markerOps build for it — {\"op\":\"build\",\"marker\":{\"name\":\"<city>\",\"kind\":\"city\",\"ownerCode\":\"<new holder>\",\"lng\":<lng>,\"lat\":<lat>}} — using that city\u2019s coordinates from [City Coordinates]. That places the city under the new owner without moving the region border.\nWhen a polity is conquered, annexed, partitioned, or unified OUTRIGHT — every region it still holds changing hands at once — you do not need one entry per region. Emit a SINGLE regionTransfer with "wholeCountry": true, put the losing polity's name in regionId instead of a region name, and set toCode to whoever takes it; the engine expands that into every region that polity currently owns. Use this ONLY for a total takeover of everything it holds. Any partial gain — a province, a border strip, a few regions — stays as ordinary per-region transfers, which remain the normal case.`;
+  }
+
+  // Local models keep answering the actions task with a bare top-level array
+  // (or a single topic) instead of {"topics":[...]} — strict validation then
+  // rejected the whole answer and the player got the canned fallback. State
+  // the exact envelope at call time so frozen-prompt games get it too.
+  if (taskKey === "actions") {
+    systemPrompt = `${systemPrompt}\n\n[Output Shape]\nAnswer with ONE JSON OBJECT of the exact shape {"topics":[{"title":"...","description":"...","actions":[{"title":"...","text":"..."}]}]} — AT LEAST 8 topics (aim for 8 to 10), each with 2 to 4 concrete actions. Never answer with a bare array, never wrap it under any other key, and never stop early.\n\n[Topic Coverage]\nTopics must be DISTINCT (no near-duplicates) and together must cover at least:\n1. Immediate response planning for the current world situation and this period's events, including follow-up contingency measures for how each crisis could evolve.\n2. Military and security readiness.\n3. Diplomacy: alliances, rivals, and international standing.\n4. Economic development.\n5. A second, DIFFERENT economic-strengthening angle — trade, industry, technology, infrastructure, or finance — clearly distinct from topic 4.\n6. Internal stability and domestic affairs.\n7. Support for the player's currently queued actions: reinforcing, follow-up, or fallback measures for the plans listed in the context above. If nothing is queued, propose preparatory groundwork for the player's likely next moves instead.\n8. Foresight: if the scenario's date is earlier than the real-world present, far-sighted preparations anticipating developments this era cannot yet see coming (emerging technologies, ideologies, geopolitical shifts); otherwise, long-term strategic positioning over the coming years.`;
+  }
+
+  // Native-language output (field report: editing an event/action showed raw
+  // English under the Korean UI — the data itself was English and only the
+  // DOM translator made it look Korean). callAI already appends the UI
+  // language directive, but the local 14B models drift back to English when
+  // the prompt is otherwise English-heavy — so the content tasks state it
+  // AGAIN, task-specifically, with the critical exception spelled out:
+  // identifiers stay canonical or transfers/ops silently stop matching.
+  {
+    const langCode = getStoredLanguage();
+    if (langCode && langCode !== "en" &&
+        ["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor", "eventConsolidator", "countryStatSheet"].includes(taskKey)) {
+      const langName = languageDisplayName(langCode);
+      systemPrompt = `${systemPrompt}\n\n[Output Language]\nWrite EVERY human-readable string value in your JSON — titles, descriptions, summaries, notes, suggestion/action texts, chat messages, catalyst premises and choices — in ${langName}. Do NOT write them in English. EXCEPTIONS that must stay EXACTLY as they appear in the world data, never translated: region ids and region names used in regionId fields, polity/owner identifiers (toCode, fromCode, ownerCode, code, speaker, countries entries), unit ids, dates, and all JSON keys.`;
+    }
   }
 
   // Polities are identified by their full country name EVERYWHERE. A model that
@@ -489,29 +617,103 @@ const runJsonTask = async (taskKey, {
   const tool = getGameplayTool(taskKey);
   const history = [{ role: "user", parts: [{ text: userMessage }] }];
   let failureReason = "The model did not return valid structured output.";
+  // Richest schema-valid answer seen across BOTH attempts. Declared out here so
+  // the post-loop salvage can still reach it after a failed retry.
+  let bestCandidate = null;
 
   try {
-    for (let outputAttempt = 1; outputAttempt <= 2; outputAttempt += 1) {
-      const response = await callAI(systemPrompt, history, {
-        // No output-token cap. A long/action-heavy turn's JSON must not be truncated
-        // mid-response — a cut-off response won't parse, so runJsonTask fell back to
-        // canned events that carry NO regionTransfers and NO diplomacy, which is why
-        // the map never changed and no chats opened. main.jsx now lets each provider
-        // use its own model maximum when no maxTokens is passed.
-        deadline,
-        signal: controller.signal,
-        tool,
-      });
+    let outputAttempt = 1;
+    let networkRetries = 0;
+    while (outputAttempt <= 2) {
+      let response;
+      try {
+        response = await callAI(systemPrompt, history, {
+          // Heavy simulation work — routed to the "event" role's model.
+          role: "event",
+          // No output-token cap. A long/action-heavy turn's JSON must not be truncated
+          // mid-response — a cut-off response won't parse, so runJsonTask fell back to
+          // canned events that carry NO regionTransfers and NO diplomacy, which is why
+          // the map never changed and no chats opened. main.jsx now lets each provider
+          // use its own model maximum when no maxTokens is passed.
+          deadline,
+          signal: controller.signal,
+          tool,
+        });
+      } catch (error) {
+        // Transient provider failure — a local Ollama hiccup, dropped stream,
+        // or connection reset surfaces as "Failed to fetch" ("불러오기 실패")
+        // and used to hand the player a canned fallback turn immediately.
+        // Wait and retry the call instead; only a repeat failure falls back.
+        const message = normalizeString(error?.message || error);
+        // A CRASHED inference runner ("llama runner process has terminated:
+        // exit status 0xc0000409 … CUDA error") is also transient — Ollama
+        // respawns the runner on the next request — but it needs the model
+        // reloaded into VRAM first, so this class waits much longer than a
+        // plain network blip before retrying.
+        const runnerCrash = /terminated|exit status|cuda|llama|runner|overloaded|server error|\b50[023]\b/i.test(message);
+        const transient = runnerCrash || /failed to fetch|network|fetch failed|load failed|socket|connection|abort.*stream|stream.*abort|reset/i.test(message);
+        if (!controller.signal.aborted && transient && networkRetries < 2) {
+          networkRetries += 1;
+          const waitMs = runnerCrash ? 25000 : 4000;
+          console.warn(`[ai] task "${taskKey}" provider call failed (${message}) — retrying (${networkRetries}/2) in ${Math.round(waitMs / 1000)}s.`);
+          await new Promise((resolve) => setTimeout(resolve, waitMs));
+          continue;
+        }
+        throw error;
+      }
+      // A PARTIAL response (the stream dropped mid-answer but enough text
+      // arrived to keep) is retried like a network failure while retries
+      // remain — salvaging it too eagerly produced near-empty "valid" turns.
+      // Once the retry budget is spent, fall through and let the salvage
+      // layer make the best of what arrived.
+      if (response?.partial && networkRetries < 2 && !controller.signal.aborted) {
+        networkRetries += 1;
+        console.warn(`[ai] task "${taskKey}" got a partial (dropped-stream) response — retrying (${networkRetries}/2) in 4s.`);
+        await new Promise((resolve) => setTimeout(resolve, 4000));
+        continue;
+      }
       const rawText = typeof response === "string" ? response : normalizeString(response?.rawText);
-      const parsed = response?.toolInput ?? extractJsonPayload(rawText);
+      let parsed = response?.toolInput ?? extractJsonPayload(rawText);
+      // Actions task: local models return the topics as a bare top-level array
+      // (or under "suggestions") instead of {"topics":[...]}. The suggestions
+      // caller can normalize those shapes, but validation here rejected them
+      // first — "$ must be object; received array." — and the player's real AI
+      // suggestions were silently replaced by the canned fallback (field
+      // report: only near-identical template topics showed). Coerce the
+      // known-good shapes before validating instead of discarding the answer.
+      if (taskKey === "actions" && parsed && typeof parsed === "object") {
+        if (Array.isArray(parsed)) {
+          parsed = { topics: parsed };
+        } else if (!Array.isArray(parsed.topics) && Array.isArray(parsed.suggestions)) {
+          parsed = { topics: parsed.suggestions };
+        }
+      }
       // A single mistyped optional field must not discard the whole turn to the
-      // canned fallback: the model sometimes returns `catalyst` as a prose string
-      // instead of the object|null the jump schema requires. Coerce any non-object
-      // catalyst to null (= no catalyst offered this turn) so the turn's real
-      // content (events, transfers, chats) still validates and applies.
-      if (parsed && typeof parsed === "object" && parsed.catalyst != null
-          && (typeof parsed.catalyst !== "object" || Array.isArray(parsed.catalyst))) {
-        parsed.catalyst = null;
+      // canned fallback: the model sometimes returns `catalyst` as a prose
+      // string, and sometimes as an object with 0-1 choices — the schema wants
+      // object-with-2+-choices or null, and either malformation used to fail
+      // the ENTIRE payload ("$.catalyst.choices must contain at least 2
+      // items", a real field report). A broken optional scene is simply no
+      // scene: coerce it to null so the turn's real content still applies.
+      if (parsed && typeof parsed === "object" && parsed.catalyst != null) {
+        const catalyst = parsed.catalyst;
+        const choices = Array.isArray(catalyst?.choices)
+          ? catalyst.choices.filter((choice) => normalizeString(choice))
+          : [];
+        if (typeof catalyst !== "object" || Array.isArray(catalyst) || choices.length < 2) {
+          parsed.catalyst = null;
+        } else {
+          parsed.catalyst = { ...catalyst, choices };
+        }
+      }
+      // Same philosophy for diplomaticOutreach: one half-written entry (no
+      // opening message, no counterpart) must not cost the turn — drop the
+      // broken entry, keep the rest.
+      if (Array.isArray(parsed?.diplomaticOutreach)) {
+        parsed.diplomaticOutreach = parsed.diplomaticOutreach.filter((entry) =>
+          entry && typeof entry === "object" && !Array.isArray(entry)
+          && normalizeString(entry.openingMessage || entry.message)
+          && (Array.isArray(entry.countries) ? entry.countries.length > 0 : Boolean(normalizeString(entry.countries))));
       }
       // Same idea for markerOps. The engine has always accepted `found`/`destroy`
       // as aliases and a build written flat, but the schema only ever allowed the
@@ -531,9 +733,39 @@ const runJsonTask = async (taskKey, {
           return { op: "build", marker, ...(note == null ? {} : { note }) };
         });
       }
+      // PATCH-STYLE RETRY REPAIR. Told "$.summary is required", a local model
+      // very often answers with just the piece the error named — {"summary":
+      // "..."} — instead of the whole object again. The engine then reported
+      // "$.events is required" and handed the player canned events, throwing
+      // away the complete turn attempt 1 had already produced (a real field
+      // report, captured live). Any key the retry did not restate is refilled
+      // from the best earlier candidate, so a patch upgrades that answer
+      // instead of replacing it.
+      if (bestCandidate && parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        for (const [key, value] of Object.entries(bestCandidate)) {
+          if (parsed[key] === undefined) parsed[key] = value;
+        }
+      }
+      // Task-level repair of fields the engine can derive (see repairPayload).
+      if (typeof repairPayload === "function" && parsed && typeof parsed === "object") {
+        try {
+          repairPayload(parsed);
+        } catch (error) {
+          console.warn(`[ai] task "${taskKey}" payload repair failed.`, error);
+        }
+      }
       let validation = parsed
         ? validateGameplayPayload(taskKey, parsed)
         : { valid: false, error: "Response did not contain parseable JSON or tool arguments." };
+      // A candidate that satisfies the SCHEMA is a usable turn even when the
+      // task-level validator wants a better one. Remember the richest such
+      // candidate: if the retry then comes back worse (or not at all), the
+      // player gets this instead of the deterministic fallback.
+      if (validation.valid) {
+        const events = Array.isArray(parsed?.events) ? parsed.events.length : 0;
+        const bestEvents = Array.isArray(bestCandidate?.events) ? bestCandidate.events.length : -1;
+        if (!bestCandidate || events > bestEvents) bestCandidate = parsed;
+      }
       if (validation.valid && validatePayload) {
         // finalAttempt tells the validator this is the last chance: callers use
         // it to switch from strict (return a corrective error for the retry) to
@@ -570,8 +802,8 @@ const runJsonTask = async (taskKey, {
           role: "user",
           parts: [{ text: `Your previous structured answer failed validation: ${validation.error} ${retryInstruction}` }],
         });
-        continue;
       }
+      outputAttempt += 1;
     }
   } catch (error) {
     const actualError = controller.signal.aborted ? controller.signal.reason : error;
@@ -587,6 +819,27 @@ const runJsonTask = async (taskKey, {
     throw signal.reason instanceof Error
       ? signal.reason
       : new DOMException("Timeline jump cancelled.", "AbortError");
+  }
+
+  // LAST-CANDIDATE SALVAGE. A generation that satisfied the schema is a real
+  // turn the model actually wrote; only the task-level validator (event count,
+  // queue coverage, world-change checks) turned it down, and those are quality
+  // preferences, not correctness. Canned fallback events carry no transfers, no
+  // diplomacy and no action resolution, so they are strictly worse than the
+  // model's own answer — give the salvage validator (finalAttempt semantics: it
+  // repairs in place instead of complaining) one look and use it if it holds.
+  if (bestCandidate) {
+    try {
+      const salvageError = validatePayload
+        ? normalizeString(await validatePayload(bestCandidate, { attempt: 2, finalAttempt: true }))
+        : "";
+      if (!salvageError && validateGameplayPayload(taskKey, bestCandidate).valid) {
+        console.warn(`[ai] task "${taskKey}" retry failed (${failureReason}) — keeping the earlier valid generation instead of the fallback.`);
+        return { generation: { source: "ai", fallbackReason: "" }, payload: bestCandidate };
+      }
+    } catch (error) {
+      console.warn(`[ai] task "${taskKey}" salvage of the earlier generation failed.`, error);
+    }
   }
 
   if (typeof fallback !== "function") {
@@ -1318,6 +1571,19 @@ const fallbackJumpSimulation = async ({ bundle, days, mode, targetDate }) => {
             : `${bundle.game.country} acts on ${action.title.toLowerCase()}`,
       });
     });
+    // Even a canned turn keeps the WORLD moving: without this, a fallback with
+    // queued actions produced player-echo events only, so consecutive fallback
+    // turns read as "nothing but my own actions ever happens".
+    events.push({
+      date: advanceGameDate(Math.max(1, Math.round(Math.max(days, 1) * 0.75))),
+      description: `Beyond ${bundle.game.country}'s borders, rival capitals push their own agendas — negotiations continue, garrisons shift, and markets react to the period's developments on their own schedule.`,
+      impacts: { createdChats: [], polityChanges: [], regionTransfers: [] },
+      importance: "minor",
+      kind: "world",
+      notable: false,
+      playerRelated: false,
+      title: "The wider world advances its own agendas",
+    });
   } else {
     const midpoint = advanceGameDate(Math.max(1, Math.round(Math.max(days, 1) / 2)));
     events.push({
@@ -1374,7 +1640,54 @@ const normalizeGeneratedEvent = (entry, index = 0) => {
   };
 };
 
-const MAX_ROLLBACK_SNAPSHOTS = 12;
+// Raised from 12: the player wants EVERY round restorable in long games.
+// Snapshots hold full per-turn state, so the cap stays bounded — 40 turns of
+// history — rather than unlimited (the snapshots file is rewritten each turn).
+// Domain clustering for stacked action queues (Korean + English keywords —
+// actions are authored in either). Deterministic and instant: grouping happens
+// HERE, not in the model, so a 24-action queue reaches the model as ~6 labeled
+// groups it must resolve with one event each — one pass, no per-action event
+// explosion (which both dropped the queue's tail and made the output long
+// enough to truncate).
+const ACTION_DOMAINS = [
+  { label: "Military & Defense", pattern: /(militar|defen[cs]e|army|navy|air force|missile|weapon|troop|invasion|drill|exercise|border|군사|국방|군대|병력|미사일|무기|훈련|방위|전쟁|안보|공격|방어|드론|레이더|DMZ|전력증강)/i },
+  { label: "Diplomacy & Alliances", pattern: /(diploma|treaty|alliance|negotiat|summit|relation|embassy|sanction|\bUN\b|외교|동맹|조약|협상|정상회담|관계|제재|유엔|회담|공조)/i },
+  // Technology outranks Economy: "반도체 R&D 투자" is a TECH initiative even
+  // though 투자 is an economy word.
+  { label: "Technology & Research", pattern: /(tech|research|develop|innovat|\bAI\b|semiconductor|space|satellite|기술|연구|개발|혁신|인공지능|반도체|우주|위성|과학)/i },
+  { label: "Economy & Trade", pattern: /(econom|trade|industr|invest|market|financ|budget|tax|export|tariff|경제|무역|산업|투자|시장|금융|예산|세금|수출|관세|기업|성장|일자리)/i },
+  { label: "Infrastructure & Energy", pattern: /(infrastructur|construct|energy|power plant|rail|port|road|grid|인프라|건설|에너지|발전소|철도|항만|도로|전력|원전)/i },
+  { label: "Intelligence & Covert", pattern: /(intelligen|covert|\bspy\b|cyber|surveillan|정보전|첩보|공작|사이버|감시|해킹|도청)/i },
+  { label: "Internal Affairs & Society", pattern: /(domestic|internal|social|politic|reform|corrupt|educat|health|welfare|\blaw\b|내정|사회|정치|개혁|부패|교육|복지|보건|법|민심|언론|치안|여론)/i },
+];
+
+const clusterPlannedActions = (actions) => {
+  const groups = new Map();
+  for (const action of normalizeActions(actions)) {
+    const haystack = `${action.title} ${action.text} ${action.rawInput}`;
+    // Diplomatic chat actions belong with diplomacy regardless of wording.
+    const domain = action.kind === "chat"
+      ? "Diplomacy & Alliances"
+      : (ACTION_DOMAINS.find((entry) => entry.pattern.test(haystack))?.label ?? "Other Initiatives");
+    if (!groups.has(domain)) groups.set(domain, []);
+    groups.get(domain).push(action);
+  }
+  return [...groups.entries()].map(([label, grouped]) => ({ label, actions: grouped }));
+};
+
+// The grouped queue as prompt text — replaces the flat plannedActions variable
+// on large queues. The header carries the contract (one event per group, all
+// ids listed) plus the era-grounding nudge: real policies and projects of the
+// period beat generic invented outcomes.
+const buildGroupedActionsText = (groups) => [
+  "The queued actions below are PRE-GROUPED by domain. Resolve each group with ONE event (two only for a large or eventful group) whose impacts.actionIds lists ALL of that group's ids — the LAST group matters exactly as much as the first. Where the era and region had REAL policies, programs, projects or precedents matching a group, use them as the vehicle for the outcome instead of inventing a generic one.",
+  ...groups.map((group, index) => [
+    `[Group ${index + 1} — ${group.label}] (${group.actions.length} action(s); ids to cover: ${group.actions.map((action) => action.id).join(", ")})`,
+    ...group.actions.map((action) => `- [id: ${action.id}] ${action.title}: ${buildActionDisplayText(action)}`),
+  ].join("\n")),
+].join("\n\n");
+
+const MAX_ROLLBACK_SNAPSHOTS = 40;
 
 // Persist the PRE-turn state so the cheats menu's "Roll back turn" can restore it.
 // A dedicated per-game runtime asset (storage/snapshots.json) — never bundled with
@@ -1463,11 +1776,35 @@ const applySimulationResult = async ({
     round: (baseGame.round || 1) + 1,
   });
   const plannedActionSnapshot = normalizeActions(baseActions).filter((action) => action.status === "planned");
+  // Precise action bookkeeping (field report: queued actions kept vanishing).
+  // clearActions defaults to true and models habitually leave it there, which
+  // used to mark EVERY planned action "resolved" even when no event touched it.
+  // Now: actions explicitly referenced by an event's impacts.actionIds resolve;
+  // the old resolve-everything behavior only fires as a fallback when the model
+  // referenced nothing at all AND actually produced events (an empty or fully
+  // deduped jump can't have resolved anything — those actions stay queued).
+  const referencedActionIds = new Set(
+    freshEvents.flatMap((event) => normalizeArray(event.impacts?.actionIds)).map((id) => String(id)),
+  );
+  const resolveAllFallback = Boolean(result.clearActions) && referencedActionIds.size === 0 && freshEvents.length > 0;
   const nextActions = normalizeActions(baseActions).map((action) => ({
     ...action,
-    status: action.status === "planned" && result.clearActions ? "resolved" : action.status,
+    status: action.status === "planned" && (referencedActionIds.has(String(action.id)) || resolveAllFallback)
+      ? "resolved"
+      : action.status,
   }));
+  if (referencedActionIds.size > 0) {
+    const carried = nextActions.filter((action) => action.status === "planned").length;
+    console.info(`[actions] ${referencedActionIds.size} queued action(s) resolved by events; ${carried} kept in the queue.`);
+  }
   const nextChats = [...normalizeChats(baseChats)];
+  // Chats this turn CREATED, kept apart from the pre-turn snapshot. A turn takes a
+  // while to generate and the player can edit the chat list while it runs, so the
+  // write at the end merges these onto whatever is actually stored by then rather
+  // than putting the stale snapshot back. See the re-read before writeChatsState.
+  // (Ported from upstream ae00384 — "Make deleting a chat hide it rather than
+  // erase it, and stop turns reviving it".)
+  const generatedChats = [];
 
   const { colors: nextColors, world: worldWithImpacts } = applyEventImpactsToWorld({
     colors: baseColors,
@@ -1494,7 +1831,7 @@ const applySimulationResult = async ({
           toDate: nextGame.gameDate,
         },
         ...normalizeWorldState(baseWorld).simulationHistory,
-      ].slice(0, 12),
+      ].slice(0, 100),
     },
   });
   let nextWorld = worldWithImpacts;
@@ -1505,7 +1842,7 @@ const applySimulationResult = async ({
         fallbackTitle: event.title,
         playerName: baseGame.country,
       });
-      if (nextChat) nextChats.unshift(nextChat);
+      if (nextChat) { nextChats.unshift(nextChat); generatedChats.unshift(nextChat); }
     }
   }
 
@@ -1516,7 +1853,7 @@ const applySimulationResult = async ({
     const nextChat = await buildGeneratedChat({ ...chatLike, source: "outreach" }, "", worldWithImpacts, {
       playerName: baseGame.country,
     });
-    if (nextChat) nextChats.unshift(nextChat);
+    if (nextChat) { nextChats.unshift(nextChat); generatedChats.unshift(nextChat); }
   }
 
   if (result.mode === "jump" || result.mode === "auto") {
@@ -1533,9 +1870,22 @@ const applySimulationResult = async ({
     }
   }
 
+  // Re-read the chat list instead of writing the pre-turn snapshot back over it.
+  // Turns take a while, and anything the player did to the list while one ran —
+  // deleting a thread, archiving one — exists only in storage. Writing baseChats
+  // on top resurrected deleted chats, and the AI's next message then landed in the
+  // revived thread instead of opening a fresh one. Falls back to the snapshot if
+  // the read fails, which is the old behaviour and never loses a generated chat.
+  let chatsToWrite;
+  try {
+    chatsToWrite = [...generatedChats, ...normalizeChats(await readChatsState({ force: true }))];
+  } catch {
+    chatsToWrite = nextChats;
+  }
+
   await Promise.all([
     writeActionsState(nextActions),
-    writeChatsState(nextChats),
+    writeChatsState(chatsToWrite),
     writeEventsState(nextEvents),
     writeGameData(nextGame),
     writeJson(JSON_URLS.colors, nextColors, { pretty: true }),
@@ -1564,7 +1914,7 @@ const applySimulationResult = async ({
 
   return {
     actions: nextActions,
-    chats: nextChats,
+    chats: chatsToWrite, // what was actually persisted, not the pre-turn snapshot
     colors: nextColors,
     events: nextEvents,
     game: nextGame,
@@ -1633,6 +1983,62 @@ export const generateActionSuggestions = async ({ force = true } = {}) => {
   await writeWorldState(world);
 
   return topics;
+};
+
+// Campaign chronicle ("배경 이야기"): the advisor's Background Story tab, matching
+// Pax Historia's. Reads the round summaries, event history and the player's own
+// actions, asks the model for a flowing narrative (callAI's language directive
+// localizes it), and caches the result on the world state so reopening the tab
+// is instant until the player regenerates it.
+export const generateBackstory = async () => {
+  const bundle = await readGameStateBundle({ force: true });
+  const world = normalizeWorldState(bundle.world);
+  const rounds = normalizeArray(world.simulationHistory)
+    // History can now hold up to 100 rounds — feed the chronicler the most
+    // recent 30 so the prompt stays inside a local model's context.
+    .slice(0, 30)
+    .reverse()
+    .map((entry) => {
+      const dates = entry.fromDate || entry.toDate ? ` (${entry.fromDate || "?"} → ${entry.toDate || "?"})` : "";
+      return `Round ${entry.round ?? "?"}${dates}: ${normalizeString(entry.summary)}`;
+    })
+    .filter((line) => !line.endsWith(": "))
+    .join("\n");
+  const player = normalizeString(bundle.game.country) || "the player's polity";
+  const systemPrompt = [
+    `You are the campaign chronicler for a grand-strategy game. Write the campaign's BACKGROUND STORY so far from the perspective of ${player}, as an engaging but factual historical narrative.`,
+    "Rules:",
+    "- Chronological, 3 to 6 markdown paragraphs; a short bold heading per phase of the campaign when natural.",
+    "- Weave the player's actions and their consequences into the story; never output raw lists of events.",
+    "- Only use what actually happened in the material below; never invent events.",
+    "- End with the current situation and the open threads the player now faces.",
+    "",
+    "[Round Summaries]",
+    rounds || "(no completed rounds yet — describe the starting situation instead)",
+    "",
+    "[Event History]",
+    buildEventHistoryText(bundle.events, { limit: 40 }),
+    "",
+    "[Player Action History]",
+    buildActionHistoryText(bundle.actions),
+  ].join("\n");
+
+  const response = await callAI(systemPrompt, [
+    { role: "user", parts: [{ text: "Write the background story now." }] },
+  ], { role: "advisor" });
+  const text = normalizeString(typeof response === "string" ? response : response?.rawText);
+  if (!text) {
+    throw new Error("The model returned an empty backstory.");
+  }
+
+  const latest = normalizeWorldState(await readWorldState());
+  latest.backstory = {
+    generatedAt: normalizeString(bundle.game.gameDate),
+    round: bundle.game.round || 1,
+    text,
+  };
+  await writeWorldState(latest);
+  return text;
 };
 
 // Freeform AI intelligence briefing on a specific country/polity, grounded in the
@@ -1717,7 +2123,48 @@ export const generateCountryStats = async ({ code, name } = {}) => {
     `Respond in ${variables.language || "English"} as 4-6 short bullet points, each prefixed with "- ". No preamble, no closing remarks.`;
   const raw = await callAI(system, [
     { role: "user", parts: [{ text: `Give me the intelligence briefing on ${target}.` }] },
-  ]);
+  ], { role: "advisor" });
+  return String(raw || "").trim();
+};
+
+// Region-level advisor briefing for the region info panel — the original
+// game's per-province advisor report. Grounded in the live world state plus
+// whatever recorded events touched the region (by transfer id or by name).
+export const generateRegionBrief = async ({ id, name, ownerName } = {}) => {
+  const bundle = await readGameStateBundle({ force: true });
+  const variables = await buildTemplateVariables(bundle);
+  const target = name || id || "the region";
+  const playerPolity = variables.playerPolity || bundle?.game?.country || "the player";
+  const world = normalizeWorldState(bundle.world);
+  const regionEvents = normalizeEvents(bundle.events)
+    .filter((event) => {
+      const transfers = event.impacts?.regionTransfers ?? [];
+      if (id && transfers.some((transfer) => String(transfer?.regionId) === String(id))) return true;
+      const haystack = `${event.title ?? ""} ${event.description ?? ""}`.toLowerCase();
+      return Boolean(name) && haystack.includes(String(name).toLowerCase());
+    })
+    .slice(-12)
+    .map((event) => `${event.date || "undated"} — ${event.title}: ${event.description}`)
+    .join("\n");
+  const claimants = (id ? world.regionClaimants?.[id] ?? [] : []).join(", ");
+  const era = normalizeString(bundle.world?.simulationRules).slice(0, 700);
+  const system =
+    `You are the intelligence advisor in an alternate-history strategy game. ` +
+    `The current date is ${variables.date || "unknown"}. The player leads ${playerPolity}. ` +
+    `Give a concise REGIONAL briefing on the region "${target}"${ownerName ? `, currently part of ${ownerName}` : ", currently unclaimed territory"}. ` +
+    `Treat the recorded facts below as ground truth. Where specifics are not recorded, give your best ` +
+    `historical estimate for this era and place — plausible estimates are your job. Never answer with ` +
+    `"unknown" or "no data"; mark guesses with "(est.)". ` +
+    `Cover: strategic value & geography, population & economy, military presence & defensibility, ` +
+    `political stability${claimants ? " (note the competing claims)" : ""}, and what this region means for ${playerPolity}.\n\n` +
+    (era ? `ERA & WORLD RULES:\n${era}\n\n` : "") +
+    (claimants ? `COMPETING CLAIMS: claimed by ${claimants}\n\n` : "") +
+    `WORLD STATE:\n${variables.worldSummary || variables.grandMapDescription || "(no summary)"}\n\n` +
+    `EVENTS TOUCHING THIS REGION:\n${regionEvents || "(none recorded)"}\n\n` +
+    `Respond in ${variables.language || "English"} as 4-6 short bullet points, each prefixed with "- ". No preamble, no closing remarks.`;
+  const raw = await callAI(system, [
+    { role: "user", parts: [{ text: `Give me the regional briefing on ${target}.` }] },
+  ], { role: "advisor" });
   return String(raw || "").trim();
 };
 
@@ -2030,13 +2477,85 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
   let [minEvents, maxEvents] = eventCountRangeForDays(safeDays);
   // Guarantee at least one event per queued action, so each planned action has a
   // slot to resolve into (bounded so a huge queue can't demand absurd counts).
-  const plannedActionCount = normalizeActions(bundle.actions).filter((action) => action.status === "planned").length;
-  if (plannedActionCount > minEvents) {
+  const plannedQueue = normalizeActions(bundle.actions).filter((action) => action.status === "planned");
+  const plannedActionCount = plannedQueue.length;
+  // SHORT alias ids for the prompt (A1, A2, …): the real queue ids are long
+  // random strings ("action-0-ms68iq11-z1c1qzf") that local models reliably
+  // fail to echo back — a captured turn narrated every action perfectly and
+  // returned ZERO usable actionIds. Aliases round-trip; they are translated
+  // back to the real ids before anything is applied.
+  const aliasToReal = new Map();
+  const realToAlias = new Map();
+  plannedQueue.forEach((action, index) => {
+    const alias = `A${index + 1}`;
+    aliasToReal.set(alias.toLowerCase(), String(action.id));
+    realToAlias.set(String(action.id), alias);
+  });
+  const aliasedCopy = (action) => ({ ...action, id: realToAlias.get(String(action.id)) ?? action.id });
+  const resolveActionRef = (value) => {
+    const raw = normalizeString(value).replace(/^\[?id:\s*/i, "").replace(/\]$/, "").trim();
+    return aliasToReal.get(raw.toLowerCase()) ?? raw;
+  };
+  const translateActionIds = (candidate) => {
+    for (const event of normalizeArray(candidate?.events)) {
+      if (Array.isArray(event?.impacts?.actionIds)) {
+        event.impacts.actionIds = event.impacts.actionIds.map((id) => resolveActionRef(id));
+      }
+    }
+  };
+  // Which queued-action ids does a candidate payload actually resolve?
+  // (Aliases resolve to real ids before counting.)
+  const collectCoveredActionIds = (candidate) => new Set(
+    normalizeArray(candidate?.events)
+      .flatMap((event) => normalizeArray(event?.impacts?.actionIds))
+      .map((id) => String(resolveActionRef(id))),
+  );
+  // Stacked queues are clustered by domain and resolved one event per GROUP —
+  // demanding one event per ACTION both dropped the queue's tail and inflated
+  // the answer until it truncated. Small queues keep the per-action budget.
+  const actionGroups = plannedActionCount >= 4 ? clusterPlannedActions(plannedQueue) : [];
+  if (actionGroups.length > 0) {
+    minEvents = Math.max(minEvents, actionGroups.length);
+    maxEvents = Math.max(maxEvents, actionGroups.length * 2 + 4);
+  } else if (plannedActionCount > minEvents) {
     minEvents = Math.min(plannedActionCount, 37);
     maxEvents = Math.max(maxEvents, minEvents + 3);
   }
+  const aliasedGroups = actionGroups.map((group) => ({ ...group, actions: group.actions.map(aliasedCopy) }));
+  const jumpVariables = aliasedGroups.length > 0
+    ? { ...variables, plannedActions: buildGroupedActionsText(aliasedGroups) }
+    : (plannedQueue.length > 0
+        ? { ...variables, plannedActions: buildActionHistoryText(plannedQueue.map(aliasedCopy)) }
+        : variables);
+  // Required-scalar repair. Captured live: qwen3:14b returned 18 finished,
+  // well-formed Korean events and simply skipped "summary" — one missing
+  // one-line string failed the WHOLE payload ("$.summary is required"), forced
+  // a retry, and the retry answered with a patch that had no events at all
+  // ("$.events is required", the error the player actually saw). Every one of
+  // these fields is derivable from the answer the model DID write, so derive
+  // them instead of spending the turn on them.
+  const repairJumpPayload = (candidate) => {
+    if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return;
+    const events = normalizeArray(candidate.events);
+    if (events.length === 0) return;
+    if (!normalizeString(candidate.summary)) {
+      const headlines = events
+        .filter((event) => event?.notable)
+        .concat(events)
+        .map((event) => normalizeString(event?.title))
+        .filter(Boolean);
+      candidate.summary = [...new Set(headlines)].slice(0, 4).join(" / ")
+        || `${originDate} → ${targetDate}`;
+    }
+    if (!normalizeString(candidate.stopDate)) {
+      const dates = events.map((event) => normalizeString(event?.date)).filter(Boolean).sort();
+      candidate.stopDate = dates[dates.length - 1] || targetDate;
+    }
+    if (typeof candidate.clearActions !== "boolean") candidate.clearActions = false;
+  };
   const { generation, payload } = await runJsonTask(mode === "auto" ? "autoJumpForward" : "jumpForward", {
     fallback: () => fallbackJumpSimulation({ bundle, days: dateStep || 1, mode, targetDate }),
+    repairPayload: repairJumpPayload,
     signal,
     // The jump IS the game — by default generation waits as long as the model
     // needs (0 disables the deadline in runJsonTask), so the canned fallback is
@@ -2046,13 +2565,18 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     // works either way).
     timeoutMs: getMapSetting(MAP_SETTING_KEYS.limitAiGeneration) ? 300000 : 0,
     userMessage:
-      mode === "auto"
+      (mode === "auto"
         ? "Simulate an auto-jump and stop at the next notable or player-relevant event. Return JSON only. " +
           "Scale the events array to the time actually covered before your stop point: roughly 1-2 events per week, " +
           "5-7 per month, 10-13 per quarter, up to 29-37 for a full year — spread their dates across the covered period."
         : `Simulate a standard jump forward to the requested target date. Return JSON only. The "events" array must ` +
           `contain between ${minEvents} and ${maxEvents} events (this jump covers ${durationLabel}), with their dates ` +
-           `spread across the skipped period.`,
+           `spread across the skipped period.`) +
+      // Named explicitly because the omission is silent and expensive: the
+      // model writes every event perfectly and then skips "summary".
+      ` Your answer MUST contain ALL FOUR of these top-level fields, every time: "events", "summary" (one or two ` +
+      `sentences on the period), "stopDate", and "clearActions". An answer missing any of them is rejected. If you are ` +
+      `ever asked to correct an answer, resend the WHOLE object with every field, never just the corrected part.`,
     validatePayload: async (candidate, { finalAttempt } = {}) => {
       // Shape-of-story problems (event count, stray dates) are STRICT while a
       // retry remains — the model gets the exact error and usually fixes its
@@ -2072,17 +2596,132 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
         if (strict) return dateError;
         clampTimelineDates(candidate, { mode, originDate, targetDate });
       }
+      // Long-queue coverage (strict phase): the model habitually executes the
+      // first few stacked actions and drops the tail — exactly the original
+      // game's failure this project set out to fix. Demand ids for the
+      // uncovered ones while a retry remains; the supplemental pass below
+      // mops up whatever still slips through.
+      if (strict && plannedQueue.length >= 4) {
+        const covered = collectCoveredActionIds(candidate);
+        const uncovered = plannedQueue.filter((action) => !covered.has(String(action.id)));
+        if (uncovered.length > Math.ceil(plannedQueue.length * 0.3)) {
+          const listing = uncovered.slice(0, 12).map((action) => `[id: ${realToAlias.get(String(action.id)) ?? action.id}] ${action.title}`).join("; ");
+          return `Only ${plannedQueue.length - uncovered.length} of the player's ${plannedQueue.length} queued actions were covered. ` +
+            `Every queued action must be executed, attempted, or frustrated by an event listing its id in impacts.actionIds. ` +
+            `Still uncovered: ${listing}. Add events (or extend existing ones) covering them.`;
+        }
+      }
       return await validateGeneratedWorldChanges(candidate, bundle.world, { strictTransfers: strict });
     },
-    variables,
+    variables: jumpVariables,
   });
+
+  // Supplemental coverage passes: whatever queued actions the main generation
+  // left uncovered get their OWN generation over the same period, scoped to
+  // just them. Tokens are the player's own GPU here — spending another call to
+  // honor the back half of a long queue is the entire point (the original
+  // game's stacked actions kept losing their tail). Bounded to 2 passes; an
+  // action still uncovered after that stays QUEUED (clearActions is forced
+  // false below so nothing silently resolves it).
+  translateActionIds(payload);
+  let mergedEvents = normalizeArray(payload?.events);
+  let mergedOutreach = normalizeArray(payload?.diplomaticOutreach);
+  // Narrative matching: a model that clearly NARRATES an action but omits its
+  // id still resolves it — if an event's text carries the action's title, tag
+  // that event with the action's real id. This is the captured failure exactly
+  // ("한국은 해병 부대 강화를 시행하여 …" with an empty actionIds list — 18 events, 0 ids).
+  // It runs BEFORE the supplemental passes, and again after each one: matching
+  // is free, a supplemental pass costs another full generation, and the local
+  // models never emit actionIds on their own, so doing this first routinely
+  // saves the player one or two multi-minute calls per turn.
+  const applyNarrativeCoverage = () => {
+    const covered = new Set(
+      mergedEvents.flatMap((event) => normalizeArray(event?.impacts?.actionIds)).map((id) => String(id)),
+    );
+    // Korean titles get spaced differently in prose than in the queue
+    // ("해병 부대 강화" vs "해병부대 강화"), so compare with spacing removed.
+    const squash = (value) => normalizeString(value).toLowerCase().replace(/\s+/g, "");
+    for (const action of plannedQueue) {
+      if (covered.has(String(action.id))) continue;
+      const needle = squash(action.title);
+      if (needle.length < 4) continue;
+      const match = mergedEvents.find((event) => squash(`${event?.title ?? ""} ${event?.description ?? ""}`).includes(needle));
+      if (!match) continue;
+      if (!match.impacts || typeof match.impacts !== "object") match.impacts = {};
+      if (!Array.isArray(match.impacts.actionIds)) match.impacts.actionIds = [];
+      match.impacts.actionIds.push(String(action.id));
+      covered.add(String(action.id));
+    }
+  };
+  applyNarrativeCoverage();
+  if (generation?.source === "ai" && plannedQueue.length >= 4) {
+    for (let pass = 1; pass <= 2; pass += 1) {
+      const coveredSoFar = new Set(
+        mergedEvents.flatMap((event) => normalizeArray(event?.impacts?.actionIds)).map((id) => String(id)),
+      );
+      const uncovered = plannedQueue.filter((action) => !coveredSoFar.has(String(action.id)));
+      if (uncovered.length < 3) break;
+      const supMin = Math.max(1, Math.ceil(uncovered.length / 3));
+      const supMax = uncovered.length + 2;
+      try {
+        const { generation: supGeneration, payload: supPayload } = await runJsonTask(mode === "auto" ? "autoJumpForward" : "jumpForward", {
+          signal,
+          timeoutMs: getMapSetting(MAP_SETTING_KEYS.limitAiGeneration) ? 300000 : 0,
+          userMessage:
+            `SUPPLEMENTAL PASS for the SAME period (${originDate} → ${targetDate}): the main simulation of this jump is already done. ` +
+            `Generate ONLY the events that execute, attempt, or frustrate the player's remaining queued actions listed in the context — ` +
+            `no unrelated world events, no restating what already happened. Between ${supMin} and ${supMax} events; every event lists ` +
+            `the ids it covers in impacts.actionIds; cover EVERY listed action. Return JSON only.`,
+          validatePayload: async (candidate, { finalAttempt } = {}) => {
+            const dateError = validateTimelineDates({ candidate, mode, originDate, targetDate, requireAdvance: false });
+            if (dateError) {
+              if (!finalAttempt) return dateError;
+              clampTimelineDates(candidate, { mode, originDate, targetDate });
+            }
+            if (!finalAttempt) {
+              const covered = collectCoveredActionIds(candidate);
+              const still = uncovered.filter((action) => !covered.has(String(action.id)));
+              if (still.length > Math.ceil(uncovered.length * 0.3)) {
+                const listing = still.slice(0, 12).map((action) => `[id: ${realToAlias.get(String(action.id)) ?? action.id}] ${action.title}`).join("; ");
+                return `This supplemental pass must cover the remaining queued actions. Still uncovered: ${listing}.`;
+              }
+            }
+            return await validateGeneratedWorldChanges(candidate, bundle.world, { strictTransfers: !finalAttempt });
+          },
+          variables: {
+            ...variables,
+            plannedActions: buildActionHistoryText(uncovered.map(aliasedCopy)),
+          },
+        });
+        translateActionIds(supPayload);
+        const supEvents = normalizeArray(supPayload?.events);
+        if (supGeneration?.source !== "ai" || supEvents.length === 0) break;
+        mergedEvents = [...mergedEvents, ...supEvents];
+        mergedOutreach = [...mergedOutreach, ...normalizeArray(supPayload?.diplomaticOutreach)];
+        applyNarrativeCoverage();
+        console.info(`[actions] supplemental pass ${pass} covered ${supEvents.length} event(s) for ${uncovered.length} leftover queued action(s).`);
+      } catch (error) {
+        // No fallback for a supplemental pass — uncovered actions simply stay queued.
+        console.warn("[actions] supplemental coverage pass failed; leftover actions stay queued.", error);
+        break;
+      }
+    }
+  }
+  applyNarrativeCoverage();
+  const finalCovered = new Set(
+    mergedEvents.flatMap((event) => normalizeArray(event?.impacts?.actionIds)).map((id) => String(id)),
+  );
+  const leftUncovered = plannedQueue.filter((action) => !finalCovered.has(String(action.id))).length;
 
   const result = {
     catalyst: payload?.catalyst ?? null,
-    clearActions: payload?.clearActions !== false,
-    events: normalizeArray(payload?.events),
+    // A queue with uncovered actions must NEVER be blanket-resolved: forcing
+    // clearActions off keeps resolveAllFallback from wiping what the model
+    // did not actually execute — they ride to the next turn instead.
+    clearActions: payload?.clearActions !== false && leftUncovered === 0,
+    events: mergedEvents,
     mode,
-    outreach: normalizeArray(payload?.diplomaticOutreach),
+    outreach: mergedOutreach,
     stopDate: normalizeString(payload?.stopDate) || targetDate,
     summary: normalizeString(payload?.summary),
     generation,

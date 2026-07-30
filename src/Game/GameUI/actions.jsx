@@ -12,6 +12,7 @@ import {
     readActionsState,
     writeActionsState,
 } from "../../runtime/gameState.js";
+import { useDragWindow } from "./useDragWindow.js";
 
 dayjs.extend(advancedFormat);
 
@@ -77,6 +78,20 @@ const SpinnerRing = ({ size = 14, tone = "rgba(255,255,255,0.88)" }) => {
 const saveActions = async (actions) => writeActionsState(actions);
 const loadActions = async () => readActionsState();
 
+// Brainstormed topics are persisted on the world state by
+// generateActionSuggestions, so closing the panel (or reloading the page) no
+// longer loses them; a rollback restores the snapshot's own suggestion list
+// the same way. A jump clears world.actionSuggestions, so a stale pre-turn
+// list can never resurface after time advances.
+const loadPersistedSuggestions = async () => {
+    try {
+        const world = await readJson(JSON_URLS.world, { defaultValue: {}, force: true });
+        return Array.isArray(world?.actionSuggestions) ? world.actionSuggestions : [];
+    } catch {
+        return [];
+    }
+};
+
 const createManualAction = (input) =>
 normalizeActionEntry({
     kind: "action",
@@ -94,8 +109,10 @@ normalizeActionEntry({
     status: "planned",
 });
 
-const ActionItem = ({ action, onDelete }) => {
+const ActionItem = ({ action, onDelete, onEdit }) => {
     const [hovered, setHovered] = React.useState(false);
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [draft, setDraft] = React.useState("");
     const normalized = normalizeActionEntry(action);
 
     if (!normalized) {
@@ -104,6 +121,19 @@ const ActionItem = ({ action, onDelete }) => {
 
     const label = buildActionDisplayText(normalized);
     const showTitle = normalized.title && normalized.title !== label;
+
+    const startEdit = () => {
+        setDraft(normalized.rawInput || normalized.text || label);
+        setIsEditing(true);
+    };
+
+    const saveEdit = () => {
+        const trimmed = draft.trim();
+        setIsEditing(false);
+        if (trimmed && trimmed !== (normalized.rawInput || normalized.text)) {
+            onEdit?.(trimmed);
+        }
+    };
 
     return (
         <div
@@ -123,15 +153,66 @@ const ActionItem = ({ action, onDelete }) => {
             transition: "background 0.15s",
         }}
         >
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Clicking the action's text itself opens the inline editor — the
+            original's interaction; the old ✎ pencil button is gone. */}
+        <div
+        onClick={!isEditing && onEdit ? startEdit : undefined}
+        title={!isEditing && onEdit ? "Click to edit this action" : undefined}
+        style={{ cursor: !isEditing && onEdit ? "pointer" : "default", flex: 1, minWidth: 0 }}
+        >
         {showTitle && (
             <div style={{ color: "rgba(255,255,255,0.95)", fontSize: "0.78rem", fontWeight: 700, marginBottom: "0.15rem" }}>
             {normalized.title}
             </div>
         )}
-        <div style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.82rem", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-        {label}
-        </div>
+        {isEditing ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <textarea
+            value={draft}
+            autoFocus
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); saveEdit(); }
+                if (event.key === "Escape") { setIsEditing(false); }
+            }}
+            style={{
+                background: "rgba(0,0,0,0.25)",
+                border: "1px solid rgba(139,92,246,0.5)",
+                borderRadius: "8px",
+                boxSizing: "border-box",
+                color: "white",
+                fontFamily: "sans-serif",
+                fontSize: "0.82rem",
+                lineHeight: "1.45",
+                minHeight: "3.2rem",
+                outline: "none",
+                padding: "0.5rem 0.6rem",
+                resize: "vertical",
+                width: "100%",
+            }}
+            />
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+            <button
+            type="button"
+            onClick={saveEdit}
+            style={{ background: "#3b82f6", border: "none", borderRadius: "8px", color: "white", cursor: "pointer", fontSize: "0.74rem", fontWeight: 600, padding: "0.3rem 0.8rem" }}
+            >
+            Save
+            </button>
+            <button
+            type="button"
+            onClick={() => setIsEditing(false)}
+            style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", color: "rgba(255,255,255,0.8)", cursor: "pointer", fontSize: "0.74rem", padding: "0.3rem 0.8rem" }}
+            >
+            Cancel
+            </button>
+            </div>
+            </div>
+        ) : (
+            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.82rem", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {label}
+            </div>
+        )}
         <div
         style={{
             color: "rgba(255,255,255,0.38)",
@@ -144,29 +225,31 @@ const ActionItem = ({ action, onDelete }) => {
         {normalized.kind} • {normalized.status}
         </div>
         </div>
-        <button
-        type="button"
-        onClick={onDelete}
-        title="Delete action"
-        style={{
-            alignItems: "center",
-            background: hovered ? "rgba(239,68,68,0.1)" : "none",
-            border: "none",
-            borderRadius: "6px",
-            color: hovered ? "rgba(239,68,68,0.95)" : "rgba(239,68,68,0.8)",
-            cursor: "pointer",
-            display: "flex",
-            flexShrink: 0,
-            fontSize: "1rem",
-            lineHeight: 1,
-            opacity: hovered ? 1 : 0,
-            padding: "0.18rem 0.3rem",
-            pointerEvents: hovered ? "auto" : "none",
-            transition: "opacity 0.15s, color 0.15s, background 0.15s",
-        }}
-        >
-        {"\u2715"}
-        </button>
+        {!isEditing && (
+            <button
+            type="button"
+            onClick={onDelete}
+            title="Delete action"
+            style={{
+                alignItems: "center",
+                background: hovered ? "rgba(239,68,68,0.1)" : "none",
+                border: "none",
+                borderRadius: "6px",
+                color: hovered ? "rgba(239,68,68,0.95)" : "rgba(239,68,68,0.8)",
+                cursor: "pointer",
+                display: "flex",
+                flexShrink: 0,
+                fontSize: "1rem",
+                lineHeight: 1,
+                opacity: hovered ? 1 : 0,
+                padding: "0.18rem 0.3rem",
+                pointerEvents: hovered ? "auto" : "none",
+                transition: "opacity 0.15s, color 0.15s, background 0.15s",
+            }}
+            >
+            {"\u2715"}
+            </button>
+        )}
         </div>
     );
 };
@@ -196,14 +279,14 @@ const SuggestionCard = ({ topic, onQueue, queuedIds }) => (
             <button
             key={action.id}
             type="button"
-            disabled={isQueued}
             onClick={() => onQueue(action)}
+            title={isQueued ? "Click to un-adopt this suggestion" : "Click to adopt this suggestion"}
             style={{
                 background: isQueued ? "rgba(34,197,94,0.12)" : "rgba(109,40,217,0.12)",
                 border: isQueued ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(139,92,246,0.24)",
                 borderRadius: "10px",
                 color: "rgba(255,255,255,0.9)",
-                cursor: isQueued ? "default" : "pointer",
+                cursor: "pointer",
                 fontFamily: "sans-serif",
                 padding: "0.55rem 0.7rem",
                 textAlign: "left",
@@ -230,13 +313,14 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
     const countryDisplayName = useCountryDisplayName(country);
     const [gameDate, setGameDate] = React.useState("the current date");
     const [suggestions, setSuggestions] = React.useState([]);
-    const [queuedSuggestionIds, setQueuedSuggestionIds] = React.useState(() => new Set());
     const [hasRequestedSuggestions, setHasRequestedSuggestions] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isImproving, setIsImproving] = React.useState(false);
     const [isSuggesting, setIsSuggesting] = React.useState(false);
     const inputRef = React.useRef(null);
     const lastRoundRef = React.useRef(null);
+    // Drag-to-move by the header, like the original's windows.
+    const drag = useDragWindow();
 
     React.useEffect(() => {
         if (!isOpen) {
@@ -245,8 +329,15 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
 
         let cancelled = false;
         ensureActionsStyles();
-        setSuggestions([]);
-        setHasRequestedSuggestions(false);
+
+        // Restore the last brainstorm instead of wiping it — the field report:
+        // suggestions vanished whenever the panel was closed and reopened.
+        loadPersistedSuggestions().then((persisted) => {
+            if (!cancelled) {
+                setSuggestions(persisted);
+                setHasRequestedSuggestions(persisted.length > 0);
+            }
+        });
 
         loadActions().then((saved) => {
             if (!cancelled) {
@@ -278,6 +369,16 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
                 if (typeof data.round === "number") {
                     if (lastRoundRef.current !== null && data.round !== lastRoundRef.current) {
                         loadActions().then((saved) => { if (!cancelled) setActions(saved); });
+                        // The round moved while the panel was open — forward
+                        // (jump cleared the persisted list) or backward (a
+                        // rollback restored the snapshot's list). Either way
+                        // the world state now holds the truth; mirror it.
+                        loadPersistedSuggestions().then((persisted) => {
+                            if (!cancelled) {
+                                setSuggestions(persisted);
+                                setHasRequestedSuggestions(persisted.length > 0);
+                            }
+                        });
                     }
                     lastRoundRef.current = data.round;
                 }
@@ -312,6 +413,15 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
         }))
         .filter(({ normalized }) => normalized?.status === "planned"),
                                            [actions],
+    );
+
+    // Which suggestions are queued is DERIVED from the queued actions themselves
+    // (a queued suggestion keeps its action id), not tracked in separate state —
+    // so deleting a queued action immediately makes its suggestion selectable
+    // again, instead of staying stuck on "✓ Queued" forever.
+    const queuedSuggestionIds = React.useMemo(
+        () => new Set(submittedActions.map(({ normalized }) => normalized.id)),
+        [submittedActions],
     );
 
     const handleSubmit = async () => {
@@ -370,6 +480,16 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
     };
 
     const handleQueueSuggestion = async (action) => {
+        // Toggle: clicking an adopted suggestion again un-adopts it (removes the
+        // queued action), so adopt/cancel is one repeated click on the same card.
+        const existingIndex = actions.findIndex(
+            (entry, index) => normalizeActionEntry(entry, index)?.id === action.id,
+        );
+        if (existingIndex >= 0) {
+            await handleDelete(existingIndex);
+            return;
+        }
+
         const queuedAction = normalizeSuggestionAction(action);
         if (!queuedAction) {
             // Malformed AI suggestion — say so instead of doing nothing.
@@ -378,8 +498,25 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
         }
 
         await persistActions([...actions, queuedAction]);
-        // Visible click feedback: the suggestion button flips to "✓ Queued".
-        setQueuedSuggestionIds((previous) => new Set(previous).add(action.id));
+        // Click feedback ("✓ Queued") follows automatically: queuedSuggestionIds
+        // is derived from the queued actions, so adding it here is enough.
+    };
+
+    // Edit a queued action's text in place. Suggested actions keep their topic
+    // title; manual actions regenerate the auto-title from the new text.
+    const handleEdit = async (index, newText) => {
+        const original = actions[index];
+        const source = normalizeActionEntry(original)?.source || "manual";
+        const updated = normalizeActionEntry({
+            ...original,
+            rawInput: newText,
+            text: newText,
+            ...(source === "suggested" ? {} : { title: "" }),
+        });
+        if (!updated) {
+            return;
+        }
+        await persistActions(actions.map((entry, entryIndex) => (entryIndex === index ? updated : entry)));
     };
 
     const refreshSuggestions = async () => {
@@ -392,7 +529,6 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
         try {
             const topics = await generateActionSuggestions({ force: true });
             setSuggestions(topics);
-            setQueuedSuggestionIds(new Set());
         } catch (error) {
             console.error("Failed to generate suggestions:", error);
             setSuggestions([]);
@@ -409,8 +545,8 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
     };
 
     const suggestionButtonLabel = hasRequestedSuggestions
-    ? (isSuggesting ? "Refreshing AI suggestions..." : "Refresh AI suggestions")
-    : (isSuggesting ? "Loading AI suggestions..." : "Get AI suggestions");
+    ? (isSuggesting ? "Brainstorming more ideas..." : "Brainstorm fresh action ideas")
+    : (isSuggesting ? "Brainstorming actions..." : "Help brainstorm actions");
 
     return (
         <div
@@ -436,18 +572,23 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
             overflow: "hidden",
             pointerEvents: isOpen ? "auto" : "none",
             position: "fixed",
+            transform: drag.transform,
             transition: "bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease",
             width: "26.25rem",
             zIndex: 9998,
         }}
         >
         <div
+        onPointerDown={drag.onPointerDown}
         style={{
             alignItems: "center",
             borderBottom: "1px solid rgba(255,255,255,0.07)",
+            cursor: "grab",
             display: "flex",
             justifyContent: "space-between",
             padding: "1rem 1.25rem 0.75rem",
+            touchAction: "none",
+            userSelect: "none",
         }}
         >
         <span style={{ fontSize: "1rem", fontWeight: 700, letterSpacing: "0.01em" }}>Actions</span>
@@ -490,17 +631,24 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
         Submit actions for {countryDisplayName} for {gameDate}. Your actions will affect how the game world responds.
         </p>
 
+        {/* One button, one job: brainstorming IS the AI suggestions run. The old
+            second "Get AI suggestions" button is gone, and this no longer merely
+            opens the advisor drawer. */}
         <button
         type="button"
-        onClick={onOpenAdvisor}
+        onClick={refreshSuggestions}
         style={{
+            alignItems: "center",
             background: "rgba(109, 40, 217, 0.15)",
             border: "1px solid rgba(139, 92, 246, 0.4)",
             borderRadius: "10px",
             color: "rgba(196, 165, 255, 0.95)",
             cursor: "pointer",
+            display: "flex",
             fontSize: "0.82rem",
             fontWeight: 500,
+            gap: "0.5rem",
+            justifyContent: "center",
             letterSpacing: "0.01em",
             padding: "0.55rem 1rem",
             transition: "background 0.15s, border-color 0.15s",
@@ -515,51 +663,40 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
             event.currentTarget.style.borderColor = "rgba(139,92,246,0.4)";
         }}
         >
-        Help brainstorm actions
-        </button>
-
-        <button
-        type="button"
-        onClick={refreshSuggestions}
-        style={{
-            alignItems: "center",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "10px",
-            color: "rgba(255,255,255,0.82)",
-            cursor: "pointer",
-            display: "flex",
-            fontSize: "0.8rem",
-            gap: "0.5rem",
-            justifyContent: "center",
-            padding: "0.52rem 1rem",
-            transition: "background 0.15s, border-color 0.15s",
-            width: "100%",
-        }}
-        onMouseEnter={(event) => {
-            event.currentTarget.style.background = "rgba(255,255,255,0.09)";
-            event.currentTarget.style.borderColor = "rgba(255,255,255,0.18)";
-        }}
-        onMouseLeave={(event) => {
-            event.currentTarget.style.background = "rgba(255,255,255,0.05)";
-            event.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
-        }}
-        >
         {isSuggesting && <SpinnerRing size={14} />}
         <span>{suggestionButtonLabel}</span>
         </button>
 
+        {/* Unified window: submitted actions and brainstormed suggestions live in
+            ONE scrolling list instead of two separate stacked boxes. */}
+        <div
+        style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.45rem",
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            scrollbarWidth: "none",
+        }}
+        >
+        {/* Suggestions stay ON TOP and queued actions collect BELOW them (as in
+            Pax Historia), so adopting a suggestion never shoves the brainstorm
+            list down and the reading position holds still. */}
         {(hasRequestedSuggestions || isSuggesting || suggestions.length > 0) && (
-            <div
+            <>
+            <p
             style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-                maxHeight: "13rem",
-                overflowY: "auto",
-                scrollbarWidth: "none",
+                color: "rgba(255,255,255,0.9)",
+                fontSize: "0.78rem",
+                fontWeight: 700,
+                letterSpacing: "0.06em",
+                margin: 0,
+                textTransform: "uppercase",
             }}
             >
+            AI Brainstormed Suggestions
+            </p>
             {hasRequestedSuggestions && !isSuggesting && suggestions.length === 0 && (
                 <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.78rem", fontStyle: "italic", margin: 0 }}>
                 No AI suggestions generated yet.
@@ -568,42 +705,35 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
             {suggestions.map((topic) => (
                 <SuggestionCard key={topic.id} topic={topic} onQueue={handleQueueSuggestion} queuedIds={queuedSuggestionIds} />
             ))}
-            </div>
+            </>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
         <p
         style={{
             color: "rgba(255,255,255,0.9)",
             fontSize: "0.78rem",
             fontWeight: 700,
             letterSpacing: "0.06em",
-            margin: "0 0 0.5rem 0",
+            margin: (hasRequestedSuggestions || isSuggesting || suggestions.length > 0) ? "0.6rem 0 0 0" : 0,
             textTransform: "uppercase",
         }}
         >
         Your Submitted Actions
         </p>
 
-        <div
-        style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.4rem",
-            flex: 1,
-            overflowY: "auto",
-            scrollbarWidth: "none",
-        }}
-        >
         {submittedActions.length === 0 && (
             <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.8rem", fontStyle: "italic", margin: 0 }}>
             No actions submitted yet.
             </p>
         )}
         {submittedActions.map(({ normalized, originalIndex }) => (
-            <ActionItem key={normalized.id || originalIndex} action={normalized} onDelete={() => handleDelete(originalIndex)} />
+            <ActionItem
+            key={normalized.id || originalIndex}
+            action={normalized}
+            onDelete={() => handleDelete(originalIndex)}
+            onEdit={(newText) => handleEdit(originalIndex, newText)}
+            />
         ))}
-        </div>
         </div>
         </div>
 

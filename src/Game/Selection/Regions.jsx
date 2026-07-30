@@ -7,6 +7,7 @@ import { flagImageUrlFromGid, flagEmojiFromGid } from "../../runtime/countryFlag
 import { readWorldState } from "../../runtime/gameState.js";
 import { requestDiplomaticChat } from "../GameUI/chat.jsx";
 import { openCountryPanel } from "./CountryPanel.jsx";
+import { openRegionPanel } from "./RegionPanel.jsx";
 
 let _setSelection = null;
 let _currentSelection = null;
@@ -18,6 +19,11 @@ let _clickInterceptor = null;
 export const setRegionClickInterceptor = (fn) => {
     _clickInterceptor = typeof fn === "function" ? fn : null;
 };
+
+// While a cheat click-mode is armed, the MAP click handler must not let a
+// unit or city popup swallow the click — the cheat wants the region/point
+// underneath. Exposed so Nations.jsx can check before its popup branches.
+export const hasRegionClickInterceptor = () => Boolean(_clickInterceptor);
 
 // Passive tap on every region click (the Stats tab watches which country the
 // player is inspecting). Never consumes the click — popups still open.
@@ -31,7 +37,7 @@ export const onRegionSelected = (props) => {
     try { _clickObserver?.(props); } catch { /* observers must never break clicks */ }
     if (_clickInterceptor && _clickInterceptor(props)) return;
 
-    const { COUNTRY, NAME_1, GID_0, gid0, owner, lngLat } = props;
+    const { COUNTRY, NAME_1, GID_1, GID_0, gid0, owner, lngLat } = props;
     if (!_setSelection) return;
 
     const isSame =
@@ -44,7 +50,7 @@ export const onRegionSelected = (props) => {
     } else if (_currentSelection !== null) {
         _dismiss?.();
     } else {
-        _setSelection({ COUNTRY, NAME_1, GID_0, gid0, owner, lngLat });
+        _setSelection({ COUNTRY, NAME_1, GID_1, GID_0, gid0, owner, lngLat });
     }
 };
 
@@ -186,6 +192,25 @@ const RegionPopup = () => {
         requestDiplomaticChat({
             name: resolveSelectionName(_currentSelection),
             code: _currentSelection.GID_0,
+        });
+        _dismiss?.();
+    };
+
+    // Open the REGION info panel (owner, claimants, related events) for the
+    // selected region. This button used to have no handler at all — "region
+    // info doesn't open" — so it now has an actual view behind it.
+    const handleRegionInfo = () => {
+        const sel = _currentSelection;
+        if (!sel) return;
+        const flagInfo = resolveEraFlagInfo(sel.GID_0, polities[sel.GID_0], customFlags);
+        openRegionPanel({
+            id: sel.GID_1 || "",
+            name: sel.NAME_1 || "",
+            ownerCode: sel.GID_0 || "",
+            ownerName: sel.owner === "" ? "" : resolveSelectionName(sel),
+            ownerFlagUrl: flagInfo?.imageUrl || null,
+            ownerFlagEmoji: flagInfo?.emoji || null,
+            unclaimed: sel.owner === "",
         });
         _dismiss?.();
     };
@@ -433,7 +458,7 @@ const RegionPopup = () => {
         </span>
         <div style={{ display: "flex", gap: "4px", flexShrink: 0 }}>
         <IconBtn title="Copy region name" onClick={() => navigator.clipboard?.writeText(NAME_1)}>{"\u29C9"}</IconBtn>
-        <IconBtn title="Region info">{"\u24D8"}</IconBtn>
+        <IconBtn title="Region info" onClick={handleRegionInfo}>{"\u24D8"}</IconBtn>
         </div>
         </div>
 

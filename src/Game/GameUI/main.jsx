@@ -51,6 +51,9 @@ const LazyAdvisorPanel = lazy(() =>
 const LazyCheatsPanel = lazy(() =>
   import("./cheats").then((module) => ({ default: module.CheatsPanel })),
 );
+const LazyEventsPanel = lazy(() =>
+  import("./events").then((module) => ({ default: module.EventsManagerPanel })),
+);
 
 const checkWebGL = () => {
   try {
@@ -135,6 +138,8 @@ const Main = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCheatsOpen, setIsCheatsOpen] = useState(false);
   const [shouldLoadCheats, setShouldLoadCheats] = useState(false);
+  const [isEventsOpen, setIsEventsOpen] = useState(false);
+  const [shouldLoadEvents, setShouldLoadEvents] = useState(false);
   const [isAdvisorOpen, setIsAdvisorOpen] = useState(false);
   const [advisorWidth, setAdvisorWidth] = useState(readAdvisorWidth);
   const [isForcesOpen, setIsForcesOpen] = useState(false);
@@ -173,6 +178,29 @@ const Main = ({
   useEffect(() => {
     if (isAdvisorOpen) setShouldLoadAdvisor(true);
   }, [isAdvisorOpen]);
+
+  // Keyboard shortcuts matching the original game's menu: Ctrl+E toggles the
+  // Event Manager, Ctrl+H the cheats window. Skipped while the user is typing
+  // in an input so the shortcuts never eat text-field keystrokes.
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+      const tag = event.target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || event.target?.isContentEditable) return;
+      const key = String(event.key || "").toLowerCase();
+      if (key === "e") {
+        event.preventDefault();
+        setShouldLoadEvents(true);
+        setIsEventsOpen((v) => !v);
+      } else if (key === "h") {
+        event.preventDefault();
+        setShouldLoadCheats(true);
+        setIsCheatsOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("Fullscreen", JSON.stringify(isFullscreenEnabled));
@@ -297,6 +325,11 @@ const Main = ({
           <LazyCheatsPanel open={isCheatsOpen} onClose={() => setIsCheatsOpen(false)} onOpenForces={() => { setIsCheatsOpen(false); setIsForcesOpen(true); }} />
         )}
       </Suspense>
+      <Suspense fallback={null}>
+        {shouldLoadEvents && (
+          <LazyEventsPanel open={isEventsOpen} onClose={() => setIsEventsOpen(false)} />
+        )}
+      </Suspense>
       <SettingsButton
         topOffset={TOP_BAR_OFFSET}
         onToggle={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -309,6 +342,11 @@ const Main = ({
           onOpenCheats={() => {
             setShouldLoadCheats(true);
             setIsCheatsOpen(true);
+            setIsSettingsOpen(false);
+          }}
+          onOpenEvents={() => {
+            setShouldLoadEvents(true);
+            setIsEventsOpen(true);
             setIsSettingsOpen(false);
           }}
           topOffset={TOP_BAR_OFFSET}

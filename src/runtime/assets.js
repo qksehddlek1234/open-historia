@@ -1135,6 +1135,19 @@ export const loadRegionCatalog = async ({ force = false } = {}) => {
         customRegionsResolved = false;
       }
 
+      // Sea regions live on world.seaRegions (per-game, writable — see the
+      // cheats "Sea Regions" tool). Merge their names so the AI can transfer
+      // "Baltic Sea" like any land region.
+      try {
+        const world = await readJson(JSON_URLS.world, { defaultValue: null });
+        for (const feature of world?.seaRegions ?? []) {
+          const props = feature?.properties ?? {};
+          const id = props.id != null ? String(props.id) : "";
+          if (!id || seen.has(id)) continue;
+          seen.set(id, { country: "", countryCode: "", id, name: String(props.name || id) });
+        }
+      } catch { /* seas are optional */ }
+
       if (!customRegionsResolved && regionCatalogPromise === promise) {
         // Don't pin a stock-only catalog after a failed custom fetch — retry.
         regionCatalogPromise = null;

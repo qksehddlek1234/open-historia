@@ -584,6 +584,12 @@ export const normalizeMarkerEntry = (entry, index = 0) => {
     return null;
   }
 
+  // Importance/scale of the structure (0.5 minor … 3 monumental), like the
+  // original game's per-feature size — drives differentiated icon and label
+  // sizing on the map. Settable by the AI (markerOps) and the cheats editor.
+  const rawSize = Number(entry.size ?? entry.scale ?? entry.importance);
+  const size = Number.isFinite(rawSize) && rawSize > 0 ? Math.max(0.5, Math.min(3, rawSize)) : 1;
+
   return {
     id: normalizeOptionalString(entry.id) || generateId(`marker-${index}`),
     name,
@@ -591,6 +597,7 @@ export const normalizeMarkerEntry = (entry, index = 0) => {
     ownerCode: toCountryName(normalizeOptionalString(entry.ownerCode || entry.owner || entry.code)),
     lng,
     lat,
+    size,
     note: normalizeOptionalString(entry.note || entry.description),
     foundedAt: normalizeOptionalString(entry.foundedAt || entry.date),
     createdAt: normalizeOptionalString(entry.createdAt) || new Date().toISOString(),

@@ -179,6 +179,68 @@ export function setReasoningEnabled(enabled) {
     localStorage.setItem(REASONING_STORAGE_KEY, enabled ? "1" : "0");
 }
 
+// ---- Role-based model routing ----
+// Every AI call carries a role (event / advisor / chat / translate). A role can
+// inherit the globally selected provider or pin a different one, override the
+// model name, and force reasoning ("thinking") on or off — so heavy turn
+// simulation and lightweight translation no longer have to share one model.
+// Field report (and the upstream Pax Historia team's own advice, 2026-06):
+// thinking is a main source of local-model instability, so per-role reasoning
+// control is a first-class switch here, not a global-only toggle.
+export const AI_ROLES = [
+    { key: "event", label: "Events & turns", blurb: "Timeline jumps, event generation, action brainstorming" },
+    { key: "advisor", label: "Advisor", blurb: "Advisor chat, intel briefings, backstory" },
+    { key: "chat", label: "Diplomacy", blurb: "Diplomatic chats with other nations" },
+    { key: "translate", label: "Translation", blurb: "UI translation batches" },
+];
+
+const ROLE_CONFIG_KEY = "ai_role_config";
+
+export function getRoleConfigs() {
+    let parsed = {};
+    try {
+        parsed = JSON.parse(localStorage.getItem(ROLE_CONFIG_KEY)) ?? {};
+    } catch {
+        parsed = {};
+    }
+
+    const configs = {};
+    for (const role of AI_ROLES) {
+        const entry = parsed[role.key] && typeof parsed[role.key] === "object" ? parsed[role.key] : {};
+        configs[role.key] = {
+            provider: entry.provider === "inherit" || isSupportedProvider(entry.provider) ? entry.provider : "inherit",
+            model: typeof entry.model === "string" ? entry.model : "",
+            reasoning: ["inherit", "on", "off"].includes(entry.reasoning) ? entry.reasoning : "inherit",
+        };
+    }
+    return configs;
+}
+
+export function setRoleConfig(roleKey, partial) {
+    const configs = getRoleConfigs();
+    if (!configs[roleKey]) return;
+    configs[roleKey] = { ...configs[roleKey], ...partial };
+    try {
+        localStorage.setItem(ROLE_CONFIG_KEY, JSON.stringify(configs));
+    } catch {
+        // Private-mode storage failures leave role routing on defaults.
+    }
+}
+
+// Per-call resolution: everything a provider call needs, captured SYNCHRONOUSLY
+// at callAI entry so overlapping calls with different roles cannot race each
+// other's settings reads (translation batches run concurrently with jumps).
+export function resolveRoleSettings(role) {
+    const cfg = getRoleConfigs()[role] ?? { provider: "inherit", model: "", reasoning: "inherit" };
+    const provider = cfg.provider !== "inherit" ? normalizeProvider(cfg.provider) : getStoredProvider();
+    const settings = getProviderSettings(provider);
+    if (cfg.model.trim()) {
+        settings.model = cfg.model.trim();
+    }
+    const reasoning = cfg.reasoning === "on" ? true : cfg.reasoning === "off" ? false : getReasoningEnabled();
+    return { ...settings, provider, reasoning };
+}
+
 export function loadProviderSettingsFormState() {
     const state = {};
 

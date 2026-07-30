@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { Chart, registerables } from "chart.js";
 import { sendMessage, startChat, loadHistory } from "../AI/main.jsx";
+import { generateBackstory } from "../AI/gameplay.js";
 import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
 import { chatLanguageDiffersFromUi, isRtlLanguage, resolveChatLanguage } from "../../runtime/i18n.js";
 import StatsPane from "./stats.jsx";
@@ -184,6 +185,142 @@ const TabButton = ({ icon, label, active, onClick }) => (
     </button>
 );
 
+// Backstory pane — the campaign chronicle, matching Pax Historia's advisor
+// "Background Story" tab: an AI-narrated story of the campaign so far (from
+// round summaries, events and the player's actions), plus the per-round
+// summaries underneath and a markdown export.
+const BackstoryPane = ({ active }) => {
+    const [world, setWorld] = useState(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        if (!active) return undefined;
+        let cancelled = false;
+        readJson(JSON_URLS.world, { defaultValue: {}, force: true })
+        .then((data) => { if (!cancelled) setWorld(data && typeof data === "object" ? data : {}); })
+        .catch(() => { if (!cancelled) setWorld({}); });
+        return () => { cancelled = true; };
+    }, [active, isGenerating]);
+
+    const rounds = Array.isArray(world?.simulationHistory)
+    ? world.simulationHistory.slice().reverse().filter((entry) => entry && (entry.summary || entry.round))
+    : [];
+    const backstory = world?.backstory && typeof world.backstory === "object" ? world.backstory : null;
+
+    const handleGenerate = async () => {
+        if (isGenerating) return;
+        setIsGenerating(true);
+        setError("");
+        try {
+            await generateBackstory();
+        } catch (err) {
+            setError(err?.message || "Failed to generate the backstory.");
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleExport = () => {
+        const parts = [];
+        if (backstory?.text) parts.push(backstory.text);
+        for (const entry of rounds.slice().reverse()) {
+            parts.push(`## Round ${entry.round ?? "?"} (${entry.fromDate || "?"} → ${entry.toDate || "?"})\n\n${entry.summary || ""}`);
+        }
+        const blob = new Blob([parts.join("\n\n---\n\n") || "No backstory yet."], { type: "text/markdown" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "backstory.md";
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    const chipStyle = {
+        alignItems: "center",
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        borderRadius: "8px",
+        color: "rgba(255,255,255,0.85)",
+        cursor: "pointer",
+        display: "flex",
+        fontSize: "0.75rem",
+        gap: "0.35rem",
+        padding: "0.35rem 0.75rem",
+    };
+
+    return (
+        <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
+        <div style={{ alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", gap: "0.4rem", justifyContent: "flex-end", padding: "0.6rem 0.75rem" }}>
+        <button type="button" onClick={handleGenerate} disabled={isGenerating} style={{ ...chipStyle, background: "rgba(109,40,217,0.2)", border: "1px solid rgba(139,92,246,0.45)", color: "rgba(196,165,255,0.95)", cursor: isGenerating ? "wait" : "pointer" }}>
+        {isGenerating ? "Writing the story..." : (backstory?.text ? "Regenerate story" : "Generate story")}
+        </button>
+        <button type="button" onClick={handleExport} style={chipStyle}>
+        Export
+        </button>
+        </div>
+
+        <div style={{ display: "flex", flex: 1, flexDirection: "column", gap: "0.9rem", minHeight: 0, overflowY: "auto", padding: "0.75rem", scrollbarWidth: "none" }}>
+        {error && (
+            <p style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "rgba(255,200,200,0.95)", fontSize: "0.78rem", margin: 0, padding: "0.5rem 0.7rem" }}>
+            {error}
+            </p>
+        )}
+
+        {backstory?.text ? (
+            <div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem", letterSpacing: "0.06em", marginBottom: "0.35rem", textTransform: "uppercase" }}>
+            The story so far{backstory.generatedAt ? ` — up to ${backstory.generatedAt}` : ""}
+            </div>
+            <div className="advisor-markdown" style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.85rem", lineHeight: "1.6" }}>
+            <ReactMarkdown>{backstory.text}</ReactMarkdown>
+            </div>
+            </div>
+        ) : (
+            !isGenerating && (
+                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", margin: 0 }}>
+                No story written yet. Generate one to turn everything that has happened so far into a chronicle.
+                </p>
+            )
+        )}
+
+        {rounds.length > 0 && (
+            <div>
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem", letterSpacing: "0.06em", marginBottom: "0.4rem", textTransform: "uppercase" }}>
+            Round summaries
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {rounds.map((entry, index) => (
+                <div key={`${entry.round ?? "r"}-${index}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "0.55rem 0.7rem" }}>
+                <div style={{ color: "rgba(255,255,255,0.92)", fontSize: "0.76rem", fontWeight: 700 }}>
+                Round {entry.round ?? "?"}{(entry.fromDate || entry.toDate) ? ` — ${entry.fromDate || "?"} → ${entry.toDate || "?"}` : ""}
+                </div>
+                {entry.summary && (
+                    <div style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.8rem", lineHeight: "1.5", marginTop: "0.25rem", whiteSpace: "pre-wrap" }}>
+                    {entry.summary}
+                    </div>
+                )}
+                </div>
+            ))}
+            </div>
+            </div>
+        )}
+        </div>
+        </div>
+    );
+};
+
+// Suggested prompts shown as chips above the advisor input — the quick topics
+// Pax Historia offers under its advisor box. English source strings; the UI
+// translator renders them in the player's interface language.
+const ADVISOR_PROMPTS = [
+    "Assess our current strategic position",
+    "What are the biggest threats to us right now?",
+    "Suggest three concrete actions for this period",
+    "How can we strengthen our economy?",
+    "Which nations should we approach diplomatically?",
+];
+
 const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
     const [messages, setMessages]   = useState([]);
     const [input, setInput]         = useState("");
@@ -260,8 +397,10 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         resizeTextarea();
     }, [input, resizeTextarea]);
 
-    const handleSend = async () => {
-        const text = input.trim();
+    // Accepts an optional preset string so the suggested-topic chips can ask
+    // directly; a click event (non-string) falls back to the typed input.
+    const handleSend = async (presetText) => {
+        const text = (typeof presetText === "string" ? presetText : input).trim();
         if (!text || isLoading) return;
 
         const { gameDate } = await readJson(JSON_URLS.game, {
@@ -376,6 +515,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         <div style={{ alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.1)", display: "flex", padding: "0 0.75rem 0 0.35rem" }}>
         <TabButton icon="🧭" label="Advisor" active={activeTab === "advisor"} onClick={() => setActiveTab("advisor")} />
         <TabButton icon="📊" label="Stats" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
+        <TabButton icon="📜" label="Backstory" active={activeTab === "backstory"} onClick={() => setActiveTab("backstory")} />
         <div style={{ flex: 1 }} />
         {activeTab === "advisor" && (
             <button
@@ -398,6 +538,11 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         {/* National stats pane — kept mounted so flipping tabs is instant. */}
         <div style={{ display: activeTab === "stats" ? "flex" : "none", flex: 1, flexDirection: "column", minHeight: 0 }}>
         <StatsPane active={isAdvisorOpen && activeTab === "stats"} />
+        </div>
+
+        {/* Backstory pane — the campaign chronicle, as in Pax Historia. */}
+        <div style={{ display: activeTab === "backstory" ? "flex" : "none", flex: 1, flexDirection: "column", minHeight: 0 }}>
+        <BackstoryPane active={isAdvisorOpen && activeTab === "backstory"} />
         </div>
 
         <div style={{ display: activeTab === "advisor" ? "flex" : "none", flex: 1, flexDirection: "column", minHeight: 0 }}>
@@ -454,6 +599,34 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
             </div>
         )}
         <div ref={messagesEndRef} />
+        </div>
+
+        {/* Suggested topics (Pax Historia-style): one tap asks the advisor.
+            Authored in English; the UI translator renders the player's language. */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", padding: "0.6rem 1rem 0" }}>
+        {ADVISOR_PROMPTS.map((prompt) => (
+            <button
+            key={prompt}
+            type="button"
+            disabled={isLoading}
+            onClick={() => handleSend(prompt)}
+            style={{
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.14)",
+                borderRadius: "999px",
+                color: "rgba(255,255,255,0.8)",
+                cursor: isLoading ? "not-allowed" : "pointer",
+                fontSize: "0.72rem",
+                opacity: isLoading ? 0.5 : 1,
+                padding: "0.3rem 0.7rem",
+                transition: "background 0.15s, border-color 0.15s",
+            }}
+            onMouseEnter={(e) => { if (!isLoading) { e.currentTarget.style.background = "rgba(59,130,246,0.22)"; e.currentTarget.style.borderColor = "rgba(59,130,246,0.5)"; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; }}
+            >
+            {prompt}
+            </button>
+        ))}
         </div>
 
         {/* Input */}

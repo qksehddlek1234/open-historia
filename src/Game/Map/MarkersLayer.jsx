@@ -50,6 +50,10 @@ const MarkersLayer = () => {
             name: marker.name,
             kind: marker.kind || "landmark",
             ownerCode: marker.ownerCode || "",
+            // Importance drives differentiated sizing: a monumental structure
+            // (size 3) reads big; a minor outpost (0.5) stays small — like the
+            // original's per-feature size attribute.
+            size: Number.isFinite(marker.size) && marker.size > 0 ? Math.max(0.5, Math.min(3, marker.size)) : 1,
             glyph: glyphForKind(String(marker.kind || "")),
             rgb: ownerColorString(colorMap, marker.ownerCode),
           },
@@ -57,17 +61,36 @@ const MarkersLayer = () => {
     };
   }, [markers, colorMap]);
 
+  const sizeExpr = ["coalesce", ["get", "size"], 1];
+  // Label importance boost: a size-3 monument reads ~1.6x, a 0.5 outpost ~0.85x.
+  const labelBoost = ["+", 0.7, ["*", 0.3, sizeExpr]];
+
   return (
     <Source id="markers-source" type="geojson" data={data}>
       <Layer
         id="markers-shapes"
         type="symbol"
         layout={{
+          // Big structures paint over small ones when they compete for space.
+          "symbol-sort-key": ["-", sizeExpr],
           "text-field": ["get", "glyph"],
           "text-allow-overlap": true,
           "text-ignore-placement": true,
           "text-padding": 2,
-          "text-size": ["interpolate", ["linear"], ["zoom"], 2, 9, 6, 14, 10, 20],
+          // Icon scales with BOTH zoom and the structure's own size. The
+          // per-feature factor multiplies each STOP, never the interpolate
+          // itself: MapLibre accepts ["zoom"] only as the direct input of a
+          // TOP-LEVEL step/interpolate, so wrapping the interpolate in ["*"]
+          // made the whole property invalid ("zoom expression may only be used
+          // as input to a top-level step or interpolate expression", logged on
+          // every style update) and the layer silently fell back to the default
+          // text size — marker sizes stopped mattering at all.
+          "text-size": [
+            "interpolate", ["linear"], ["zoom"],
+            2, ["*", 9, sizeExpr],
+            6, ["*", 14, sizeExpr],
+            10, ["*", 20, sizeExpr],
+          ],
         }}
         paint={{
           "text-color": ["get", "rgb"],
@@ -80,11 +103,18 @@ const MarkersLayer = () => {
         type="symbol"
         minzoom={2.6}
         layout={{
+          "symbol-sort-key": ["-", sizeExpr],
           "text-field": ["get", "name"],
           "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
           "text-padding": 5,
           "text-radial-offset": 0.7,
-          "text-size": ["interpolate", ["linear"], ["zoom"], 3, 8.5, 10, 10],
+          // Labels scale with zoom, gently boosted by importance — same
+          // top-level-interpolate rule as the shapes layer above.
+          "text-size": [
+            "interpolate", ["linear"], ["zoom"],
+            3, ["*", 8.5, labelBoost],
+            10, ["*", 10, labelBoost],
+          ],
           "text-variable-anchor": ["top", "bottom", "left", "right"],
         }}
         paint={{

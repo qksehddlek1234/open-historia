@@ -10,9 +10,11 @@
 
 import fs from "fs";
 import path from "path";
+import url from "url";
 import crypto from "crypto";
-import { DATA_DIR } from "./dataDir.js";
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+import { DATA_DIR } from "./dataDir.js";
 const FLAGS_PATH = path.join(DATA_DIR, "flags-library.json");
 
 const readAll = () => {

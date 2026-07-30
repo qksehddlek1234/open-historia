@@ -151,7 +151,11 @@ export const buildActionHistoryText = (actions, { includeResolved = false } = {}
   return filteredActions.map((action) => {
     const kindLabel = action.kind === "chat" ? "chat" : "action";
     const statusLabel = action.status !== "planned" ? ` [${action.status}]` : "";
-    return `- (${kindLabel}) ${action.title}${statusLabel}: ${buildActionDisplayText(action)}`;
+    // The id is PART of the line on purpose: resolution is id-based
+    // (impacts.actionIds), and the model can only reference ids it was shown —
+    // without this, every jump came back with actionIds=[] and the queue never
+    // resolved precisely.
+    return `- (${kindLabel}) [id: ${action.id}] ${action.title}${statusLabel}: ${buildActionDisplayText(action)}`;
   }).join("\n");
 };
 

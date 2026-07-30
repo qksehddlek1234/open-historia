@@ -8,6 +8,8 @@ import {
     writeJson,
 } from "../../runtime/assets.js";
 import {
+    buildActionDisplayText,
+    normalizeActionEntry,
     readEventsState,
     readGameData,
     readWorldState,
@@ -15,6 +17,7 @@ import {
     writeGameData,
     writeWorldState,
 } from "../../runtime/gameState.js";
+import { useDragWindow } from "./useDragWindow.js";
 import COUNTRY_NAMES from "../../runtime/generated/countryNames.js";
 import { DIFFICULTY_LEVELS, normalizeDifficulty } from "../../runtime/difficulty.js";
 import { applyGameMasterCommand } from "../AI/gameplay.js";
@@ -33,7 +36,8 @@ const TOOLS = [
     { id: "edit-country", title: "Edit Country", subtitle: "Modify existing country properties" },
     { id: "add-country", title: "Add Country", subtitle: "Create a new country on the map" },
     { id: "regions", title: "Regions", subtitle: "Edit region names, tags, and properties" },
-    { id: "edit-feature", title: "Edit Map Feature", subtitle: "Edit existing map features like cities and landmarks" },
+    { id: "sea-regions", title: "Sea Regions", subtitle: "Turn the world's seas into ownable territory" },
+    { id: "edit-feature", title: "Edit Map Feature", subtitle: "Edit cities, structures, landmarks, and units" },
     { id: "add-feature", title: "Add Map Feature", subtitle: "Create new map features with custom properties" },
     { id: "clear-features", title: "Clear Map Features", subtitle: "Clean up old and irrelevant features" },
     { id: "events", title: "Events", subtitle: "Edit historical events and their descriptions" },
@@ -171,6 +175,8 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
     // and map clicks route here instead of opening the region popup.
     const [clickMode, setClickMode] = useState(null);
     const clickHandlerRef = useRef(null);
+    // Drag-to-move, like the original's windows: grab any panel header.
+    const drag = useDragWindow();
 
     const refresh = async () => {
         try {
@@ -234,7 +240,10 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
     if (!open) return null;
 
     const header = (title, subtitle) => (
-        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", marginBottom: "0.7rem", paddingBottom: "0.6rem" }}>
+        <div
+        onPointerDown={drag.onPointerDown}
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", cursor: "grab", marginBottom: "0.7rem", paddingBottom: "0.6rem", touchAction: "none", userSelect: "none" }}
+        >
         <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
         <div style={{ alignItems: "center", display: "flex", gap: "0.45rem", minWidth: 0 }}>
         {tool && (
@@ -265,7 +274,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
             backdropFilter: "blur(8px)",
             border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: 16,
-            boxShadow: "-4px 0 24px rgba(0,0,0,0.4)",
+            boxShadow: "4px 0 24px rgba(0,0,0,0.4)",
             color: "white",
             display: clickMode ? "none" : "flex",
             flexDirection: "column",
@@ -274,8 +283,11 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
             overflow: "hidden",
             padding: "0.9rem",
             position: "fixed",
-            right: "0.5rem",
+            // Docked LEFT like the original game's cheats window, and movable
+            // by its header like the original's windows.
+            left: "0.5rem",
             top: PANEL_TOP,
+            transform: drag.transform,
             width: "min(24rem, calc(100vw - 1rem))",
             zIndex: 10045,
         }}
@@ -283,7 +295,10 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
         {!tool ? (
             <>
             {header("Cheats")}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", overflowY: "auto" }}>
+            {/* flex:1 + minHeight:0 make this list actually SCROLL inside the
+                capped-height panel — without them a flex child refuses to
+                shrink and the menu just clips at the bottom. */}
+            <div style={{ display: "flex", flex: 1, flexDirection: "column", gap: "0.35rem", minHeight: 0, overflowY: "auto" }}>
             {/* Manual force deployment moved here from the toolbar: hand-
                 placing troops is a cheat, not a normal play surface. */}
             {typeof onOpenForces === "function" && (
@@ -349,16 +364,50 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         setFields({});
         setTarget("");
         if (tool === "events") {
-            readEventsState({ force: true }).then(setItems).catch(() => setItems([]));
+            // Rounds need the world's simulationHistory (per-round eventIds +
+            // the snapshot of the actions submitted that round), not just the
+            // flat event list.
+            Promise.all([
+                readEventsState({ force: true }).catch(() => []),
+                readWorldState({ force: true }).catch(() => ({})),
+            ])
+                .then(([evts, world]) => setItems({
+                    events: evts,
+                    history: Array.isArray(world?.simulationHistory) ? world.simulationHistory : [],
+                }))
+                .catch(() => setItems({ events: [], history: [] }));
         }
         if (tool === "roll-back-turn") {
             readJson(JSON_URLS.snapshots, { defaultValue: [], force: true })
                 .then((list) => setItems(Array.isArray(list) ? list : []))
                 .catch(() => setItems([]));
         }
-        if (tool === "edit-feature" || tool === "clear-features") {
+        if (tool === "clear-features") {
             readJson(JSON_URLS.citiesGeojson, { defaultValue: EMPTY_FEATURES, force: true })
                 .then((geojson) => setItems(geojson?.features ?? []))
+                .catch(() => setItems([]));
+        }
+        if (tool === "edit-feature") {
+            // "Feature" editing used to see ONLY the per-game cities file — on a
+            // stock-cities map that file is empty, and world.markers (built
+            // structures/landmarks) and world.units (armies) were never listed,
+            // so the tool reported nothing to edit. Load all three stores, plus
+            // the stock-city rename table.
+            Promise.all([
+                readJson(JSON_URLS.citiesGeojson, { defaultValue: EMPTY_FEATURES, force: true }).catch(() => EMPTY_FEATURES),
+                readWorldState({ force: true }).catch(() => ({})),
+            ])
+                .then(([geojson, world]) => setItems({
+                    cities: geojson?.features ?? [],
+                    markers: Array.isArray(world?.markers) ? world.markers : [],
+                    units: Array.isArray(world?.units) ? world.units : [],
+                    renames: world?.cityRenames && typeof world.cityRenames === "object" ? world.cityRenames : {},
+                }))
+                .catch(() => setItems({ cities: [], markers: [], units: [], renames: {} }));
+        }
+        if (tool === "sea-regions") {
+            readWorldState({ force: true })
+                .then((world) => setItems(Array.isArray(world?.seaRegions) ? world.seaRegions : []))
                 .catch(() => setItems([]));
         }
     }, [tool]);
@@ -378,7 +427,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ overflowY: "auto" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <label style={labelStyle}>Command</label>
             <textarea
             value={text}
@@ -414,7 +463,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+            <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
             <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.76rem", marginBottom: "0.5rem" }}>
             Restore the game to how it was at the start of an earlier turn. This permanently discards every turn played after the one you pick.
             </div>
@@ -666,7 +715,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ overflowY: "auto" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             {!adding && (
                 <>
                 <label style={labelStyle}>Country</label>
@@ -698,7 +747,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ overflowY: "auto" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <button
             type="button"
             onClick={() => beginClickMode("Click a region to inspect it", async (props) => {
@@ -763,50 +812,217 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         );
     }
 
+    if (tool === "sea-regions") {
+        // Sea shapes are stored on world.seaRegions — per-game and WRITABLE.
+        // (The first version merged them into the scenario's regions.geojson,
+        // which the server rightly refuses to let the runtime overwrite — the
+        // enable click failed with "Unsupported JSON asset key".) The map
+        // merges world.seaRegions into its region layer and picks changes up
+        // on its 5-second world poll.
+        const seaCount = Array.isArray(items) ? items.length : null;
+        return (
+            <>
+            {header(meta.title, meta.subtitle)}
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.76rem", lineHeight: 1.5 }}>
+            Adds 118 named seas, oceans, gulfs and straits to this game as
+            transferable regions — like the original's sea regions. Unclaimed
+            water shows a faint blue grid; a claimed sea is tinted with its
+            owner's color. Meant for Earth-based maps.
+            {seaCount !== null && seaCount > 0 && (
+                <div style={{ color: "rgba(134,239,172,0.85)", marginTop: "0.35rem" }}>
+                Sea regions in this game now: {seaCount}
+                </div>
+            )}
+            </div>
+            <button
+            type="button"
+            disabled={busy}
+            onClick={() => runBusy(async () => {
+                const response = await fetch("/data/sea-regions.json");
+                if (!response.ok) throw new Error("Couldn't load the bundled sea-region shapes.");
+                const seas = await response.json();
+                const world = await readWorldState({ force: true });
+                const current = Array.isArray(world.seaRegions) ? world.seaRegions : [];
+                if (current.length >= (seas.features?.length ?? 0)) {
+                    setItems(current);
+                    return "Sea regions are already enabled in this game.";
+                }
+                await writeWorldState({ ...world, seaRegions: seas.features ?? [] });
+                setItems(seas.features ?? []);
+                // The AI's region catalog memoizes per game — refresh it so the
+                // seas are nameable in prompts right away.
+                loadRegionCatalog({ force: true }).catch(() => {});
+                return `${(seas.features ?? []).length} sea regions added. The map shows them within ~5 seconds; the AI sees them from the next task. Consider adding a naval rule to Settings → Prompts & Rules (e.g. "Sea regions represent naval control: transfer them only through naval victories, blockades, or treaties.").`;
+            })}
+            style={{ ...primaryButtonStyle, marginTop: "0.6rem", width: "100%" }}
+            >
+            Enable sea territories
+            </button>
+            <button
+            type="button"
+            disabled={busy}
+            onClick={() => runBusy(async () => {
+                const world = await readWorldState({ force: true });
+                const current = Array.isArray(world.seaRegions) ? world.seaRegions : [];
+                if (current.length === 0) return "This game has no sea regions to remove.";
+                // Drop any ownership overrides that pointed at the removed seas.
+                const overrides = Object.fromEntries(
+                    Object.entries(world.regionOwnershipOverrides ?? {}).filter(([regionId]) => !regionId.startsWith("sea_")),
+                );
+                await writeWorldState({ ...world, seaRegions: [], regionOwnershipOverrides: overrides });
+                setItems([]);
+                loadRegionCatalog({ force: true }).catch(() => {});
+                return `${current.length} sea regions removed (their ownership records were cleaned up too).`;
+            })}
+            style={{ ...buttonStyle, marginTop: "0.5rem", width: "100%" }}
+            >
+            Remove sea territories
+            </button>
+            {statusLine}
+            </div>
+            </>
+        );
+    }
+
     if (tool === "edit-feature") {
-        const features = items ?? [];
+        const cities = items?.cities ?? [];
+        const markers = items?.markers ?? [];
+        const units = items?.units ?? [];
+        const renames = items?.renames ?? {};
         const q = search.trim().toLowerCase();
-        const shown = features
-            .map((feature, index) => ({ feature, index }))
-            .filter(({ feature }) => !q || String(feature?.properties?.city ?? feature?.properties?.name ?? "").toLowerCase().includes(q))
-            .slice(0, 60);
-        const saveFeatures = async (nextFeatures, message) => {
-            await writeJson(JSON_URLS.citiesGeojson, { type: "FeatureCollection", features: nextFeatures }, { pretty: true });
-            setItems(nextFeatures);
+        const matches = (text) => !q || String(text).toLowerCase().includes(q);
+        const saveCities = async (nextFeatures, message) => {
+            // Server-backed scenarios refuse runtime writes to their static
+            // city geometry — fall back to the always-writable rename table so
+            // at least the NAME change sticks (the map label follows it).
+            try {
+                await writeJson(JSON_URLS.citiesGeojson, { type: "FeatureCollection", features: nextFeatures }, { pretty: true });
+                setItems({ ...items, cities: nextFeatures });
+                return message;
+            } catch (error) {
+                if (fields.name) {
+                    const old = cities.find((feature, i) => nextFeatures[i]?.properties?.city !== feature?.properties?.city);
+                    const from = String(old?.properties?.city ?? old?.properties?.name ?? "").toLowerCase();
+                    if (from && fields.name.toLowerCase() !== from) {
+                        const world = await readWorldState({ force: true });
+                        await writeWorldState({ ...world, cityRenames: { ...world.cityRenames, [from]: fields.name } });
+                        setItems({ ...items, renames: { ...renames, [from]: fields.name } });
+                        return `This scenario's city geometry is read-only, so the NAME change was saved as a rename instead ("${fields.name}").`;
+                    }
+                }
+                throw error;
+            }
+        };
+        const saveWorldList = async (key, nextList, message) => {
+            const world = await readWorldState({ force: true });
+            await writeWorldState({ ...world, [key]: nextList });
+            setItems({ ...items, [key]: nextList });
             return message;
         };
+        const saveRenames = async (nextRenames, message) => {
+            const world = await readWorldState({ force: true });
+            await writeWorldState({ ...world, cityRenames: nextRenames });
+            setItems({ ...items, renames: nextRenames });
+            return message;
+        };
+        const sectionHeading = (text) => (
+            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.05em", margin: "0.7rem 0 0.3rem", textTransform: "uppercase" }}>{text}</div>
+        );
+
+        const shownCities = cities.map((feature, index) => ({ feature, index }))
+            .filter(({ feature }) => matches(feature?.properties?.city ?? feature?.properties?.name ?? "")).slice(0, 40);
+        const shownMarkers = markers.filter((marker) => matches(`${marker?.name} ${marker?.kind} ${marker?.ownerCode}`)).slice(0, 40);
+        const shownUnits = units.filter((unit) => matches(`${unit?.name} ${unit?.type} ${unit?.ownerCode}`)).slice(0, 40);
 
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search features…" />
-            {features.length === 0 && (
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.76rem", marginTop: "0.6rem" }}>
-                This map has no custom features yet — use Add Map Feature.
+            <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
+            {/* Detection the way players expect it: click the thing ON THE MAP.
+                The map click handler reports the city/structure/unit under the
+                cursor (featureHit/unitHit) while a cheat click-mode is armed. */}
+            <button
+            type="button"
+            onClick={() => beginClickMode("Click a city, structure, or unit on the map to edit it", async (props) => {
+                endClickMode();
+                if (props.unitHit?.id) {
+                    const unit = units.find((entry) => String(entry.id) === String(props.unitHit.id));
+                    if (unit) {
+                        setSearch(unit.name || "");
+                        setEditingId(`unit-${unit.id}`);
+                        setFields({ name: unit.name || "", strength: String(unit.strength ?? 100) });
+                        setStatus(`Unit "${unit.name}" selected.`);
+                        return;
+                    }
+                }
+                const hit = props.featureHit;
+                if (!hit) {
+                    setStatus("Nothing editable there — click directly on a city, structure, or unit icon.");
+                    return;
+                }
+                if (hit.source === "marker") {
+                    const marker = markers.find((entry) => String(entry.id) === String(hit.id));
+                    setSearch(hit.name || "");
+                    if (marker) {
+                        setEditingId(`marker-${marker.id}`);
+                        setFields({ name: marker.name || "", kind: marker.kind || "landmark", size: String(marker.size ?? 1) });
+                        setStatus(`Structure "${marker.name}" selected.`);
+                    }
+                    return;
+                }
+                // A city. Custom-city maps edit the feature; stock-city maps rename.
+                const cityIndex = cities.findIndex((feature) => {
+                    const props2 = feature?.properties ?? {};
+                    return String(props2.city || props2.name || "").toLowerCase() === String(hit.name || "").toLowerCase();
+                });
+                setSearch(hit.name || "");
+                if (cityIndex >= 0) {
+                    const props2 = cities[cityIndex]?.properties ?? {};
+                    setEditingId(`city-${cityIndex}`);
+                    setFields({ name: props2.city || props2.name || "", tier: String(props2.tier ?? 2), population: String(props2.population ?? "") });
+                    setStatus(`City "${hit.name}" selected.`);
+                } else {
+                    setFields({ renameFrom: hit.name || "", renameTo: "" });
+                    setStatus(`"${hit.name}" is a standard-map city — its geometry lives in the map tiles, so it can be RENAMED below (population ${hit.population ?? "?"}).`);
+                }
+            })}
+            style={{ ...primaryButtonStyle, marginBottom: "0.5rem", width: "100%" }}
+            >
+            Pick a feature on the map
+            </button>
+            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search cities, structures, units…" />
+            <div style={{ minHeight: 0, overflowY: "auto" }}>
+
+            {sectionHeading(`Cities (${cities.length})`)}
+            {cities.length === 0 && (
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem", lineHeight: 1.45 }}>
+                This map uses the standard world city database, which lives in the
+                map tiles and can't be edited directly — but cities can be RENAMED
+                below, and Add Map Feature can place new custom cities.
                 </div>
             )}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginTop: "0.5rem", overflowY: "auto" }}>
-            {shown.map(({ feature, index }) => {
+            {shownCities.map(({ feature, index }) => {
                 const props = feature?.properties ?? {};
-                const isEditing = editingId === index;
+                const isEditing = editingId === `city-${index}`;
                 return (
-                    <div key={index} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "0.5rem 0.6rem" }}>
+                    <div key={`city-${index}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.5rem 0.6rem" }}>
                     <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700 }}>{props.city || props.name || `Feature ${index + 1}`}</span>
-                    <div style={{ display: "flex", gap: "0.3rem" }}>
-                    <button type="button" style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }} onClick={() => { setEditingId(isEditing ? null : index); setFields(isEditing ? {} : { name: props.city || props.name || "", tier: String(props.tier ?? 2), population: String(props.population ?? "") }); }}>
-                    {isEditing ? "Close" : "Edit"}
-                    </button>
+                    <span
+                    onClick={() => { setEditingId(isEditing ? null : `city-${index}`); setFields(isEditing ? {} : { name: props.city || props.name || "", tier: String(props.tier ?? 2), population: String(props.population ?? "") }); }}
+                    title="Click to edit"
+                    style={{ cursor: "pointer", fontSize: "0.82rem", fontWeight: 700, minWidth: 0 }}
+                    >
+                    {props.city || props.name || `Feature ${index + 1}`}
+                    </span>
                     <button
                     type="button"
                     style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
                     disabled={busy}
-                    onClick={() => runBusy(async () => saveFeatures(features.filter((_, i) => i !== index), `${props.city || props.name || "Feature"} deleted.`))}
+                    onClick={() => runBusy(async () => saveCities(cities.filter((_, i) => i !== index), `${props.city || props.name || "Feature"} deleted.`))}
                     >
                     🗑
                     </button>
-                    </div>
                     </div>
                     {isEditing && (
                         <div style={{ marginTop: "0.4rem" }}>
@@ -821,26 +1037,178 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                         disabled={busy}
                         style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
                         onClick={() => runBusy(async () => {
-                            const nextFeatures = features.map((entry, i) => {
+                            const nextFeatures = cities.map((entry, i) => {
                                 if (i !== index) return entry;
                                 const population = Number(fields.population);
+                                const tier = Math.max(1, Math.min(4, Number(fields.tier) || 2));
                                 return {
                                     ...entry,
                                     properties: {
                                         ...entry.properties,
                                         city: fields.name || entry.properties?.city,
                                         name: fields.name || entry.properties?.name,
-                                        tier: Math.max(1, Math.min(4, Number(fields.tier) || 2)),
+                                        tier,
                                         ...(Number.isFinite(population) && population > 0 ? { population } : null),
-                                        capital: Math.max(1, Math.min(4, Number(fields.tier) || 2)) === 4,
+                                        capital: tier === 4,
                                     },
                                 };
                             });
                             setEditingId(null);
-                            return saveFeatures(nextFeatures, `${fields.name || "Feature"} saved.`);
+                            return saveCities(nextFeatures, `${fields.name || "Feature"} saved.`);
                         })}
                         >
                         Save feature
+                        </button>
+                        </div>
+                    )}
+                    </div>
+                );
+            })}
+
+            {cities.length === 0 && (
+                <>
+                {sectionHeading(`Stock city renames (${Object.keys(renames).length})`)}
+                {Object.entries(renames).map(([from, to]) => (
+                    <div key={from} style={{ alignItems: "center", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginBottom: "0.3rem", padding: "0.4rem 0.6rem" }}>
+                    <span style={{ fontSize: "0.76rem" }}>{from} → <strong>{to}</strong></span>
+                    <button
+                    type="button"
+                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
+                    disabled={busy}
+                    onClick={() => runBusy(async () => {
+                        const next = { ...renames };
+                        delete next[from];
+                        return saveRenames(next, "Rename removed.");
+                    })}
+                    >
+                    🗑
+                    </button>
+                    </div>
+                ))}
+                <label style={labelStyle}>Rename a stock city</label>
+                <input style={inputStyle} value={fields.renameFrom ?? ""} onChange={(event) => setFields({ ...fields, renameFrom: event.target.value })} placeholder="Current name (e.g. Seoul)" />
+                <input style={{ ...inputStyle, marginTop: "0.3rem" }} value={fields.renameTo ?? ""} onChange={(event) => setFields({ ...fields, renameTo: event.target.value })} placeholder="New name" />
+                <button
+                type="button"
+                disabled={busy || !String(fields.renameFrom ?? "").trim() || !String(fields.renameTo ?? "").trim()}
+                style={{ ...primaryButtonStyle, marginTop: "0.4rem", width: "100%" }}
+                onClick={() => runBusy(async () => {
+                    const from = fields.renameFrom.trim().toLowerCase();
+                    const to = fields.renameTo.trim();
+                    setFields({ ...fields, renameFrom: "", renameTo: "" });
+                    return saveRenames({ ...renames, [from]: to }, `"${fields.renameFrom.trim()}" now shows as "${to}". The map updates within a few seconds.`);
+                })}
+                >
+                Save rename
+                </button>
+                </>
+            )}
+
+            {sectionHeading(`Structures & landmarks (${markers.length})`)}
+            {markers.length === 0 && (
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem" }}>
+                None yet — the AI founds these during play (bases, embassies, monuments…).
+                </div>
+            )}
+            {shownMarkers.map((marker) => {
+                const isEditing = editingId === `marker-${marker.id}`;
+                return (
+                    <div key={`marker-${marker.id}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.5rem 0.6rem" }}>
+                    <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
+                    <span
+                    onClick={() => { setEditingId(isEditing ? null : `marker-${marker.id}`); setFields(isEditing ? {} : { name: marker.name || "", kind: marker.kind || "landmark", size: String(marker.size ?? 1) }); }}
+                    title="Click to edit"
+                    style={{ cursor: "pointer", minWidth: 0 }}
+                    >
+                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{marker.name}</span>
+                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}> · {marker.kind}{marker.ownerCode ? ` · ${marker.ownerCode}` : ""}</span>
+                    </span>
+                    <button
+                    type="button"
+                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
+                    disabled={busy}
+                    onClick={() => runBusy(async () => saveWorldList("markers", markers.filter((entry) => entry.id !== marker.id), `${marker.name} removed.`))}
+                    >
+                    🗑
+                    </button>
+                    </div>
+                    {isEditing && (
+                        <div style={{ marginTop: "0.4rem" }}>
+                        <label style={labelStyle}>Name</label>
+                        <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
+                        <label style={labelStyle}>Kind</label>
+                        <input style={inputStyle} value={fields.kind ?? ""} onChange={(event) => setFields({ ...fields, kind: event.target.value })} placeholder="military base, embassy, monument…" />
+                        <label style={labelStyle}>Size (0.5 small … 3 monumental)</label>
+                        <input style={inputStyle} type="number" min={0.5} max={3} step={0.5} value={fields.size ?? "1"} onChange={(event) => setFields({ ...fields, size: event.target.value })} />
+                        <button
+                        type="button"
+                        disabled={busy}
+                        style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
+                        onClick={() => runBusy(async () => {
+                            const size = Math.max(0.5, Math.min(3, Number(fields.size) || 1));
+                            const next = markers.map((entry) => entry.id === marker.id
+                                ? { ...entry, name: fields.name || entry.name, kind: (fields.kind || entry.kind || "landmark").toLowerCase(), size }
+                                : entry);
+                            setEditingId(null);
+                            return saveWorldList("markers", next, `${fields.name || marker.name} saved.`);
+                        })}
+                        >
+                        Save structure
+                        </button>
+                        </div>
+                    )}
+                    </div>
+                );
+            })}
+
+            {sectionHeading(`Armies & units (${units.length})`)}
+            {units.length === 0 && (
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem" }}>
+                None on the map — deploy some via Manual force deployment above.
+                </div>
+            )}
+            {shownUnits.map((unit) => {
+                const isEditing = editingId === `unit-${unit.id}`;
+                return (
+                    <div key={`unit-${unit.id}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.5rem 0.6rem" }}>
+                    <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
+                    <span
+                    onClick={() => { setEditingId(isEditing ? null : `unit-${unit.id}`); setFields(isEditing ? {} : { name: unit.name || "", strength: String(unit.strength ?? 100) }); }}
+                    title="Click to edit"
+                    style={{ cursor: "pointer", minWidth: 0 }}
+                    >
+                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{unit.name}</span>
+                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}> · {unit.type} · {unit.ownerCode} · {unit.strength}</span>
+                    </span>
+                    <button
+                    type="button"
+                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
+                    disabled={busy}
+                    onClick={() => runBusy(async () => saveWorldList("units", units.filter((entry) => entry.id !== unit.id), `${unit.name} disbanded.`))}
+                    >
+                    🗑
+                    </button>
+                    </div>
+                    {isEditing && (
+                        <div style={{ marginTop: "0.4rem" }}>
+                        <label style={labelStyle}>Name</label>
+                        <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
+                        <label style={labelStyle}>Strength</label>
+                        <input style={inputStyle} type="number" min={1} value={fields.strength ?? "100"} onChange={(event) => setFields({ ...fields, strength: event.target.value })} />
+                        <button
+                        type="button"
+                        disabled={busy}
+                        style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
+                        onClick={() => runBusy(async () => {
+                            const strength = Math.max(1, Math.round(Number(fields.strength) || unit.strength || 100));
+                            const next = units.map((entry) => entry.id === unit.id
+                                ? { ...entry, name: fields.name || entry.name, strength }
+                                : entry);
+                            setEditingId(null);
+                            return saveWorldList("units", next, `${fields.name || unit.name} saved.`);
+                        })}
+                        >
+                        Save unit
                         </button>
                         </div>
                     )}
@@ -858,7 +1226,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ overflowY: "auto" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
             <label style={labelStyle}>Name</label>
             <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder="Alexandria" />
             <label style={labelStyle}>Tier (1 town … 4 capital)</label>
@@ -953,72 +1321,235 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
     }
 
     if (tool === "events") {
-        const events = items ?? [];
+        const events = items?.events ?? [];
+        const history = items?.history ?? [];
         const q = search.trim().toLowerCase();
-        const shown = events.filter((event) => !q || `${event.title} ${event.description}`.toLowerCase().includes(q)).slice(0, 50);
+        const matches = (text) => !q || String(text).toLowerCase().includes(q);
+
+        // Round grouping mirroring the Event Manager: each recorded turn shows
+        // the actions the player had submitted (BLUE) and the events the turn
+        // produced (PURPLE) as separate color-coded blocks — plus a catch-all
+        // for scenario/pregame events. Newest round first (this is an editing
+        // surface; the most recent turn is what usually needs fixing).
+        const eventById = new Map(events.map((event) => [String(event?.id), event]));
+        const groupedIds = new Set();
+        const groups = history.map((entry) => {
+            const ids = Array.isArray(entry?.eventIds) ? entry.eventIds.map(String) : [];
+            ids.forEach((id) => groupedIds.add(id));
+            return {
+                actions: Array.isArray(entry?.plannedActions) ? entry.plannedActions : [],
+                events: ids.map((id) => eventById.get(id)).filter(Boolean),
+                fromDate: entry?.fromDate || "",
+                key: `round-${entry?.round ?? "?"}`,
+                round: entry?.round ?? "?",
+                toDate: entry?.toDate || "",
+            };
+        });
+        const earlier = events.filter((event) => !groupedIds.has(String(event?.id)));
+        if (earlier.length > 0) {
+            groups.push({ actions: [], events: earlier, fromDate: "", key: "earlier", round: "", toDate: "" });
+        }
+        const persistEvents = async (next, message) => {
+            await writeEventsState(next);
+            setItems({ events: next, history });
+            return message;
+        };
+        // Edit a SUBMITTED ACTION in its round's history record
+        // (world.simulationHistory[..].plannedActions).
+        const persistAction = async (round, actionIndex, newText) => {
+            const world = await readWorldState({ force: true });
+            const list = Array.isArray(world?.simulationHistory) ? world.simulationHistory : [];
+            const nextHistory = list.map((entry) => {
+                if (entry?.round !== round) return entry;
+                const actions = Array.isArray(entry.plannedActions) ? [...entry.plannedActions] : [];
+                if (actionIndex < 0 || actionIndex >= actions.length) return entry;
+                actions[actionIndex] = { ...actions[actionIndex], rawInput: newText, text: newText };
+                return { ...entry, plannedActions: actions };
+            });
+            await writeWorldState({ ...world, simulationHistory: nextHistory });
+            setItems({ events, history: nextHistory });
+            return "Action record updated.";
+        };
+        const eventCard = (event) => {
+            const isEditing = editingId === event.id;
+            return (
+                <div key={event.id} style={{ background: "rgba(109,40,217,0.12)", border: "1px solid rgba(167,139,250,0.35)", borderRadius: 8, padding: "0.5rem 0.6rem" }}>
+                <div style={{ display: "flex", gap: "0.4rem", justifyContent: "space-between" }}>
+                {/* Full event up front; clicking the text toggles the inline
+                    editor — the original's interaction. */}
+                <div
+                onClick={() => { setEditingId(isEditing ? null : event.id); setFields(isEditing ? {} : { title: event.title, description: event.description, date: event.date }); }}
+                title={isEditing ? "Click to close the editor" : "Click to edit this event"}
+                style={{ cursor: "pointer", minWidth: 0 }}
+                >
+                <div style={{ fontSize: "0.8rem", fontWeight: 700 }}>{event.title || "(untitled)"}</div>
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem" }}>{event.date}</div>
+                {!isEditing && event.description && (
+                    <div style={{ color: "rgba(255,255,255,0.62)", fontSize: "0.73rem", lineHeight: 1.45, marginTop: "0.2rem", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    {event.description}
+                    </div>
+                )}
+                </div>
+                <div style={{ display: "flex", flexShrink: 0, gap: "0.3rem" }}>
+                <button
+                type="button"
+                style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
+                disabled={busy}
+                onClick={() => runBusy(async () => persistEvents(events.filter((entry) => entry.id !== event.id), "Event deleted."))}
+                >
+                🗑
+                </button>
+                </div>
+                </div>
+                {isEditing && (
+                    <div style={{ marginTop: "0.4rem" }}>
+                    <label style={labelStyle}>Title</label>
+                    <input style={inputStyle} value={fields.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} />
+                    <label style={labelStyle}>Date</label>
+                    <input style={inputStyle} value={fields.date ?? ""} onChange={(e) => setFields({ ...fields, date: e.target.value })} />
+                    <label style={labelStyle}>Description</label>
+                    <textarea rows={4} style={{ ...inputStyle, resize: "vertical" }} value={fields.description ?? ""} onChange={(e) => setFields({ ...fields, description: e.target.value })} />
+                    <button
+                    type="button"
+                    disabled={busy}
+                    style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
+                    onClick={() => runBusy(async () => {
+                        const next = events.map((entry) => entry.id === event.id
+                            ? { ...entry, title: fields.title ?? entry.title, date: fields.date ?? entry.date, description: fields.description ?? entry.description }
+                            : entry);
+                        setEditingId(null);
+                        return persistEvents(next, "Event saved.");
+                    })}
+                    >
+                    Save event
+                    </button>
+                    </div>
+                )}
+                </div>
+            );
+        };
+
         return (
             <>
             {header(meta.title, meta.subtitle)}
-            <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search events…" />
-            {events.length === 0 && (
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.76rem", marginTop: "0.6rem" }}>No events yet.</div>
+            <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
+            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search this round…" />
+            {groups.length === 0 && (
+                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.76rem", marginTop: "0.6rem" }}>No rounds recorded yet.</div>
             )}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginTop: "0.5rem", overflowY: "auto" }}>
-            {shown.map((event) => {
-                const isEditing = editingId === event.id;
+            {/* Round selector chips, like the Event Manager — one round shown at
+                a time so a long campaign never becomes one endless scroll. */}
+            <div style={{ display: "flex", flexShrink: 0, gap: "0.35rem", marginTop: "0.5rem", overflowX: "auto", paddingBottom: "0.3rem", scrollbarWidth: "thin" }}>
+            {groups.map((group) => {
+                const isActive = (target || groups[0]?.key) === group.key;
                 return (
-                    <div key={event.id} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "0.5rem 0.6rem" }}>
-                    <div style={{ alignItems: "center", display: "flex", gap: "0.4rem", justifyContent: "space-between" }}>
-                    <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: "0.8rem", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{event.title || "(untitled)"}</div>
-                    <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem" }}>{event.date}</div>
-                    </div>
-                    <div style={{ display: "flex", flexShrink: 0, gap: "0.3rem" }}>
-                    <button type="button" style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }} onClick={() => { setEditingId(isEditing ? null : event.id); setFields(isEditing ? {} : { title: event.title, description: event.description, date: event.date }); }}>
-                    {isEditing ? "Close" : "Edit"}
-                    </button>
                     <button
+                    key={group.key}
                     type="button"
-                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
-                    disabled={busy}
-                    onClick={() => runBusy(async () => {
-                        const next = events.filter((entry) => entry.id !== event.id);
-                        await writeEventsState(next);
-                        setItems(next);
-                        return "Event deleted.";
-                    })}
+                    onClick={() => { setTarget(group.key); setEditingId(null); }}
+                    style={{
+                        alignItems: "center",
+                        background: isActive ? "rgba(59,130,246,0.22)" : "rgba(255,255,255,0.05)",
+                        border: isActive ? "1px solid rgba(96,165,250,0.65)" : "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 8,
+                        color: "white",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        flexShrink: 0,
+                        gap: "0.1rem",
+                        minWidth: "4.4rem",
+                        padding: "0.3rem 0.5rem",
+                    }}
                     >
-                    🗑
+                    <span style={{ fontSize: "0.74rem", fontWeight: 800 }}>{group.key === "earlier" ? "S" : group.round}</span>
+                    <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.6rem", whiteSpace: "nowrap" }}>
+                    {group.actions.length}행동 · {group.events.length}이벤트
+                    </span>
                     </button>
+                );
+            })}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginTop: "0.4rem", minHeight: 0, overflowY: "auto" }}>
+            {groups.filter((group) => group.key === (target || groups[0]?.key)).map((group) => {
+                const shownActions = group.actions
+                    .map((action, originalIndex) => ({ normalized: normalizeActionEntry(action), originalIndex }))
+                    .filter(({ normalized }) => Boolean(normalized))
+                    .filter(({ normalized }) => matches(`${normalized.title} ${normalized.text}`));
+                const shownEvents = group.events.filter((event) => matches(`${event.title} ${event.description}`));
+                if (q && shownActions.length === 0 && shownEvents.length === 0) return null;
+                return (
+                    <div key={group.key} style={{ marginBottom: "0.4rem" }}>
+                    <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.78rem", fontWeight: 800, margin: "0.2rem 0 0.3rem" }}>
+                    {group.key === "earlier" ? "Scenario & earlier" : `Round ${group.round} — ${group.fromDate || "?"} → ${group.toDate || "?"}`}
                     </div>
-                    </div>
-                    {isEditing && (
-                        <div style={{ marginTop: "0.4rem" }}>
-                        <label style={labelStyle}>Title</label>
-                        <input style={inputStyle} value={fields.title ?? ""} onChange={(e) => setFields({ ...fields, title: e.target.value })} />
-                        <label style={labelStyle}>Date</label>
-                        <input style={inputStyle} value={fields.date ?? ""} onChange={(e) => setFields({ ...fields, date: e.target.value })} />
-                        <label style={labelStyle}>Description</label>
-                        <textarea rows={4} style={{ ...inputStyle, resize: "vertical" }} value={fields.description ?? ""} onChange={(e) => setFields({ ...fields, description: e.target.value })} />
-                        <button
-                        type="button"
-                        disabled={busy}
-                        style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
-                        onClick={() => runBusy(async () => {
-                            const next = events.map((entry) => entry.id === event.id
-                                ? { ...entry, title: fields.title ?? entry.title, date: fields.date ?? entry.date, description: fields.description ?? entry.description }
-                                : entry);
-                            await writeEventsState(next);
-                            setItems(next);
-                            setEditingId(null);
-                            return "Event saved.";
-                        })}
-                        >
-                        Save event
-                        </button>
+                    {/* Submitted actions — BLUE, bundled together per round. */}
+                    {shownActions.length > 0 && (
+                        <div style={{ color: "rgba(147,197,253,0.95)", fontSize: "0.66rem", fontWeight: 800, letterSpacing: "0.05em", margin: "0.15rem 0 0.25rem", textTransform: "uppercase" }}>
+                        Submitted Actions ({shownActions.length})
                         </div>
                     )}
+                    {shownActions.map(({ normalized: action, originalIndex }) => {
+                        const actionKey = `action-${group.key}-${originalIndex}`;
+                        const isEditingAction = editingId === actionKey;
+                        const canEdit = group.key !== "earlier";
+                        return (
+                            <div key={action.id || actionKey} style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(96,165,250,0.35)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.45rem 0.55rem" }}>
+                            {isEditingAction ? (
+                                <div>
+                                <textarea
+                                rows={3}
+                                autoFocus
+                                style={{ ...inputStyle, resize: "vertical" }}
+                                value={fields.actionText ?? ""}
+                                onChange={(e) => setFields({ ...fields, actionText: e.target.value })}
+                                />
+                                <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem" }}>
+                                <button
+                                type="button"
+                                disabled={busy}
+                                style={{ ...primaryButtonStyle, padding: "0.3rem 0.8rem" }}
+                                onClick={() => runBusy(async () => {
+                                    const text = String(fields.actionText ?? "").trim();
+                                    setEditingId(null);
+                                    if (!text) return "Nothing to save.";
+                                    return persistAction(group.round, originalIndex, text);
+                                })}
+                                >
+                                Save
+                                </button>
+                                <button type="button" style={{ ...buttonStyle, padding: "0.3rem 0.8rem" }} onClick={() => setEditingId(null)}>
+                                Cancel
+                                </button>
+                                </div>
+                                </div>
+                            ) : (
+                                <div
+                                onClick={canEdit ? () => { setEditingId(actionKey); setFields({ actionText: action.rawInput || action.text || buildActionDisplayText(action) }); } : undefined}
+                                title={canEdit ? "Click to edit this action" : undefined}
+                                style={{ cursor: canEdit ? "pointer" : "default" }}
+                                >
+                                {action.title && action.title !== buildActionDisplayText(action) && (
+                                    <div style={{ fontSize: "0.76rem", fontWeight: 700 }}>{action.title}</div>
+                                )}
+                                <div style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.73rem", lineHeight: 1.45, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                                {buildActionDisplayText(action)}
+                                </div>
+                                </div>
+                            )}
+                            </div>
+                        );
+                    })}
+                    {/* Generated events — PURPLE, editable. */}
+                    {shownEvents.length > 0 && (
+                        <div style={{ color: "rgba(196,181,253,0.95)", fontSize: "0.66rem", fontWeight: 800, letterSpacing: "0.05em", margin: "0.3rem 0 0.25rem", textTransform: "uppercase" }}>
+                        Events ({shownEvents.length})
+                        </div>
+                    )}
+                    {shownActions.length === 0 && shownEvents.length === 0 && (
+                        <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.72rem", fontStyle: "italic" }}>Nothing recorded this round.</div>
+                    )}
+                    {shownEvents.map(eventCard)}
                     </div>
                 );
             })}

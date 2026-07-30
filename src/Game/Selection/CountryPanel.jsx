@@ -7,6 +7,7 @@ import { resolveCountryTags } from "../../runtime/countryTags.js";
 import { readEventsState, readWorldState } from "../../runtime/gameState.js";
 import { requestDiplomaticChat } from "../GameUI/chat.jsx";
 import { generateCountryStats } from "../AI/gameplay.js";
+import { useDragWindow } from "../GameUI/useDragWindow.js";
 
 // Bridge: the region popup's info button opens this panel from outside React.
 let _openPanel = null;
@@ -76,6 +77,8 @@ const CountryInfoPanel = () => {
     const [filterIndex, setFilterIndex] = useState(0);
     const [report, setReport] = useState(null); // null | "loading" | text | {error}
     const [flagFailed, setFlagFailed] = useState(false);
+    // Drag-to-move by the header, like the original's windows.
+    const drag = useDragWindow();
 
     _openPanel = (next) => {
         setCountry(next);
@@ -171,12 +174,16 @@ const CountryInfoPanel = () => {
             position: "fixed",
             right: "0.5rem",
             top: "4.75rem",
+            transform: drag.transform,
             width: "min(28rem, calc(100vw - 1rem))",
             zIndex: 10042,
         }}
         >
-        {/* Header */}
-        <div style={{ alignItems: "center", display: "flex", gap: "0.6rem", padding: "1rem 1.1rem 0.8rem" }}>
+        {/* Header (drag handle) */}
+        <div
+        onPointerDown={drag.onPointerDown}
+        style={{ alignItems: "center", cursor: "grab", display: "flex", gap: "0.6rem", padding: "1rem 1.1rem 0.8rem", touchAction: "none", userSelect: "none" }}
+        >
         {country.flagUrl && !flagFailed ? (
             <img src={country.flagUrl} alt="" onError={() => setFlagFailed(true)} style={{ borderRadius: 4, height: "1.35rem", width: "2.1rem", objectFit: "cover" }} />
         ) : country.flagEmoji ? (

@@ -4,6 +4,8 @@ import { createPortal } from "react-dom";
 import { useMap } from "react-map-gl/maplibre";
 import { useWorldState } from "../Map/useWorldState.js";
 import { useCountryDisplayName } from "../../runtime/polityNames.js";
+import { readWorldState, writeWorldState } from "../../runtime/gameState.js";
+import { generateRegionBrief } from "../AI/gameplay.js";
 
 let _setSelection = null;
 let _currentSelection = null;
@@ -92,6 +94,12 @@ const FeaturePopup = () => {
   const [screenPos, setScreenPos] = useState(null);
   const [animKey, setAnimKey] = useState(0);
   const [dismissing, setDismissing] = useState(false);
+  // Original-style interaction: an advisor brief and a rename, right on the
+  // popup — cities rename via world.cityRenames (works for stock AND custom
+  // city labels), structures rename in world.markers.
+  const [report, setReport] = useState(null); // null | "loading" | text | {error}
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameDraft, setRenameDraft] = useState("");
   const { current: map } = useMap();
   const { markers } = useWorldState();
 
@@ -99,6 +107,8 @@ const FeaturePopup = () => {
     _currentSelection = value;
     setDismissing(false);
     setSelection(value);
+    setReport(null);
+    setIsRenaming(false);
     if (value !== null) setAnimKey((key) => key + 1);
   };
 
@@ -184,7 +194,43 @@ const FeaturePopup = () => {
     : titleCase(feature.kind || "Landmark");
   const population = Number(feature.population);
 
-  const POPUP_WIDTH = 220;
+  const POPUP_WIDTH = report !== null ? 280 : 220;
+
+  const runReport = async () => {
+    if (report === "loading") return;
+    setReport("loading");
+    try {
+      const text = await generateRegionBrief({ id: "", name: feature.name, ownerName: ownerName || "" });
+      setReport(text || "No information available.");
+    } catch (error) {
+      setReport({ error: error?.message || "Couldn't generate a report. Set an AI provider + key in Settings." });
+    }
+  };
+
+  const saveRename = async () => {
+    const next = renameDraft.trim();
+    setIsRenaming(false);
+    if (!next || next === feature.name) return;
+    try {
+      const world = await readWorldState({ force: true });
+      if (isCity) {
+        await writeWorldState({
+          ...world,
+          cityRenames: { ...world.cityRenames, [String(feature.name).toLowerCase()]: next },
+        });
+      } else {
+        await writeWorldState({
+          ...world,
+          markers: (world.markers ?? []).map((marker) =>
+            marker.id === feature.id ? { ...marker, name: next } : marker),
+        });
+      }
+      // Show the new name immediately; the map label follows within a poll.
+      _setSelection({ ...selection, name: next });
+    } catch (error) {
+      console.warn("[feature] rename failed:", error);
+    }
+  };
 
   return createPortal(
     <div
@@ -256,6 +302,53 @@ const FeaturePopup = () => {
               {feature.note}
             </div>
           ) : null}
+
+          {isRenaming ? (
+            <div style={{ display: "flex", gap: "5px", marginTop: "8px" }}>
+              <input
+                autoFocus
+                value={renameDraft}
+                onChange={(e) => setRenameDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") setIsRenaming(false); }}
+                style={{ flex: 1, minWidth: 0, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "6px", color: "white", fontSize: "11px", outline: "none", padding: "4px 6px" }}
+              />
+              <button
+                onClick={saveRename}
+                style={{ background: "#3b82f6", border: "none", borderRadius: "6px", color: "white", cursor: "pointer", fontSize: "10px", fontWeight: 600, padding: "3px 8px" }}
+              >
+                Save
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", gap: "5px", marginTop: "8px" }}>
+              <button
+                onClick={runReport}
+                title="Ask the advisor about this place"
+                style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontSize: "10px", fontWeight: 600, padding: "4px 6px" }}
+              >
+                {"ⓘ Advisor report"}
+              </button>
+              <button
+                onClick={() => { setRenameDraft(feature.name); setIsRenaming(true); }}
+                title="Rename this place"
+                style={{ flex: 1, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontSize: "10px", fontWeight: 600, padding: "4px 6px" }}
+              >
+                {"✎ Rename"}
+              </button>
+            </div>
+          )}
+
+          {report !== null && (
+            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", marginTop: "8px", maxHeight: "180px", overflowY: "auto", padding: "7px 8px" }}>
+              {report === "loading" ? (
+                <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "11px" }}>Preparing the report…</div>
+              ) : report?.error ? (
+                <div style={{ color: "#f87171", fontSize: "11px" }}>{report.error}</div>
+              ) : (
+                <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "11px", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{String(report)}</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>,

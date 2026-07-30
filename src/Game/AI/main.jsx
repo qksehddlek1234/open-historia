@@ -4,6 +4,7 @@ import {
     getReasoningEnabled,
     getStoredProvider,
     providerSupportsModelDiscovery,
+    resolveRoleSettings,
     setProviderField,
 } from "./providerConfig.js";
 import { JSON_URLS, readJson } from "../../runtime/assets.js";
@@ -362,6 +363,7 @@ export async function readOpenAIStreamedResponse(response) {
     let toolName = "";
     let toolArguments = "";
     let finishReason = null;
+    let streamDropped = false;
     try {
         for (;;) {
             const { done, value } = await reader.read();
@@ -389,10 +391,24 @@ export async function readOpenAIStreamedResponse(response) {
                 if (choice.finish_reason) finishReason = choice.finish_reason;
             }
         }
+    } catch (error) {
+        // A dropped local stream (Ollama hiccup, GPU stall, connection reset)
+        // used to throw the WHOLE response away even when most of the answer
+        // had already arrived — the turn then fell back to canned events with
+        // "Failed to fetch". Keep the partial text instead — but MARK it as
+        // partial (__partial): runJsonTask retries the call on that marker
+        // rather than salvaging a near-empty turn, and only accepts the
+        // salvage when its retries are spent. (Field report: a stream that
+        // dropped early produced a "valid" one-event turn with no summary
+        // that burned a whole month and ignored every queued action.)
+        if ((content + toolArguments).length < 200) throw error;
+        console.warn("[ai] stream dropped mid-response — keeping the partial output:", error?.message || error);
+        streamDropped = true;
     } finally {
         try { reader.releaseLock(); } catch { /* stream already closed */ }
     }
     return {
+        ...(streamDropped ? { __partial: true } : {}),
         choices: [{
             finish_reason: finishReason,
             message: {
@@ -475,8 +491,10 @@ function toAnthropicMessages(history) {
     }));
 }
 
-async function resolveModel(provider, { endpoint = "", headers = {}, fallbackModel = "", providerLabel, signal } = {}) {
-    const settings = getProviderSettings(provider);
+async function resolveModel(provider, { endpoint = "", headers = {}, fallbackModel = "", providerLabel, signal, settings: providedSettings } = {}) {
+    // Role routing passes the already-resolved settings snapshot so a role's
+    // model override reaches discovery too (and no re-read can race).
+    const settings = providedSettings ?? getProviderSettings(provider);
     const configuredModel = settings.model.trim();
 
     if (configuredModel) {
@@ -526,12 +544,14 @@ async function callGemini(systemPrompt, history, {
     deadline,
     maxTokens = 8192,
     onChunk,
+    resolved,
     retries = 3,
     retryDelay = 15000,
     signal,
     tool,
 } = {}) {
-    const settings = getProviderSettings("gemini");
+    const settings = resolved ?? getProviderSettings("gemini");
+    const reasoningOn = resolved ? resolved.reasoning : getReasoningEnabled();
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
@@ -542,6 +562,7 @@ async function callGemini(systemPrompt, history, {
         fallbackModel: GEMINI_DEFAULT_MODEL,
         providerLabel: "Gemini",
         signal,
+        settings,
     });
 
     const customParams = parseCustomParams(settings.customParams, "Gemini");
@@ -560,7 +581,7 @@ async function callGemini(systemPrompt, history, {
                 contents: history,
                 generationConfig: {
                     maxOutputTokens: Math.max(1, Number(maxTokens) || 8192),
-                    ...(getReasoningEnabled() ? { thinkingConfig: { thinkingBudget: 8192 } } : {}),
+                    ...(reasoningOn ? { thinkingConfig: { thinkingBudget: 8192 } } : {}),
                 },
                 ...customParams,
             }),
@@ -582,8 +603,8 @@ async function callGemini(systemPrompt, history, {
             body: JSON.stringify({
                 system_instruction: { parts: [{ text: systemPrompt }] },
                 contents: history,
-                // Reasoning toggle (settings): let thinking-capable Gemini models think.
-                ...(getReasoningEnabled()
+                // Reasoning toggle (settings/role): let thinking-capable Gemini models think.
+                ...(reasoningOn
                      ? { generationConfig: { thinkingConfig: { thinkingBudget: 8192 } } }
                      : {}),
                 ...customParams,
@@ -656,9 +677,13 @@ async function callOpenAIStyleChatCompletions({
     allowJsonSchemaFallback = false,
     maxTokens,
     tokenLimitField = "max_tokens",
+    reasoningOn,
 }) {
     let structuredMode = tool ? "tool" : "text";
     let disableToolReasoning = false;
+    // Captured once (role-resolved value wins) so retries and late request
+    // builds can't race a concurrent call running under a different role.
+    const reasoningEnabled = reasoningOn ?? getReasoningEnabled();
 
     let attempt = 1;
     while (attempt <= retries) {
@@ -689,14 +714,32 @@ async function callOpenAIStyleChatCompletions({
                 // fell back to non-tool modes, which DID carry it). Providers that
                 // reject the tools+reasoning combination surface the documented
                 // error below and the call retries without it.
-                ...(getReasoningEnabled() && !disableToolReasoning ? { reasoning_effort: "medium" } : {}),
+                // reasoning control, probed live against Ollama 0.32.5 /v1:
+                // enable_thinking and qwen3's "/no_think" soft switch are both
+                // IGNORED there — reasoning_effort is the one knob it honors
+                // ("none" fully disables the think phase). Structured local
+                // tasks always force "none" (think-stalls kept eating turns);
+                // prose calls follow the reasoning toggle.
+                ...(streamLocalEndpoint
+                    ? { reasoning_effort: (tool || !reasoningEnabled) ? "none" : "medium" }
+                    : (reasoningEnabled && !disableToolReasoning ? { reasoning_effort: "medium" } : {})),
                 // Thinking-class local models (Qwen3, Seed-OSS) key on
                 // enable_thinking, not reasoning_effort — textgen/oobabooga
                 // honors it per-request, llama.cpp/LM Studio ignore unknown
                 // fields. Local endpoints only: strict cloud APIs reject
-                // unknown parameters. Sent only when the toggle is ON so a
-                // server-side --enable-thinking default is never overridden.
-                ...(streamLocalEndpoint && getReasoningEnabled() && !disableToolReasoning ? { enable_thinking: true } : {}),
+                // unknown parameters. Sent explicitly BOTH ways now: an OFF
+                // toggle (or a role forcing reasoning off) must actually stop
+                // a thinking-default model from thinking — omitting the field
+                // silently left Qwen3-style models reasoning on every call.
+                // Structured tasks NEVER think on local endpoints: qwen3-style
+                // models intermittently STOP at the end of the think phase
+                // without ever emitting answer content (finish=stop, content
+                // empty, reasoning only) — the turn then fails validation and
+                // falls back ("$.events is required", a real field report).
+                // Thinking stays available for prose calls (advisor, chats);
+                // structured JSON needs the answer, every time — and skipping
+                // the think phase makes turns dramatically faster too.
+                ...(streamLocalEndpoint ? { enable_thinking: tool ? false : reasoningEnabled } : {}),
                 // No cap unless a caller asked for a specific budget: omit the field so
                 // the provider uses the model's own maximum (long turns aren't truncated).
                 ...(Number(maxTokens) > 0 ? { [tokenLimitField]: Number(maxTokens) } : {}),
@@ -792,12 +835,33 @@ async function callOpenAIStyleChatCompletions({
             : await response.json();
         const text = extractOpenAIMessageText(data);
 
+        // Think-stall guard: the model spent its whole answer in the reasoning
+        // channel and stopped — content empty, no tool arguments. Handing the
+        // reasoning prose to the JSON layer just fails validation downstream,
+        // so retry the call instead while attempts remain.
+        if (tool && streamLocalEndpoint) {
+            const rawContent = data?.choices?.[0]?.message?.content;
+            const flatContent = typeof rawContent === "string"
+                ? rawContent
+                : Array.isArray(rawContent)
+                    ? rawContent.map((part) => (typeof part === "string" ? part : part?.text || "")).join("")
+                    : "";
+            const answerEmpty = !stripThinking(flatContent).trim();
+            const toolArgs = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+            if (answerEmpty && !toolArgs && attempt < retries) {
+                console.warn(`[ai] ${providerLabel} returned reasoning only (no answer content) — retrying (attempt ${attempt}/${retries}).`);
+                attempt += 1;
+                continue;
+            }
+        }
+
         if (tool) {
+            const partial = data?.__partial === true ? { partial: true } : {};
             const toolInput = structuredMode === "tool" ? extractOpenAIToolInput(data, tool) : null;
-            if (toolInput) return { rawText: text, toolInput };
-            if (structuredMode === "tool") return { rawText: extractOpenAIToolRaw(data, tool) || text, toolInput: null };
-            if (structuredMode === "json_schema" && text) return { rawText: text, toolInput: null };
-            return { rawText: text, toolInput: null };
+            if (toolInput) return { rawText: text, toolInput, ...partial };
+            if (structuredMode === "tool") return { rawText: extractOpenAIToolRaw(data, tool) || text, toolInput: null, ...partial };
+            if (structuredMode === "json_schema" && text) return { rawText: text, toolInput: null, ...partial };
+            return { rawText: text, toolInput: null, ...partial };
         }
 
         if (!text) {
@@ -809,7 +873,7 @@ async function callOpenAIStyleChatCompletions({
 }
 
 async function callOpenAI(systemPrompt, history, opts = {}) {
-    const settings = getProviderSettings("openai");
+    const settings = opts.resolved ?? getProviderSettings("openai");
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
@@ -826,6 +890,7 @@ async function callOpenAI(systemPrompt, history, opts = {}) {
         headers,
         providerLabel: "OpenAI",
         signal: opts.signal,
+        settings,
     });
 
     return callOpenAIStyleChatCompletions({
@@ -838,12 +903,13 @@ async function callOpenAI(systemPrompt, history, opts = {}) {
         customParams: parseCustomParams(settings.customParams, "OpenAI"),
         allowJsonSchemaFallback: false,
         tokenLimitField: "max_completion_tokens",
+        reasoningOn: opts.resolved ? opts.resolved.reasoning : undefined,
         ...opts,
     });
 }
 
 async function callOpenAICompatible(systemPrompt, history, opts = {}) {
-    const settings = getProviderSettings("openai-compatible");
+    const settings = opts.resolved ?? getProviderSettings("openai-compatible");
     const endpoint = normalizeEndpoint(settings.endpoint);
 
     if (!endpoint) {
@@ -860,6 +926,7 @@ async function callOpenAICompatible(systemPrompt, history, opts = {}) {
         headers,
         providerLabel: "OpenAI Compatible",
         signal: opts.signal,
+        settings,
     });
 
     return callOpenAIStyleChatCompletions({
@@ -872,6 +939,7 @@ async function callOpenAICompatible(systemPrompt, history, opts = {}) {
         customParams: parseCustomParams(settings.customParams, "OpenAI Compatible"),
         allowJsonSchemaFallback: true,
         tokenLimitField: "max_tokens",
+        reasoningOn: opts.resolved ? opts.resolved.reasoning : undefined,
         ...opts,
     });
 }
@@ -888,12 +956,13 @@ async function callAnthropic(systemPrompt, history, {
     deadline,
     maxTokens,
     onChunk,
+    resolved,
     retries = 3,
     retryDelay = 15000,
     signal,
     tool,
 } = {}) {
-    const settings = getProviderSettings("anthropic");
+    const settings = resolved ?? getProviderSettings("anthropic");
     const apiKey = settings.apiKey.trim();
 
     if (!apiKey) {
@@ -904,6 +973,7 @@ async function callAnthropic(systemPrompt, history, {
         fallbackModel: ANTHROPIC_DEFAULT_MODEL,
         providerLabel: "Anthropic",
         signal,
+        settings,
     });
 
     const headers = {
@@ -913,10 +983,10 @@ async function callAnthropic(systemPrompt, history, {
         "anthropic-dangerous-direct-browser-access": "true",
     };
 
-    // Reasoning toggle (settings): extended thinking. max_tokens must exceed the
-    // thinking budget, so it is raised alongside; thinking blocks are filtered out
-    // by extractAnthropicText, which only reads text blocks.
-    const reasoning = getReasoningEnabled();
+    // Reasoning toggle (settings/role): extended thinking. max_tokens must exceed
+    // the thinking budget, so it is raised alongside; thinking blocks are filtered
+    // out by extractAnthropicText, which only reads text blocks.
+    const reasoning = resolved ? resolved.reasoning : getReasoningEnabled();
     const customParams = parseCustomParams(settings.customParams, "Anthropic");
     // Uncapped by default -> the model's own maximum (learned from a prior 400).
     let requestedMaxTokens = Number(maxTokens) > 0
@@ -998,12 +1068,13 @@ async function callAnthropicCompatible(systemPrompt, history, {
     deadline,
     maxTokens,
     onChunk,
+    resolved,
     retries = 3,
     retryDelay = 15000,
     signal,
     tool,
 } = {}) {
-    const settings = getProviderSettings("anthropic-compatible");
+    const settings = resolved ?? getProviderSettings("anthropic-compatible");
     const endpoint = normalizeEndpoint(settings.endpoint);
 
     if (!endpoint) {
@@ -1015,6 +1086,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
         fallbackModel: ANTHROPIC_DEFAULT_MODEL,
         providerLabel: "Anthropic Compatible",
         signal,
+        settings,
     });
 
     // Self-hosted proxy: tried directly first, falling back to the local relay
@@ -1027,7 +1099,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
         ...(apiKey ? { "x-api-key": apiKey } : {}),
     };
 
-    const reasoning = getReasoningEnabled();
+    const reasoning = resolved ? resolved.reasoning : getReasoningEnabled();
     const customParams = parseCustomParams(settings.customParams, "Anthropic Compatible");
     // Uncapped by default -> the model's own maximum (learned from a prior 400).
     let requestedMaxTokens = Number(maxTokens) > 0
@@ -1101,7 +1173,7 @@ async function callAnthropicCompatible(systemPrompt, history, {
 export async function callAI(systemPrompt, history, opts = {}) {
     // Non-English players get replies in their language at the source —
     // native answers beat post-translating them (see runtime/i18n.js).
-    const { languageMode = "ui", ...providerOpts } = opts;
+    const { languageMode = "ui", role = "event", ...providerOpts } = opts;
     const directive = languageMode === "none" ? ""
         : languageMode === "chat" ? chatLanguageDirective()
         : languageDirective();
@@ -1109,7 +1181,15 @@ export async function callAI(systemPrompt, history, opts = {}) {
         systemPrompt = `${systemPrompt}\n\n${directive}`;
     }
 
-    switch (getStoredProvider()) {
+    // Role routing: every call declares what it is (event / advisor / chat /
+    // translate) and the role's provider, model and reasoning settings are
+    // resolved HERE, synchronously, in one snapshot — so a translation batch
+    // running beside a timeline jump can use a different model without either
+    // call racing the other's settings reads.
+    const resolved = resolveRoleSettings(role);
+    providerOpts.resolved = resolved;
+
+    switch (resolved.provider) {
     case "openai":
         return callOpenAI(systemPrompt, history, providerOpts);
     case "anthropic":
@@ -1252,7 +1332,7 @@ export async function sendMessage(userMessage, opts) {
         // maxTokens 8192 caps the reply; onChunk (passed by the advisor UI) streams
         // it token-by-token. Providers that can't stream still return the full reply
         // here, so the advisor works either way.
-        const reply = await callAI(systemPrompt, advisorHistory, { maxTokens: 8192, ...opts, languageMode: "chat" });
+        const reply = await callAI(systemPrompt, advisorHistory, { maxTokens: 8192, role: "advisor", ...opts, languageMode: "chat" });
         advisorHistory.push({ role: "model", parts: [{ text: reply }] });
         return reply;
     } catch (err) {
@@ -1314,7 +1394,7 @@ export async function sendDiplomaticMessage(playerMessage, speakingAs, countries
     ];
 
     try {
-        const raw = await callAI(freshPrompt, historyWithInstruction, { ...opts, languageMode: "chat" });
+        const raw = await callAI(freshPrompt, historyWithInstruction, { role: "chat", ...opts, languageMode: "chat" });
         const { reply, reaction } = parseReaction(raw);
         diplomaticHistory.push({ role: "model", parts: [{ text: `[${speakingAs}]: ${reply}` }] });
         return { reply, reaction };

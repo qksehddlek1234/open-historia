@@ -11,6 +11,7 @@ import {
 } from "../Map/unitsController.js";
 import { UNIT_TYPES } from "../../runtime/gameState.js";
 import { ensurePolityNames, polityDisplayName } from "../../runtime/polityNames.js";
+import { useDragWindow } from "./useDragWindow.js";
 
 const TYPE_LABEL = {
   infantry: "Infantry",
@@ -103,6 +104,8 @@ export const ForcesPanel = ({ mapRef, topOffset = "0px", open = false, onToggle 
     return unsubscribe;
   }, []);
 
+  // Drag-to-move by the header, like the original's windows.
+  const drag = useDragWindow();
   // Owner codes render as full names; re-render once the lookup is warm.
   const [, setNamesEpoch] = useState(0);
   useEffect(() => {
@@ -192,9 +195,13 @@ export const ForcesPanel = ({ mapRef, topOffset = "0px", open = false, onToggle 
             flexDirection: "column",
             zIndex: 9999,
             padding: "12px",
+            transform: drag.transform,
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+          <div
+            onPointerDown={drag.onPointerDown}
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", cursor: "grab", touchAction: "none", userSelect: "none" }}
+          >
             <strong style={{ fontSize: "14px" }}>Forces</strong>
             <button
               onClick={() => setOpen(false)}

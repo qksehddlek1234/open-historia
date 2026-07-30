@@ -6,6 +6,7 @@ import { useCustomBackground } from "./useCustomBackground.js";
 import GlobeEffects from "./GlobeEffects.jsx";
 import RegionPopup from "../Selection/Regions";
 import CountryInfoPanel from "../Selection/CountryPanel.jsx";
+import RegionInfoPanel from "../Selection/RegionPanel.jsx";
 import Cities from "./Cities";
 import Units from "./Units";
 import UnitPopup from "../Selection/Units";
@@ -319,6 +320,7 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
         <GlobeEffects active={isGlobe} />
         <RegionPopup />
         <CountryInfoPanel />
+        <RegionInfoPanel />
         <UnitPopup />
         <FeaturePopup />
       </Map>
