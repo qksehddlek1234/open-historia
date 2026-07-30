@@ -12,7 +12,6 @@ import {
     readJson,
 } from "../../runtime/assets.js";
 import { flagEmojiFromGid } from "../../runtime/countryFlags.js";
-import { chatLanguageDiffersFromUi, isRtlLanguage, resolveChatLanguage } from "../../runtime/i18n.js";
 import { readChatsState, writeChatsState } from "../../runtime/gameState.js";
 
 // ── Storage ───────────────────────────────────────────────────────────────────
@@ -153,21 +152,29 @@ const BackIcon = () => (
     </svg>
 );
 
-const GearIcon = () => (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="3"/>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+// Drawn rather than typed, like every other icon here. The list row used the
+// U+1F5D1 emoji, which has no colour glyph in Windows' default UI font and falls
+// back to a monochrome symbol face; an inline SVG renders the same everywhere and
+// matches the stroke weight of its neighbours.
+const TrashIcon = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M3 6h18" />
+    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
     </svg>
 );
+
+
+
+
 
 // ── Message bubble ────────────────────────────────────────────────────────────
 
 const MessageBubble = ({ msg }) => {
     const isPlayer = msg.role === "user";
     const isError  = msg.role === "error";
-    // See advisor.jsx: errors are UI strings, so only a leader's own words are
-    // held back from the translator.
-    const asWritten = !isPlayer && !isError && chatLanguageDiffersFromUi();
     const flag     = useCountryFlag(isPlayer || isError ? {} : { code: msg.code, name: msg.speaker });
     const reactions = Object.entries(msg.reactions ?? {});
     const reactionFlags = useCountryFlags(reactions.map(([name, { code }]) => ({ name, code })));
@@ -199,7 +206,7 @@ const MessageBubble = ({ msg }) => {
         )}
 
         {/* Player-typed text stays verbatim under UI translation. */}
-        <div data-no-translate={isPlayer || asWritten ? "" : undefined} dir={asWritten && isRtlLanguage(resolveChatLanguage()) ? "rtl" : undefined} style={{
+        <div data-no-translate={isPlayer ? "" : undefined} style={{
             padding: "0.6rem 0.85rem",
             borderRadius: isPlayer ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
             backgroundColor: isPlayer
@@ -409,7 +416,10 @@ const CountrySelectorModal = ({ countries, loading, onStart, onCancel }) => {
 
 // ── Conversation view ─────────────────────────────────────────────────────────
 
-const ConversationView = ({ chat, playerCountry, gameDate, onArchive, onBack, onMessagesUpdate }) => {
+const ConversationView = ({ chat, playerCountry, gameDate, onDelete, onBack, onMessagesUpdate }) => {
+    // Two-step delete, matching the list row. Disarms on blur so a half-pressed
+    // delete never sits waiting to catch a later click.
+    const [confirmingDelete, setConfirmingDelete] = useState(false);
     const countries = useMemo(
         () => Array.isArray(chat?.countries)
             ? chat.countries.filter((country) => country && (country.name || country.code))
@@ -590,10 +600,15 @@ const ConversationView = ({ chat, playerCountry, gameDate, onArchive, onBack, on
             <span style={{ flex: 1, fontWeight: 700, fontSize: "0.95rem", color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             Chat with {countries.map(c => c.name).join(", ") || "unknown participant"}
             </span>
-            <button title="Archive chat" onClick={onArchive} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", display: "flex", padding: "0.25rem", borderRadius: "6px" }}
-            onMouseEnter={e => { e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.45)"; e.currentTarget.style.background = "none"; }}>
-            <GearIcon />
+            {/* Two-step, same as the list row: one click arms, the next confirms. */}
+            <button title={confirmingDelete ? "Click again to delete this chat" : "Delete chat"}
+            aria-label={confirmingDelete ? "Confirm deleting this chat" : "Delete chat"}
+            onClick={() => { if (confirmingDelete) { onDelete?.(); } else { setConfirmingDelete(true); } }}
+            onBlur={() => setConfirmingDelete(false)}
+            style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: confirmingDelete ? "rgba(239,68,68,0.18)" : "none", border: `1px solid ${confirmingDelete ? "rgba(239,68,68,0.55)" : "transparent"}`, cursor: "pointer", color: confirmingDelete ? "#fca5a5" : "rgba(239,68,68,0.65)", fontSize: "0.72rem", fontWeight: 600, fontFamily: "sans-serif", padding: confirmingDelete ? "0.25rem 0.5rem" : "0.25rem", borderRadius: "6px", lineHeight: 1 }}
+            onMouseEnter={e => { if (!confirmingDelete) { e.currentTarget.style.color = "rgba(239,68,68,1)"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; } }}
+            onMouseLeave={e => { if (!confirmingDelete) { e.currentTarget.style.color = "rgba(239,68,68,0.65)"; e.currentTarget.style.background = "none"; } }}>
+            {confirmingDelete ? "Delete?" : <TrashIcon />}
             </button>
             <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", fontSize: "1rem", lineHeight: 1, padding: "0.25rem 0.3rem", borderRadius: "6px" }}
             onMouseEnter={e => { e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
@@ -664,10 +679,51 @@ const CountryTurnLabel = ({ country, remaining }) => {
     );
 };
 
+// ── Unread tracking ───────────────────────────────────────────────────────────
+
+// Message totals per chat as of the last time the panel was open. Module-level
+// AND persisted because two separate components need the SAME baseline: the
+// toolbar's unread badge and the panel's chat list. It used to be a useRef
+// inside the toolbar button, so the list could not read it and every remount
+// silently reset it.
+const SEEN_KEY = "oh:chat-seen";
+
+// null (not {}) when nothing has ever been recorded — the two cases differ: no
+// baseline at all means "first run, don't shout about chats that were already
+// there", while an empty baseline means every chat really is new.
+const readSeen = () => {
+    try {
+        const raw = localStorage.getItem(SEEN_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+    } catch { return null; }
+};
+
+const writeSeen = (totals) => {
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify(totals)); } catch { /* private mode / quota */ }
+};
+
+const chatMessageCount = (chat) => chat?.messages?.length ?? 0;
+const seenTotals = (list) => Object.fromEntries(list.map((c) => [String(c.id), chatMessageCount(c)]));
+
+// Unread = more messages than when the panel was last open. A chat with no entry
+// is unread (that is how a brand-new conversation surfaces) — but only once a
+// baseline exists, so a first run doesn't light up every existing chat.
+const isChatUnread = (chat, seen) => {
+    if (!seen) return false;
+    const prev = seen[String(chat.id)];
+    return prev === undefined || chatMessageCount(chat) > prev;
+};
+
 // ── Chat list item ────────────────────────────────────────────────────────────
 
-const ChatListItem = ({ chat, onClick, onDelete }) => {
+const ChatListItem = ({ chat, onClick, onDelete, unread = false }) => {
     const [hovered, setHovered] = React.useState(false);
+    // Deleting a chat is not undoable, so the bin arms first and deletes on the
+    // second click. Resets whenever the pointer leaves the row, so a half-pressed
+    // delete never sits waiting to catch a later click.
+    const [confirming, setConfirming] = React.useState(false);
     const previewCountries = chat.countries.slice(0, 4);
     const flagMap  = useCountryFlags(previewCountries);
     const flags    = previewCountries.map(c => flagMap[c.name] ?? "🏳").join(" ");
@@ -676,19 +732,26 @@ const ChatListItem = ({ chat, onClick, onDelete }) => {
     const preview  = lastMsg ? lastMsg.text.replace(/\*\*/g, "").slice(0, 60) + (lastMsg.text.length > 60 ? "…" : "") : "No messages yet";
 
     return (
-        <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ position: "relative" }}>
+        <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => { setHovered(false); setConfirming(false); }} style={{ position: "relative" }}>
         <button onClick={onClick} style={{ width: "100%", padding: "0.7rem 0.9rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.07)", background: hovered ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer", transition: "background 0.15s", fontFamily: "sans-serif", textAlign: "left" }}>
+        {/* Fixed-width slot, always rendered, so read and unread rows stay aligned. */}
+        <div style={{ width: "0.5rem", flexShrink: 0, display: "flex", justifyContent: "center" }} aria-hidden="true">
+        {unread && <div style={{ width: "0.5rem", height: "0.5rem", borderRadius: "50%", background: "#60a5fa" }} />}
+        </div>
         <div style={{ fontSize: "1.3rem", flexShrink: 0, lineHeight: 1 }}>{flags}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "rgba(255,255,255,0.9)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{names}</div>
-        <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.35)", marginTop: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview}</div>
+        <div style={{ fontSize: "0.82rem", fontWeight: unread ? 700 : 600, color: unread ? "#fff" : "rgba(255,255,255,0.9)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{names}{unread && <span style={{ fontWeight: 400, fontSize: "0.7rem", color: "#60a5fa", marginLeft: "0.4rem" }}>new</span>}</div>
+        <div style={{ fontSize: "0.75rem", color: unread ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)", marginTop: "0.15rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview}</div>
         </div>
         </button>
         {hovered && (
-            <button onClick={e => { e.stopPropagation(); onDelete(); }}
-            style={{ position: "absolute", top: "50%", right: "0.6rem", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.7)", fontSize: "0.9rem", padding: "0.2rem", borderRadius: "6px", lineHeight: 1 }}
-            onMouseEnter={e => { e.currentTarget.style.color = "rgba(239,68,68,1)"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "rgba(239,68,68,0.7)"; e.currentTarget.style.background = "none"; }}>🗑</button>
+            <button onClick={e => { e.stopPropagation(); if (confirming) { onDelete(); } else { setConfirming(true); } }}
+            title={confirming ? "Click again to delete this chat" : "Delete chat"}
+            aria-label={confirming ? "Confirm deleting this chat" : "Delete chat"}
+            style={{ position: "absolute", top: "50%", right: "0.6rem", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: "0.3rem", background: confirming ? "rgba(239,68,68,0.18)" : "none", border: `1px solid ${confirming ? "rgba(239,68,68,0.55)" : "transparent"}`, cursor: "pointer", color: confirming ? "#fca5a5" : "rgba(239,68,68,0.7)", fontSize: "0.72rem", fontWeight: 600, fontFamily: "sans-serif", padding: confirming ? "0.25rem 0.5rem" : "0.25rem", borderRadius: "6px", lineHeight: 1 }}
+            onMouseEnter={e => { if (!confirming) { e.currentTarget.style.color = "rgba(239,68,68,1)"; e.currentTarget.style.background = "rgba(239,68,68,0.1)"; } }}
+            onMouseLeave={e => { if (!confirming) { e.currentTarget.style.color = "rgba(239,68,68,0.7)"; e.currentTarget.style.background = "none"; } }}>
+            {confirming ? "Delete?" : <TrashIcon />}</button>
         )}
         </div>
     );
@@ -713,6 +776,36 @@ const ChatPanel = ({ isOpen, onClose, requestedCountry, onConsumeRequest }) => {
     const [showSelector, setShowSelector]         = useState(false);
     const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
     const openChats = chats.filter((chat) => chat.status !== "closed" && Array.isArray(chat.countries) && chat.countries.length > 0);
+
+    // Which chats to flag as unread, snapshotted when the panel OPENS and held
+    // until it closes — rows must not reshuffle under the cursor while the player
+    // is reading them. Reopening the panel is what re-sorts.
+    const [unreadIds, setUnreadIds] = useState(() => new Set());
+    const snapshotTakenRef = useRef(false);
+
+    useEffect(() => {
+        if (!isOpen) { snapshotTakenRef.current = false; return; }
+        if (snapshotTakenRef.current || !hasLoadedInitialData) return;
+        snapshotTakenRef.current = true;
+        setUnreadIds(new Set(openChats.filter((chat) => isChatUnread(chat, readSeen())).map((chat) => String(chat.id))));
+        // Everything on screen now counts as seen: the toolbar badge clears, and the
+        // next open only flags what arrived in between.
+        writeSeen(seenTotals(openChats));
+    }, [isOpen, hasLoadedInitialData, openChats]);
+
+    // Unread first, everything else in the order it already had — a stable
+    // partition, so chats the player has read don't jump around too.
+    const orderedChats = [
+        ...openChats.filter((chat) => unreadIds.has(String(chat.id))),
+        ...openChats.filter((chat) => !unreadIds.has(String(chat.id))),
+    ];
+
+    // Opening a chat marks it read, so messages that landed while the panel was
+    // already open don't come back flagged on the next open.
+    const openChatFromList = (chat) => {
+        setActiveChat(chat);
+        writeSeen({ ...(readSeen() || {}), [String(chat.id)]: chatMessageCount(chat) });
+    };
 
     useEffect(() => {
         if (!isOpen || hasLoadedInitialData) return;
@@ -811,18 +904,23 @@ const ChatPanel = ({ isOpen, onClose, requestedCountry, onConsumeRequest }) => {
         setActiveChat(newChat);
     };
 
+    // Deleting hides the thread from the player; it does NOT erase it. gameplay.js
+    // feeds closed chats back to the model as concluded-negotiation history, so
+    // dropping the record outright would make the AI act as though the talks never
+    // happened. Closing also means the next approach from that country opens a
+    // FRESH chat instead of reviving this one — closed chats are excluded from the
+    // "already talking to them" lookup.
+    //
+    // This is what the old Archive button did, so there is no separate archive
+    // control any more: two buttons that both close a chat only invited the
+    // question of which one really deleted it.
     const handleDeleteChat = (id) => {
-        setChats(prev => { const u = prev.filter(c => c.id !== id); saveAllChats(u); return u; });
-        if (activeChat?.id === id) setActiveChat(null);
-    };
-
-    const handleArchiveChat = (id) => {
         setChats(prev => {
             const updated = prev.map(chat => chat.id === id ? { ...chat, status: "closed" } : chat);
             saveAllChats(updated);
             return updated;
         });
-        setActiveChat(null);
+        if (activeChat?.id === id) setActiveChat(null);
     };
 
     // Open (or reuse) a 1-on-1 chat with a country requested from the region popup.
@@ -857,7 +955,7 @@ const ChatPanel = ({ isOpen, onClose, requestedCountry, onConsumeRequest }) => {
             {showSelector && <CountrySelectorModal countries={availableCountries} loading={loadingCountries} onStart={handleStartChat} onCancel={() => setShowSelector(false)} />}
 
             {activeChat && Array.isArray(activeChat.countries) && activeChat.countries.length > 0 ? (
-                <ConversationView chat={activeChat} playerCountry={playerCountry} gameDate={gameDate} onArchive={() => handleArchiveChat(activeChat.id)} onBack={() => setActiveChat(null)} onMessagesUpdate={handleMessagesUpdate} />
+                <ConversationView chat={activeChat} playerCountry={playerCountry} gameDate={gameDate} onDelete={() => handleDeleteChat(activeChat.id)} onBack={() => setActiveChat(null)} onMessagesUpdate={handleMessagesUpdate} />
             ) : (
                 <>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 1.25rem 0.75rem", borderBottom: "1px solid rgba(255,255,255,0.07)", flexShrink: 0 }}>
@@ -871,7 +969,7 @@ const ChatPanel = ({ isOpen, onClose, requestedCountry, onConsumeRequest }) => {
                     <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.25)", fontSize: "0.82rem", fontStyle: "italic", textAlign: "center", padding: "2rem" }}>
                     No diplomatic conversations yet.<br />Start one below.
                     </div>
-                ) : openChats.map(chat => <ChatListItem key={chat.id} chat={chat} onClick={() => setActiveChat(chat)} onDelete={() => handleDeleteChat(chat.id)} />)}
+                ) : orderedChats.map(chat => <ChatListItem key={chat.id} chat={chat} unread={unreadIds.has(String(chat.id))} onClick={() => openChatFromList(chat)} onDelete={() => handleDeleteChat(chat.id)} />)}
                 </div>
                 <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid rgba(255,255,255,0.07)", flexShrink: 0 }}>
                 <button onClick={() => setShowSelector(true)} style={{ width: "100%", padding: "0.7rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", fontSize: "0.85rem", fontWeight: 500, cursor: "pointer", fontFamily: "sans-serif" }}
@@ -891,9 +989,6 @@ const Chat = ({ hovered, setHovered, isOpen, onToggle }) => {
     const [hasOpened, setHasOpened] = useState(false);
     const [pendingCountry, setPendingCountry] = useState(null);
     const [unseenCount, setUnseenCount] = useState(0);
-    // Message totals per chat as of the last time the panel was open — the
-    // baseline "seen" state for the unread badge.
-    const seenRef = useRef(null);
     const setChatOpen = () => { onToggle(); };
 
     useEffect(() => {
@@ -910,19 +1005,19 @@ const Chat = ({ hovered, setHovered, isOpen, onToggle }) => {
         .then((saved) => {
             if (cancelled || !Array.isArray(saved)) return;
             const open = saved.filter((c) => c.status !== "closed" && Array.isArray(c.countries) && c.countries.length > 0);
-            const totals = new Map(open.map((c) => [String(c.id), c.messages?.length ?? 0]));
-            if (isOpen || seenRef.current === null) {
-                // Panel open (or first look): everything currently there is seen.
-                seenRef.current = totals;
+            // The badge only READS the baseline. The panel writes it when it opens,
+            // and it must be the only writer: if this poll also wrote on isOpen it
+            // could clear the baseline first and the list would find nothing unread.
+            if (isOpen) { setUnseenCount(0); return; }
+            const seen = readSeen();
+            if (seen === null) {
+                // First look ever — seed the baseline instead of declaring every
+                // chat that already existed unread.
+                writeSeen(seenTotals(open));
                 setUnseenCount(0);
                 return;
             }
-            let fresh = 0;
-            for (const [id, count] of totals) {
-                const seen = seenRef.current.get(id);
-                if (seen === undefined || count > seen) fresh += 1;
-            }
-            setUnseenCount(fresh);
+            setUnseenCount(open.filter((c) => isChatUnread(c, seen)).length);
         })
         .catch(() => {});
 

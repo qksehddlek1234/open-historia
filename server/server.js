@@ -183,7 +183,14 @@ const shippedLangDir = fs.existsSync(path.join(distDir, "lang"))
   : path.join(__dirname, "../public/lang");
 const savedLangDir = path.join(DATA_DIR, "lang");
 
+const isLangCode = (code) => /^[a-z]{2,3}$/.test(code);
+
 const readLangPack = (dir, code) => {
+  // `code` arrives from the :code route param and is interpolated into a
+  // filename below. The route handlers check it too, but this is the function
+  // that actually touches the path, so it rejects anything that is not a bare
+  // language code rather than trusting every future caller to have done so.
+  if (!isLangCode(code)) return {};
   try {
     const parsed = JSON.parse(fs.readFileSync(path.join(dir, `${code}.json`), "utf8"));
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
@@ -191,8 +198,6 @@ const readLangPack = (dir, code) => {
     return {};
   }
 };
-
-const isLangCode = (code) => /^[a-z]{2,3}$/.test(code);
 
 app.get("/api/lang/:code", (req, res) => {
   const code = String(req.params.code || "").toLowerCase();
@@ -557,6 +562,20 @@ const HUB_DOWNLOAD_HOSTS = new Set([
 ]);
 const HUB_MAX_BUNDLE_BYTES = 200 * 1024 * 1024;
 
+// This route echoes a file that ANY member of the public can attach to a hub
+// issue, and it serves it from the game's OWN origin. Without these two headers a
+// crafted post could be an .html (or a scripted .svg) and a link to
+// /api/hub/file?url=... would execute it as same-origin script -- with reach into
+// localStorage (the player's AI keys) and every /api/* route. nosniff stops the
+// browser inferring a dangerous type; the attachment disposition stops it
+// rendering one it was told about. Every real consumer reads this route with
+// fetch(), which ignores both headers, so nothing legitimate changes.
+const setHubFileGuards = (res) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Content-Disposition", "attachment");
+  res.setHeader("Content-Security-Policy", "default-src 'none'; sandbox");
+};
+
 // Browser AI calls to self-hosted OpenAI-compatible endpoints (llama.cpp,
 // LM Studio, NVIDIA NIM...) die on CORS — those servers rarely send the
 // headers. The game server relays them instead: same-origin for the browser,
@@ -630,6 +649,7 @@ app.get("/api/hub/file", async (req, res) => {
       let cachedType = "application/octet-stream";
       try { cachedType = fs.readFileSync(cache.type, "utf8") || cachedType; } catch { /* default */ }
       res.setHeader("Cache-Control", "no-store");
+      setHubFileGuards(res);
       res.setHeader("Content-Type", cachedType);
       return fs.createReadStream(cache.body).pipe(res);
     }
@@ -675,6 +695,7 @@ app.get("/api/hub/file", async (req, res) => {
     }
 
     res.setHeader("Cache-Control", "no-store");
+    setHubFileGuards(res);
     // Pass the upstream content type through untouched. JSON bundles still parse
     // via response.json() (which ignores the header), while binary bundles (.zip)
     // and raw basemap images (.png/.jpg) arrive byte-for-byte.
