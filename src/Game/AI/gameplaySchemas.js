@@ -128,7 +128,7 @@ const statsUpdateSchema = {
     capital: textSchema("Capital, only when it changes."),
     continent: textSchema("Continent / broad region, only when it changes."),
     government: textSchema("Government system and ideology, only when it changes."),
-    leader: textSchema("Head of state or government, only when it changes."),
+    leader: textSchema("New leader as official title + name (\"대통령 블라디미르 푸틴\"), only when it changes."),
     stability: statPct("National stability 0-100."),
     indices: {
       type: "object",
@@ -170,6 +170,27 @@ const statsUpdateSchema = {
   additionalProperties: false,
 };
 
+// A country's standing behavioural profile (see runtime/countryPersonality.js).
+// PARTIAL by design: send only the axes an event actually moved, since anything
+// omitted keeps the value the country already had.
+const personalityAxis = (description) => ({ type: "number", description, minimum: 0, maximum: 100 });
+
+const personalitySchema = {
+  type: "object",
+  description:
+    "How this country BEHAVES, 0-100 each, only for axes this event actually moved "
+    + "(a coup, a defeat, a betrayal, a generational shift). Omit entirely when the "
+    + "country's character did not change.",
+  properties: {
+    aggression: personalityAxis("0 = protests, 100 = reaches for force early."),
+    riskTolerance: personalityAxis("0 = waits for a safe position, 100 = gambles on a bad one."),
+    loyalty: personalityAxis("0 = abandons commitments when they cost, 100 = honours them at a price."),
+    expansionism: personalityAxis("0 = content with its borders, 100 = wants more land."),
+    vengefulness: personalityAxis("0 = writes wrongs off, 100 = answers them however late."),
+  },
+  additionalProperties: false,
+};
+
 const polityChangeSchema = {
   type: "object",
   description: "A creation, rename, recolor, or metadata change for a polity.",
@@ -195,10 +216,19 @@ const polityChangeSchema = {
     ),
     note: textSchema("Brief reason for the change."),
     stats: statsUpdateSchema,
+    personality: personalitySchema,
   },
   required: ["code"],
   additionalProperties: false,
 };
+
+// Exported so the engine can PRUNE a polity change down to what the schema
+// allows instead of losing the whole turn to one invented field. Field report:
+// "$.events[4].impacts.polityChanges[0].stats.economy.researchAndDevelopment is
+// not allowed" — the model had finally started reporting real world changes, and
+// the turn was discarded because one of the numbers it chose to report had no
+// slot to go in.
+export const POLITY_CHANGE_SCHEMA = polityChangeSchema;
 
 const unitSchema = {
   type: "object",
@@ -238,7 +268,13 @@ const unitSchema = {
     },
     note: textSchema("Brief operational note."),
   },
-  required: ["name", "type", "ownerCode", "strength", "lng", "lat"],
+  // ONLY what the engine cannot do without. A spawn with no name or no strength is
+  // one the normalizer fills in (a name from its owner and type, strength 100) —
+  // but a `required` here is not a request, it is a condition for the WHOLE TURN
+  // being accepted, and a nameless battalion used to discard every event beside it
+  // and drop the player into a fallback turn. Ask for the rest in the descriptions,
+  // where the cost of the model skipping one is a duller name and not a lost turn.
+  required: ["type", "ownerCode", "lng", "lat"],
   additionalProperties: false,
 };
 
@@ -250,8 +286,34 @@ const unitOpSchema = {
       properties: {
         op: { type: "string", enum: ["spawn"] },
         unit: unitSchema,
+        // Models attach a reason to the OP as often as to the unit, and this branch
+        // forbade every property it had not listed — so a spawn with a one-line note
+        // beside it matched no branch and took the turn down with it.
+        note: textSchema("Brief explanation of the operation."),
+        regionId: textSchema("Region the unit is raised in, when known."),
       },
       required: ["op", "unit"],
+      additionalProperties: false,
+    },
+    // The same spawn, written FLAT. Models routinely put the unit's fields beside
+    // `op` rather than nesting them under `unit`, and the engine has always read
+    // that shape (normalizeUnitOp falls back to the entry itself). Only this schema
+    // refused it — the identical hole that was already patched for markerOps.
+    {
+      type: "object",
+      properties: {
+        op: { type: "string", enum: ["spawn"] },
+        id: textSchema("Stable unit identifier."),
+        name: textSchema("Display name for the unit."),
+        type: { type: "string", description: "Unit type.", enum: ["infantry", "armor", "air", "naval", "artillery", "garrison"] },
+        ownerCode: nonEmptyTextSchema("Owning polity's FULL country name (\"Spain\"), never a country code."),
+        strength: { type: "integer", description: "Unit strength from 1 to 1000.", minimum: 1, maximum: 1000 },
+        lng: { type: "number", description: "Longitude.", minimum: -180, maximum: 180 },
+        lat: { type: "number", description: "Latitude.", minimum: -90, maximum: 90 },
+        regionId: textSchema("Map region identifier, when known."),
+        note: textSchema("Brief operational note."),
+      },
+      required: ["op", "type", "ownerCode", "lng", "lat"],
       additionalProperties: false,
     },
     {
@@ -264,7 +326,10 @@ const unitOpSchema = {
         regionId: textSchema("Destination region identifier, when known."),
         note: textSchema("Brief explanation of the operation."),
       },
-      required: ["op", "unitId", "toLng", "toLat"],
+      // Coordinates are what actually MOVES the unit, and the description says so —
+      // but a move that names only a destination region is one op the engine drops,
+      // not a reason to throw away every other event in the turn.
+      required: ["op", "unitId"],
       additionalProperties: false,
     },
     {
@@ -319,10 +384,14 @@ const markerSchema = {
       minimum: 0.5,
       maximum: 3,
     },
+    regionId: textSchema("Map region the structure stands in, when known."),
     note: textSchema("Brief description shown when the structure is inspected."),
     foundedAt: textSchema("In-game date the structure was built or founded."),
   },
-  required: ["name", "kind", "lng", "lat"],
+  // `kind` is asked for in its description and defaulted to "landmark" by the
+  // normalizer when it is missing, so requiring it here only ever converted a
+  // nameless category into a lost turn. Same reasoning as unitSchema above.
+  required: ["name", "lng", "lat"],
   additionalProperties: false,
 };
 
@@ -355,6 +424,7 @@ const markerOpSchema = {
         lng: { type: "number", description: "Longitude.", minimum: -180, maximum: 180 },
         lat: { type: "number", description: "Latitude.", minimum: -90, maximum: 90 },
         size: { type: "number", description: "Importance/scale: 0.5 minor, 1 normal, 2 major, 3 monumental.", minimum: 0.5, maximum: 3 },
+        regionId: textSchema("Map region the structure stands in, when known."),
         note: textSchema("Brief explanation."),
       },
       required: ["op", "name", "lng", "lat"],
@@ -385,6 +455,21 @@ const markerOpSchema = {
     },
   ],
 };
+// Exported for the same reason POLITY_CHANGE_SCHEMA is: so the engine can PRUNE an
+// op down to what the schema allows rather than losing the whole turn to one
+// unexpected field. Both are anyOf lists discriminated by `op`, so the pruner
+// picks the branch by that and drops what the branch has no slot for.
+export const OP_SCHEMAS = {
+  markerOps: markerOpSchema,
+  unitOps: unitOpSchema,
+};
+
+// The same treatment for lists that hang off the TOP of a jump result rather
+// than off an event. Live: one actionOutcomes row missing its `outcome` failed
+// the whole payload — "$.actionOutcomes[7].outcome is required" — and the turn
+// fell back to a generation that had rated nothing. Populated after the schema
+// it points at is defined; see the assignment below JUMP_FORWARD_SCHEMA.
+export const TOP_LEVEL_ITEM_SCHEMAS = {};
 
 const impactsSchema = {
   type: "object",
@@ -487,6 +572,11 @@ export const ACTIONS_SCHEMA = {
           id: textSchema("Optional stable topic identifier."),
           title: textSchema("Short title naming the concern."),
           description: textSchema("Why the concern matters now."),
+          horizon: {
+            type: "string",
+            enum: ["immediate", "long"],
+            description: "Strategic horizon: \"immediate\" for this period's live crisis management, \"long\" for a multi-year national task.",
+          },
           actions: {
             type: "array",
             description: "Concrete actions addressing this concern.",
@@ -527,6 +617,36 @@ export const JUMP_FORWARD_SCHEMA = {
         + "any single event. One-on-one or group. Empty when nobody would "
         + "plausibly reach out this period.",
       items: createdChatSchema,
+    },
+    // TOP LEVEL, NOT NESTED IN AN EVENT'S IMPACTS — and that is the whole point.
+    //
+    // It shipped nested first and came back empty: 0 of 15 orders rated on the
+    // turn it went live. That is the third time this session the same shape has
+    // failed the same way. polityChanges[].stats: nested, 0 of 28 rounds. The
+    // campaign ledger and the stat-shift pass: flat top-level arrays, filled on
+    // the first turn each. A 12B model fills a flat list and skips a nested
+    // optional object, however the prompt asks.
+    actionOutcomes: {
+      type: "array",
+      description:
+        "How each of the player's queued orders that this period resolved actually came out. "
+        + "One row per order. An order you leave out is taken as a clean success.",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "The order's id, exactly as given in the queued-orders list." },
+          outcome: {
+            type: "string",
+            enum: ["succeeded", "partial", "failed", "backfired"],
+            description:
+              "succeeded: as ordered. partial: happened smaller, later or at a cost. failed: did not happen. "
+              + "backfired: did not happen and cost something — carry the impact that makes that real.",
+          },
+          note: { type: "string", description: "Why, in one short clause." },
+        },
+        required: ["id", "outcome"],
+        additionalProperties: false,
+      },
     },
   },
   required: ["events", "stopDate", "summary", "clearActions"],
@@ -587,6 +707,35 @@ export const IDLE_DIPLOMACY_SCHEMA = {
   additionalProperties: false,
 };
 
+// Bookkeeping only: which already-written events carried out which queued orders.
+// Split off from the jump itself because local models reliably write the events
+// and just as reliably forget the ids inside them — asked on its own, with the
+// events already in hand and nothing else to do, the same model gets it right.
+export const ACTION_COVERAGE_SCHEMA = {
+  type: "object",
+  description: "Which of the player's queued orders each generated event carried out.",
+  properties: {
+    assignments: {
+      type: "array",
+      description: "One entry per event that carried out at least one queued order; events that carried out none are omitted.",
+      items: {
+        type: "object",
+        properties: {
+          eventNumber: {
+            type: "integer",
+            description: "The event's number in the numbered list provided.",
+          },
+          actionIds: stringArraySchema("Short ids (A1, A7, …) of the queued orders this event carried out."),
+        },
+        required: ["eventNumber", "actionIds"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["assignments"],
+  additionalProperties: false,
+};
+
 export const DESCRIPTION_TO_ACTION_SCHEMA = {
   type: "object",
   description: "One structured game command converted from the player's freeform intent.",
@@ -616,6 +765,25 @@ export const EVENT_CONSOLIDATOR_SCHEMA = {
   description: "A continuity-safe summary of the supplied events and diplomatic chats.",
   properties: {
     summary: textSchema("Concise campaign history preserving major events, map changes, and diplomatic commitments."),
+    // OPTIONAL, AND DELIBERATELY SO. The consolidator's prompt is frozen per
+    // campaign, so a game already in progress will keep answering with only a
+    // summary — and must stay valid when it does. The ledger instruction is
+    // appended at call time; a model that heeds it gets its facts kept, and one
+    // that does not still consolidates exactly as before.
+    ledger: {
+      type: "array",
+      description: "Standing facts, keyed so a later round updates them instead of appending. Fact \"-\" retires a key.",
+      items: {
+        type: "object",
+        properties: {
+          key: textSchema("Stable slug, e.g. leader:south-korea or treaty:kr-us-thaad."),
+          topic: textSchema("One of leader, territory, treaty, war, programme, relation, crisis, economy."),
+          fact: textSchema("One line of what is true now. \"-\" retires the key."),
+        },
+        required: ["key", "fact"],
+        additionalProperties: false,
+      },
+    },
   },
   required: ["summary"],
   additionalProperties: false,
@@ -680,7 +848,13 @@ export const COUNTRY_STAT_SHEET_SCHEMA = {
     capital: nonEmptyTextSchema("Capital or primary seat of government."),
     continent: nonEmptyTextSchema("Continent or broad geographic region."),
     government: nonEmptyTextSchema("Government system and ideology."),
-    leader: nonEmptyTextSchema("Head of state or government."),
+    leader: nonEmptyTextSchema("The person who actually runs the government — official title + one real name (\"대통령 블라디미르 푸틴\"), one person."),
+    // The rest of the leadership picture, where the system has one: a ceremonial
+    // head of state above the leader (monarch, figurehead president) and the
+    // second-in-command below (vice president, prime minister under a
+    // president). Optional — a system without the role leaves it out.
+    headOfState: textSchema("Ceremonial/formal head of state when DIFFERENT from the leader, as official title + name (\"국왕 하랄 5세\"). Omit when the leader holds it."),
+    deputy: textSchema("The second-ranking figure, as official title + name (\"부통령 조 바이든\", \"국무총리 황교안\"). Omit when none."),
     stability: percentageSchema("National stability from 0 to 100."),
     indices: {
       type: "object",
@@ -725,7 +899,152 @@ export const COUNTRY_STAT_SHEET_SCHEMA = {
   additionalProperties: false,
 };
 
+// WHAT THIS PERIOD DID TO THE NUMBERS.
+//
+// A separate, deliberately FLAT answer, because the nested one does not get
+// filled. polityChanges[].stats has a flat member (stability) and nested ones
+// (economy, indices); over 28 measured rounds the flat member was written 17
+// times and the nested ones never. So this asks for a list of rows — country,
+// field name, new value, why — and the engine puts each row where it belongs.
+// See runtime/countryStatLedger.js for the field catalogue and the measurements.
+export const COUNTRY_STAT_SHIFT_SCHEMA = {
+  type: "object",
+  properties: {
+    changes: {
+      type: "array",
+      description:
+        "One row per statistic this period actually moved. Return an EMPTY array when a period "
+        + "changed nothing measurable — that is a normal answer, not a failure.",
+      items: {
+        type: "object",
+        properties: {
+          code: { type: "string", description: "The polity, named exactly as it appears in the events." },
+          field: {
+            type: "string",
+            description: "Which statistic moved. Must be one of the field names listed in the prompt, spelled exactly.",
+          },
+          value: {
+            type: "string",
+            description:
+              "The NEW value in full, never a change or a delta: \"38\" for a 0-100 standing, "
+              + "\"1,340조 원\" for a money figure. Absolute, with its unit, and nothing else.",
+          },
+          reason: {
+            type: "string",
+            description: "The event from this period that moved it, in one short clause.",
+          },
+        },
+        required: ["code", "field", "value"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["changes"],
+  additionalProperties: false,
+};
+
+TOP_LEVEL_ITEM_SCHEMAS.actionOutcomes = JUMP_FORWARD_SCHEMA.properties.actionOutcomes.items;
+TOP_LEVEL_ITEM_SCHEMAS.diplomaticOutreach = JUMP_FORWARD_SCHEMA.properties.diplomaticOutreach.items;
+
+// The dedicated rating pass. actionOutcomes has lived in the jump schema as an
+// optional top-level list, and measured across two full turns the model left it
+// empty both times while resolving 31 orders — the same 12B pattern that froze
+// the stat sheet for 27 rounds until the question got its own flat pass. Same
+// remedy: after the turn's events are settled, ONE small task whose entire
+// output is this list.
+export const ORDER_OUTCOME_RATING_SCHEMA = {
+  type: "object",
+  properties: {
+    outcomes: {
+      type: "array",
+      description: "One row per order id listed in the prompt. An id left out is taken as a clean success.",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "The order's id, exactly as listed." },
+          outcome: {
+            type: "string",
+            enum: ["succeeded", "partial", "failed", "backfired"],
+            description:
+              "succeeded: as ordered. partial: happened smaller, later or at a cost. failed: did not happen. "
+              + "backfired: did not happen and made something worse.",
+          },
+          note: { type: "string", description: "Why, in one short clause." },
+        },
+        required: ["id", "outcome"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["outcomes"],
+  additionalProperties: false,
+};
+
+// The relations pass — same shape discipline as the rating pass: one flat
+// required list, absolute levels, nothing else to fill.
+export const DIPLOMATIC_RELATIONS_SCHEMA = {
+  type: "object",
+  properties: {
+    relations: {
+      type: "array",
+      description: "The player's standing with each listed country AS IT NOW STANDS. Restate unchanged ones or leave them out; both mean no change.",
+      items: {
+        type: "object",
+        properties: {
+          country: { type: "string", description: "The country's name, exactly as listed." },
+          level: {
+            type: "string",
+            enum: ["allied", "friendly", "neutral", "tense", "hostile"],
+            description: "The standing as it now is — absolute, never a change.",
+          },
+          note: { type: "string", description: "What defines the standing right now, one short clause." },
+        },
+        required: ["country", "level"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["relations"],
+  additionalProperties: false,
+};
+
+// The outreach pass — the next field to earn this remedy. diplomaticOutreach
+// has lived in the jump schema as an optional top-level list, and the live
+// campaign's whole record after 42 rounds was FOUR chats, ONE of them
+// AI-initiated ("요즘 들어서 AI들이 선 채팅을 안치는거 같네" — the player,
+// noticing). Same 12B pattern (actionOutcomes, countryStatShift,
+// diplomaticRelations), same remedy: one small task whose entire output is
+// the question "who approaches the player this period, and why".
+export const DIPLOMATIC_OUTREACH_PASS_SCHEMA = {
+  type: "object",
+  properties: {
+    outreach: {
+      type: "array",
+      description:
+        "Powers approaching the player ON THEIR OWN initiative this period. "
+        + "Empty when this period gave nobody a concrete reason.",
+      items: {
+        type: "object",
+        properties: {
+          country: { type: "string", description: "The approaching polity, copied EXACTLY as listed." },
+          title: { type: "string", description: "Short subject of the approach." },
+          message: { type: "string", description: "The opening message, in that government's own voice." },
+          reason: { type: "string", description: "The this-period event or standing that motivates it, one clause." },
+        },
+        required: ["country", "title", "message", "reason"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["outreach"],
+  additionalProperties: false,
+};
+
 export const GAMEPLAY_SCHEMAS = Object.freeze({
+  orderOutcomeRating: ORDER_OUTCOME_RATING_SCHEMA,
+  diplomaticRelations: DIPLOMATIC_RELATIONS_SCHEMA,
+  diplomaticOutreachPass: DIPLOMATIC_OUTREACH_PASS_SCHEMA,
+  countryStatShift: COUNTRY_STAT_SHIFT_SCHEMA,
   actions: ACTIONS_SCHEMA,
   jumpForward: JUMP_FORWARD_SCHEMA,
   autoJumpForward: AUTO_JUMP_FORWARD_SCHEMA,
@@ -739,6 +1058,7 @@ export const GAMEPLAY_SCHEMAS = Object.freeze({
   countryStatSheet: COUNTRY_STAT_SHEET_SCHEMA,
   idleDiplomacy: IDLE_DIPLOMACY_SCHEMA,
   pregameHistory: PREGAME_HISTORY_SCHEMA,
+  actionCoverage: ACTION_COVERAGE_SCHEMA,
 });
 
 const makeTool = (name, description, schema) => Object.freeze({ name, description, schema });
@@ -821,7 +1141,20 @@ export const PREGAME_HISTORY_TOOL = makeTool(
   PREGAME_HISTORY_SCHEMA,
 );
 
+export const ACTION_COVERAGE_TOOL = makeTool(
+  "submit_action_coverage",
+  "Submit which generated events carried out which of the player's queued orders.",
+  ACTION_COVERAGE_SCHEMA,
+);
+
+export const COUNTRY_STAT_SHIFT_TOOL = makeTool(
+  "submit_stat_shifts",
+  "Submit the national statistics this period moved, one flat row per statistic.",
+  COUNTRY_STAT_SHIFT_SCHEMA,
+);
+
 export const GAMEPLAY_TOOLS = Object.freeze({
+  countryStatShift: COUNTRY_STAT_SHIFT_TOOL,
   actions: ACTIONS_TOOL,
   jumpForward: JUMP_FORWARD_TOOL,
   autoJumpForward: AUTO_JUMP_FORWARD_TOOL,
@@ -835,9 +1168,40 @@ export const GAMEPLAY_TOOLS = Object.freeze({
   countryStatSheet: COUNTRY_STAT_SHEET_TOOL,
   idleDiplomacy: IDLE_DIPLOMACY_TOOL,
   pregameHistory: PREGAME_HISTORY_TOOL,
+  actionCoverage: ACTION_COVERAGE_TOOL,
 });
 
 export const getGameplayTool = (taskKey) => GAMEPLAY_TOOLS[taskKey] ?? null;
+
+// A tool schema is sent with EVERY request and counts against the context window
+// like any other text. The jump schema's prose descriptions came to 18.6 KB —
+// a fifth of the whole request — on a 32k-token window where the prompt already
+// left barely 2,000 tokens to write the turn in, which is what kept ending turns
+// as "no parseable JSON" and canned fallbacks. The rules those descriptions carry
+// are stated more forcefully in the prompt itself ([Actions You Can Take], the
+// per-order duty list), so the wire copy keeps the STRUCTURE — properties, types,
+// enums, required — and drops the prose. Measured: 18,591 -> 7,816 characters.
+// Validation is unaffected: it runs against the full schema, not this copy.
+export const slimSchemaForWire = (node) => {
+  if (Array.isArray(node)) return node.map((entry) => slimSchemaForWire(entry));
+  if (!node || typeof node !== "object") return node;
+  const out = {};
+  for (const [key, value] of Object.entries(node)) {
+    // Descriptions are dropped wholesale: with tool_choice forcing the call, the
+    // grammar is built from types, enums and `required` — the prose steers
+    // nothing that the prompt is not already saying, and it costs a third of the
+    // schema's size.
+    if (key === "description" && typeof value === "string") continue;
+    out[key] = slimSchemaForWire(value);
+  }
+  return out;
+};
+
+export const getSlimGameplayTool = (taskKey) => {
+  const tool = GAMEPLAY_TOOLS[taskKey];
+  if (!tool) return null;
+  return { ...tool, schema: slimSchemaForWire(tool.schema) };
+};
 
 const valueType = (value) => {
   if (value === null) return "null";
@@ -848,7 +1212,7 @@ const valueType = (value) => {
 const propertyPath = (path, key) =>
   /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(key) ? `${path}.${key}` : `${path}[${JSON.stringify(key)}]`;
 
-const validateAgainstSchema = (schema, value, path) => {
+export const validateAgainstSchema = (schema, value, path) => {
   if (Array.isArray(schema.anyOf)) {
     const errors = schema.anyOf.map((candidate) => validateAgainstSchema(candidate, value, path));
     if (errors.some((error) => !error)) return "";

@@ -1,7 +1,9 @@
 /*! Open Historia — national stats pane © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { JSON_URLS, getNationFlags } from "../../runtime/assets.js";
+import { getNationFlags, getNationTags } from "../../runtime/assets.js";
 import { isPolityLandless, readGameData, readWorldState } from "../../runtime/gameState.js";
+import { PERSONALITY_AXES, resolveCountryPersonality } from "../../runtime/countryPersonality.js";
+import { resolveCountryTags } from "../../runtime/countryTags.js";
 import { useLibraryState } from "../../runtime/library.js";
 import { useCountryDisplayName } from "../../runtime/polityNames.js";
 import { flagImageUrlFromGid } from "../../runtime/countryFlags.js";
@@ -9,32 +11,31 @@ import COUNTRY_NAMES from "../../runtime/generated/countryNames.js";
 import { setRegionClickObserver } from "../Selection/Regions.jsx";
 import { generateCountryStatSheet } from "../AI/gameplay.js";
 import { validateGameplayPayload } from "../AI/gameplaySchemas.js";
+import { findStatSheetProblems, stripUnusableStatFields } from "../AI/statSheetSanity.js";
+import { mergeStatSheet, rescueLegacySheet, sheetDescribesNow, stripMoneyConversions } from "../../runtime/countryStatLedger.js";
+import { CHARACTER_PROFILE_HIDDEN_NOTE, revealsCharacterProfile } from "../../runtime/difficulty.js";
 
 // Sheets are regenerated when the game date moves; within a date they persist
 // across reloads so flipping between countries stays instant.
 const STORAGE_KEY = "oh-stat-sheets";
 const MAX_STORED_SHEETS = 60;
 const memoryCache = new Map();
+const normalizeString = (value) => String(value ?? "").trim();
 const isValidStatSheet = (value) => validateGameplayPayload("countryStatSheet", value).valid;
 
-// world.countryStats holds a PARTIAL sheet: applyEventImpactsToWorld merges only the
-// fields the AI actually changed, so after a coup it can hold nothing but
-// {leader, government, stability}. Validating that whole and dropping it when
-// incomplete is why an AI-installed leader never appeared — the pane fell straight
-// back to the full sheet it had generated BEFORE the coup, old leader and all.
-// Layer the AI's fields on top of that full sheet instead: the AI always wins, and
-// every partial change (leader, government, stability, a single index) shows up.
-const mergeStatSheet = (base, override) => {
-    if (!override || typeof override !== "object") return base;
-    if (!base || typeof base !== "object") return override;
-    const merged = { ...base, ...override };
-    for (const group of ["indices", "economy", "gdpBreakdown"]) {
-        if (override[group] && typeof override[group] === "object") {
-            merged[group] = { ...(base[group] || {}), ...override[group] };
-        }
-    }
-    return merged;
-};
+// TWO STORES, AND THEY USED TO BE ONE.
+//
+// world.countryStats is the generated BASE, date-stamped (__asOf) so it refreshes
+// when the calendar moves. world.countryStatChanges is what the campaign actually
+// moved, and it always wins over the base — a generated sheet describes the
+// country as history left it, not as this campaign made it.
+//
+// They were one slot until round 29 of the field campaign, and the result was
+// that neither worked. The generator persisted its whole output into the slot,
+// the loader below saw a complete valid sheet and returned it without
+// regenerating, and so the sheet the player read at round 29 was the one
+// generated at round 2: GDP unchanged for 27 rounds, energyAutonomy never
+// changed once while the player built four energy facilities.
 
 const readStoredSheets = () => {
     try {
@@ -124,7 +125,7 @@ const stabilityColor = (value) => (value < 40 ? "#ef4444" : value < 70 ? "#f59e0
 
 const StatsPane = ({ active }) => {
     const { activeGameId } = useLibraryState();
-    const [player, setPlayer] = useState({ code: "", date: "", gameKey: "game" });
+    const [player, setPlayer] = useState({ code: "", date: "", gameKey: "game", showCharacter: true });
     const [targetCountry, setTargetCountry] = useState("");
     const [polity, setPolity] = useState(null); // world.polityOverrides[target]
     const [state, setState] = useState({ status: "idle", sheet: null, error: "" });
@@ -133,6 +134,7 @@ const StatsPane = ({ active }) => {
     // still resolve to a real country, but they are not it — so their own row
     // must show the neutral initials, never that country's flag.
     const [playerLandless, setPlayerLandless] = useState(false);
+    const [personality, setPersonality] = useState(null);
     // Author-set flags from the scenario (flags.json). Memoized in assets.js, so
     // this is one fetch per scenario; {} for every scenario that sets none.
     const [customFlags, setCustomFlags] = useState({});
@@ -157,8 +159,22 @@ const StatsPane = ({ active }) => {
                 const code = String(game?.country || "").trim();
                 const nextPlayer = {
                     code,
+                    // The difficulty decides whether character profiles are
+                    // readable at all (see revealsCharacterProfile) — and it can
+                    // be changed mid-campaign, so it is re-read on the same poll
+                    // as the date rather than captured once.
+                    showCharacter: revealsCharacterProfile(game?.difficulty),
                     date: String(game?.gameDate || game?.startDate || ""),
-                    gameKey: String(JSON_URLS.game || game?.id || game?.name || "game"),
+                    // The game's own identity, NOT its runtime URL. JSON_URLS.game
+                    // carries a ?v= cache-busting token that is regenerated
+                    // whenever the runtime is re-tokenized, so keying on it gave
+                    // every reload a brand-new cache namespace: the sheet was
+                    // regenerated from scratch, and since each generation is an
+                    // independent guess, the same country's leader and GDP kept
+                    // changing under the player. It also never matched the key
+                    // gameplay.js reads reputation back from (`game.id || name`),
+                    // so that lookup found nothing, always.
+                    gameKey: String(game?.id || game?.name || "game"),
                 };
                 if (player.gameKey !== nextPlayer.gameKey) {
                     setTargetCountry(code);
@@ -169,7 +185,8 @@ const StatsPane = ({ active }) => {
                 setPlayer((current) =>
                     current.code === nextPlayer.code &&
                     current.date === nextPlayer.date &&
-                    current.gameKey === nextPlayer.gameKey
+                    current.gameKey === nextPlayer.gameKey &&
+                    current.showCharacter === nextPlayer.showCharacter
                         ? current
                         : nextPlayer);
             } catch {
@@ -207,22 +224,65 @@ const StatsPane = ({ active }) => {
         // whichever full sheet we end up with (cached or freshly generated).
         let aiOverride = null;
         if (!force) {
-            // The persisted, AI-maintained sheet in world state wins and SURVIVES date
-            // changes — it changes only when the AI changes it (polityChanges.stats).
+            // What the campaign moved wins over whatever base we end up with.
             try {
                 const world = await readWorldState({ force: false });
-                const persisted = world?.countryStats?.[code];
-                if (persisted && isValidStatSheet(persisted)) {
-                    memoryCache.set(cacheKey, { date: player.date, sheet: persisted });
-                    setState({ status: "ready", sheet: persisted, error: "" });
+                // Anything unreadable in the SAVED sheet is dropped before it can
+                // be shown. This pane displayed GDP as ")}}'*, {" for a whole
+                // campaign because the persisted sheet went straight to the screen
+                // without passing the checks a freshly generated one does — the
+                // wreckage was written once and then re-read forever.
+                aiOverride = stripUnusableStatFields(world?.countryStatChanges?.[code]) || null;
+                // THE ONE-TIME RESCUE. A save from before the two stores were split
+                // has the round-2 base sitting in the delta slot with 28 rounds of
+                // event-written changes mixed into it, and nothing can separate them
+                // by inspection. What CAN be established is which fields events ever
+                // actually wrote — measured over the whole campaign, exactly these
+                // four. They carry over; everything the events never touched goes
+                // back to being regenerated, which is what it always was.
+                if (!aiOverride && !world?.countryStats?.[code]?.__asOf) {
+                    aiOverride = rescueLegacySheet(stripUnusableStatFields(world.countryStats?.[code]));
+                }
+                // The stamp is bookkeeping, not a field on the sheet — and the
+                // sheet schema is additionalProperties:false, so it has to come
+                // off before anything validates what is left.
+                const { __asOf: asOf, ...rest } = world?.countryStats?.[code] ?? {};
+                const persisted = stripUnusableStatFields(rest);
+                // Within the freshness window, not equal-to-today: see
+                // sheetDescribesNow — exact-match staled every sheet every turn
+                // and regenerated the base per country per turn, letting the
+                // model rewrite campaign facts each time.
+                const describesNow = sheetDescribesNow(asOf, player.date);
+                if (describesNow && persisted && isValidStatSheet(persisted) && findStatSheetProblems(persisted).length === 0) {
+                    const sheet = mergeStatSheet(persisted, aiOverride);
+                    memoryCache.set(cacheKey, { date: player.date, sheet });
+                    setState({ status: "ready", sheet, error: "" });
                     return;
                 }
-                // Incomplete on its own, but still the AI's word on the fields it names.
-                if (persisted && typeof persisted === "object") aiOverride = persisted;
             } catch { /* fall through to the device cache / regenerate */ }
-            // Device-cache fallback — no longer date-gated, so it persists across dates.
+            // Device cache, gated on the DATE it was written for. It used to be
+            // ungated, which alongside the world-state short-circuit above meant a
+            // sheet generated once was shown for the rest of the campaign. Within
+            // one date it still answers instantly, which is what it is for —
+            // flipping between countries must not cost a model call each time.
+            //
+            // ALSO gated on the SAVE still knowing this country at all. Every
+            // generation stores its base server-side, so a country present in
+            // this cache but absent from world.countryStats means the base was
+            // deliberately wiped (the round-2 heal: all ten bases cleared to
+            // regenerate under new format rules) — and the wipe reached the
+            // save while this browser copy lived on, serving the old sheets
+            // ("통계가 아직 안 고쳐진거같아"). An orphaned entry is dropped,
+            // not served.
+            const worldNow = await readWorldState({ force: false }).catch(() => null);
+            const baseKnown = Boolean(worldNow?.countryStats?.[code]);
             const cached = memoryCache.get(cacheKey) ?? readStoredSheets()[cacheKey];
-            if (cached && isValidStatSheet(cached.sheet)) {
+            const cachedIsCurrent = cached && baseKnown && sheetDescribesNow(cached.date, player.date);
+            if (cached && !baseKnown) {
+                memoryCache.delete(cacheKey);
+                console.info(`[stats] the save no longer holds a base sheet for ${code} — dropping the cached copy and regenerating.`);
+            }
+            if (cachedIsCurrent && isValidStatSheet(cached.sheet) && findStatSheetProblems(cached.sheet).length === 0) {
                 const sheet = mergeStatSheet(cached.sheet, aiOverride);
                 memoryCache.set(cacheKey, { date: player.date, sheet });
                 setState({ status: "ready", sheet, error: "" });
@@ -243,6 +303,17 @@ const StatsPane = ({ active }) => {
             setState((current) =>
                 targetCountry === code ? { status: "ready", sheet, error: "" } : current);
         } catch (error) {
+            // A LAST YEAR'S SHEET BEATS AN ERROR MESSAGE. Now that the base is
+            // date-gated, a failed regeneration would otherwise leave the pane
+            // blank where it used to show something — so fall back to the stale
+            // sheet, with the campaign's changes still layered over it.
+            const stale = memoryCache.get(cacheKey) ?? readStoredSheets()[cacheKey];
+            if (stale?.sheet && isValidStatSheet(stale.sheet)) {
+                const sheet = mergeStatSheet(stale.sheet, aiOverride);
+                setState((current) => (targetCountry === code ? { status: "ready", sheet, error: "" } : current));
+                console.warn(`[stats] could not refresh ${code}'s sheet for ${player.date}; showing the one from ${stale.date || "an earlier date"}.`, error);
+                return;
+            }
             setState((current) =>
                 targetCountry === code
                     ? { status: "error", sheet: null, error: error?.message || "The stat sheet failed." }
@@ -256,11 +327,24 @@ const StatsPane = ({ active }) => {
         setFlagFailed(false);
         loadSheet();
         readWorldState({ force: false })
-            .then((world) => {
+            .then(async (world) => {
                 setPolity(world?.polityOverrides?.[targetCountry] ?? null);
                 setPlayerLandless(isPolityLandless(world, player.code));
+                // The standing character profile, shown here as well as in the
+                // country info panel. It belongs on BOTH: this pane is the one a
+                // player opens to ask "what is this country like", and a profile
+                // that decides how the country answers a provocation is a
+                // statistic in exactly the sense the rest of this pane is.
+                try {
+                    const baseTags = await getNationTags().catch(() => ({}));
+                    setPersonality(resolveCountryPersonality(world, targetCountry, {
+                        tags: resolveCountryTags(baseTags, world, targetCountry),
+                    }));
+                } catch {
+                    setPersonality(null);
+                }
             })
-            .catch(() => { setPolity(null); setPlayerLandless(false); });
+            .catch(() => { setPolity(null); setPlayerLandless(false); setPersonality(null); });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active, targetCountry, player.date]);
 
@@ -333,9 +417,28 @@ const StatsPane = ({ active }) => {
                     {sheet.government}
                     </div>
                 )}
+                {/* Leadership values carry their own official title now
+                    ("대통령 블라디미르 푸틴", "국왕 하랄 5세") — the sheet prompt
+                    and the shift pass both demand it — so the generic
+                    "Leader:"/"Deputy:" prefixes (which the language pack
+                    rendered as 지도자/대리인) would only restate the office
+                    worse. The row IS the value. */}
                 {sheet.leader && (
                     <div style={{ color: "#fbbf24", fontSize: "0.72rem", marginTop: "0.1rem" }}>
-                    Leader: {sheet.leader}
+                    {sheet.leader}
+                    </div>
+                )}
+                {/* The rest of the leadership picture, where the system has
+                    one: the ceremonial head of state above (monarchs,
+                    figurehead presidents), the second-in-command below. */}
+                {sheet.headOfState && (
+                    <div style={{ color: "rgba(251,191,36,0.66)", fontSize: "0.7rem", marginTop: "0.1rem" }}>
+                    {sheet.headOfState}
+                    </div>
+                )}
+                {sheet.deputy && (
+                    <div style={{ color: "rgba(251,191,36,0.66)", fontSize: "0.7rem", marginTop: "0.1rem" }}>
+                    {sheet.deputy}
                     </div>
                 )}
                 </>
@@ -400,11 +503,50 @@ const StatsPane = ({ active }) => {
                 })}
                 </div>
 
-                {/* Economy */}
+                {/* Standing character — the five behavioural axes the simulation
+                    actually reads when deciding what this country does about an
+                    event. Always present: a country with no stored profile has one
+                    derived from its tags and standing. */}
+                {personality && !player.showCharacter && (
+                    <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.74rem", marginTop: "0.9rem" }}>
+                    🧭 {CHARACTER_PROFILE_HIDDEN_NOTE}
+                    </div>
+                )}
+
+                {personality && player.showCharacter && (
+                    <>
+                    <div style={sectionTitleStyle} title="How this country acts — the AI reads these when deciding what it does about an event">
+                    🧭 Character
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.55rem" }}>
+                    {PERSONALITY_AXES.map((axis) => {
+                        const value = clamp01(personality[axis.key]);
+                        return (
+                            <div key={axis.key} style={cardStyle} title={`0 — ${axis.low} · 100 — ${axis.high}`}>
+                            <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+                            <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "0.76rem" }}>{axis.label}</span>
+                            <span data-no-translate style={{ fontSize: "0.78rem", fontWeight: 800 }}>{value}</span>
+                            </div>
+                            <Bar
+                            value={value}
+                            color={value >= 66 ? "#f87171" : value >= 34 ? "#e2c878" : "#7ee7a6"}
+                            />
+                            </div>
+                        );
+                    })}
+                    </div>
+                    </>
+                )}
+
+                {/* Economy. GDP figures stand in the era's benchmark currency
+                    (dollars) alone — both conversion designs failed at the
+                    model end (wrong multiplication, then wrong rates), so the
+                    conversion system is retired and the scrubber strips any
+                    parenthetical a sheet still carries. */}
                 <div style={sectionTitleStyle}>📈 Economy</div>
                 <div style={{ display: "grid", gap: "0.55rem", gridTemplateColumns: "1fr 1fr" }}>
-                <EconomyCard label="GDP" value={sheet.economy?.gdp} sub={sheet.economy?.gdpGrowth} tone="#34d399" />
-                <EconomyCard label="GDP/capita" value={sheet.economy?.gdpPerCapita} sub={sheet.economy?.currency} tone="#e5e7eb" />
+                <EconomyCard label="GDP" value={stripMoneyConversions(sheet.economy?.gdp)} sub={sheet.economy?.gdpGrowth} tone="#34d399" />
+                <EconomyCard label="GDP/capita" value={stripMoneyConversions(sheet.economy?.gdpPerCapita)} sub={sheet.economy?.currency} tone="#e5e7eb" />
                 <EconomyCard label="Inflation" value={sheet.economy?.inflation} tone="#34d399" />
                 <EconomyCard label="Unemployment" value={sheet.economy?.unemployment} tone="#34d399" />
                 <EconomyCard label="Public debt" value={sheet.economy?.publicDebt} tone="#34d399" />
