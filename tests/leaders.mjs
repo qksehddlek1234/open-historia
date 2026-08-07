@@ -6,7 +6,7 @@
 // campaign has no recorded person of its own.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { referenceLeadership, referencePoliticalFigures } from "../src/runtime/leaderReference.js";
+import { REFERENCE, referenceLeadership, referencePoliticalFigures } from "../src/runtime/leaderReference.js";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -64,9 +64,8 @@ test("succession chains hold across the decade — sampled worldwide", () => {
   assert.equal(referenceLeadership("Afghanistan", "2020-01-01").leader, "대통령 아슈라프 가니");
 });
 
-test("the table is genuinely worldwide", async () => {
-  const source = fs.readFileSync(new URL("../src/runtime/leaderReference.js", import.meta.url), "utf8");
-  const countryCount = (source.match(/^  (?:[A-Za-z]+|"[^"]+"): \{$/gm) ?? []).length;
+test("the table is genuinely worldwide", () => {
+  const countryCount = Object.keys(REFERENCE).length;
   assert.ok(countryCount >= 180, `${countryCount} countries on record (expected ≥ 180)`);
   // High-invention-risk regions are covered with real people.
   assert.equal(referenceLeadership("Nigeria", "2024-01-01").leader, "대통령 볼라 티누부");

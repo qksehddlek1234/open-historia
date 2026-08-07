@@ -24,7 +24,10 @@
 
 const normalizeString = (value) => String(value ?? "").trim();
 
-const REFERENCE = {
+// Exported as data: the test suite asserts coverage against it, and the
+// assembly tooling that merges new era packs reads it directly rather than
+// parsing (or worse, evaluating) this file's source text.
+export const REFERENCE = {
   Afghanistan: {
     leader: [
       { name: "대통령 아슈라프 가니", from: "2014-09-29", until: "2021-08-15" },
@@ -2567,7 +2570,7 @@ const REFERENCE = {
 // above). They are a palette, never an instruction — the engine never forces
 // one, it only shows the model real people before it reaches for an invention.
 // Entries: { name: "이름 (당시 위치)", from?, until? }.
-const POLITICAL_FIGURES = {
+export const POLITICAL_FIGURES = {
   "South Korea": [
     { name: "문재인 (더불어민주당 전 대표, 야권 유력 대권주자)", from: "2015-02-08", until: "2017-05-10" },
     { name: "안철수 (국민의당 대표, 대선 후보)", from: "2016-02-02", until: "2022-05-10" },
