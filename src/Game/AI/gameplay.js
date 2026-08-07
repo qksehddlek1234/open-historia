@@ -109,7 +109,7 @@ import {
   SHEET_FORMAT,
   tidyStatSheetMoney,
 } from "../../runtime/countryStatLedger.js";
-import { referenceLeadership } from "../../runtime/leaderReference.js";
+import { referenceLeadership, referencePoliticalFigures } from "../../runtime/leaderReference.js";
 import {
   beginConstruction,
   buildPipelineText,
@@ -4431,6 +4431,9 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   // record covers it (see leaderReference.js). The campaign's own recorded
   // person always outranks this; the record outranks a fresh guess.
   const reference = referenceLeadership(toCountryName(statCode) || normalizeString(target), sheetDate);
+  // The era's real contenders — the palette a DIVERGED campaign names its
+  // successors from, instead of inventing someone.
+  const politicalFigures = referencePoliticalFigures(toCountryName(statCode) || normalizeString(target), sheetDate);
   // The DISPLAY name is a second identity for the same country — a caller may
   // pass a code the canon tables miss while the name says who it is.
   const canonicalDisplayTarget = canonKey(target);
@@ -4484,6 +4487,9 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       `TARGET DOSSIER:\n${dossier || "(nothing recorded)"}`,
       Object.keys(reference).length > 0
         ? `OFFICEHOLDERS ON RECORD for ${target} on ${sheetDate || "this date"} — real public record, in the required format. Use these for the leadership fields unless the campaign's own established sheet below names a DIFFERENT person:\n${["leader", "headOfState", "deputy"].filter((field) => reference[field]).map((field) => `${field}: ${reference[field]}`).join("\n")}`
+        : "",
+      politicalFigures.length > 0
+        ? `MAJOR REAL POLITICAL FIGURES of ${target} on ${sheetDate || "this date"} — the era's actual opposition leaders and contenders. When THIS CAMPAIGN's events have replaced an officeholder and a successor must be named, pick the plausible REAL person from these or from the record above — never an invented name:\n${politicalFigures.map((name) => `- ${name}`).join("\n")}`
         : "",
       priorText
         ? `THE SHEET AS THIS CAMPAIGN LAST ESTABLISHED IT${priorAsOf ? ` (as of ${priorAsOf})` : ""}:\n${priorText}\n\nThese are this campaign's own established facts — carry them forward and update only what the passage of time to ${sheetDate || "today"} plausibly changes. Leader, government and capital stay exactly as recorded: in this campaign they change only through its own events, never because the real world's history says otherwise. The one permitted rewrite: where a recorded leadership name lacks its official title, keep the SAME person and put their real office in front of the name ("박근혜" → "대통령 박근혜") — never a different person. The recorded headOfState and deputy carry forward the same way: keep the recorded person (titled), and never replace a recorded person with "(없음)" or "(미확인)".`

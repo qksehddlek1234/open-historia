@@ -156,6 +156,38 @@ const REFERENCE = {
   },
 };
 
+// THE PALETTE FOR DIVERGENCE. When the campaign's own events replace an
+// officeholder — a fall, a snap election, a coup the player engineered — the
+// model must name a successor, and a 12B invents one ("총리 말리언 바리스",
+// live). These are the era's REAL contenders: opposition leaders, major
+// candidates, heirs apparent, each with the window of their political
+// relevance (usually ending the day they take office and move to REFERENCE
+// above). They are a palette, never an instruction — the engine never forces
+// one, it only shows the model real people before it reaches for an invention.
+// Entries: { name: "이름 (당시 위치)", from?, until? }.
+const POLITICAL_FIGURES = {
+  "South Korea": [
+    { name: "문재인 (더불어민주당 전 대표, 야권 유력 대권주자)", from: "2015-02-08", until: "2017-05-10" },
+    { name: "안철수 (국민의당 대표, 대선 후보)", from: "2016-02-02", until: "2022-05-10" },
+    { name: "홍준표 (자유한국당 대선 후보)", from: "2017-03-31", until: "2022-06-01" },
+    { name: "이재명 (성남시장 → 경기지사, 대권주자)", from: "2016-12-01", until: "2025-06-04" },
+    { name: "윤석열 (검찰총장 출신 대선 후보)", from: "2021-06-29", until: "2022-05-10" },
+    { name: "이낙연 (전 국무총리, 대권주자)", from: "2020-08-29", until: "2022-03-09" },
+  ],
+  "United States": [
+    { name: "힐러리 클린턴 (민주당 대선 후보)", from: "2015-04-12", until: "2016-11-08" },
+    { name: "버니 샌더스 (민주당 경선 주자)", from: "2015-04-30", until: "2020-04-08" },
+    { name: "도널드 트럼프 (공화당 대선 후보)", from: "2015-06-16", until: "2017-01-20" },
+    { name: "조 바이든 (민주당 대선 후보)", from: "2019-04-25", until: "2021-01-20" },
+    { name: "카멀라 해리스 (부통령, 민주당 대선 후보)", from: "2024-07-21", until: "2024-11-05" },
+  ],
+  Japan: [
+    { name: "이시바 시게루 (자민당 내 유력 경쟁자)", from: "2012-09-01", until: "2024-10-01" },
+    { name: "기시다 후미오 (자민당 정조회장·외무상 출신)", from: "2017-08-03", until: "2021-10-04" },
+    { name: "에다노 유키오 (입헌민주당 대표)", from: "2017-10-02", until: "2021-11-30" },
+  ],
+};
+
 const inWindow = (entry, time) => {
   const from = entry.from ? Date.parse(entry.from) : Number.NEGATIVE_INFINITY;
   const until = entry.until ? Date.parse(entry.until) : Number.POSITIVE_INFINITY;
@@ -175,4 +207,12 @@ export const referenceLeadership = (country, dateISO) => {
     if (hit) out[role] = hit.name;
   }
   return out;
+};
+
+// The era's real contenders for one country on one date — [] when uncovered.
+export const referencePoliticalFigures = (country, dateISO) => {
+  const rows = POLITICAL_FIGURES[normalizeString(country)];
+  const time = Date.parse(normalizeString(dateISO));
+  if (!rows || !Number.isFinite(time)) return [];
+  return rows.filter((entry) => inWindow(entry, time)).map((entry) => entry.name);
 };

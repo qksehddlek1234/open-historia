@@ -6,7 +6,7 @@
 // campaign has no recorded person of its own.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { referenceLeadership } from "../src/runtime/leaderReference.js";
+import { referenceLeadership, referencePoliticalFigures } from "../src/runtime/leaderReference.js";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -43,6 +43,25 @@ test("uncovered countries and unreadable dates degrade to nothing quietly", () =
   assert.deepEqual(referenceLeadership("Atlantis", "2016-09-27"), {});
   assert.deepEqual(referenceLeadership("China", "nonsense"), {});
   assert.deepEqual(referenceLeadership("", ""), {});
+});
+
+console.log("\nThe palette for divergence — real contenders, never inventions");
+
+test("the era's real contenders surface, window-gated, and vanish once in office", () => {
+  const figures2016 = referencePoliticalFigures("South Korea", "2016-09-27");
+  assert.ok(figures2016.some((name) => name.startsWith("문재인")), "the era's leading contender is on the palette");
+  // Once a contender takes office they move to the officeholder record.
+  const figures2018 = referencePoliticalFigures("South Korea", "2018-01-15");
+  assert.ok(!figures2018.some((name) => name.startsWith("문재인")), "an inaugurated contender leaves the palette");
+  assert.deepEqual(referencePoliticalFigures("Atlantis", "2016-09-27"), []);
+});
+
+test("the palette rides in the sheet prompt as a palette, never an instruction", () => {
+  assert.match(GAMEPLAY, /MAJOR REAL POLITICAL FIGURES of \$\{target\}/);
+  assert.match(GAMEPLAY, /never an invented name/);
+  // No validator enforcement exists for figures — grep would find a correction
+  // pass if one were added; the record corrects, the palette only offers.
+  assert.doesNotMatch(GAMEPLAY, /politicalFigures\[/);
 });
 
 console.log("\nThe sheet task actually consults it");
