@@ -483,7 +483,10 @@ export const sheetDescribesNow = (asOf, today) => {
 //    this needs no lexicon, so titles the lexicon misses still pass.
 // 2. Otherwise strip known title tokens off both ends and compare name tokens:
 //    equal sets, or one set contained in the other, is the same person.
-const TITLE_TOKEN = /^(대통령|부통령|총리|수상|부총리|국무총리|내각총리|국왕|여왕|왕|천황|황제|국가주석|주석|총서기|서기장|제1서기|위원장|국무위원장|국무위원|상임위원장|행정원장|총통|대공|술탄|에미르|국가수반|정부수반|권한대행|대행|섭정|왕세자|교황|president|vice|prime|minister|premier|chancellor|king|queen|emperor|empress|sultan|emir|chairman|chairwoman|secretary|general|acting|regent|pope)$/i;
+// Historical eras carry their own styles (the era packs write each polity's
+// OWN title — 차르, 샤, 파디샤, 도제, 쇼군, 네구스, 영의정, 대재상…), and the
+// same-person check must strip those exactly like the modern ones.
+const TITLE_TOKEN = /^(대통령|부통령|총리|수상|부총리|국무총리|내각총리|국왕|여왕|왕|천황|황제|국가주석|주석|총서기|서기장|제1서기|위원장|국무위원장|국무위원|상임위원장|행정원장|총통|대공|술탄|에미르|국가수반|정부수반|권한대행|대행|섭정|왕세자|교황|차르|카이저|샤|샤한샤|칸|대칸|파디샤|도제|쇼군|네구스|파라오|재상|대재상|승상|영의정|호국경|집정관|틀라토아니|최고지도자|president|vice|prime|minister|premier|chancellor|king|queen|emperor|empress|sultan|emir|chairman|chairwoman|secretary|general|acting|regent|pope|tsar|kaiser|shah|khan|padishah|doge|shogun|vizier|consul)$/i;
 
 const nameTokens = (value) => normalizeString(value).split(/\s+/).filter(Boolean);
 

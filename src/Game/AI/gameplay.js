@@ -109,7 +109,7 @@ import {
   SHEET_FORMAT,
   tidyStatSheetMoney,
 } from "../../runtime/countryStatLedger.js";
-import { referenceLeadership, referencePoliticalFigures } from "../../runtime/leaderReference.js";
+import { ensureReferenceEra, referenceLeadership, referencePoliticalFigures } from "../../runtime/leaderReference.js";
 import {
   beginConstruction,
   buildPipelineText,
@@ -4427,9 +4427,11 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   const canonKey = (value) => normalizeString(toCountryName(normalizeString(value).replace(/\s+/g, " ")))
     .replace(/\s+/g, " ").toLowerCase();
   const canonicalTarget = canonKey(statCode || target) || normalizeString(statCode || target).toLowerCase();
-  // The real officeholders for this country on this date, where the modern-era
-  // record covers it (see leaderReference.js). The campaign's own recorded
+  // The real officeholders for this country on this date, wherever the record
+  // covers it (see leaderReference.js) — the era pack for a historical preset
+  // loads here, once, before the sync lookups. The campaign's own recorded
   // person always outranks this; the record outranks a fresh guess.
+  await ensureReferenceEra(sheetDate);
   const reference = referenceLeadership(toCountryName(statCode) || normalizeString(target), sheetDate);
   // The era's real contenders — the palette a DIVERGED campaign names its
   // successors from, instead of inventing someone.

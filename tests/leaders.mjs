@@ -6,7 +6,7 @@
 // campaign has no recorded person of its own.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { REFERENCE, referenceLeadership, referencePoliticalFigures } from "../src/runtime/leaderReference.js";
+import { ensureReferenceEra, REFERENCE, referenceCoverageSpan, referenceLeadership, referencePoliticalFigures } from "../src/runtime/leaderReference.js";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -109,6 +109,24 @@ test("wired into prompt, backfill, and the validator's correction pass", () => {
   assert.match(GAMEPLAY, /is not the officeholder on record for/);
   // The campaign's own DIFFERENT person always stands — alternate history wins.
   assert.match(GAMEPLAY, /if \(priorOwn && !isRoleSentinel\(priorOwn\) && !sameLeaderPerson\(priorOwn, recorded\)\) continue;/);
+});
+
+console.log("\nEra packs — the record reaches 1444, the bundle does not");
+
+await (async () => {
+  // Loading a pack for a historical date must not throw, and the placeholder
+  // packs (their tables fill era by era) simply add nothing yet.
+  await ensureReferenceEra("1444-11-11");
+  await ensureReferenceEra("1836-06-01");
+  await ensureReferenceEra("1936-01-01");
+  pass += 1;
+  console.log("  ok  era packs load on demand for any historical date");
+})();
+
+test("the coverage contract holds for the shipped preset (Modern Day, 2016)", () => {
+  const span = referenceCoverageSpan("2016-01-01", { floor: 15 });
+  assert.ok(span.until >= 2025, `coverage runs to ${span.until} (expected ≥ 2025)`);
+  assert.ok(span.years >= 10, `${span.years} contiguous years around 2016 (expected ≥ 10; rises to ≥ 20 with the 2006 backfill)`);
 });
 
 console.log(`\n${pass} passed\n`);

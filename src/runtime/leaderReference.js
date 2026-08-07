@@ -2599,25 +2599,124 @@ const inWindow = (entry, time) => {
   return time >= from && time <= until;
 };
 
+// ---- era packs -------------------------------------------------------------
+//
+// THE RECORD REACHES 1444, THE BUNDLE DOES NOT. This module ships the modern
+// era in-line (the active preset's decades — always loaded, always sync); the
+// deeper past lives in era packs under leaderEras/, loaded on demand when a
+// campaign's date actually enters their window. A preset set anywhere on the
+// timeline gets its surrounding decades by calling ensureReferenceEra(date)
+// once (the sheet task does) — after which the same sync lookups answer from
+// every loaded pack, windows keeping the eras from ever shadowing each other.
+// Each pack may carry ALIASES ("Joseon" ← a scenario's own spelling) mapping
+// scenario polity names onto its keys.
+const ERA_PACK_LOADERS = [
+  { key: "early-modern", from: "1444-01-01", until: "1749-12-31", load: () => import("./leaderEras/earlyModern.js") },
+  { key: "revolutions", from: "1750-01-01", until: "1899-12-31", load: () => import("./leaderEras/revolutions.js") },
+  { key: "world-wars", from: "1900-01-01", until: "2005-12-31", load: () => import("./leaderEras/worldWars.js") },
+];
+const loadedEras = new Map();
+const eraLoadPromises = new Map();
+
+export const ensureReferenceEra = async (dateISO) => {
+  const time = Date.parse(normalizeString(dateISO));
+  if (!Number.isFinite(time)) return;
+  // Load the covering pack AND its neighbours: a campaign sitting near an era
+  // boundary (a 1905 start looking back at 1899) reads across it.
+  for (const pack of ERA_PACK_LOADERS) {
+    const from = Date.parse(pack.from) - 20 * 365.25 * 86_400_000;
+    const until = Date.parse(pack.until) + 20 * 365.25 * 86_400_000;
+    if (time < from || time > until || loadedEras.has(pack.key)) continue;
+    if (!eraLoadPromises.has(pack.key)) {
+      eraLoadPromises.set(pack.key, pack.load().then((mod) => {
+        loadedEras.set(pack.key, {
+          reference: mod.REFERENCE ?? {},
+          figures: mod.POLITICAL_FIGURES ?? {},
+          aliases: mod.ALIASES ?? {},
+        });
+      }).catch((error) => {
+        eraLoadPromises.delete(pack.key);
+        console.warn(`[reference] era pack "${pack.key}" failed to load — its window stays uncovered this session.`, error);
+      }));
+    }
+    await eraLoadPromises.get(pack.key);
+  }
+};
+
+const rowSources = (modernTable, eraField, country) => {
+  const sources = [];
+  if (modernTable[country]) sources.push(modernTable[country]);
+  for (const era of loadedEras.values()) {
+    const key = era.aliases[country] ?? country;
+    if (era[eraField][key]) sources.push(era[eraField][key]);
+  }
+  return sources;
+};
+
 // The officeholders on record for one country on one date — only the roles
 // whose windows contain the date; {} for an uncovered country or unreadable
-// date. Keys are the store's canonical English country names.
+// date. Keys are the store's canonical English country names (era packs may
+// alias historical polity names onto their own keys). Sync — call
+// ensureReferenceEra(date) first when the date may predate the modern pack.
 export const referenceLeadership = (country, dateISO) => {
-  const rows = REFERENCE[normalizeString(country)];
+  const key = normalizeString(country);
   const time = Date.parse(normalizeString(dateISO));
-  if (!rows || !Number.isFinite(time)) return {};
+  if (!key || !Number.isFinite(time)) return {};
   const out = {};
-  for (const role of ["leader", "headOfState", "deputy"]) {
-    const hit = (rows[role] ?? []).find((entry) => inWindow(entry, time));
-    if (hit) out[role] = hit.name;
+  for (const rows of rowSources(REFERENCE, "reference", key)) {
+    for (const role of ["leader", "headOfState", "deputy"]) {
+      if (out[role]) continue;
+      const hit = (rows[role] ?? []).find((entry) => inWindow(entry, time));
+      if (hit) out[role] = hit.name;
+    }
   }
   return out;
 };
 
-// The era's real contenders for one country on one date — [] when uncovered.
+// The era's real contenders — and, in monarchic eras, heirs and pretenders —
+// for one country on one date; [] when uncovered.
 export const referencePoliticalFigures = (country, dateISO) => {
-  const rows = POLITICAL_FIGURES[normalizeString(country)];
+  const key = normalizeString(country);
   const time = Date.parse(normalizeString(dateISO));
-  if (!rows || !Number.isFinite(time)) return [];
-  return rows.filter((entry) => inWindow(entry, time)).map((entry) => entry.name);
+  if (!key || !Number.isFinite(time)) return [];
+  const names = [];
+  for (const rows of rowSources(POLITICAL_FIGURES, "figures", key)) {
+    const list = Array.isArray(rows) ? rows : [];
+    for (const entry of list) {
+      if (inWindow(entry, time) && !names.includes(entry.name)) names.push(entry.name);
+    }
+  }
+  return names;
+};
+
+// HOW MUCH OF THE TIMELINE AROUND A DATE THE RECORD ACTUALLY COVERS — the
+// contract every preset is held to ("a preset gets at least 20 years"). A year
+// counts as covered when at least `floor` polities have a leader on record on
+// its January 1st. Walk outward from the anchor year until coverage breaks on
+// both sides; call ensureReferenceEra(date) first so the relevant packs are
+// loaded. Returns { from, until, years }.
+export const referenceCoverageSpan = (dateISO, { floor = 15 } = {}) => {
+  const anchor = new Date(normalizeString(dateISO)).getUTCFullYear();
+  if (!Number.isFinite(anchor)) return { from: 0, until: 0, years: 0 };
+  const countriesAt = (year) => {
+    const probe = `${year}-01-01`;
+    let count = 0;
+    const seen = new Set();
+    const tally = (table) => {
+      for (const key of Object.keys(table)) {
+        if (seen.has(key)) continue;
+        if (referenceLeadership(key, probe).leader) { seen.add(key); count += 1; }
+      }
+    };
+    tally(REFERENCE);
+    for (const era of loadedEras.values()) tally(era.reference);
+    return count;
+  };
+  const covered = (year) => countriesAt(year) >= floor;
+  if (!covered(anchor)) return { from: anchor, until: anchor, years: 0 };
+  let from = anchor;
+  let until = anchor;
+  while (from - 1 >= 1444 && covered(from - 1)) from -= 1;
+  while (until + 1 <= new Date().getUTCFullYear() + 1 && covered(until + 1)) until += 1;
+  return { from, until, years: until - from + 1 };
 };
