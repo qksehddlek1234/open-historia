@@ -483,7 +483,7 @@ export const sheetDescribesNow = (asOf, today) => {
 //    this needs no lexicon, so titles the lexicon misses still pass.
 // 2. Otherwise strip known title tokens off both ends and compare name tokens:
 //    equal sets, or one set contained in the other, is the same person.
-const TITLE_TOKEN = /^(대통령|부통령|총리|수상|부총리|국무총리|국왕|여왕|왕|천황|황제|국가주석|주석|총서기|서기장|제1서기|위원장|총통|대공|술탄|에미르|국가수반|정부수반|권한대행|대행|섭정|왕세자|교황|president|vice|prime|minister|premier|chancellor|king|queen|emperor|empress|sultan|emir|chairman|chairwoman|secretary|general|acting|regent|pope)$/i;
+const TITLE_TOKEN = /^(대통령|부통령|총리|수상|부총리|국무총리|내각총리|국왕|여왕|왕|천황|황제|국가주석|주석|총서기|서기장|제1서기|위원장|국무위원장|국무위원|상임위원장|행정원장|총통|대공|술탄|에미르|국가수반|정부수반|권한대행|대행|섭정|왕세자|교황|president|vice|prime|minister|premier|chancellor|king|queen|emperor|empress|sultan|emir|chairman|chairwoman|secretary|general|acting|regent|pope)$/i;
 
 const nameTokens = (value) => normalizeString(value).split(/\s+/).filter(Boolean);
 

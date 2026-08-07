@@ -109,6 +109,7 @@ import {
   SHEET_FORMAT,
   tidyStatSheetMoney,
 } from "../../runtime/countryStatLedger.js";
+import { referenceLeadership } from "../../runtime/leaderReference.js";
 import {
   beginConstruction,
   buildPipelineText,
@@ -4426,6 +4427,10 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   const canonKey = (value) => normalizeString(toCountryName(normalizeString(value).replace(/\s+/g, " ")))
     .replace(/\s+/g, " ").toLowerCase();
   const canonicalTarget = canonKey(statCode || target) || normalizeString(statCode || target).toLowerCase();
+  // The real officeholders for this country on this date, where the modern-era
+  // record covers it (see leaderReference.js). The campaign's own recorded
+  // person always outranks this; the record outranks a fresh guess.
+  const reference = referenceLeadership(toCountryName(statCode) || normalizeString(target), sheetDate);
   // The DISPLAY name is a second identity for the same country — a caller may
   // pass a code the canon tables miss while the name says who it is.
   const canonicalDisplayTarget = canonKey(target);
@@ -4477,6 +4482,9 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       `Compile the national stat sheet for ${target}${code ? ` (code ${code})` : ""}${sheetDate ? `, as it stands on ${sheetDate}` : ""}.`,
       era ? `ERA & WORLD RULES:\n${era}` : "",
       `TARGET DOSSIER:\n${dossier || "(nothing recorded)"}`,
+      Object.keys(reference).length > 0
+        ? `OFFICEHOLDERS ON RECORD for ${target} on ${sheetDate || "this date"} — real public record, in the required format. Use these for the leadership fields unless the campaign's own established sheet below names a DIFFERENT person:\n${["leader", "headOfState", "deputy"].filter((field) => reference[field]).map((field) => `${field}: ${reference[field]}`).join("\n")}`
+        : "",
       priorText
         ? `THE SHEET AS THIS CAMPAIGN LAST ESTABLISHED IT${priorAsOf ? ` (as of ${priorAsOf})` : ""}:\n${priorText}\n\nThese are this campaign's own established facts — carry them forward and update only what the passage of time to ${sheetDate || "today"} plausibly changes. Leader, government and capital stay exactly as recorded: in this campaign they change only through its own events, never because the real world's history says otherwise. The one permitted rewrite: where a recorded leadership name lacks its official title, keep the SAME person and put their real office in front of the name ("박근혜" → "대통령 박근혜") — never a different person. The recorded headOfState and deputy carry forward the same way: keep the recorded person (titled), and never replace a recorded person with "(없음)" or "(미확인)".`
         : "",
@@ -4493,8 +4501,12 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
     repairPayload: (parsed) => {
       for (const field of ["headOfState", "deputy"]) {
         if (normalizeString(parsed?.[field])) continue;
-        const recorded = normalizeString(priorSheet?.[field]);
-        parsed[field] = recorded || "(미확인)";
+        const recordedPrior = normalizeString(priorSheet?.[field]);
+        // Campaign record first, then the era's officeholders on record, then
+        // the honest unknown — a prior SENTINEL is an absence, not a record,
+        // and must not block the reference behind it.
+        parsed[field] = (recordedPrior && !isRoleSentinel(recordedPrior) ? recordedPrior : "")
+          || normalizeString(reference[field]) || "(미확인)";
       }
       // The three GDP shares round to 99 or 101 routinely — a tolerance the
       // sanity module has always granted (90–110) but the schema's exact-100
@@ -4617,6 +4629,35 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
           candidate[field] = repeatsLeader && !collidesWith ? "(없음)" : "(미확인)";
         }
       }
+      // THE OFFICEHOLDERS ON RECORD BEAT A 12B'S GUESS. Round 11 live: asked
+      // directly for China's deputy, the model produced "국무원총리 장관정
+      // (장가정)" — an invention wearing a hedge — with 리커창 in office. No
+      // prompt cures a knowledge failure; the record does. Where the campaign
+      // has no recorded person of its own, a candidate that names someone
+      // else, or shrugs, is overwritten with the era's actual officeholder;
+      // the same person under the record's curated spelling takes it.
+      for (const field of ["leader", "headOfState", "deputy"]) {
+        const recorded = normalizeString(reference[field]);
+        if (!recorded) continue;
+        const priorOwn = normalizeString(priorSheet?.[field]);
+        // The campaign's own DIFFERENT person stands — alternate history wins.
+        if (priorOwn && !isRoleSentinel(priorOwn) && !sameLeaderPerson(priorOwn, recorded)) continue;
+        const value = normalizeString(candidate?.[field]);
+        if (isRoleSentinel(recorded)) {
+          // The record says the system has no separate such office — that
+          // settles an unknown, but never overrides a person the model named.
+          if (!value || value === "(미확인)") candidate[field] = recorded;
+          continue;
+        }
+        if (!value || isRoleSentinel(value) || !sameLeaderPerson(value, recorded)) {
+          if (value && !isRoleSentinel(value)) {
+            console.info(`[stats] ${target}'s ${field} ("${value}") is not the officeholder on record for ${sheetDate || "this date"} — corrected to "${recorded}".`);
+          }
+          candidate[field] = recorded;
+        } else if (recorded.length > value.length) {
+          candidate[field] = recorded;
+        }
+      }
       // A doubtful wider role gets ONE direct ask. Without it the backfill
       // satisfied the schema and the certainty gate kept the model shy, so
       // offices that are public record stayed blank (round 10 live: China's
@@ -4625,8 +4666,12 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       // claimed NO-SUCH-OFFICE is challenged only for deputy, where nearly
       // every modern system actually has one — headOfState "(없음)" is the
       // correct answer for every presidential republic and stays unchallenged.
+      // (The reference above settles covered countries without the retry.)
       if (!finalAttempt) {
         const doubtful = ["headOfState", "deputy"].filter((field) => {
+          // A role the record covers is already adjudicated above — asking
+          // again would invite the model to argue with the record.
+          if (normalizeString(reference[field])) return false;
           const value = normalizeString(candidate?.[field]);
           return value === "(미확인)" || (field === "deputy" && value === "(없음)");
         });
