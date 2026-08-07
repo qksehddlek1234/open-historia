@@ -1,18 +1,18 @@
 /*! Open Historia — national stats pane © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getNationFlags, getNationTags } from "../../runtime/assets.js";
 import { isPolityLandless, readGameData, readWorldState } from "../../runtime/gameState.js";
 import { PERSONALITY_AXES, resolveCountryPersonality } from "../../runtime/countryPersonality.js";
 import { resolveCountryTags } from "../../runtime/countryTags.js";
 import { useLibraryState } from "../../runtime/library.js";
-import { useCountryDisplayName } from "../../runtime/polityNames.js";
+import { ensurePolityNames, polityDisplayName, useCountryDisplayName } from "../../runtime/polityNames.js";
 import { flagImageUrlFromGid } from "../../runtime/countryFlags.js";
 import COUNTRY_NAMES from "../../runtime/generated/countryNames.js";
 import { setRegionClickObserver } from "../Selection/Regions.jsx";
 import { generateCountryStatSheet } from "../AI/gameplay.js";
 import { validateGameplayPayload } from "../AI/gameplaySchemas.js";
 import { findStatSheetProblems, stripUnusableStatFields } from "../AI/statSheetSanity.js";
-import { mergeStatSheet, rescueLegacySheet, sheetDescribesNow, stripMoneyConversions } from "../../runtime/countryStatLedger.js";
+import { isRoleSentinel, mergeStatSheet, rescueLegacySheet, SHEET_FORMAT, sheetDescribesNow, stripMoneyConversions } from "../../runtime/countryStatLedger.js";
 import { CHARACTER_PROFILE_HIDDEN_NOTE, revealsCharacterProfile } from "../../runtime/difficulty.js";
 
 // Sheets are regenerated when the game date moves; within a date they persist
@@ -139,6 +139,12 @@ const StatsPane = ({ active }) => {
     // this is one fetch per scenario; {} for every scenario that sets none.
     const [customFlags, setCustomFlags] = useState({});
     const displayName = useCountryDisplayName(targetCountry);
+    // The LIVE target, for async guards. Every setState guard in loadSheet used
+    // to compare the closure's own captured targetCountry against a code taken
+    // from the same closure — always equal, so a slow in-flight load for the
+    // PREVIOUS country overwrote the pane after the player had moved on.
+    const targetRef = useRef(targetCountry);
+    targetRef.current = targetCountry;
 
     // Which game and which date are we in? Also seeds the target: your country.
     useEffect(() => {
@@ -243,19 +249,26 @@ const StatsPane = ({ active }) => {
                 if (!aiOverride && !world?.countryStats?.[code]?.__asOf) {
                     aiOverride = rescueLegacySheet(stripUnusableStatFields(world.countryStats?.[code]));
                 }
-                // The stamp is bookkeeping, not a field on the sheet — and the
-                // sheet schema is additionalProperties:false, so it has to come
-                // off before anything validates what is left.
-                const { __asOf: asOf, ...rest } = world?.countryStats?.[code] ?? {};
+                // The stamps are bookkeeping, not fields on the sheet — and the
+                // sheet schema is additionalProperties:false, so they have to
+                // come off before anything validates what is left.
+                const { __asOf: asOf, __format: format, ...rest } = world?.countryStats?.[code] ?? {};
                 const persisted = stripUnusableStatFields(rest);
                 // Within the freshness window, not equal-to-today: see
                 // sheetDescribesNow — exact-match staled every sheet every turn
                 // and regenerated the base per country per turn, letting the
                 // model rewrite campaign facts each time.
+                // Also gated on the FORMAT stamp (a pre-titled-leadership base
+                // regenerates once to pick its titles up) and on the leader not
+                // being a sentinel — the contamination heal writes "(미확인)"
+                // expecting the next regeneration to answer, so a sentinel
+                // must never count as a servable base.
                 const describesNow = sheetDescribesNow(asOf, player.date);
-                if (describesNow && persisted && isValidStatSheet(persisted) && findStatSheetProblems(persisted).length === 0) {
+                if (describesNow && format === SHEET_FORMAT && persisted && !isRoleSentinel(persisted.leader)
+                    && isValidStatSheet(persisted) && findStatSheetProblems(persisted).length === 0) {
                     const sheet = mergeStatSheet(persisted, aiOverride);
-                    memoryCache.set(cacheKey, { date: player.date, sheet });
+                    memoryCache.set(cacheKey, { date: player.date, format: SHEET_FORMAT, sheet });
+                    if (targetRef.current !== code) return;
                     setState({ status: "ready", sheet, error: "" });
                     return;
                 }
@@ -277,50 +290,71 @@ const StatsPane = ({ active }) => {
             const worldNow = await readWorldState({ force: false }).catch(() => null);
             const baseKnown = Boolean(worldNow?.countryStats?.[code]);
             const cached = memoryCache.get(cacheKey) ?? readStoredSheets()[cacheKey];
-            const cachedIsCurrent = cached && baseKnown && sheetDescribesNow(cached.date, player.date);
+            // Entries written before the titled-leadership format carry no
+            // `format` field and regenerate; a sentinel leader regenerates for
+            // the same reason as at the world-state gate above.
+            const cachedIsCurrent = cached && baseKnown && cached.format === SHEET_FORMAT
+                && !isRoleSentinel(cached.sheet?.leader) && sheetDescribesNow(cached.date, player.date);
             if (cached && !baseKnown) {
                 memoryCache.delete(cacheKey);
                 console.info(`[stats] the save no longer holds a base sheet for ${code} — dropping the cached copy and regenerating.`);
             }
             if (cachedIsCurrent && isValidStatSheet(cached.sheet) && findStatSheetProblems(cached.sheet).length === 0) {
                 const sheet = mergeStatSheet(cached.sheet, aiOverride);
-                memoryCache.set(cacheKey, { date: player.date, sheet });
+                memoryCache.set(cacheKey, { date: player.date, format: SHEET_FORMAT, sheet });
+                if (targetRef.current !== code) return;
                 setState({ status: "ready", sheet, error: "" });
                 return;
             }
         }
+        if (targetRef.current !== code) return;
         setState({ status: "loading", sheet: null, error: "" });
         try {
-            const generated = await generateCountryStatSheet({ code, name: displayName || code });
+            // The name handed to the AI is resolved HERE, for THIS code — never
+            // from the displayName hook. That state updates one render behind
+            // the target: on the render where a map click moves the pane from
+            // South Korea to Ethiopia, this callback fires with the new code
+            // while the hook still holds the old name, and the model was told
+            // "Compile the sheet for South Korea (code Ethiopia)" — a prompt at
+            // war with its own dossier (live, this round, twice).
+            await ensurePolityNames();
+            const name = polityDisplayName(code);
+            const generated = await generateCountryStatSheet({ code, name: name || code });
             const validation = validateGameplayPayload("countryStatSheet", generated);
             if (!validation.valid) throw new Error(`The stat sheet failed validation: ${validation.error}`);
             // A sheet generated now describes the country as it was BEFORE this game's
             // events, so the AI's recorded changes still have to win over it.
             const sheet = mergeStatSheet(generated, aiOverride);
-            const entry = { date: player.date, sheet };
+            const entry = { date: player.date, format: SHEET_FORMAT, sheet };
             memoryCache.set(cacheKey, entry);
             storeSheet(cacheKey, entry);
             setState((current) =>
-                targetCountry === code ? { status: "ready", sheet, error: "" } : current);
+                targetRef.current === code ? { status: "ready", sheet, error: "" } : current);
         } catch (error) {
             // A LAST YEAR'S SHEET BEATS AN ERROR MESSAGE. Now that the base is
             // date-gated, a failed regeneration would otherwise leave the pane
             // blank where it used to show something — so fall back to the stale
             // sheet, with the campaign's changes still layered over it.
+            // Sheets from before headOfState/deputy became required lack both
+            // fields and would fail the schema here — for the FALLBACK only,
+            // patch honest unknowns in rather than refusing the whole sheet.
             const stale = memoryCache.get(cacheKey) ?? readStoredSheets()[cacheKey];
+            if (stale?.sheet) {
+                stale.sheet = { headOfState: "(미확인)", deputy: "(미확인)", ...stale.sheet };
+            }
             if (stale?.sheet && isValidStatSheet(stale.sheet)) {
                 const sheet = mergeStatSheet(stale.sheet, aiOverride);
-                setState((current) => (targetCountry === code ? { status: "ready", sheet, error: "" } : current));
+                setState((current) => (targetRef.current === code ? { status: "ready", sheet, error: "" } : current));
                 console.warn(`[stats] could not refresh ${code}'s sheet for ${player.date}; showing the one from ${stale.date || "an earlier date"}.`, error);
                 return;
             }
             setState((current) =>
-                targetCountry === code
+                targetRef.current === code
                     ? { status: "error", sheet: null, error: error?.message || "The stat sheet failed." }
                     : current);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [targetCountry, player.gameKey, player.date, displayName]);
+    }, [targetCountry, player.gameKey, player.date]);
 
     useEffect(() => {
         if (!active || !targetCountry) return;
@@ -423,20 +457,23 @@ const StatsPane = ({ active }) => {
                     "Leader:"/"Deputy:" prefixes (which the language pack
                     rendered as 지도자/대리인) would only restate the office
                     worse. The row IS the value. */}
-                {sheet.leader && (
+                {sheet.leader && !isRoleSentinel(sheet.leader) && (
                     <div style={{ color: "#fbbf24", fontSize: "0.72rem", marginTop: "0.1rem" }}>
                     {sheet.leader}
                     </div>
                 )}
                 {/* The rest of the leadership picture, where the system has
                     one: the ceremonial head of state above (monarchs,
-                    figurehead presidents), the second-in-command below. */}
-                {sheet.headOfState && (
+                    figurehead presidents), the second-in-command below. The
+                    fields are always ON the sheet now (required, so the model
+                    actually fills them) — "(없음)" / "(미확인)" mean no such
+                    office / holder unknown, and render as no row at all. */}
+                {sheet.headOfState && !isRoleSentinel(sheet.headOfState) && (
                     <div style={{ color: "rgba(251,191,36,0.66)", fontSize: "0.7rem", marginTop: "0.1rem" }}>
                     {sheet.headOfState}
                     </div>
                 )}
-                {sheet.deputy && (
+                {sheet.deputy && !isRoleSentinel(sheet.deputy) && (
                     <div style={{ color: "rgba(251,191,36,0.66)", fontSize: "0.7rem", marginTop: "0.1rem" }}>
                     {sheet.deputy}
                     </div>

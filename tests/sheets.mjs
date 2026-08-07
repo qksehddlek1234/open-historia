@@ -38,7 +38,10 @@ test("an unreadable stamp never counts as fresh", () => {
 
 test("both of the tab's gates read the window — the persisted base AND the device cache", () => {
   assert.match(STATS, /const describesNow = sheetDescribesNow\(asOf, player\.date\);/);
-  assert.match(STATS, /cached && baseKnown && sheetDescribesNow\(cached\.date, player\.date\)/);
+  // Since the titled-leader change the device-cache gate also demands the
+  // format stamp and a non-sentinel leader — same reasons as the base gate.
+  assert.match(STATS, /cached && baseKnown && cached\.format === SHEET_FORMAT/);
+  assert.match(STATS, /sheetDescribesNow\(cached\.date, player\.date\)/);
   assert.doesNotMatch(STATS, /normalizeString\(asOf\) === normalizeString\(player\.date\)/);
 });
 
@@ -53,7 +56,7 @@ test("the standing merged sheet rides in the prompt as ground truth", () => {
 test("identity fields cannot be rewritten by a blind regeneration", () => {
   const at = GAMEPLAY.indexOf("THE IDENTITY GUARD");
   assert.notEqual(at, -1);
-  const block = GAMEPLAY.slice(at, at + 2400);
+  const block = GAMEPLAY.slice(at, at + 3400);
   // headOfState joined the guarded identity fields (round 5, 다원화).
   assert.match(block, /\["leader", "headOfState", "government", "capital"\]/);
   assert.match(block, /payload\[field\] = priorSheet\[field\]/);

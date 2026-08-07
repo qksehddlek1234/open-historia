@@ -102,8 +102,11 @@ import {
   STAT_FIELDS,
   applyStatChanges,
   buildStatSheetText,
+  canonicalRoleSentinel,
+  isRoleSentinel,
   mergeStatSheet,
   sameLeaderPerson,
+  SHEET_FORMAT,
   tidyStatSheetMoney,
 } from "../../runtime/countryStatLedger.js";
 import {
@@ -590,7 +593,7 @@ const buildTemplateVariables = async (bundle, options = {}) => {
 // full menu of world-changing levers the tool schema exposes, so the model always ends
 // its system prompt with an explicit list of what it can do and how. Injected at call
 // time so it reaches existing frozen-prompt games too.
-const ACTIONS_REFERENCE = "[Actions You Can Take]\nThis is the full menu of levers you have to change the world. Everything you change rides on an event's \"impacts\" object, except the two whole-jump levers noted at the end. Reach for the RIGHT lever, and NEVER narrate a change in an event's text without also emitting the impact that makes it real — narration and world state must always agree.\n\n• regionTransfers — Move a region to a new owner. This is the most important lever and the one most often forgotten: use it for every conquest, cession, sale, liberation, annexation, or hand-over, one entry per region. Shape: {\"regionId\":\"<exact id, or the plain region name if you don't know the id>\",\"regionName\":\"\",\"fromCode\":\"\",\"toCode\":\"<new owner code>\"}. An event whose text says land changed hands but that carries no regionTransfers is invalid output and silently breaks the map. Transfer in order of proximity to the attacker's territory; never hand over an isolated region ringed by enemy land without a naval or airborne reason.\n\n• polityChanges — Create, rename, recolor, or re-describe a polity. One entry can do any combination: {\"code\":\"<polity code>\",\"name\":\"<new name, only if it changed>\",\"color\":\"#RRGGBB (only if it changed)\",\"aliases\":[\"...\"],\"reputation\":0-100,\"tags\":[\"...\"],\"stats\":{...},\"note\":\"<why>\"}. Create a polity by giving a new code with a name and color. Change name/color ONLY on a regime change (never for a mere new leader). On an ideological or alignment shift, rewrite the COMPLETE tags list (it is a full replacement, not a delta). Set reputation (0 = pariah, 100 = universally trusted) only when this turn's events actually moved a polity's standing. REPUTATION IS THE VALUE, NEVER THE CHANGE: if a country stands at 57 and this event earns it a little credit, write 58 — writing 1 does not mean \"+1\", it means the world now regards that country as a pariah. A standing built over years does not move more than a few points on one event, and a collapse of tens of points needs an event that explains it (an invasion, a massacre, a treaty torn up, sanctions, a coup). The engine rejects a swing its event cannot account for and keeps the old value, so a delta written here is simply lost. Set \"personality\" — {\"aggression\":0-100,\"riskTolerance\":0-100,\"loyalty\":0-100,\"expansionism\":0-100,\"vengefulness\":0-100} — only when an event genuinely reshapes HOW a country acts (a coup, a crushing defeat, a betrayal it will not forget, a generational turn), and send only the axes that moved. A country's national statistics move ONLY through \"stats\" here — send just the fields that changed; everything omitted keeps its prior value. Every 0-100 figure in \"stats\" (stability and each index) is a VALUE, never a change, exactly like reputation: a country at 64 stability that had a good month is 66, not 2. These are standings built up over years — they move a few points on an ordinary event, and a swing of tens needs an event that explains it (a coup, riots, martial law, a war ending, order restored). The engine rejects a swing its event cannot account for and keeps the old value. That includes WHO LEADS: when a leader is overthrown, assassinated, dies, resigns or is voted out, put the successor's name in stats.leader (together with stats.government and stats.stability when those moved too). An event that narrates a leader falling but leaves stats.leader untouched leaves the OLD name standing on that country's stat sheet, so the story and the sheet disagree.\n\n• unitOps — Move the war on the map with battalions. Four ops:\n    {\"op\":\"spawn\",\"unit\":{\"name\":\"\",\"type\":\"infantry|armor|air|naval|artillery|garrison\",\"ownerCode\":\"\",\"strength\":1-1000,\"lng\":0,\"lat\":0,\"regionId\":\"\"}}\n    {\"op\":\"move\",\"unitId\":\"<existing id>\",\"toLng\":0,\"toLat\":0,\"regionId\":\"\",\"note\":\"\"}\n    {\"op\":\"strength\",\"unitId\":\"<existing id>\",\"strength\":0-1000,\"note\":\"\"}\n    {\"op\":\"remove\",\"unitId\":\"<existing id>\",\"note\":\"\"}\n  Spawn units for mobilizations and reinforcements, move them to reflect offensives, lower their strength as they take losses, and remove them only when destroyed or disbanded. Only reference unit ids that appear in the current-units list. When a front is decisively won, pair the advance with a regionTransfers entry so the border follows the troops.\n\n• markerOps — Place, remove, or rename a named structure or city. Three ops:\n    {\"op\":\"build\",\"marker\":{\"name\":\"\",\"kind\":\"<lowercase, e.g. military base / port / embassy / airfield / city>\",\"ownerCode\":\"\",\"lng\":0,\"lat\":0,\"note\":\"\",\"foundedAt\":\"\"}}\n    {\"op\":\"remove\",\"name\":\"<exact existing name>\",\"note\":\"\"}\n    {\"op\":\"rename\",\"name\":\"<current name>\",\"newName\":\"<new name>\",\"note\":\"<why>\"}\n  A MARKER IS A PLACE — something that stands at a coordinate and can be visited, captured or bombed: a base, a port, a plant, a research campus, a city, a monument. A programme, a policy, a doctrine, an algorithm, a target list or a plan is NOT a marker however important it is; the event that created it already tells the player about it, and pinning it to the map turns the map into a list of initiatives. The engine drops any marker whose name is a system or a plan rather than a site. Emit build whenever an event founds or constructs a place, remove when one is destroyed, and rename when a city or structure is renamed (rename works on existing map cities too — a city renamed after a leader or ideology, a capital re-designated, a conquered city given the conqueror's name). Structures NEVER move borders: a facility one polity builds inside another's land does not transfer the region, and ownerCode is who runs the facility, not who owns the ground.\n\n• createdChats — Have another polity open a diplomatic chat with the player BECAUSE of this event (a war scare prompting mediation, a border incident prompting an ultimatum, a windfall prompting a trade delegation). Shape: {\"countries\":[\"...\"],\"title\":\"<names the purpose>\",\"speaker\":\"<the initiating polity — never the player>\",\"openingMessage\":\"<that leader's first message, in their voice>\"}. The other side always speaks first; a blank or untitled chat is invalid.\n\n• actionIds — List the ids of the player's queued actions that this event resolves, so the game can clear them from the queue.\n\nWhole-jump levers (top level of your output, NOT inside an event):\n• diplomaticOutreach — Polities reaching out to the player on their OWN initiative this period — treaty feelers, trade proposals, non-aggression pacts, mediation offers, warnings, summit invitations — not tied to any single event. Same shape as createdChats. Open one whenever a polity plausibly would, rather than defaulting to none.\n• catalyst — An interactive branching scene handed to the player when a moment genuinely demands their decision, or null when none is warranted. Shape: {\"title\":\"\",\"premise\":\"\",\"opening\":\"\",\"choices\":[\"...\", \"...\", up to 5 distinct]}.\n\nKeep the total across createdChats and diplomaticOutreach to at most 3 per jump, and only when the approach genuinely serves the sender's interests.";
+const ACTIONS_REFERENCE = "[Actions You Can Take]\nThis is the full menu of levers you have to change the world. Everything you change rides on an event's \"impacts\" object, except the two whole-jump levers noted at the end. Reach for the RIGHT lever, and NEVER narrate a change in an event's text without also emitting the impact that makes it real — narration and world state must always agree.\n\n• regionTransfers — Move a region to a new owner. This is the most important lever and the one most often forgotten: use it for every conquest, cession, sale, liberation, annexation, or hand-over, one entry per region. Shape: {\"regionId\":\"<exact id, or the plain region name if you don't know the id>\",\"regionName\":\"\",\"fromCode\":\"\",\"toCode\":\"<new owner code>\"}. An event whose text says land changed hands but that carries no regionTransfers is invalid output and silently breaks the map. Transfer in order of proximity to the attacker's territory; never hand over an isolated region ringed by enemy land without a naval or airborne reason.\n\n• polityChanges — Create, rename, recolor, or re-describe a polity. One entry can do any combination: {\"code\":\"<polity code>\",\"name\":\"<new name, only if it changed>\",\"color\":\"#RRGGBB (only if it changed)\",\"aliases\":[\"...\"],\"reputation\":0-100,\"tags\":[\"...\"],\"stats\":{...},\"note\":\"<why>\"}. Create a polity by giving a new code with a name and color. Change name/color ONLY on a regime change (never for a mere new leader). On an ideological or alignment shift, rewrite the COMPLETE tags list (it is a full replacement, not a delta). Set reputation (0 = pariah, 100 = universally trusted) only when this turn's events actually moved a polity's standing. REPUTATION IS THE VALUE, NEVER THE CHANGE: if a country stands at 57 and this event earns it a little credit, write 58 — writing 1 does not mean \"+1\", it means the world now regards that country as a pariah. A standing built over years does not move more than a few points on one event, and a collapse of tens of points needs an event that explains it (an invasion, a massacre, a treaty torn up, sanctions, a coup). The engine rejects a swing its event cannot account for and keeps the old value, so a delta written here is simply lost. Set \"personality\" — {\"aggression\":0-100,\"riskTolerance\":0-100,\"loyalty\":0-100,\"expansionism\":0-100,\"vengefulness\":0-100} — only when an event genuinely reshapes HOW a country acts (a coup, a crushing defeat, a betrayal it will not forget, a generational turn), and send only the axes that moved. A country's national statistics move ONLY through \"stats\" here — send just the fields that changed; everything omitted keeps its prior value. Every 0-100 figure in \"stats\" (stability and each index) is a VALUE, never a change, exactly like reputation: a country at 64 stability that had a good month is 66, not 2. These are standings built up over years — they move a few points on an ordinary event, and a swing of tens needs an event that explains it (a coup, riots, martial law, a war ending, order restored). The engine rejects a swing its event cannot account for and keeps the old value. That includes WHO LEADS: when a leader is overthrown, assassinated, dies, resigns or is voted out, put the successor in stats.leader as OFFICIAL TITLE + name (\"대통령 권한대행 황교안\", \"임시정부 수반 …\" — never a bare name and never a generic word like 지도자), together with stats.government and stats.stability when those moved too. An event that narrates a leader falling but leaves stats.leader untouched leaves the OLD name standing on that country's stat sheet, so the story and the sheet disagree.\n\n• unitOps — Move the war on the map with battalions. Four ops:\n    {\"op\":\"spawn\",\"unit\":{\"name\":\"\",\"type\":\"infantry|armor|air|naval|artillery|garrison\",\"ownerCode\":\"\",\"strength\":1-1000,\"lng\":0,\"lat\":0,\"regionId\":\"\"}}\n    {\"op\":\"move\",\"unitId\":\"<existing id>\",\"toLng\":0,\"toLat\":0,\"regionId\":\"\",\"note\":\"\"}\n    {\"op\":\"strength\",\"unitId\":\"<existing id>\",\"strength\":0-1000,\"note\":\"\"}\n    {\"op\":\"remove\",\"unitId\":\"<existing id>\",\"note\":\"\"}\n  Spawn units for mobilizations and reinforcements, move them to reflect offensives, lower their strength as they take losses, and remove them only when destroyed or disbanded. Only reference unit ids that appear in the current-units list. When a front is decisively won, pair the advance with a regionTransfers entry so the border follows the troops.\n\n• markerOps — Place, remove, or rename a named structure or city. Three ops:\n    {\"op\":\"build\",\"marker\":{\"name\":\"\",\"kind\":\"<lowercase, e.g. military base / port / embassy / airfield / city>\",\"ownerCode\":\"\",\"lng\":0,\"lat\":0,\"note\":\"\",\"foundedAt\":\"\"}}\n    {\"op\":\"remove\",\"name\":\"<exact existing name>\",\"note\":\"\"}\n    {\"op\":\"rename\",\"name\":\"<current name>\",\"newName\":\"<new name>\",\"note\":\"<why>\"}\n  A MARKER IS A PLACE — something that stands at a coordinate and can be visited, captured or bombed: a base, a port, a plant, a research campus, a city, a monument. A programme, a policy, a doctrine, an algorithm, a target list or a plan is NOT a marker however important it is; the event that created it already tells the player about it, and pinning it to the map turns the map into a list of initiatives. The engine drops any marker whose name is a system or a plan rather than a site. Emit build whenever an event founds or constructs a place, remove when one is destroyed, and rename when a city or structure is renamed (rename works on existing map cities too — a city renamed after a leader or ideology, a capital re-designated, a conquered city given the conqueror's name). Structures NEVER move borders: a facility one polity builds inside another's land does not transfer the region, and ownerCode is who runs the facility, not who owns the ground.\n\n• createdChats — Have another polity open a diplomatic chat with the player BECAUSE of this event (a war scare prompting mediation, a border incident prompting an ultimatum, a windfall prompting a trade delegation). Shape: {\"countries\":[\"...\"],\"title\":\"<names the purpose>\",\"speaker\":\"<the initiating polity — never the player>\",\"openingMessage\":\"<that leader's first message, in their voice>\"}. The other side always speaks first; a blank or untitled chat is invalid.\n\n• actionIds — List the ids of the player's queued actions that this event resolves, so the game can clear them from the queue.\n\nWhole-jump levers (top level of your output, NOT inside an event):\n• diplomaticOutreach — Polities reaching out to the player on their OWN initiative this period — treaty feelers, trade proposals, non-aggression pacts, mediation offers, warnings, summit invitations — not tied to any single event. Same shape as createdChats. Open one whenever a polity plausibly would, rather than defaulting to none.\n• catalyst — An interactive branching scene handed to the player when a moment genuinely demands their decision, or null when none is warranted. Shape: {\"title\":\"\",\"premise\":\"\",\"opening\":\"\",\"choices\":[\"...\", \"...\", up to 5 distinct]}.\n\nKeep the total across createdChats and diplomaticOutreach to at most 3 per jump, and only when the approach genuinely serves the sender's interests.";
 
 const runJsonTask = async (taskKey, {
   fallback,
@@ -1006,22 +1009,6 @@ const runJsonTask = async (taskKey, {
     }
   }
 
-  // Native-language output (field report: editing an event/action showed raw
-  // English under the Korean UI — the data itself was English and only the
-  // DOM translator made it look Korean). callAI already appends the UI
-  // language directive, but the local 14B models drift back to English when
-  // the prompt is otherwise English-heavy — so the content tasks state it
-  // AGAIN, task-specifically, with the critical exception spelled out:
-  // identifiers stay canonical or transfers/ops silently stop matching.
-  {
-    const langCode = getStoredLanguage();
-    if (langCode && langCode !== "en" &&
-        ["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor", "eventConsolidator", "countryStatSheet"].includes(taskKey)) {
-      const langName = languageDisplayName(langCode);
-      systemPrompt = `${systemPrompt}\n\n[Output Language]\nWrite EVERY human-readable string value in your JSON — titles, descriptions, summaries, notes, suggestion/action texts, chat messages, catalyst premises and choices — in ${langName}. Do NOT write them in English. This includes the NAMES YOU INVENT for things placed on the map: markerOps marker names (bases, ports, plants, clusters, airfields, embassies) and unitOps unit names. Those names are printed on the map beside ${langName} text, so an English one is the one word on screen the player cannot read. The exceptions below are IDENTIFIER FIELDS ONLY — machine keys the engine matches on. They do NOT apply to PROSE: inside a title, description, summary, note or chat message, write country, region and city names in ${langName} the way a ${langName} newspaper would, because that prose is READ by the player, not matched by the engine. A canonical English name dropped into a ${langName} sentence is the one word in it they cannot read. EXCEPTIONS that must stay EXACTLY as they appear in the world data, never translated: the regionId FIELD (its id, or its catalogued name), polity/owner IDENTIFIER FIELDS (toCode, fromCode, ownerCode, code, speaker, countries entries), a marker's "kind" (a lowercase English keyword the map reads to pick an icon), a polityChange's "name" (a country's identity — set it only for a genuine in-world rename such as a regime change, and never merely to translate the country's existing name), unit ids, dates, and all JSON keys.`;
-    }
-  }
-
   // The stat sheet is a snapshot of ONE DATE, and the field that shows it is the
   // leader. On a campaign starting 2016-01-01 the sheet came back naming South
   // Korea's president as Moon Jae-in, who took office in May 2017 — the model
@@ -1055,8 +1042,28 @@ const runJsonTask = async (taskKey, {
       // Round-5 live: Japan came back led by "시노자와 다로 (Shinzo Abe)" — an
       // invented name with the real one in parentheses — and South Korea's own
       // stability arrived as 0, which reads as state collapse.
-      `[Leadership]\nFill the leadership by how the SYSTEM actually works. Every leadership field is written as OFFICIAL TITLE + name, in the game language — "대통령 블라디미르 푸틴", "국왕 하랄 5세", "총리 아베 신조" — the REAL office that person holds, never a bare name and never a generic word like 지도자 or 대리인 in place of the office:\n• "leader" is the ONE person who actually runs the government — a president in a presidential republic, the prime minister in a parliamentary one, the monarch only where the monarch truly rules. One real person with their real office, NEVER an invented name and NEVER a second name in parentheses. An acting holder carries the acting office ("대통령 권한대행 황교안").\n• "headOfState" is the ceremonial or formal head when that is a DIFFERENT person — the emperor or king in a constitutional monarchy (일본, 영국), a figurehead president in a parliamentary republic. Omit it when the leader holds the role.\n• "deputy" is the second-ranking figure — the vice president ("부통령 …"), or the prime minister serving UNDER a president ("국무총리 …"). Omit when the system has none.\n• Fill "headOfState" and "deputy" ONLY when you are CERTAIN of the actual person on this date. OMIT the field when unsure — a blank line is honest, an invented or borrowed name is not.\n• "stability" is a real judgment from 0 to 100 — 0 means the state has collapsed. A functioning country is never 0.`,
+      `[Leadership]\nFill the leadership by how the SYSTEM actually works. Every leadership field is written as OFFICIAL TITLE + name, in the game language — "대통령 블라디미르 푸틴", "국왕 하랄 5세", "총리 아베 신조" — the REAL office that person holds, never a bare name and never a generic word like 지도자 or 대리인 in place of the office:\n• "leader" is the ONE person who actually runs the government — a president in a presidential republic, the prime minister in a parliamentary one, the monarch only where the monarch truly rules. One real person with their real office, NEVER an invented name and NEVER a second name in parentheses. An acting holder carries the acting office ("대통령 권한대행 황교안").\n• "headOfState" is the ceremonial or formal head when that is a DIFFERENT person — the emperor or king in a constitutional monarchy (일본, 영국), a figurehead president in a parliamentary republic. When the leader personally holds the role, write exactly "(없음)".\n• "deputy" is the second-ranking figure — the vice president ("부통령 …"), or the prime minister serving UNDER a president ("국무총리 …"). When the system has no such office, write exactly "(없음)".\n• "headOfState" and "deputy" are ALWAYS present on the sheet. Name a person in them ONLY when you are CERTAIN of the actual person on this date; when the office exists but you are not sure who held it, write exactly "(미확인)". The engine shows both sentinels as an honest blank — an invented or borrowed name is never acceptable.\n• "stability" is a real judgment from 0 to 100 — 0 means the state has collapsed. A functioning country is never 0.`,
     ].join("\n\n");
+  }
+
+  // Native-language output (field report: editing an event/action showed raw
+  // English under the Korean UI — the data itself was English and only the
+  // DOM translator made it look Korean). callAI already appends the UI
+  // language directive, but the local 14B models drift back to English when
+  // the prompt is otherwise English-heavy — so the content tasks state it
+  // AGAIN, task-specifically, with the critical exception spelled out:
+  // identifiers stay canonical or transfers/ops silently stop matching.
+  // This block sits BELOW the countryStatSheet rebuild above, which replaces
+  // systemPrompt wholesale — appended any earlier, the directive was silently
+  // discarded for exactly that task (live: the one task in this list whose
+  // language line never reached the model).
+  {
+    const langCode = getStoredLanguage();
+    if (langCode && langCode !== "en" &&
+        ["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor", "eventConsolidator", "countryStatSheet"].includes(taskKey)) {
+      const langName = languageDisplayName(langCode);
+      systemPrompt = `${systemPrompt}\n\n[Output Language]\nWrite EVERY human-readable string value in your JSON — titles, descriptions, summaries, notes, suggestion/action texts, chat messages, catalyst premises and choices — in ${langName}. Do NOT write them in English. This includes the NAMES YOU INVENT for things placed on the map: markerOps marker names (bases, ports, plants, clusters, airfields, embassies) and unitOps unit names. Those names are printed on the map beside ${langName} text, so an English one is the one word on screen the player cannot read. The exceptions below are IDENTIFIER FIELDS ONLY — machine keys the engine matches on. They do NOT apply to PROSE: inside a title, description, summary, note or chat message, write country, region and city names in ${langName} the way a ${langName} newspaper would, because that prose is READ by the player, not matched by the engine. A canonical English name dropped into a ${langName} sentence is the one word in it they cannot read. EXCEPTIONS that must stay EXACTLY as they appear in the world data, never translated: the regionId FIELD (its id, or its catalogued name), polity/owner IDENTIFIER FIELDS (toCode, fromCode, ownerCode, code, speaker, countries entries), a marker's "kind" (a lowercase English keyword the map reads to pick an icon), a polityChange's "name" (a country's identity — set it only for a genuine in-world rename such as a regime change, and never merely to translate the country's existing name), unit ids, dates, and all JSON keys.`;
+    }
   }
 
   // Polities are identified by their full country name EVERYWHERE. A model that
@@ -1584,7 +1591,32 @@ const recordStatShifts = async (bundle, freshEvents) => {
   const events = normalizeArray(freshEvents).filter((event) => normalizeString(event?.kind) !== "advance");
   if (events.length === 0) return null;
 
-  const codes = [playerCode, ...countriesThisPeriodTouched(events, playerCode)].filter(Boolean);
+  // A PIVOTAL DATE ON THE SCHEDULE IS A SHOWN SHEET. Brexit, live: the June
+  // 2016 referendum was narrated, the model reported "UK sovereignty" moving,
+  // and the acceptance gate rightly dropped it — the United Kingdom had no
+  // sheet in the prompt, and a number you were never shown is not one you can
+  // move. The gate held; the SUPPLY was wrong. A pivotal entry's actors are
+  // known before the turn runs, so their sheets ride along with the same
+  // mid-turn seeding any acted-on country gets, and the scheduled moment can
+  // move the numbers of exactly the countries it is about. Backlog entries
+  // (missed, riding to the next prompt) are included too — their sheet then
+  // already stands when the entry finally fires.
+  const historyHead = normalizeArray(world.simulationHistory)[0];
+  const periodStart = normalizeString(historyHead?.fromDate)
+    || events.map((event) => normalizeString(event?.date)).filter(Boolean).sort()[0]
+    || "";
+  const pivotalActors = [...new Set([
+    ...timelineWindow(normalizeTimeline(world.periodTimeline), periodStart, date),
+    ...normalizeTimeline(world.timelineBacklog),
+  ].filter((entry) => entry.weight === "pivotal")
+    .flatMap((entry) => normalizeArray(entry.actors))
+    .map((actor) => toCountryName(normalizeString(actor)))
+    .filter((actor) => actor && actor !== playerCode))];
+  if (pivotalActors.length > 0) {
+    console.info(`[stats] pivotal schedule this period names ${pivotalActors.join(", ")} — their sheet(s) ride along so the moment can move their numbers.`);
+  }
+
+  const codes = [...new Set([playerCode, ...pivotalActors, ...countriesThisPeriodTouched(events, playerCode)])].filter(Boolean);
   // Nothing to move against. The sheets are generated lazily when the player
   // first opens the pane, so an untouched country simply has no baseline yet —
   // and inventing one here would be this pass making up a country's economy.
@@ -1604,7 +1636,17 @@ const recordStatShifts = async (bundle, freshEvents) => {
   const seeded = {};
   let statsWorld = world;
   for (const code of codes) {
-    if (statsWorld.countryStats?.[code]) continue;
+    // Only a REAL base skips the seed — every generated base is __asOf-stamped
+    // at persist time. The event path can leak a one-line stat FRAGMENT into
+    // world.countryStats (live: Philippines held only {stability}), and a
+    // truthiness check read that fragment as a full sheet: the country was
+    // silently never seeded, and the shift pass then rated numbers against a
+    // baseline that was one line long.
+    const standingBase = statsWorld.countryStats?.[code];
+    if (standingBase?.__asOf) continue;
+    if (standingBase) {
+      console.info(`[stats] ${code} holds only a stat fragment (no __asOf stamp) — seeding a full base under it.`);
+    }
     try {
       await generateCountryStatSheet({ code, name: code });
       statsWorld = normalizeWorldState(await readWorldState({ force: true }));
@@ -1737,7 +1779,10 @@ const compactHistoryIfNeeded = async (bundle) => {
   const leaders = Object.fromEntries(
     Object.entries(world.countryStats ?? {})
       .map(([code, sheet]) => [code, mergeStatSheet(sheet, world.countryStatChanges?.[code])?.leader])
-      .filter(([, leader]) => normalizeString(leader)),
+      // A sentinel is not a person: the contamination heal writes "(미확인)"
+      // into a sheet's leader slot, and promoting THAT to a ledger fact would
+      // make "unknown" the campaign's official word on who leads.
+      .filter(([, leader]) => normalizeString(leader) && !isRoleSentinel(leader)),
   );
   const repaired = repairLeaderFacts(merged.entries, leaders, { date: throughDate });
   if (repaired.repaired.length > 0) {
@@ -3320,10 +3365,19 @@ const applySimulationResult = async ({
         nextWorld = {
           ...nextWorld,
           countryStatChanges: statChanges.entries,
-          // Base sheets seeded during the pass. Spread FIRST so anything already
-          // in nextWorld wins — a seed only ever fills a country that had none.
+          // Base sheets seeded during the pass. nextWorld still wins for any
+          // country it holds a REAL (__asOf-stamped) base for — but a stampless
+          // fragment the event path leaked must not clobber the full base just
+          // seeded under it.
           ...(Object.keys(statChanges.seeded).length > 0
-            ? { countryStats: { ...statChanges.seeded, ...nextWorld.countryStats } }
+            ? {
+              countryStats: {
+                ...statChanges.seeded,
+                ...Object.fromEntries(Object.entries(nextWorld.countryStats ?? {}).filter(
+                  ([code, sheet]) => !statChanges.seeded[code] || sheet?.__asOf,
+                )),
+              },
+            }
             : {}),
         };
       }
@@ -4188,7 +4242,7 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   // the identity guard below enforces it even when the model ignores the ask.
   const statCode = normalizeString(code);
   const priorWorld = normalizeWorldState(bundle.world);
-  const { __asOf: priorAsOf, ...priorBase } = priorWorld.countryStats?.[statCode] ?? {};
+  const { __asOf: priorAsOf, __format: _priorFormat, ...priorBase } = priorWorld.countryStats?.[statCode] ?? {};
   const priorSheet = Object.keys(priorBase).length > 0
     ? mergeStatSheet(priorBase, priorWorld.countryStatChanges?.[statCode])
     : null;
@@ -4268,6 +4322,18 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
         ? `THE SHEET AS THIS CAMPAIGN LAST ESTABLISHED IT${priorAsOf ? ` (as of ${priorAsOf})` : ""}:\n${priorText}\n\nThese are this campaign's own established facts — carry them forward and update only what the passage of time to ${sheetDate || "today"} plausibly changes. Leader, government and capital stay exactly as recorded: in this campaign they change only through its own events, never because the real world's history says otherwise. The one permitted rewrite: where a recorded leadership name lacks its official title, keep the SAME person and put their real office in front of the name ("박근혜" → "대통령 박근혜") — never a different person.`
         : "",
     ].filter(Boolean).join("\n\n"),
+    // The 12B omits fields even when the schema requires them — and schema
+    // validation runs BEFORE validatePayload, so an omitted headOfState/deputy
+    // used to fail the whole sheet before the validator's sentinel logic could
+    // ever run (round 8's measured omission burning both attempts, taking the
+    // pivot seeding down with it). repairPayload runs before the schema: an
+    // absent role becomes the honest unknown, and the validator then judges
+    // quality as usual.
+    repairPayload: (parsed) => {
+      for (const field of ["headOfState", "deputy"]) {
+        if (!normalizeString(parsed?.[field])) parsed[field] = "(미확인)";
+      }
+    },
     // The economy block is free text, and free text is where salvaged JSON
     // wreckage ends up looking like a number to the player (see statSheetSanity).
     // Reject it and ask again; blank it only when there are no attempts left.
@@ -4284,6 +4350,26 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       if (capitalBelongsTo) {
         console.warn(`[stats] ${target}'s sheet arrived with ${capitalBelongsTo}'s capital ("${claimedCapital}")${finalAttempt ? " even on retry — refusing the sheet rather than storing another country's." : " — asking again."}`);
         return `"${claimedCapital}" is ${capitalBelongsTo}'s capital. This sheet must describe ${target} and only ${target} — its own capital, government, leader and economy as of ${sheetDate || "this date"}.`;
+      }
+      // "시노자와 다로 (Shinzo Abe)" — an invented name wearing the real one in
+      // parentheses (round 5, live). One person has one name; a parenthetical
+      // second name means the model is hedging between an invention and the
+      // truth. Ask once; on the last attempt keep the parenthetical name — the
+      // hedge itself says which one the model actually believes.
+      // THE HEDGE UNWRAPS BEFORE EVERY OTHER LEADER CHECK. It used to run
+      // after the borrowed-leader gate, which meant the gate judged the hedged
+      // full string ("김철수 (블라디미르 푸틴)" collides with nothing) and the
+      // extraction then installed the inner name — possibly a foreign leader —
+      // with no recheck. Extracting first sends the REAL claim through the
+      // gates below.
+      const claimedLeaderRaw = normalizeString(candidate?.leader);
+      const parenthetical = /^(.*?)\s*[(（]\s*([^)）]{2,40})\s*[)）]\s*$/.exec(claimedLeaderRaw);
+      if (parenthetical && parenthetical[1] && parenthetical[2] && !/^\d+$/.test(parenthetical[2])) {
+        if (!finalAttempt) {
+          return `"leader" must be ONE name for one real person, in the game's language — no second name in parentheses. Which single person leads ${target} on ${sheetDate || "this date"}?`;
+        }
+        candidate.leader = normalizeString(parenthetical[2]);
+        console.warn(`[stats] ${target}'s leader arrived as "${claimedLeaderRaw}" — keeping the parenthetical name the model was hedging toward: "${candidate.leader}".`);
       }
       // A LEADER BORROWED FROM ANOTHER COUNTRY'S SHEET IS NEVER RIGHT — but
       // WHICH sheet is the borrower depends on who the player is. Contamination
@@ -4311,38 +4397,40 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       if (!claimedLeader && !finalAttempt) {
         return `The "leader" field is empty. Name ${target}'s actual head of state or government as of ${sheetDate || "this date"}; if the campaign has deposed them, name the successor its events installed.`;
       }
-      // "시노자와 다로 (Shinzo Abe)" — an invented name wearing the real one in
-      // parentheses (round 5, live). One person has one name; a parenthetical
-      // second name means the model is hedging between an invention and the
-      // truth. Ask once; on the last attempt keep the parenthetical name — the
-      // hedge itself says which one the model actually believes.
-      const parenthetical = /^(.*?)\s*[(（]\s*([^)）]{2,40})\s*[)）]\s*$/.exec(claimedLeader);
-      if (parenthetical && parenthetical[1] && parenthetical[2] && !/^\d+$/.test(parenthetical[2])) {
-        if (!finalAttempt) {
-          return `"leader" must be ONE name for one real person, in the game's language — no second name in parentheses. Which single person leads ${target} on ${sheetDate || "this date"}?`;
-        }
-        candidate.leader = normalizeString(parenthetical[2]);
-        console.warn(`[stats] ${target}'s leader arrived as "${claimedLeader}" — keeping the parenthetical name the model was hedging toward: "${candidate.leader}".`);
-      }
       // Stability 0 for a functioning state is a coercion artifact or a
       // misread, not a judgment (round 5, live: the PLAYER's own country at
       // 0). One more ask; a model that insists twice may truly mean collapse.
       if (Number(candidate?.stability) === 0 && !finalAttempt) {
         return `"stability" came back 0, which means the state has COLLAPSED. If ${target} is a functioning state on ${sheetDate || "this date"}, give its real stability from 0 to 100.`;
       }
-      // The wider leadership picture is OPTIONAL truth, never required
-      // guesswork (round 6, live: deputies missing, names blended, unrelated
-      // people). Missing is fine by design; wrong is not — drop what fails
-      // the smell tests and show nothing: a repeat of the leader, another
-      // country's recorded leader, or a parenthetical hedge.
+      // The wider leadership picture is REQUIRED — with an honest way out.
+      // Round 6 established that wrong is worse than missing (deputies blended,
+      // unrelated people); round 8 established that OPTIONAL means MISSING —
+      // every sheet regenerated that round came back without both roles, while
+      // the March sheets still carried them. The 12B pattern's answer: the
+      // schema demands the fields, and "(없음)" (no such office) / "(미확인)"
+      // (holder unknown) stand in as honest blanks. A value that fails the
+      // smell tests becomes a sentinel rather than being deleted — deletion
+      // would fail the required schema downstream, and the sentinel keeps the
+      // sheet telling the truth.
+      // Compared against the leader AS REPAIRED ABOVE — the extraction and the
+      // borrowed-leader heal both rewrite candidate.leader, and a stale copy
+      // let the extracted person slip into headOfState as a "different" name.
+      const leaderNow = normalizeString(candidate?.leader);
       for (const field of ["headOfState", "deputy"]) {
         const value = normalizeString(candidate?.[field]);
-        if (!value || value === "(미확인)") { if (candidate && field in candidate) delete candidate[field]; continue; }
+        if (!value) { if (candidate) candidate[field] = "(미확인)"; continue; }
+        if (isRoleSentinel(value)) {
+          candidate[field] = canonicalRoleSentinel(value);
+          continue;
+        }
         const collidesWith = findForeignLeaderOwner(value);
-        const repeatsLeader = sameLeaderPerson(value, claimedLeader);
+        const repeatsLeader = sameLeaderPerson(value, leaderNow);
         if (repeatsLeader || collidesWith || /[(（]/.test(value)) {
           console.info(`[stats] dropped ${target}'s ${field} ("${value}") — ${collidesWith ? `it is ${collidesWith}'s recorded leader` : repeatsLeader ? "it repeats the leader" : "a hedged double name"}.`);
-          delete candidate[field];
+          // A repeat means the leader personally holds the role — a structural
+          // absence. A collision or hedge means the truth is simply not known.
+          candidate[field] = repeatsLeader && !collidesWith ? "(없음)" : "(미확인)";
         }
       }
       // Deterministic money tidy BEFORE the sanity check, so "-587_billion_usd"
@@ -4374,11 +4462,18 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       const prior = normalizeString(priorSheet[field]);
       const next = normalizeString(payload[field]);
       if (prior && next && prior !== next) {
+        const personField = field === "leader" || field === "headOfState";
+        // AN HONEST SENTINEL NEVER PINS. "(미확인)" exists precisely to be
+        // refilled — the contamination heal writes it expecting "its next
+        // regeneration" to answer, and this guard used to revert that answer
+        // right back to unknown. "(없음)" likewise yields to an actual named
+        // holder the model is now certain of; sentinels are absences, not
+        // established facts, and the guard exists to stop PERSON swaps.
+        if (personField && isRoleSentinel(prior)) continue;
         // The SAME person gaining their official title is not a rewrite — it is
         // the one upgrade the carry-forward prompt asks for ("박근혜" →
         // "대통령 박근혜"). The fuller spelling wins whichever side holds it;
         // a DIFFERENT person is still reality bleeding in, and is reverted.
-        const personField = field === "leader" || field === "headOfState";
         if (personField && sameLeaderPerson(prior, next)) {
           if (next.length > prior.length) retitled.push(`${field} "${prior}" → "${next}"`);
           else payload[field] = priorSheet[field];
@@ -4404,7 +4499,10 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   if (statCode && payload && typeof payload === "object") {
     try {
       const world = normalizeWorldState(await readWorldState({ force: true }));
-      const stamped = { ...payload, __asOf: sheetDate };
+      // __format marks this base as titled-leadership / required-roles output;
+      // the pane treats an unstamped base as stale so pre-format sheets
+      // regenerate once and pick their titles up.
+      const stamped = { ...payload, __asOf: sheetDate, __format: SHEET_FORMAT };
       const nextStats = { ...world.countryStats, [statCode]: stamped };
       // The borrower found above: the player's sheet kept its leader, so the
       // foreign sheet that was holding the same name is the wrong one — its

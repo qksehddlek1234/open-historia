@@ -408,6 +408,21 @@ export const applyStatChanges = (existing, incoming, { date = "", accept = null,
     // been taken at face value exactly once per field, silently.
     const previous = readStatField(entries[code], field) ?? readStatField(baselines?.[code], field);
     if (previous !== undefined && previous === value) continue;
+    // Exact comparison on a leadership field must see through the title (see
+    // sameLeaderPerson above): the same person under a different spelling —
+    // title dropped, word order flipped — is not a move. Only the upgrade to a
+    // FULLER spelling passes, the same preference the display merge applies.
+    if (LEADERSHIP_NAME_FIELDS.includes(field) && previous !== undefined
+      && sameLeaderPerson(previous, value) && String(value).length <= String(previous).length) {
+      continue;
+    }
+    // A shift can replace a leader, never erase one: a sentinel arriving in
+    // `leader` is the model shrugging, and a country does not lose its head of
+    // government to a shrug.
+    if (field === "leader" && isRoleSentinel(value)) {
+      dropped.push({ code, field, why: `a sentinel ("${value}") cannot replace a named leader` });
+      continue;
+    }
 
     if (spec.kind === "pct" && typeof accept === "function"
       && !accept({ label: field, code, next: value, previous, reason: normalizeString(raw?.reason) })) {
@@ -451,25 +466,74 @@ export const sheetDescribesNow = (asOf, today) => {
   return Math.abs(b - a) / 86_400_000 <= BASE_SHEET_FRESH_DAYS;
 };
 
-// SAME PERSON, TWO SPELLINGS. Leadership fields now carry the official title
+// SAME PERSON, MANY SPELLINGS. Leadership fields now carry the official title
 // ("대통령 박근혜"), but every sheet written before that rule holds the bare name
-// ("박근혜") — and the campaign's own delta store may hold either. Every exact
-// string comparison on a leader (the contamination gates, the identity guard,
-// the merge below) has to see through the title, or the transition wedges: the
-// guard reverts every title upgrade as a "different" leader, and the borrowed-
-// leader gate goes blind the moment one side gains a title. A title attaches at
-// a word boundary — before the name in roster style ("대통령 박근혜") or after it
-// in news style ("박근혜 대통령") — so one string extending the other at a space
-// is the same person, and anything else is not.
+// ("박근혜") — and the campaign's own delta store may hold either, in roster
+// order ("대통령 박근혜") or the news order Korean naturally produces ("박근혜
+// 대통령"), under one office or another ("총리 X" after a reshuffle titles X
+// "부총리"), with or without a patronymic ("블라디미르 (블라디미로비치) 푸틴").
+// Every exact string comparison on a leader (the contamination gates, the
+// identity guard, the shift pass, the merge below) has to see through ALL of
+// that, or the transition wedges: the guard reverts a title upgrade as a
+// "different" leader, and the borrowed-leader gate goes blind the moment the
+// two sides spell the same person differently.
+//
+// Two rules, in order:
+// 1. One string extending the other at a space boundary is the same person —
+//    this needs no lexicon, so titles the lexicon misses still pass.
+// 2. Otherwise strip known title tokens off both ends and compare name tokens:
+//    equal sets, or one set contained in the other, is the same person.
+const TITLE_TOKEN = /^(대통령|부통령|총리|수상|부총리|국무총리|국왕|여왕|왕|천황|황제|국가주석|주석|총서기|서기장|제1서기|위원장|총통|대공|술탄|에미르|국가수반|정부수반|권한대행|대행|섭정|왕세자|교황|president|vice|prime|minister|premier|chancellor|king|queen|emperor|empress|sultan|emir|chairman|chairwoman|secretary|general|acting|regent|pope)$/i;
+
+const nameTokens = (value) => normalizeString(value).split(/\s+/).filter(Boolean);
+
+const stripTitleTokens = (tokens) => {
+  let start = 0;
+  let end = tokens.length;
+  while (start < end && TITLE_TOKEN.test(tokens[start])) start += 1;
+  while (end > start && TITLE_TOKEN.test(tokens[end - 1])) end -= 1;
+  // A string that is ALL title ("대통령") has no name to strip down to — keep
+  // it whole so it can only match by the extension rule, never by token sets.
+  return end > start ? tokens.slice(start, end) : tokens;
+};
+
 export const sameLeaderPerson = (a, b) => {
   const x = normalizeString(a);
   const y = normalizeString(b);
   if (!x || !y) return false;
   if (x === y) return true;
-  return x.endsWith(` ${y}`) || y.endsWith(` ${x}`) || x.startsWith(`${y} `) || y.startsWith(`${x} `);
+  if (x.endsWith(` ${y}`) || y.endsWith(` ${x}`) || x.startsWith(`${y} `) || y.startsWith(`${x} `)) return true;
+  const nx = stripTitleTokens(nameTokens(x));
+  const ny = stripTitleTokens(nameTokens(y));
+  if (nx.length === 0 || ny.length === 0) return false;
+  const [shorter, longer] = nx.length <= ny.length ? [nx, ny] : [ny, nx];
+  const longerSet = new Set(longer.map((token) => token.toLowerCase()));
+  return shorter.every((token) => longerSet.has(token.toLowerCase()));
 };
 
 const LEADERSHIP_NAME_FIELDS = ["leader", "headOfState", "deputy"];
+
+// A leadership ROLE the country does not have — or a holder the model honestly
+// does not know — is recorded as a SENTINEL rather than omitted. The 12B
+// pattern: an optional field simply does not get filled (measured again on this
+// campaign — every sheet regenerated in round 8 came back missing BOTH wider
+// roles, while the March sheets still carried them), so headOfState and deputy
+// are required in the schema and "(없음)" / "(미확인)" are the honest ways out.
+// Everything that DISPLAYS a role hides a sentinel behind this one test.
+export const ROLE_SENTINEL = /^[(（]?\s*(없음|해당\s*없음|겸직|미확인|공석|미상|불명|알\s*수\s*없음|none|n\/a|unknown|vacant|-|—)\s*[)）]?$/i;
+export const isRoleSentinel = (value) => ROLE_SENTINEL.test(normalizeString(value));
+
+// Which sentinel a spelling means: "the office has no separate holder" versus
+// "the office exists and the holder is not known". "—" sides with unknown —
+// it is this codebase's own UNKNOWN_STAT.
+export const canonicalRoleSentinel = (value) =>
+  (/미확인|공석|미상|불명|알\s*수|unknown|vacant|^[-—]$/i.test(normalizeString(value)) ? "(미확인)" : "(없음)");
+
+// The base sheet format on disk. 2 = leadership carries official titles and
+// headOfState/deputy are required-with-sentinel. Bases without this stamp
+// predate the format and are regenerated on their next open — the identity
+// guard turns that regeneration into a pure same-person title upgrade.
+export const SHEET_FORMAT = 2;
 
 export const mergeStatSheet = (base, override) => {
   if (!override || typeof override !== "object") return base;

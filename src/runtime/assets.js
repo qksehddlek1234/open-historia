@@ -2,6 +2,7 @@
 import mapLibreGl from "maplibre-gl";
 import { PMTiles, Protocol, SharedPromiseCache } from "pmtiles";
 import { resolveRegionName } from "./regionNameFixes.js";
+import { loadSeaRegionFeatures } from "./seaRegions.js";
 
 const { addProtocol, setMaxParallelImageRequests, setWorkerCount } = mapLibreGl;
 
@@ -93,6 +94,17 @@ export const ESRI_BASEMAPS = [
   { id: "dark-gray", label: "Dark Gray Canvas", service: "Canvas/World_Dark_Gray_Base", maxZoom: 16 },
 ];
 export const DEFAULT_BASEMAP_ID = "ocean";
+
+// PLAN F, FIRST SLICE: OpenHistoricalMap as a basemap. Unlike the ESRI rows
+// above this is a full VECTOR STYLE, not a raster tile template — OHM publishes
+// no raster tiles ("it isn't feasible to prerender every day in history").
+// The map swaps its whole base style to OHM's official stylesheet and filters
+// every feature by the campaign's own date (maplibre-gl-dates), so the ground
+// under the political map shows the borders, rails and towns OF THAT YEAR.
+// Coverage is community-mapped and varies hugely by era and region — an empty
+// countryside means nobody has mapped that place's history yet, not a bug.
+export const OHM_BASEMAP_ID = "ohm";
+export const OHM_STYLE_URL = "https://www.openhistoricalmap.org/map-styles/main/main.json";
 // Mirrors mapSettings.js's MAP_SETTING_KEYS.basemapStyle key.
 const BASEMAP_STORAGE_KEY = "map_basemap_style";
 
@@ -989,7 +1001,15 @@ export const loadCountryNames = async ({ force = false } = {}) => {
           props?.Country || props?.NAME || props?.name || props?.COUNTRY,
           code,
         );
-        if (name && !seen.has(name)) {
+        // GADM ships disputed slivers as extra features under the SAME country
+        // name with placeholder codes — China arrives as Z02 (Aksai Chin),
+        // Z03, Z08 and only then CHN, and feature order put Z02 first, so
+        // "China" carried code Z02 into every list this feeds (pickers, the AI
+        // polity catalog, the code→name map). First feature still wins, except
+        // that a real code always replaces a Z-placeholder for the same name.
+        if (!name) continue;
+        const existing = seen.get(name);
+        if (existing === undefined || (/^Z\d/i.test(existing) && code && !/^Z\d/i.test(code))) {
           seen.set(name, code);
         }
       }
@@ -1135,12 +1155,12 @@ export const loadRegionCatalog = async ({ force = false } = {}) => {
         customRegionsResolved = false;
       }
 
-      // Sea regions live on world.seaRegions (per-game, writable — see the
-      // cheats "Sea Regions" tool). Merge their names so the AI can transfer
-      // "Baltic Sea" like any land region.
+      // The seas are always part of the map (runtime/seaRegions.js), so their
+      // names are always in the catalog: the AI can transfer "Baltic Sea" like any
+      // land region, which is what makes command of a sea expressible at all.
       try {
-        const world = await readJson(JSON_URLS.world, { defaultValue: null });
-        for (const feature of world?.seaRegions ?? []) {
+        const seaFeatures = await loadSeaRegionFeatures();
+        for (const feature of seaFeatures) {
           const props = feature?.properties ?? {};
           const id = props.id != null ? String(props.id) : "";
           if (!id || seen.has(id)) continue;

@@ -849,12 +849,15 @@ export const COUNTRY_STAT_SHEET_SCHEMA = {
     continent: nonEmptyTextSchema("Continent or broad geographic region."),
     government: nonEmptyTextSchema("Government system and ideology."),
     leader: nonEmptyTextSchema("The person who actually runs the government — official title + one real name (\"대통령 블라디미르 푸틴\"), one person."),
-    // The rest of the leadership picture, where the system has one: a ceremonial
-    // head of state above the leader (monarch, figurehead president) and the
-    // second-in-command below (vice president, prime minister under a
-    // president). Optional — a system without the role leaves it out.
-    headOfState: textSchema("Ceremonial/formal head of state when DIFFERENT from the leader, as official title + name (\"국왕 하랄 5세\"). Omit when the leader holds it."),
-    deputy: textSchema("The second-ranking figure, as official title + name (\"부통령 조 바이든\", \"국무총리 황교안\"). Omit when none."),
+    // The rest of the leadership picture: a ceremonial head of state above the
+    // leader (monarch, figurehead president) and the second-in-command below
+    // (vice president, prime minister under a president). REQUIRED, because an
+    // optional field simply does not get filled (the 12B pattern, measured
+    // again in round 8: every regenerated sheet came back missing both) — with
+    // the sentinels "(없음)" / "(미확인)" as the honest ways out, which the
+    // engine and the pane render as a blank row.
+    headOfState: nonEmptyTextSchema("Ceremonial/formal head of state when DIFFERENT from the leader, as official title + name (\"국왕 하랄 5세\", \"천황 아키히토\"). When the leader IS the head of state, or the system has no such role, write exactly \"(없음)\"; when the office exists but the holder is unknown, \"(미확인)\"."),
+    deputy: nonEmptyTextSchema("The second-ranking figure, as official title + name (\"부통령 조 바이든\", \"국무총리 황교안\"). When the system has no such office, write exactly \"(없음)\"; when the holder is unknown, \"(미확인)\"."),
     stability: percentageSchema("National stability from 0 to 100."),
     indices: {
       type: "object",
@@ -895,7 +898,7 @@ export const COUNTRY_STAT_SHEET_SCHEMA = {
       additionalProperties: false,
     },
   },
-  required: ["capital", "continent", "government", "leader", "stability", "indices", "economy", "gdpBreakdown"],
+  required: ["capital", "continent", "government", "leader", "headOfState", "deputy", "stability", "indices", "economy", "gdpBreakdown"],
   additionalProperties: false,
 };
 

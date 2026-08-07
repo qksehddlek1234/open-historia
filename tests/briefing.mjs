@@ -104,7 +104,10 @@ console.log("\nA sheet that is another country's sheet is refused");
 test("capital collision refuses outright; leader collision still downgrades", () => {
   const at = GAMEPLAY.indexOf("A CAPITAL BORROWED FROM ANOTHER SHEET");
   assert.notEqual(at, -1);
-  const block = GAMEPLAY.slice(at, at + 3200);
+  // Wider window since the titled-leader change: the parenthetical-hedge
+  // extraction moved BETWEEN the capital gate and the leader gate (it must
+  // unwrap before the collision checks judge the claim).
+  const block = GAMEPLAY.slice(at, at + 4800);
   assert.match(block, /foreignCapitals\.get\(claimedCapital\)/);
   assert.match(block, /refusing the sheet rather than storing another country's/);
   assert.match(block, /candidate\.leader = "\(미확인\)";/);
@@ -206,7 +209,12 @@ test("the leadership picture is three roles, schema to display", () => {
   const S = GAMEPLAY_SCHEMAS;
   assert.ok(S.countryStatSheet.properties.headOfState);
   assert.ok(S.countryStatSheet.properties.deputy);
-  assert.ok(!S.countryStatSheet.required.includes("headOfState"), "omitted where the system has none");
+  // Round 8 flipped this pin: OPTIONAL meant MISSING (every regenerated sheet
+  // lost both roles — the 12B pattern), so the fields are REQUIRED now, with
+  // "(없음)" / "(미확인)" as the honest sentinel escapes that render blank.
+  assert.ok(S.countryStatSheet.required.includes("headOfState"), "required, or the model never fills it");
+  assert.ok(S.countryStatSheet.required.includes("deputy"), "required, or the model never fills it");
+  assert.match(GAMEPLAY, /write exactly "\(없음\)"/);
   assert.ok(STAT_FIELDS.headOfState && STAT_FIELDS.deputy, "catalogued, so deltas can move a succession");
   // The values carry their own official titles ("대통령 …", "국왕 …") since the
   // titled-leader change, so the UI shows them bare — a generic "Leader:" or
@@ -220,9 +228,10 @@ test("the leadership picture is three roles, schema to display", () => {
 });
 
 test("round 6: the wider roles are certainty-gated, and wrong ones are dropped", () => {
-  // Prompt: fill only when certain — omission is the honest default.
+  // Prompt: name a person only when certain — the sentinel is the honest
+  // default now that the fields are required (round 8), not omission.
   assert.match(GAMEPLAY, /ONLY when you are CERTAIN of the actual person on this date/);
-  assert.match(GAMEPLAY, /OMIT the field when unsure/);
+  assert.match(GAMEPLAY, /write exactly "\(미확인\)"/);
   // Validator: a repeat of the leader, another country's recorded leader, or
   // a parenthetical hedge is dropped and logged, never displayed.
   assert.match(GAMEPLAY, /for \(const field of \["headOfState", "deputy"\]\)/);
@@ -267,11 +276,25 @@ test("the round chip finds its snapshot by the turn's own dates, not its number"
   assert.match(EVENTS_UI, /String\(snap\?\.round\) === String\(Number\(activeGroup\.round\) - 1\)/, "legacy snapshots without dates still map");
 });
 
+test("a pivotal schedule entry's actors are shown sheets before the moment fires", () => {
+  // Brexit, live: the June 2016 referendum fired and the UK's numbers never
+  // moved — the model reported the shift, and the acceptance gate rightly
+  // dropped it because no UK sheet was in the prompt. The gate held; the
+  // supply was wrong. Pivotal actors now ride into the shift pass's codes.
+  assert.match(GAMEPLAY, /A PIVOTAL DATE ON THE SCHEDULE IS A SHOWN SHEET/);
+  assert.match(GAMEPLAY, /\.filter\(\(entry\) => entry\.weight === "pivotal"\)/);
+  assert.match(GAMEPLAY, /\[playerCode, \.\.\.pivotalActors, \.\.\.countriesThisPeriodTouched\(events, playerCode\)\]/);
+  assert.match(GAMEPLAY, /their sheet\(s\) ride along/);
+});
+
 console.log("\nA wiped base cannot hide behind the device cache");
 
 test("the cache is eligible only while the save still knows the country", () => {
   assert.match(STATS_UI, /const baseKnown = Boolean\(worldNow\?\.countryStats\?\.\[code\]\);/);
-  assert.match(STATS_UI, /cached && baseKnown && sheetDescribesNow/);
+  // The gate grew the format stamp and sentinel-leader checks with the
+  // titled-leader change; baseKnown and the freshness window still stand.
+  assert.match(STATS_UI, /cached && baseKnown && cached\.format === SHEET_FORMAT/);
+  assert.match(STATS_UI, /sheetDescribesNow\(cached\.date, player\.date\)/);
   assert.match(STATS_UI, /dropping the cached copy and regenerating/);
 });
 
