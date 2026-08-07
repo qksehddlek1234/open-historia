@@ -126,7 +126,16 @@ await (async () => {
 test("the coverage contract holds for the shipped preset (Modern Day, 2016)", () => {
   const span = referenceCoverageSpan("2016-01-01", { floor: 15 });
   assert.ok(span.until >= 2025, `coverage runs to ${span.until} (expected ≥ 2025)`);
-  assert.ok(span.years >= 10, `${span.years} contiguous years around 2016 (expected ≥ 10; rises to ≥ 20 with the 2006 backfill)`);
+  assert.ok(span.from <= 2006, `coverage reaches back to ${span.from} (expected ≤ 2006)`);
+  assert.ok(span.years >= 20, `${span.years} contiguous years around 2016 — the ≥20-year preset contract`);
+});
+
+test("the backfilled decade answers like the verified one", () => {
+  assert.equal(referenceLeadership("South Korea", "2008-06-01").leader, "대통령 이명박");
+  assert.equal(referenceLeadership("South Korea", "2008-06-01").deputy, "국무총리 한승수");
+  assert.equal(referenceLeadership("Japan", "2007-01-01").leader, "총리 아베 신조");
+  assert.equal(referenceLeadership("United States", "2009-06-01").leader, "대통령 버락 오바마");
+  assert.equal(referenceLeadership("North Korea", "2010-01-01").leader, "국방위원장 김정일");
 });
 
 console.log(`\n${pass} passed\n`);
