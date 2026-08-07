@@ -1863,10 +1863,25 @@ export const applyEventImpactsToWorld = ({ colors = {}, events = [], world, quie
             merged[group] = { ...(prev[group] || {}), ...guardedStats[group] };
           }
         }
-        nextWorld.countryStats[change.code] = merged;
-        const rep = Number(merged.indices?.internationalReputation);
-        if (Number.isFinite(rep)) {
-          nextWorld.internationalReputation[change.code] = Math.max(0, Math.min(100, Math.round(rep)));
+        // After the guards, everything the event claimed may be gone — and an
+        // EMPTY write is not neutral: it plants a stat FRAGMENT that reads as
+        // a standing sheet everywhere truthiness is checked (live: Turkey held
+        // {} after a rejected stability claim, the Philippines {stability} —
+        // both then passed for bases). Strip gutted groups, and write nothing
+        // rather than a husk.
+        for (const group of ["indices", "economy", "gdpBreakdown"]) {
+          if (merged[group] && typeof merged[group] === "object" && Object.keys(merged[group]).length === 0) {
+            delete merged[group];
+          }
+        }
+        if (Object.keys(merged).length === 0) {
+          if (!quiet) console.info(`[world] ${change.code}'s reported stat change was rejected in full — nothing written to its sheet.`);
+        } else {
+          nextWorld.countryStats[change.code] = merged;
+          const rep = Number(merged.indices?.internationalReputation);
+          if (Number.isFinite(rep)) {
+            nextWorld.internationalReputation[change.code] = Math.max(0, Math.min(100, Math.round(rep)));
+          }
         }
       }
 

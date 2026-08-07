@@ -110,10 +110,11 @@ import {
   tidyStatSheetMoney,
 } from "../../runtime/countryStatLedger.js";
 import {
-  MAX_CONCURRENT_PROJECTS,
   beginConstruction,
   buildPipelineText,
   completeDueProjects,
+  constructionCapacity,
+  nextSlotDate,
 } from "../../runtime/construction.js";
 import { PLACEMENT, loadTerritoryIndex, locateRegion, placementVerdict } from "../../runtime/territory.js";
 import { loadNameDictionary, localizeNames, queueUnknownNames } from "../../runtime/localizeNames.js";
@@ -563,6 +564,62 @@ const buildPlayerPolityReputationText = async (bundle) => {
   return `International reputation: ${clamped}/100 (${band}).`;
 };
 
+// HOOK 3 (docs/STAT-HOOKS.md): the player's own sheet, compressed to a few
+// lines, for the turn-facing prompts. The audit found the main generation
+// never saw these numbers at all — the model wrote events for a country whose
+// stability it did not know. ~100 tokens; sentinel values ("(없음)"/"(미확인)")
+// are omitted the same way the pane hides them. HOOK 4 rides on the end: an
+// autonomy below 50 is named as an attack surface, feeding the MATERIAL BASE
+// lens with a real figure instead of a guess — and nothing is added when the
+// numbers are healthy, because padding a dead lens is worse than silence.
+const buildPlayerStatSummaryText = (bundle) => {
+  try {
+    const playerCode = normalizeString(bundle.game?.country);
+    if (!playerCode) return "";
+    const world = normalizeWorldState(bundle.world);
+    const { __asOf: _asOf, __format: _format, ...base } = world.countryStats?.[playerCode] ?? {};
+    if (Object.keys(base).length === 0) return "";
+    const sheet = mergeStatSheet(base, world.countryStatChanges?.[playerCode]);
+    const clean = (value) => {
+      const text = normalizeString(value);
+      return !text || text.startsWith("(") ? "" : text;
+    };
+    const number = (value) => (Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null);
+    const idx = sheet.indices || {};
+    const eco = sheet.economy || {};
+    const lines = [];
+    const who = [clean(sheet.leader), clean(sheet.deputy)].filter(Boolean).join(" · ");
+    const stability = number(sheet.stability);
+    if (who || stability !== null) {
+      lines.push(`지도부 ${who || "(미상)"}${stability !== null ? ` — 안정 ${stability}` : ""}`);
+    }
+    const indexParts = [
+      ["주권", number(idx.sovereignty)], ["식량자립", number(idx.foodAutonomy)],
+      ["에너지자립", number(idx.energyAutonomy)], ["경제독립", number(idx.economicIndependence)],
+      ["치안", number(idx.internalSecurity)], ["평판", number(idx.internationalReputation)],
+    ].filter(([, value]) => value !== null);
+    if (indexParts.length > 0) lines.push(`지수: ${indexParts.map(([label, value]) => `${label} ${value}`).join(" · ")}`);
+    const ecoParts = [
+      clean(eco.gdp) && `GDP ${clean(eco.gdp)}${clean(eco.gdpGrowth) ? ` (${clean(eco.gdpGrowth)})` : ""}`,
+      clean(eco.unemployment) && `실업 ${clean(eco.unemployment)}`,
+      clean(eco.inflation) && `물가 ${clean(eco.inflation)}`,
+    ].filter(Boolean);
+    if (ecoParts.length > 0) lines.push(`경제: ${ecoParts.join(" · ")}`);
+    const food = number(idx.foodAutonomy);
+    const energy = number(idx.energyAutonomy);
+    const vulnerable = [
+      food !== null && food < 50 ? `식량자립 ${food}` : "",
+      energy !== null && energy < 50 ? `에너지자립 ${energy}` : "",
+    ].filter(Boolean);
+    if (vulnerable.length > 0) {
+      lines.push(`취약: ${vulnerable.join(", ")} — 봉쇄·제재·공급 위기에서 이 의존은 공격면이다.`);
+    }
+    return lines.join("\n");
+  } catch {
+    return "";
+  }
+};
+
 const buildTemplateVariables = async (bundle, options = {}) => {
   const variables = await buildPromptContext(bundle, options);
   return {
@@ -579,6 +636,7 @@ const buildTemplateVariables = async (bundle, options = {}) => {
     ...options,
     ...variables,
     playerPolityReputationContext: await buildPlayerPolityReputationText(bundle),
+    playerStatSummary: buildPlayerStatSummaryText(bundle),
     unitsSummary:
       variables.unitsSummary +
       buildMilitaryFeasibilityText(bundle.world, buildActionHistoryText(bundle.actions)),
@@ -597,6 +655,14 @@ const ACTIONS_REFERENCE = "[Actions You Can Take]\nThis is the full menu of leve
 
 const runJsonTask = async (taskKey, {
   fallback,
+  // Called with the RAW reply text when every JSON reading failed — lenient
+  // parse, fences, balanced candidates, truncation salvage, all of it. A task
+  // whose payload has a rigid row shape can still pull its rows out of a reply
+  // whose JSON is poisoned beyond repair (round 10 live: one unescaped quote
+  // inside a Korean note desyncs every string-aware walker at once, and two
+  // clean-looking rating replies in a row parsed as nothing). Returns the
+  // payload or null; runs BEFORE the "nothing parseable" alarm.
+  parseFallback,
   // Called on every parsed candidate BEFORE schema validation, so a task can
   // fill in fields the model dropped. Local models write a flawless answer and
   // then omit one required scalar (captured: 18 perfect events, no "summary"),
@@ -765,7 +831,7 @@ const runJsonTask = async (taskKey, {
   // others are for, and what a build actually costs in time.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
     const pipeline = normalizeString(variables?.constructionPipeline);
-    systemPrompt = `${systemPrompt}\n\n[What A Programme Actually Leaves Behind]\nA policy, a doctrine, a standard, a training regime, a law, an export deal, an alliance or a warning leaves NO building. It changes what a country can do, and that belongs in polityChanges — its stats, its reputation, its tags — or in a regionTransfer, a unit, or a chat. Reach for markerOps only when the event genuinely puts a NEW PHYSICAL SITE on the ground at a coordinate: a plant, a port, a base, a campus, a terminal.\n\nAnd when it does, ground is broken — not ribbon cut. The engine now gives every founded structure a completion date from what it is (radar 6 months, research campus 12, base or factory 15, port or power plant 24) and a country runs at most ${MAX_CONCURRENT_PROJECTS} at once; anything beyond that waits for a slot and opens later still. So a turn that founds five sites is not an ambitious turn, it is a turn whose fifth site opens years late. Found what this period genuinely broke ground on — usually none, sometimes one — and express the rest of what happened through the levers above.${pipeline ? `\n\n[Already Under Construction]\n${pipeline}\nDo NOT found any of these again; they are in the ground and dated. An event may report progress, a delay, a cost overrun or a cancellation on one, which is far more interesting than announcing a sixth.` : ""}`;
+    systemPrompt = `${systemPrompt}\n\n[What A Programme Actually Leaves Behind]\nA policy, a doctrine, a standard, a training regime, a law, an export deal, an alliance or a warning leaves NO building. It changes what a country can do, and that belongs in polityChanges — its stats, its reputation, its tags — or in a regionTransfer, a unit, or a chat. Reach for markerOps only when the event genuinely puts a NEW PHYSICAL SITE on the ground at a coordinate: a plant, a port, a base, a campus, a terminal.\n\nAnd when it does, ground is broken — not ribbon cut. The engine now gives every founded structure a completion date from what it is (radar 6 months, research campus 12, base or factory 15, port or power plant 24) and a country runs only a handful at once — its construction capacity, derived from its own GDP, industry and stability; anything beyond that waits for a slot and opens later still. So a turn that founds five sites is not an ambitious turn, it is a turn whose fifth site opens years late. Found what this period genuinely broke ground on — usually none, sometimes one — and express the rest of what happened through the levers above.${pipeline ? `\n\n[Already Under Construction]\n${pipeline}\nDo NOT found any of these again; they are in the ground and dated. An event may report progress, a delay, a cost overrun or a cancellation on one, which is far more interesting than announcing a sixth.` : ""}`;
   }
 
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
@@ -892,6 +958,13 @@ const runJsonTask = async (taskKey, {
       "",
       "[The player]",
       normalizeString(variables?.outreachPlayer) || "(unknown)",
+      "",
+      // HOOK 2 (docs/STAT-HOOKS.md): reputation shapes who bothers to call and
+      // in what voice — a well-regarded state draws proposals and invitations,
+      // a pariah draws rare, hard-edged approaches or none at all.
+      "[The player's international reputation]",
+      normalizeString(variables?.playerPolityReputationContext) || "(unknown)",
+      "• Above 70: powers lean toward proposals, coordination and invitations, and approach a little more readily. Below 40: approaches are RARER and harsher — demands, warnings, conditions — and a friendly feeler needs a concrete self-interested reason.",
       "",
       "[The player's standing with each power]",
       normalizeString(variables?.outreachRelations) || "(none recorded)",
@@ -1044,6 +1117,15 @@ const runJsonTask = async (taskKey, {
       // stability arrived as 0, which reads as state collapse.
       `[Leadership]\nFill the leadership by how the SYSTEM actually works. Every leadership field is written as OFFICIAL TITLE + name, in the game language — "대통령 블라디미르 푸틴", "국왕 하랄 5세", "총리 아베 신조" — the REAL office that person holds, never a bare name and never a generic word like 지도자 or 대리인 in place of the office:\n• "leader" is the ONE person who actually runs the government — a president in a presidential republic, the prime minister in a parliamentary one, the monarch only where the monarch truly rules. One real person with their real office, NEVER an invented name and NEVER a second name in parentheses. An acting holder carries the acting office ("대통령 권한대행 황교안").\n• "headOfState" is the ceremonial or formal head when that is a DIFFERENT person — the emperor or king in a constitutional monarchy (일본, 영국), a figurehead president in a parliamentary republic. When the leader personally holds the role, write exactly "(없음)".\n• "deputy" is the second-ranking figure — the vice president ("부통령 …"), or the prime minister serving UNDER a president ("국무총리 …"). When the system has no such office, write exactly "(없음)".\n• "headOfState" and "deputy" are ALWAYS present on the sheet. Name a person in them ONLY when you are CERTAIN of the actual person on this date; when the office exists but you are not sure who held it, write exactly "(미확인)". The engine shows both sentinels as an honest blank — an invented or borrowed name is never acceptable.\n• "stability" is a real judgment from 0 to 100 — 0 means the state has collapsed. A functioning country is never 0.`,
     ].join("\n\n");
+  }
+
+  // HOOK 3 injection (docs/STAT-HOOKS.md): the turn-facing tasks get the
+  // player's own numbers. Call-time, so frozen prompt packs get it too.
+  {
+    const standing = normalizeString(variables?.playerStatSummary);
+    if (standing && ["actions", "jumpForward", "autoJumpForward", "catalystCreation", "catalystExecutor"].includes(taskKey)) {
+      systemPrompt = `${systemPrompt}\n\n[Your Nation's Standing]\n${standing}\n\nWrite events, outcomes and proposals CONSISTENT with these numbers — a nation at these levels acts, suffers and is treated accordingly, and a listed vulnerability is exactly where a crisis bites first.`;
+    }
   }
 
   // Native-language output (field report: editing an event/action showed raw
@@ -1207,6 +1289,14 @@ const runJsonTask = async (taskKey, {
       }
       const rawText = typeof response === "string" ? response : normalizeString(response?.rawText);
       let parsed = response?.toolInput ?? extractJsonPayload(rawText);
+      if (parsed == null && typeof parseFallback === "function" && rawText) {
+        try {
+          parsed = parseFallback(rawText) ?? null;
+          if (parsed) console.info(`[ai] task "${taskKey}" was unparseable as JSON — the task's own text salvage recovered it.`);
+        } catch {
+          parsed = null;
+        }
+      }
       // When nothing could be read out of the reply, SAY WHAT CAME BACK. Until now
       // this failure printed only "Response did not contain parseable JSON or tool
       // arguments" and threw the reply away, so every diagnosis of it started by
@@ -2893,6 +2983,42 @@ const buildGroupedActionsText = (groups) => [
   ].join("\n")),
 ].join("\n\n");
 
+// HOOK 1 of the stat-hook batch (docs/STAT-HOOKS.md): the numbers finally touch
+// the game. The audit that triggered it found stability and the strategic
+// indices had NO mechanical consumers at all — carefully written, never read.
+// Here the difficulty's setback quota reads the player's own order: a stable,
+// well-policed state executes more cleanly than the difficulty's flat ask; a
+// state below 50 fumbles more; below 25, the machinery of government itself is
+// failing. Engine arithmetic on engine-held numbers — the model is never asked
+// to do this math.
+const monthsBetweenDates = (from, to) => {
+  const a = /^(\d{4})-(\d{2})/.exec(normalizeString(from));
+  const b = /^(\d{4})-(\d{2})/.exec(normalizeString(to));
+  if (!a || !b) return 0;
+  return (Number(b[1]) - Number(a[1])) * 12 + (Number(b[2]) - Number(a[2]));
+};
+
+const playerSetbackModulation = (world, game) => {
+  try {
+    const playerCode = normalizeString(game?.country);
+    if (!playerCode) return { delta: 0, why: "" };
+    const normalized = normalizeWorldState(world);
+    const { __asOf: _asOf, __format: _format, ...base } = normalized.countryStats?.[playerCode] ?? {};
+    if (Object.keys(base).length === 0) return { delta: 0, why: "" };
+    const sheet = mergeStatSheet(base, normalized.countryStatChanges?.[playerCode]);
+    const stability = Number(sheet?.stability);
+    if (!Number.isFinite(stability) || stability <= 0) return { delta: 0, why: "" };
+    const rawSecurity = Number(sheet?.indices?.internalSecurity);
+    const security = Number.isFinite(rawSecurity) && rawSecurity > 0 ? rawSecurity : stability;
+    if (stability < 25) return { delta: 2, why: `안정 ${stability} — 내부 혼란이 이행 자체를 갉아먹는다` };
+    if (stability < 50 || security < 50) return { delta: 1, why: `안정 ${stability}·치안 ${security} — 흔들리는 내부가 이행을 흔든다` };
+    if (stability >= 85 && security >= 85) return { delta: -1, why: `안정 ${stability}·치안 ${security} — 질서가 이행을 떠받친다` };
+    return { delta: 0, why: "" };
+  } catch {
+    return { delta: 0, why: "" };
+  }
+};
+
 const MAX_ROLLBACK_SNAPSHOTS = 40;
 
 // Persist the PRE-turn state so the cheats menu's "Roll back turn" can restore it.
@@ -3222,7 +3348,8 @@ const applySimulationResult = async ({
             return `- [id: ${alias}] ${label}${body && body !== label ? ` — ${body}` : ""}`;
           });
           const owedBefore = Number(baseWorld?.setbackShortfall) || 0;
-          const quotaHere = totalSetbacksOwed(baseGame.difficulty, unrated.length, owedBefore);
+          const modulationHere = playerSetbackModulation(baseWorld, baseGame);
+          const quotaHere = Math.max(0, totalSetbacksOwed(baseGame.difficulty, unrated.length, owedBefore) + modulationHere.delta);
           const ratingVariables = await buildTemplateVariables({
             actions: nextActions,
             chats: nextChats,
@@ -3242,6 +3369,18 @@ const applySimulationResult = async ({
           });
           const { payload } = await runJsonTask("orderOutcomeRating", {
             fallback: () => ({ outcomes: [] }),
+            // The rows are rigid — an id from a known list, an outcome from
+            // four tokens — so even a reply whose JSON no repair can save
+            // still yields its verdicts to a per-row scan. Round 10 live: two
+            // JSON-looking replies in a row parsed as nothing, and all 35
+            // orders counted as clean successes on Impossible.
+            parseFallback: (rawText) => {
+              const outcomes = [];
+              for (const row of rawText.matchAll(/"id"\s*:\s*"([^"\n]{1,40})"\s*,\s*"outcome"\s*:\s*"(succeeded|partial|failed|backfired)"(?:\s*,\s*"note"\s*:\s*"([^"\n]{0,240})")?/gi)) {
+                outcomes.push({ id: row[1], outcome: row[2].toLowerCase(), ...(row[3] ? { note: row[3] } : {}) });
+              }
+              return outcomes.length > 0 ? { outcomes } : null;
+            },
             timeoutMs: getMapSetting(MAP_SETTING_KEYS.limitAiGeneration) ? 60000 : 0,
             userMessage: "Rate how each listed order actually came out, as JSON only.",
             variables: ratingVariables,
@@ -3328,7 +3467,11 @@ const applySimulationResult = async ({
         for (const action of rated) thisTurn[normalizeActionOutcome(action.outcome)] += 1;
         const setbacks = rated.filter((action) => !isCleanSuccess(action.outcome)).length;
         const owed = Number(baseWorld?.setbackShortfall) || 0;
-        const quota = totalSetbacksOwed(baseGame.difficulty, rated.length, owed);
+        const modulation = playerSetbackModulation(baseWorld, baseGame);
+        const quota = Math.max(0, totalSetbacksOwed(baseGame.difficulty, rated.length, owed) + modulation.delta);
+        if (modulation.delta !== 0 && rated.length > 0) {
+          console.info(`[difficulty] ${modulation.why} — 기대 좌절 ${modulation.delta > 0 ? `+${modulation.delta}` : modulation.delta}.`);
+        }
         const shortfall = capShortfall(baseGame.difficulty, quota - setbacks, rated.length);
         if (rated.length === 0) {
           console.info("[difficulty] this period resolved no orders — nothing to rate.");
@@ -4039,6 +4182,22 @@ export const generateAdvisorTopics = async ({ force = false } = {}) => {
       "",
       "[Orders in trouble]",
       normalizeString(variables.strugglingOrders).slice(0, 1200) || "None — nothing has failed or stalled.",
+      // The backlog half of the round-8 construction policy: when the queue is
+      // a year or more deep, the advisor board itself should raise it.
+      ...(() => {
+        try {
+          const playerName = toCountryName(normalizeString(bundle.game?.country));
+          const world = normalizeWorldState(bundle.world);
+          const capacity = constructionCapacity(mergeStatSheet(
+            world.countryStats?.[playerName], world.countryStatChanges?.[playerName]));
+          const today = normalizeString(bundle.game?.gameDate);
+          const nextFree = nextSlotDate(world.markers, playerName, today, capacity.slots);
+          const backlogMonths = monthsBetweenDates(today, nextFree);
+          return backlogMonths >= 12
+            ? ["", "[Construction backlog]", `The construction queue is ${backlogMonths} months deep (next free slot ${nextFree}, capacity ${capacity.slots}). ONE of the six questions should ask about construction priorities — what to finish, defer or cancel.`]
+            : [];
+        } catch { return []; }
+      })(),
     ].join("\n");
 
     const raw = await callAI(systemPrompt, [
@@ -4319,19 +4478,44 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
       era ? `ERA & WORLD RULES:\n${era}` : "",
       `TARGET DOSSIER:\n${dossier || "(nothing recorded)"}`,
       priorText
-        ? `THE SHEET AS THIS CAMPAIGN LAST ESTABLISHED IT${priorAsOf ? ` (as of ${priorAsOf})` : ""}:\n${priorText}\n\nThese are this campaign's own established facts — carry them forward and update only what the passage of time to ${sheetDate || "today"} plausibly changes. Leader, government and capital stay exactly as recorded: in this campaign they change only through its own events, never because the real world's history says otherwise. The one permitted rewrite: where a recorded leadership name lacks its official title, keep the SAME person and put their real office in front of the name ("박근혜" → "대통령 박근혜") — never a different person.`
+        ? `THE SHEET AS THIS CAMPAIGN LAST ESTABLISHED IT${priorAsOf ? ` (as of ${priorAsOf})` : ""}:\n${priorText}\n\nThese are this campaign's own established facts — carry them forward and update only what the passage of time to ${sheetDate || "today"} plausibly changes. Leader, government and capital stay exactly as recorded: in this campaign they change only through its own events, never because the real world's history says otherwise. The one permitted rewrite: where a recorded leadership name lacks its official title, keep the SAME person and put their real office in front of the name ("박근혜" → "대통령 박근혜") — never a different person. The recorded headOfState and deputy carry forward the same way: keep the recorded person (titled), and never replace a recorded person with "(없음)" or "(미확인)".`
         : "",
     ].filter(Boolean).join("\n\n"),
     // The 12B omits fields even when the schema requires them — and schema
     // validation runs BEFORE validatePayload, so an omitted headOfState/deputy
     // used to fail the whole sheet before the validator's sentinel logic could
     // ever run (round 8's measured omission burning both attempts, taking the
-    // pivot seeding down with it). repairPayload runs before the schema: an
-    // absent role becomes the honest unknown, and the validator then judges
-    // quality as usual.
+    // pivot seeding down with it). repairPayload runs before the schema.
+    // An absent role backfills from the CAMPAIGN'S OWN RECORD first — round 10
+    // live: Russia's regeneration omitted deputy and the "(미확인)" backfill
+    // erased a recorded 메드베데프 — and only an office the campaign never knew
+    // becomes the honest unknown.
     repairPayload: (parsed) => {
       for (const field of ["headOfState", "deputy"]) {
-        if (!normalizeString(parsed?.[field])) parsed[field] = "(미확인)";
+        if (normalizeString(parsed?.[field])) continue;
+        const recorded = normalizeString(priorSheet?.[field]);
+        parsed[field] = recorded || "(미확인)";
+      }
+      // The three GDP shares round to 99 or 101 routinely — a tolerance the
+      // sanity module has always granted (90–110) but the schema's exact-100
+      // check did not, and the mismatch failed South Korea's whole
+      // regeneration over a rounding error. Rescale an in-tolerance trio to
+      // exactly 100 (largest remainder) so the strict check reads clean.
+      const breakdown = parsed?.gdpBreakdown;
+      const shares = ["agriculture", "industry", "services"].map((key) => Number(breakdown?.[key]));
+      const total = shares.reduce((sum, share) => sum + share, 0);
+      if (shares.every(Number.isFinite) && total !== 100 && total >= 90 && total <= 110) {
+        const scaled = shares.map((share) => (share * 100) / total);
+        const floors = scaled.map(Math.floor);
+        let remainder = 100 - floors.reduce((sum, value) => sum + value, 0);
+        const order = scaled.map((value, index) => [value - floors[index], index])
+          .sort((left, right) => right[0] - left[0]);
+        for (const [, index] of order) {
+          if (remainder <= 0) break;
+          floors[index] += 1;
+          remainder -= 1;
+        }
+        ["agriculture", "industry", "services"].forEach((key, index) => { breakdown[key] = floors[index]; });
       }
     },
     // The economy block is free text, and free text is where salvaged JSON
@@ -4433,6 +4617,23 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
           candidate[field] = repeatsLeader && !collidesWith ? "(없음)" : "(미확인)";
         }
       }
+      // A doubtful wider role gets ONE direct ask. Without it the backfill
+      // satisfied the schema and the certainty gate kept the model shy, so
+      // offices that are public record stayed blank (round 10 live: China's
+      // deputy "(미확인)" with 리커창 in office, South Korea's deputy "(없음)"
+      // with a sitting 국무총리). An unknown holder is always asked once; a
+      // claimed NO-SUCH-OFFICE is challenged only for deputy, where nearly
+      // every modern system actually has one — headOfState "(없음)" is the
+      // correct answer for every presidential republic and stays unchallenged.
+      if (!finalAttempt) {
+        const doubtful = ["headOfState", "deputy"].filter((field) => {
+          const value = normalizeString(candidate?.[field]);
+          return value === "(미확인)" || (field === "deputy" && value === "(없음)");
+        });
+        if (doubtful.length > 0) {
+          return `Look again at ${doubtful.join(" and ")}: "(미확인)" is only for a holder that is genuinely not known, and a deputy "(없음)" claims the system has NO vice president, prime minister under the president, or deputy PM at all — rare in a modern state. If the office exists and its holder on ${sheetDate || "this date"} is public record, name them as official title + name; otherwise repeat the sentinel and it will stand.`;
+        }
+      }
       // Deterministic money tidy BEFORE the sanity check, so "-587_billion_usd"
       // and "1.126T" style values are repaired rather than rejected.
       const tidied = tidyStatSheetMoney(candidate);
@@ -4458,11 +4659,15 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   if (priorSheet && payload && typeof payload === "object") {
     const kept = [];
     const retitled = [];
-    for (const field of ["leader", "headOfState", "government", "capital"]) {
+    // deputy joined the guarded fields in round 10: a regeneration that
+    // omitted it had the backfill write a sentinel over Russia's recorded
+    // 메드베데프 — a recorded person never yields to a blind regeneration's
+    // shrug, for the second-in-command exactly as for the leader.
+    for (const field of ["leader", "headOfState", "deputy", "government", "capital"]) {
       const prior = normalizeString(priorSheet[field]);
       const next = normalizeString(payload[field]);
       if (prior && next && prior !== next) {
-        const personField = field === "leader" || field === "headOfState";
+        const personField = field === "leader" || field === "headOfState" || field === "deputy";
         // AN HONEST SENTINEL NEVER PINS. "(미확인)" exists precisely to be
         // refilled — the contamination heal writes it expecting "its next
         // regeneration" to answer, and this guard used to revert that answer
@@ -4802,6 +5007,16 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     constructionPipeline: buildPipelineText(bundle.world?.markers, {
       ownerCode: normalizeString(bundle.game?.country),
       date: originDate,
+      // Victoria 3-style national capacity (the player's round-8 policy call):
+      // slots derive from the player's own merged sheet, so investment that
+      // moves GDP, industry or stability feeds the pace of construction.
+      ...(() => {
+        const capacity = constructionCapacity(mergeStatSheet(
+          normalizeWorldState(bundle.world).countryStats?.[normalizeString(bundle.game?.country)],
+          normalizeWorldState(bundle.world).countryStatChanges?.[normalizeString(bundle.game?.country)],
+        ));
+        return { capacity: capacity.slots, capacityWhy: capacity.why };
+      })(),
     }),
     // What the LAST turn fell short of against this difficulty's share, so it
     // accumulates instead of being forgotten one turn at a time.
@@ -6545,6 +6760,14 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     const foundedThisTurn = new Set();
     let foldedFoundings = 0;
     const playerPolityName = toCountryName(normalizeString(bundle.game?.country));
+    // Victoria 3-style capacity (the player's round-8 call): how many the
+    // player runs at once comes from their own merged sheet, so the orders
+    // that grow the nation grow its construction pace. Computed once per turn
+    // from the PRE-turn world — this turn's own stat shifts pay off next turn.
+    const buildCapacity = constructionCapacity(mergeStatSheet(
+      normalizeWorldState(bundle.world).countryStats?.[playerPolityName],
+      normalizeWorldState(bundle.world).countryStatChanges?.[playerPolityName],
+    ));
     for (const event of mergedEvents) {
       for (const op of event?.impacts?.markerOps ?? []) {
         if (op?.op !== "build" || !op.marker) continue;
@@ -6568,6 +6791,7 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
         const begun = beginConstruction(op.marker, {
           markers: [...existing, ...started.map((entry) => entry.marker)],
           date: normalizeString(event.date) || originDate,
+          capacity: buildCapacity.slots,
         });
         op.marker = begun.marker;
         (begun.queued ? waiting : started).push({ marker: begun.marker, ...begun });
@@ -6581,6 +6805,7 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     }
     const all = [...started, ...waiting];
     if (all.length > 0) {
+      console.info(`[build] construction capacity ${buildCapacity.slots} slot(s) — ${buildCapacity.why}.`);
       console.info(
         `[build] ${all.length} project(s) broke ground: `
         + all.map((entry) => `${entry.marker.name} → ${entry.readyAt} (${entry.months}개월)`).join("; "),
@@ -6591,9 +6816,20 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     // the one standing in line.
     if (waiting.length > 0) {
       console.info(
-        `[build] ${waiting.length} of them wait for one of ${MAX_CONCURRENT_PROJECTS} slots to free: `
+        `[build] ${waiting.length} of them wait for one of ${buildCapacity.slots} slots to free: `
         + waiting.map((entry) => `${entry.marker.name} starts ${entry.startedAt}`).join("; "),
       );
+    }
+    // THE BACKLOG IS NEVER SILENT (the player's round-8 policy, the visibility
+    // half): when the next free slot is more than a year out, the console and
+    // the advisor both say so, in months, so ordering yet another founding is
+    // an informed choice rather than a surprise in 2020.
+    {
+      const nextFree = nextSlotDate([...existing, ...started.map((entry) => entry.marker)], playerPolityName, originDate, buildCapacity.slots);
+      const backlogMonths = monthsBetweenDates(originDate, nextFree);
+      if (backlogMonths >= 12) {
+        console.warn(`[build] 건설 대기열 적체 ${backlogMonths}개월 — 다음 빈 슬롯 ${nextFree}. 새 착공은 그 뒤에나 시작된다.`);
+      }
     }
   }
 
@@ -6951,15 +7187,26 @@ export const maybeGeneratePregameHistory = async () => {
 // cap (see defaultPrompts.json) remains the primary source of diplomacy.
 const IDLE_DIPLOMACY_CHANCE = 1 / 8;
 let idleDiplomacyInFlight = false;
+// HOOK 2 (docs/STAT-HOOKS.md), the idle half: how often the world speaks first
+// tracks how the world regards the player. The factor is cached from the last
+// consult's own bundle read (the roll must stay IO-free — it fires every
+// visible minute), so it lags one consult behind reality, which is fine for a
+// number that moves a few points a month. ≥70 → ×1.5, <40 → ×0.5.
+let idleReputationFactor = 1;
 
 export const maybeSendIdleDiplomacy = async ({ chance = IDLE_DIPLOMACY_CHANCE } = {}) => {
   if (idleDiplomacyInFlight || isSimulationBusy()) return null;
-  if (Math.random() >= chance) return null;
+  if (Math.random() >= chance * idleReputationFactor) return null;
   idleDiplomacyInFlight = true;
   try {
     const bundle = await readGameStateBundle({ force: true });
     if (!normalizeString(bundle.game?.country)) return null; // no active game
     const variables = await buildTemplateVariables(bundle);
+    {
+      const match = /International reputation: (\d+)/.exec(normalizeString(variables?.playerPolityReputationContext));
+      const reputation = match ? Number(match[1]) : NaN;
+      idleReputationFactor = !Number.isFinite(reputation) ? 1 : reputation >= 70 ? 1.5 : reputation < 40 ? 0.5 : 1;
+    }
     const { payload } = await runJsonTask("idleDiplomacy", {
       timeoutMs: getMapSetting(MAP_SETTING_KEYS.limitAiGeneration) ? 60000 : 0,
       userMessage:

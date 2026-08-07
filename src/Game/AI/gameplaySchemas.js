@@ -1411,9 +1411,14 @@ export const validateGameplayPayload = (taskKey, value) => {
   if (taskKey === "countryStatSheet") {
     const blankError = findBlankString(value);
     if (blankError) return { valid: false, error: blankError };
+    // The SAME tolerance the sanity module grants (statSheetSanity: the model
+    // rounds, 99 or 101 is not a defect) — an exact-100 check here failed a
+    // whole regeneration over a rounding error the engine rescales anyway
+    // (the sheet task's repairPayload normalizes an in-tolerance trio to 100).
     const breakdown = value.gdpBreakdown;
-    if (breakdown.agriculture + breakdown.industry + breakdown.services !== 100) {
-      return { valid: false, error: "$.gdpBreakdown percentages must sum to 100." };
+    const total = breakdown.agriculture + breakdown.industry + breakdown.services;
+    if (total < 90 || total > 110) {
+      return { valid: false, error: `$.gdpBreakdown percentages total ${total}, not ~100.` };
     }
   }
 

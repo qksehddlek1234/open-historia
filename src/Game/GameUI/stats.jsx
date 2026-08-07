@@ -288,7 +288,11 @@ const StatsPane = ({ active }) => {
             // ("통계가 아직 안 고쳐진거같아"). An orphaned entry is dropped,
             // not served.
             const worldNow = await readWorldState({ force: false }).catch(() => null);
-            const baseKnown = Boolean(worldNow?.countryStats?.[code]);
+            // "Known" means a CURRENT-FORMAT base. A base stripped of its
+            // stamp (the round-10 live repair) or predating it must
+            // regenerate — and the device cache must not answer for it, or a
+            // stale copy masks the repair for up to a year.
+            const baseKnown = worldNow?.countryStats?.[code]?.__format === SHEET_FORMAT;
             const cached = memoryCache.get(cacheKey) ?? readStoredSheets()[cacheKey];
             // Entries written before the titled-leadership format carry no
             // `format` field and regenerate; a sentinel leader regenerates for

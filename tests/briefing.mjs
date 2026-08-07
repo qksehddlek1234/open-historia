@@ -224,7 +224,9 @@ test("the leadership picture is three roles, schema to display", () => {
   assert.ok(!/Head of state: \{sheet\.headOfState\}/.test(STATS_UI), "no generic prefix before the titled name");
   assert.ok(!/Deputy: \{sheet\.deputy\}/.test(STATS_UI), "no generic prefix before the titled name");
   // And the identity guard holds the ceremonial head too.
-  assert.match(GAMEPLAY, /\["leader", "headOfState", "government", "capital"\]/);
+  // deputy joined the guard in round 10 — a sentinel from a blind regen must
+  // not erase a recorded second-in-command (live: Russia lost 메드베데프).
+  assert.match(GAMEPLAY, /\["leader", "headOfState", "deputy", "government", "capital"\]/);
 });
 
 test("round 6: the wider roles are certainty-gated, and wrong ones are dropped", () => {
@@ -290,7 +292,9 @@ test("a pivotal schedule entry's actors are shown sheets before the moment fires
 console.log("\nA wiped base cannot hide behind the device cache");
 
 test("the cache is eligible only while the save still knows the country", () => {
-  assert.match(STATS_UI, /const baseKnown = Boolean\(worldNow\?\.countryStats\?\.\[code\]\);/);
+  // "Known" tightened to a CURRENT-FORMAT base in round 10: the device cache
+  // must not answer for a base whose stamp was stripped for regeneration.
+  assert.match(STATS_UI, /const baseKnown = worldNow\?\.countryStats\?\.\[code\]\?\.__format === SHEET_FORMAT;/);
   // The gate grew the format stamp and sentinel-leader checks with the
   // titled-leader change; baseKnown and the freshness window still stand.
   assert.match(STATS_UI, /cached && baseKnown && cached\.format === SHEET_FORMAT/);

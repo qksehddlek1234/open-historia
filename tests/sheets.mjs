@@ -56,9 +56,9 @@ test("the standing merged sheet rides in the prompt as ground truth", () => {
 test("identity fields cannot be rewritten by a blind regeneration", () => {
   const at = GAMEPLAY.indexOf("THE IDENTITY GUARD");
   assert.notEqual(at, -1);
-  const block = GAMEPLAY.slice(at, at + 3400);
+  const block = GAMEPLAY.slice(at, at + 4200);
   // headOfState joined the guarded identity fields (round 5, 다원화).
-  assert.match(block, /\["leader", "headOfState", "government", "capital"\]/);
+  assert.match(block, /\["leader", "headOfState", "deputy", "government", "capital"\]/);
   assert.match(block, /payload\[field\] = priorSheet\[field\]/);
   assert.match(block, /kept the campaign's own/);
   // The ONE exception (titled-leader change): the SAME person gaining their
