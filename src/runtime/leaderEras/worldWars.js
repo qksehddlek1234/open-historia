@@ -1733,6 +1733,11 @@ export const REFERENCE = {
     ],
   },
   // ---- Cowork 인계분 (2026-08-09 WORKLOG): 프리셋 시딩 커버리지 공백 ----
+  "Timor-Leste": {
+    leader: [
+      { name: "유엔 과도행정관 세르지우 비에이라 지 멜루", from: "1999-12-17", until: "2002-05-20" },
+    ],
+  },
   "Emirate of Nejd": {
     leader: [
       { name: "에미르 압둘아지즈 이븐 사우드", from: "1902-01-13", until: "1921-08-22" },
