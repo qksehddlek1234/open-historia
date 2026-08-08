@@ -3,13 +3,13 @@
   "coverImageContentType": "image/jpeg",
   "countryNameOverrides": {},
   "createdAt": "2026-05-31T10:06:08.381Z",
-  "description": "Server-backed base scenario",
+  "description": "The present day in full detail — real borders, real leaders, real fault lines. Take any nation and steer it through the history that comes next.",
   "eyebrow": "Scenario",
-  "heroSubtitle": "Editable server-backed scenario template.",
+  "heroSubtitle": "The world as it stands, 1 January 2016. Every nation playable.",
   "heroTitle": "Modern Day",
   "id": "default",
   "name": "Modern Day",
-  "subtitle": "Base template",
+  "subtitle": "1 January 2016",
   "updatedAt": "2026-07-17T08:07:13.332Z",
   "playCount": 158
 }

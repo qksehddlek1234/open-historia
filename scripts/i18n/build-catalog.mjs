@@ -72,6 +72,12 @@ const UI_STRINGS = [
   "Infantry", "Armor", "Air", "Naval", "Artillery", "Garrison", "Strength",
   // Assorted controls
   "Custom", "Reduce motion", "Unclaimed",
+  // Default scenario / game card fallbacks (libraryStore DEFAULT_*_META — not
+  // spec-harvested, so they are seeded here).
+  "The present day in full detail — real borders, real leaders, real fault lines. Take any nation and steer it through the history that comes next.",
+  "The world as it stands, 1 January 2016. Every nation playable.",
+  "1 January 2016", "Built-In", "Historical Preset",
+  "Modern Day Session", "Playable campaign session", "Current campaign", "Active playable game",
 ];
 
 const collectSpecStrings = () => {

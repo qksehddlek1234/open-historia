@@ -53,12 +53,12 @@ export const SUPPORTED_IMAGE_CONTENT_TYPES = new Set([
 
 export const DEFAULT_SCENARIO_META = {
   accentColor: "#7c3aed",
-  description: "Server-backed base scenario",
+  description: "The present day in full detail — real borders, real leaders, real fault lines. Take any nation and steer it through the history that comes next.",
   eyebrow: "Scenario",
-  heroSubtitle: "Editable server-backed scenario template.",
+  heroSubtitle: "The world as it stands, 1 January 2016. Every nation playable.",
   heroTitle: "Modern Day",
   name: "Modern Day",
-  subtitle: "Base template",
+  subtitle: "1 January 2016",
 };
 
 export const DEFAULT_GAME_META = {
