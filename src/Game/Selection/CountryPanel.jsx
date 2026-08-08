@@ -4,7 +4,11 @@ import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import { getNationTags, loadRegionCatalog } from "../../runtime/assets.js";
 import { resolveCountryTags } from "../../runtime/countryTags.js";
-import { readEventsState, readWorldState } from "../../runtime/gameState.js";
+import { PERSONALITY_AXES, resolveCountryPersonality } from "../../runtime/countryPersonality.js";
+import { readEventsState, readGameData, readWorldState } from "../../runtime/gameState.js";
+import { CHARACTER_PROFILE_HIDDEN_NOTE, revealsCharacterProfile } from "../../runtime/difficulty.js";
+import { getRelation, relationLabel } from "../../runtime/diplomacy.js";
+import { toCountryName } from "../../runtime/ownerNames.js";
 import { requestDiplomaticChat } from "../GameUI/chat.jsx";
 import { generateCountryStats } from "../AI/gameplay.js";
 import { useDragWindow } from "../GameUI/useDragWindow.js";
@@ -72,6 +76,12 @@ const CountryInfoPanel = () => {
     const [events, setEvents] = useState([]);
     const [aliases, setAliases] = useState([]);
     const [tags, setTags] = useState([]);
+    const [personality, setPersonality] = useState(null);
+    // The player's recorded standing with this country (runtime/diplomacy.js);
+    // null when the diplomacy pass has not assessed it, which is different from
+    // neutral and is shown as nothing rather than as a guess.
+    const [standing, setStanding] = useState(null);
+    const [showCharacter, setShowCharacter] = useState(true);
     const [regions, setRegions] = useState([]);
     const [search, setSearch] = useState("");
     const [filterIndex, setFilterIndex] = useState(0);
@@ -94,18 +104,31 @@ const CountryInfoPanel = () => {
 
         (async () => {
             try {
-                const [allEvents, world, catalog, baseTags] = await Promise.all([
+                const [allEvents, world, catalog, baseTags, game] = await Promise.all([
                     readEventsState({ force: true }).catch(() => []),
                     readWorldState({ force: true }),
                     loadRegionCatalog().catch(() => []),
                     getNationTags().catch(() => ({})),
+                    readGameData({ force: false }).catch(() => ({})),
                 ]);
                 if (cancelled) return;
+                // Whether the player is ALLOWED to read this country's character
+                // is a difficulty question — see revealsCharacterProfile.
+                setShowCharacter(revealsCharacterProfile(game?.difficulty));
 
                 setEvents((allEvents ?? []).filter((event) => eventInvolvesCountry(event, country.code, country.name)));
                 setAliases(world.polityOverrides?.[country.code]?.aliases ?? []);
                 // The author's starting tags unless the AI has since rewritten them.
-                setTags(resolveCountryTags(baseTags, world, country.code));
+                const liveTags = resolveCountryTags(baseTags, world, country.code);
+                setTags(liveTags);
+                // Always resolvable: a country with no stored profile still has one,
+                // derived from these same tags and its standing.
+                setPersonality(resolveCountryPersonality(world, country.code, { tags: liveTags }));
+                const playerName = toCountryName(game?.country);
+                const thisName = toCountryName(country.code) || country.name;
+                setStanding(playerName && thisName && playerName !== thisName
+                    ? getRelation(world.diplomaticRelations, thisName)
+                    : null);
 
                 const overrides = world.regionOwnershipOverrides ?? {};
                 const owned = [];
@@ -192,6 +215,30 @@ const CountryInfoPanel = () => {
         <span style={{ flex: 1, fontSize: "1.15rem", fontWeight: 800, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {country.name}
         </span>
+        {standing && (
+            <span
+            data-no-translate
+            title="이 나라와의 현재 관계"
+            style={{
+                background: ["allied", "friendly"].includes(standing)
+                    ? "rgba(34,197,94,0.18)"
+                    : standing === "neutral" ? "rgba(148,163,184,0.18)" : "rgba(248,113,113,0.18)",
+                border: `1px solid ${["allied", "friendly"].includes(standing)
+                    ? "rgba(74,222,128,0.5)"
+                    : standing === "neutral" ? "rgba(148,163,184,0.45)" : "rgba(248,113,113,0.5)"}`,
+                borderRadius: 999,
+                color: ["allied", "friendly"].includes(standing)
+                    ? "#86efac"
+                    : standing === "neutral" ? "#cbd5e1" : "#fca5a5",
+                flexShrink: 0,
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                padding: "0.15rem 0.55rem",
+            }}
+            >
+            {relationLabel(standing)}
+            </span>
+        )}
         <button
         type="button"
         onClick={() => setCountry(null)}
@@ -257,6 +304,52 @@ const CountryInfoPanel = () => {
                     {tag}
                 </span>
             ))}
+            </div>
+        )}
+
+        {personality && showCharacter && (
+            <div style={{ marginTop: "0.6rem" }}>
+            <div
+            style={{ fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.35rem" }}
+            title="How this country acts — the AI reads these when deciding what it does about an event"
+            >
+            Character
+            </div>
+            <div style={{ display: "grid", gap: "0.3rem" }}>
+            {PERSONALITY_AXES.map((axis) => {
+                const value = Math.max(0, Math.min(100, Number(personality[axis.key]) || 0));
+                return (
+                    <div
+                    key={axis.key}
+                    style={{ alignItems: "center", display: "grid", gap: "0.5rem", gridTemplateColumns: "7.5rem 1fr 2rem" }}
+                    title={`0 — ${axis.low} · 100 — ${axis.high}`}
+                    >
+                    <span style={{ color: "rgba(255,255,255,0.62)", fontSize: "0.74rem" }}>{axis.label}</span>
+                    <span style={{ background: "rgba(255,255,255,0.09)", borderRadius: "999px", height: "0.42rem", overflow: "hidden" }}>
+                    <span
+                    style={{
+                        background: value >= 66
+                            ? "rgba(248,150,150,0.85)"
+                            : value >= 34 ? "rgba(226,200,120,0.85)" : "rgba(126,231,166,0.85)",
+                        borderRadius: "999px",
+                        display: "block",
+                        height: "100%",
+                        width: `${value}%`,
+                    }}
+                    />
+                    </span>
+                    <span style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.74rem", textAlign: "right" }}>{value}</span>
+                    </div>
+                );
+            })}
+            </div>
+            </div>
+        )}
+        {/* Say WHY it is absent. An empty space reads as a bug; a line reads as a
+            rule the player chose when they picked the difficulty. */}
+        {personality && !showCharacter && (
+            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.74rem", marginTop: "0.6rem" }}>
+            {CHARACTER_PROFILE_HIDDEN_NOTE}
             </div>
         )}
 

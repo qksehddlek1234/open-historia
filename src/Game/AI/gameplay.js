@@ -4747,6 +4747,28 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
     if (kept.length > 0) {
       console.info(`[stats] a regenerated sheet for ${target} tried to rewrite established fact(s) — kept the campaign's own: ${kept.join("; ")}.`);
     }
+    // A BLANK NEVER BEATS A RECORD. Round 12, live: one malformed generation
+    // came back with gdp, publicDebt and budgetBalance unusable, the sanity
+    // pass blanked them, and the blanks were STORED and format-stamped — the
+    // player's own GDP then read as unknown for two game-months, and the
+    // construction capacity quietly lost its economy bonus ("역량 8→6"의 진짜
+    // 원인 — 안정도가 아니라 빈 GDP였다). A field the campaign has a value for
+    // carries forward when a regeneration produces nothing usable for it.
+    {
+      const carried = [];
+      for (const field of ["gdp", "gdpPerCapita", "publicDebt", "budgetBalance", "unemployment", "inflation", "gdpGrowth"]) {
+        const prior = normalizeString(priorSheet?.economy?.[field]);
+        if (!prior) continue;
+        const next = normalizeString(payload?.economy?.[field]);
+        if (!next) {
+          payload.economy = { ...(payload.economy || {}), [field]: priorSheet.economy[field] };
+          carried.push(field);
+        }
+      }
+      if (carried.length > 0) {
+        console.info(`[stats] ${target}'s regeneration left ${carried.length} economy field(s) blank — carried the campaign's own values forward: ${carried.join(", ")}.`);
+      }
+    }
   }
   // Persist the BASE, stamped with the date it describes. It used to be persisted
   // unstamped, and because a complete sheet short-circuits the loader it was then

@@ -22,13 +22,16 @@ import {
 } from "../../runtime/assets.js";
 import { resolveRegionName } from "../../runtime/regionNameFixes.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
+import { loadSeaRegionFeatures } from "../../runtime/seaRegions.js";
 import { loadCountryLabelCollections } from "../../runtime/countryLabels.js";
 import { translateLabel } from "../../runtime/translator.js";
-import { MAP_SETTING_KEYS, useMapSetting } from "../../runtime/mapSettings.js";
+import { MAP_SETTING_KEYS, useDisplayScale, useMapSetting } from "../../runtime/mapSettings.js";
 import { useWorldState } from "./useWorldState.js";
 
 ensurePmtilesProtocol();
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
+// Stable [] so the pre-load render does not churn the regionData memo.
+const EMPTY_SEA_FEATURES = [];
 
 // Globe projection renders a label's own high-latitude countries oversized
 // relative to their outline — confirmed (issue #6) to be text-only (fills
@@ -464,7 +467,6 @@ const WorldMap = ({ isGlobe = false }) => {
     regionOwnershipOverrides,
     regionClaimants,
     polityOverrides,
-    seaRegions,
     labelFont,
     labelHaloColor,
     labelTextColor,
@@ -472,21 +474,41 @@ const WorldMap = ({ isGlobe = false }) => {
   const mapDisplaySettings = {
     hideCountryLabels: useMapSetting(MAP_SETTING_KEYS.hideCountryLabels),
   };
+  // Multiplies the tuned curves rather than replacing them, so every border keeps
+  // its zoom behaviour and the player only scales it. 1 is exactly as shipped.
+  const borderScale = useDisplayScale("borderWidth");
   const [pointLabelData, setPointLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [curvedLabelData, setCurvedLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [customRegionData, setCustomRegionData] = useState(EMPTY_FEATURE_COLLECTION);
   const countriesUrl = PMTILES_PROTOCOL_URLS.countries;
   const regionsUrl = PMTILES_PROTOCOL_URLS.regions;
-  // Sea regions come from world.seaRegions (per-game, WRITABLE, on the 5s
-  // world poll) rather than the scenario's static regions.geojson — the server
-  // refuses runtime writes to scenario geometry, which is exactly why the old
-  // "merge seas into regionsGeojson" approach silently failed. Merging here
-  // also means enabling seas shows up within one poll, no reload needed.
+  // The seas are ALWAYS on the map now — command of a strait, a blockade, a
+  // claimed exclusive zone are things a game should be able to show without the
+  // player first finding a switch. The geometry is identical for every game, so it
+  // is fetched from the shipped asset rather than copied into each world (see
+  // runtime/seaRegions.js); only ownership is per-game, and that already rides in
+  // world.regionOwnershipOverrides["sea_…"].
+  const [seaFeatures, setSeaFeatures] = useState(EMPTY_SEA_FEATURES);
+  useEffect(() => {
+    let cancelled = false;
+    loadSeaRegionFeatures().then((features) => {
+      if (!cancelled && features.length) setSeaFeatures(features);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const regionData = useMemo(() => {
-    if (!seaRegions.length) return customRegionData;
+    if (!seaFeatures.length) return customRegionData;
     const base = Array.isArray(customRegionData?.features) ? customRegionData.features : [];
-    return { type: "FeatureCollection", features: [...base, ...seaRegions] };
-  }, [customRegionData, seaRegions]);
+    // A save made while seas were still opt-in has its own copy embedded in the
+    // scenario geometry; keep the shipped feature and drop the duplicate rather
+    // than rendering both (double fills read a shade too dark, and the click
+    // handler would resolve to whichever won the z-order).
+    const seaIds = new Set(seaFeatures.map((feature) => String(feature?.properties?.id ?? "")));
+    const land = base.filter((feature) => !seaIds.has(String(feature?.properties?.id ?? "")));
+    return { type: "FeatureCollection", features: [...land, ...seaFeatures] };
+  }, [customRegionData, seaFeatures]);
   const customActive = customFlag && Array.isArray(regionData?.features) && regionData.features.length > 0;
   // True for maps with their OWN drawn/generated geometry (region ids like
   // "reg_fmg_…", no dot) rather than re-ownership on the stock GADM tiles (ids like
@@ -595,9 +617,42 @@ const WorldMap = ({ isGlobe = false }) => {
   const activeCurvedLabelData = worldKnown && !customFlag ? curvedLabelData : EMPTY_FEATURE_COLLECTION;
 
   const handleRegionClick = useCallback((event) => {
+    // Everything on this map is a point a few pixels across, and every query below
+    // used the bare cursor pixel — so a hit needed the click to land inside the
+    // glyph's own box, and when two boxes overlapped the FIRST one the renderer
+    // emitted won every time. The one underneath was simply unreachable, however
+    // precisely the player aimed. A small box makes small things clickable at all,
+    // and nearestTo makes an overlap resolve by where the player actually pointed
+    // instead of by draw order, so both things can be reached by aiming at them.
+    const CLICK_SLOP_PX = 5;
+    const clickBox = [
+      [event.point.x - CLICK_SLOP_PX, event.point.y - CLICK_SLOP_PX],
+      [event.point.x + CLICK_SLOP_PX, event.point.y + CLICK_SLOP_PX],
+    ];
+    const nearestTo = (hits) => {
+      let best = null;
+      let bestDistance = Infinity;
+      for (const hit of hits) {
+        const coordinates = hit.geometry?.coordinates;
+        if (!Array.isArray(coordinates)) {
+          // No point geometry to measure (a label placed off its anchor, say):
+          // keep it as a last resort but never let it beat a measurable hit.
+          if (!best) best = hit;
+          continue;
+        }
+        const projected = map.project({ lng: coordinates[0], lat: coordinates[1] });
+        const distance = Math.hypot(projected.x - event.point.x, projected.y - event.point.y);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          best = hit;
+        }
+      }
+      return best;
+    };
+
     const unitsAt = () =>
       map.getLayer("units-fill")
-        ? map.queryRenderedFeatures(event.point, { layers: ["units-fill"] })
+        ? map.queryRenderedFeatures(clickBox, { layers: ["units-fill"] })
         : [];
 
     // A city or built structure under the cursor. Point features are tiny
@@ -605,16 +660,25 @@ const WorldMap = ({ isGlobe = false }) => {
     // outrank cities when the two overlap. Shared between normal selection and
     // attack targeting, so anything clickable is also attackable.
     const featureAt = () => {
-      const featureLayers = ["markers-shapes", "cities-shapes", "cities-labels"]
+      // Both layers of both pairs. A city has always been clickable on its NAME
+      // as well as its glyph; a structure was not, so clicking the caption of the
+      // base you just built selected the province underneath it instead. Same
+      // feature either way — the label layer carries the same properties.
+      const featureLayers = ["markers-shapes", "markers-labels", "cities-shapes", "cities-labels"]
         .filter((id) => map.getLayer(id));
       const featureHits = featureLayers.length
-        ? map.queryRenderedFeatures(event.point, { layers: featureLayers })
+        ? map.queryRenderedFeatures(clickBox, { layers: featureLayers })
         : [];
       if (!featureHits.length) return null;
-      const hit = featureHits.find((entry) => entry.layer.id === "markers-shapes") ?? featureHits[0];
+      // Built structures still outrank cities where the two overlap, but among
+      // several of either it is now the CLOSEST to the cursor that answers.
+      const isMarkerLayer = (id) => id === "markers-shapes" || id === "markers-labels";
+      const markerHits = featureHits.filter((entry) => isMarkerLayer(entry.layer.id));
+      const hit = markerHits.length ? nearestTo(markerHits) : nearestTo(featureHits);
+      if (!hit) return null;
       const props = hit.properties ?? {};
       const [lng, lat] = hit.geometry?.coordinates ?? [event.lngLat.lng, event.lngLat.lat];
-      return hit.layer.id === "markers-shapes"
+      return isMarkerLayer(hit.layer.id)
         ? { source: "marker", id: props.id, name: props.name, kind: props.kind, ownerCode: props.ownerCode, lng, lat }
         : {
           source: "city",
@@ -647,7 +711,7 @@ const WorldMap = ({ isGlobe = false }) => {
       const target = unitsAt();
       const feature = target.length ? null : featureAt();
       if (target.length) {
-        attackWith(mode.unitId, target[0].properties.id);
+        attackWith(mode.unitId, (nearestTo(target) ?? target[0]).properties.id);
       } else if (feature) {
         attackFeature(mode.unitId, feature);
       }
@@ -666,7 +730,7 @@ const WorldMap = ({ isGlobe = false }) => {
     if (intercepted) {
       const unitHits = unitsAt();
       pickExtras = {
-        unitHit: unitHits.length ? { id: unitHits[0].properties.id } : null,
+        unitHit: unitHits.length ? { id: (nearestTo(unitHits) ?? unitHits[0]).properties.id } : null,
         featureHit: featureAt(),
       };
     }
@@ -677,7 +741,7 @@ const WorldMap = ({ isGlobe = false }) => {
       if (unitHits.length) {
         dismissRegionPopup();
         dismissFeaturePopup();
-        onUnitSelected({ id: unitHits[0].properties.id, lngLat: event.lngLat });
+        onUnitSelected({ id: (nearestTo(unitHits) ?? unitHits[0]).properties.id, lngLat: event.lngLat });
         return;
       }
 
@@ -877,22 +941,31 @@ const WorldMap = ({ isGlobe = false }) => {
   // the only expression in the game that matches a country CODE — ["get", "GID_0"]
   // off the stock tiles — and it cannot fire: readRuntimeJsonAsset forces
   // customRegions:true onto every world it serves (normalizeRuntimeWorld), so
-  // showStockCountries is always false and countries-source never mounts.
+  // showStockCountries is always false and the country FILL never paints.
   //
   // Its stops would need a code->name bridge to work, which is exactly the thing
-  // this rename exists to remove. It belongs in the dead-code sweep with
-  // countries-source, not in a patch that keeps codes alive to colour nothing.
-  // The layer that DOES paint the political map (stockRegionsFillPaint) matches
-  // GID_1 — a region id, not a country — and needs no bridge at all.
+  // this rename exists to remove. It belongs in the dead-code sweep, not in a
+  // patch that keeps codes alive to colour nothing. The layer that DOES paint the
+  // political map (stockRegionsFillPaint) matches GID_1 — a region id, not a
+  // country — and needs no bridge at all.
+  //
+  // NOTE the country OUTLINE is no longer dead: countries-source now mounts on
+  // every map for its borders (see the source block below). Only this fill is
+  // stock-only.
   const fillStyle = useMemo(() => {
     const stops = Object.entries(colorMap).flatMap(([owner, rgb]) => [
       owner, `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`,
     ]);
     const fallback = buildFallbackColorExpression();
-    const regionOverrideStops = Object.entries(regionOwnershipOverrides).flatMap(([regionId, ownerCode]) => [
-      regionId,
-      ownerColorCss(ownerCode),
-    ]);
+    // A BLANK override is not "unowned", it is a damaged entry (see ownerByRegionId).
+    // Painting it would stamp neutral grey over a region whose real owner the
+    // geometry still knows; skipping the stop lets that owner paint instead.
+    const regionOverrideStops = Object.entries(regionOwnershipOverrides)
+      .filter(([, ownerCode]) => ownerCode)
+      .flatMap(([regionId, ownerCode]) => [
+        regionId,
+        ownerColorCss(ownerCode),
+      ]);
 
     return {
       "fill-color": regionOverrideStops.length > 0
@@ -919,6 +992,9 @@ const WorldMap = ({ isGlobe = false }) => {
 
     const overrideColor = {};
     for (const [regionId, ownerCode] of Object.entries(regionOwnershipOverrides)) {
+      // Blank owner = damaged entry, not unowned — skip it and let the feature's
+      // own baked owner paint (see ownerByRegionId).
+      if (!ownerCode) continue;
       overrideColor[regionId] = ownerColorCss(ownerCode);
     }
 
@@ -929,15 +1005,15 @@ const WorldMap = ({ isGlobe = false }) => {
       features: regionData.features.map((f) => {
         const props = f.properties || {};
         const id = props.id;
-        // Sea regions (public/data/sea-regions.json, merged in via the cheats
-        // "Sea Regions" tool; dot-less "sea_…" ids so the authored-geometry
-        // layers render them at every zoom) work like territory — ownable,
+        // Sea regions (public/data/sea-regions.json, always merged in; dot-less
+        // "sea_…" ids so the authored-geometry layers render them at every zoom)
+        // work like territory — ownable,
         // transferable — but paint like water: invisible while unclaimed (the
         // basemap ocean shows through; only the hairline borders hint at the
         // grid), and a translucent tint of the owner's color once claimed, so
         // the sea never reads as solid land.
         const isSea = props.kind === "sea";
-        const liveOwner = regionOwnershipOverrides[id] ?? props.owner ?? "";
+        const liveOwner = regionOwnershipOverrides[id] || props.owner || "";
         let fillColor;
         if (isSea) {
           if (liveOwner) {
@@ -1010,7 +1086,12 @@ const WorldMap = ({ isGlobe = false }) => {
     for (const feature of regionData?.features ?? []) {
       const props = feature.properties || {};
       if (!props.id) continue;
-      lookup.set(props.id, regionOwnershipOverrides[props.id] ?? props.owner ?? "");
+      // `||`, not `??`. An override may hold the EMPTY STRING — a save damaged by
+      // the owner-blanking bug fixed in resolveOwnerRef still carries them — and ""
+      // is not nullish, so `??` handed the fill a blank owner and the region painted
+      // NEUTRAL_LAND_COLOR: the country vanished into grey even though the geometry
+      // right here still knows who owns it. Treat blank as absent and fall through.
+      lookup.set(props.id, regionOwnershipOverrides[props.id] || props.owner || "");
     }
     return lookup;
   }, [customActive, regionData, regionOwnershipOverrides]);
@@ -1039,6 +1120,52 @@ const WorldMap = ({ isGlobe = false }) => {
     return ids;
   }, [customActive, regionData]);
 
+  // Land that CHANGED HANDS during the campaign: its live owner differs from the
+  // owner baked into the geometry. The national outline comes from GADM level 0
+  // — the world as it was drawn — so it cannot know about a conquest, and the
+  // border around a province the player took would still run where it ran in
+  // 2018. These ids get their own edge drawn at the national weight, so a
+  // transfer is never invisible; the stale interior line stays too, which reads
+  // as an occupied pocket rather than as nothing at all. Loud on purpose: a map
+  // that quietly omits the border it can't place is the worse failure.
+  //
+  // Compared through toCountryName because the two sides live in different
+  // namespaces — an AI transfer writes the owner CODE ("ESP") while the seed
+  // holds the NAME ("Spain"), and comparing those raw would call every override
+  // a conquest. Measured on the live save: 0 of 3661 overrides diverge, so this
+  // list is normally empty and the layer is not mounted at all.
+  const divergedRegionIds = useMemo(() => {
+    if (!customActive) return [];
+    const ids = [];
+    for (const feature of regionData?.features ?? []) {
+      const props = feature.properties || {};
+      const id = String(props.id ?? "");
+      // Sea regions are not national land and have no level-0 outline to correct.
+      if (!id || props.kind === "sea") continue;
+      const live = regionOwnershipOverrides[id];
+      // Absent means "no override"; blank means a damaged entry (see
+      // ownerByRegionId) — neither is evidence that the border moved.
+      if (live === undefined || live === "") continue;
+      if (toCountryName(live) !== toCountryName(props.owner ?? "")) ids.push(id);
+    }
+    return ids;
+  }, [customActive, regionData, regionOwnershipOverrides]);
+
+  // Same weight as the national outline, so a taken province reads as a border
+  // and not as a heavy province line.
+  const divergedBorderPaint = useMemo(() => ({
+    "line-color": "#000",
+    "line-width": [
+      "interpolate", ["linear"], ["zoom"],
+      2, 0.6 * borderScale,
+      4, 1.0 * borderScale,
+      6, 1.5 * borderScale,
+      9, 2.2 * borderScale,
+      13, 3.0 * borderScale,
+    ],
+    "line-opacity": worldKnown ? 1 : 0,
+  }), [borderScale, worldKnown]);
+
   const stockRegionsFillPaint = useMemo(() => {
     if (!customActive) return { "fill-opacity": 0 };
     const stops = [];
@@ -1053,8 +1180,22 @@ const WorldMap = ({ isGlobe = false }) => {
       // Fades in as the seed-geometry far layer fades out — but never for a reshaped
       // region: its tile still holds the original shape, so painting it here would
       // double-fill the edited area over the GeoJSON that now owns it.
+      //
+      // The zoom ramp has to stay the TOP-LEVEL node. Wrapping it in a ["case"]
+      // (the obvious way to write "0 for edited regions, the ramp for everyone
+      // else") makes the whole property invalid — ["zoom"] is only legal as the
+      // direct input of a top-level step/interpolate — and MapLibre's response to
+      // an invalid paint property is to reject it silently: the layer either never
+      // gets added or keeps its previous value, which here is the {"fill-opacity":
+      // 0} returned above before data loads. On a stock scenario this layer is the
+      // only thing painting owners past z6.5, so a single province reshaped in the
+      // editor would have blanked the political map at close zoom, with nothing in
+      // the console to say why. Same result, legal shape: the case goes INSIDE the
+      // ramp's output stops, where it never sees the zoom.
       "fill-opacity": editedStockIds.length
-        ? ["case", ["in", ["get", "GID_1"], ["literal", editedStockIds]], 0, TILE_FILL_FADE]
+        ? ["interpolate", ["linear"], ["zoom"],
+          5.5, 0,
+          6.5, ["case", ["in", ["get", "GID_1"], ["literal", editedStockIds]], 0, 0.72]]
         : TILE_FILL_FADE,
     };
   }, [customActive, ownerByRegionId, colorMap, ownerColorCss, editedStockIds]);
@@ -1065,10 +1206,41 @@ const WorldMap = ({ isGlobe = false }) => {
   // modern map — not before the world loads, and not while its geometry does.
   const showStockCountries = worldKnown && !customFlag;
   const countriesFillPaint = showStockCountries ? fillStyle : { ...fillStyle, "fill-opacity": 0 };
+  // A COUNTRY BORDER IS THE LINE THE MAP IS ABOUT.
+  //
+  // And for a long time this game did not draw one. The layer existed, the curve
+  // below was tuned, the player's "Border thickness" setting was wired to it —
+  // and none of it ever reached a pixel, because the whole countries-source block
+  // was gated on `!customFlag` while normalizeRuntimeWorld forces customRegions
+  // onto EVERY served world. So the only black lines on the map were the province
+  // hairlines, drawn at one weight over national and internal edges alike. A
+  // player reading that map saw no difference between the two because there was
+  // none: countries were told apart by fill colour alone.
+  //
+  // The source now mounts on every map, for its borders. GADM level 0 is the
+  // dissolve of the level 1 regions that paint the fills, so the outline lands
+  // exactly on the colour changes, stays crisp at every zoom, and costs no
+  // geometry work — the alternative, dissolving 2.58M seed vertices per
+  // ownership change, is not affordable per turn and would not be more correct.
+  // What level 0 cannot know is a transfer made DURING the campaign; that is what
+  // the diverged-region layer below draws.
+  //
+  // Weighted by zoom — thin enough at z2 that a continent of coastline stays
+  // legible, heavy enough by z9 that a border reads as a border. The player's
+  // setting multiplies rather than replaces, so this curve survives being scaled.
   const countriesOutlinePaint = {
     "line-color": "#000",
-    "line-width": 1,
-    "line-opacity": showStockCountries ? 1 : 0,
+    "line-width": [
+      "interpolate", ["linear"], ["zoom"],
+      2, 0.6 * borderScale,
+      4, 1.0 * borderScale,
+      6, 1.5 * borderScale,
+      9, 2.2 * borderScale,
+      13, 3.0 * borderScale,
+    ],
+    // Gated on worldKnown only: nothing draws before the world loads, and after
+    // that a national border draws on every map kind.
+    "line-opacity": worldKnown ? 1 : 0,
   };
   // Region hairlines serve both map kinds, but nothing renders pre-worldKnown.
   // Tile hairlines only fade in alongside the tile FILLS (z5.5-6.5): below
@@ -1077,9 +1249,39 @@ const WorldMap = ({ isGlobe = false }) => {
   // borders. The far hairlines come from the seed geometry itself instead.
   const regionsOutlinePaint = {
     "line-color": "#000",
-    "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.2, 8, 0.6, 12, 1.0],
+    // Province hairlines keep their restraint and their curve; only the scale is
+    // the player's. They must stay well under the country border at every zoom or
+    // the political map stops reading as political.
+    // Raised once the national border existed to be measured against. At 0.2px /
+    // 14% these were tuned to stay out of the way of a country border that, as it
+    // turned out, was never drawn — so "out of the way" meant "of nothing", and a
+    // province edge read as barely there. Against a real 2.2px opaque border they
+    // can afford half again the weight and still lose the comparison at every
+    // zoom, which is the only thing that has to stay true.
+    // Second raise (0.2→0.3→0.45): at 0.3px/25% the line still drowned in the
+    // fill palette — two pastel provinces meet at nearly the same luminance and
+    // a whisper-thin dark line between them needs real weight to register.
+    "line-width": ["interpolate", ["linear"], ["zoom"], 7.5, 0.45 * borderScale, 12, 1.0 * borderScale, 14, 1.3 * borderScale],
+    // Province hairlines stay OUT OF THE WAY until you are genuinely inside a
+    // country. They used to reach 0.6 opacity by z6.5 — a whole continent's worth
+    // of internal subdivisions drawn over the political map at the zoom where the
+    // player is reading BORDERS, which is the one thing the black lines should be
+    // showing. The original barely hints at them until you are close, so: nothing
+    // before z7.5, a whisper at z9, and readable only past z12 where a province is
+    // actually the subject.
+    //
+    // WIDTH ALONE IS NOT WHAT "THICKER" MEANS HERE. These draw at 14% opacity at
+    // z9 and 40% at z12, so doubling their width changes almost nothing a player
+    // can see — the limiting dial is the opacity, not the pixels. The setting
+    // moves both. Capped at 0.85 so they never read as hard borders however far
+    // it is pushed, and the z7.5 anchor stays at zero because "not while you are
+    // looking at a continent" is the design, not a value to scale.
     "line-opacity": worldKnown
-      ? ["interpolate", ["linear"], ["zoom"], 5.5, 0, 6.5, 0.6, 8, 0.7]
+      ? ["interpolate", ["linear"], ["zoom"],
+        7.5, 0,
+        9, Math.min(0.85, 0.35 * borderScale),
+        12, Math.min(0.85, 0.65 * borderScale),
+        14, Math.min(0.85, 0.8 * borderScale)]
       : 0,
   };
 
@@ -1142,23 +1344,17 @@ const WorldMap = ({ isGlobe = false }) => {
           detail no map can be built against. Past z8 MapLibre overzooms, exactly
           as it already did past z10. */}
       {!customFlag && (
-      <Source id="countries-source" type="vector" url={countriesUrl} maxzoom={8}>
+      <Source id="countries-fill-source" type="vector" url={countriesUrl} maxzoom={8}>
         <Layer
           id="countries-fill"
           type="fill"
           source-layer="countries"
           paint={countriesFillPaint}
         />
-        <Layer
-          id="countries-outline"
-          type="line"
-          source-layer="countries"
-          paint={countriesOutlinePaint}
-        />
       </Source>
       )}
 
-      {/* Deliberately NOT gated on customFlag, unlike countries-source above —
+      {/* Deliberately NOT gated on customFlag, unlike countries-fill-source above —
           this source is not decoration on a custom map, it IS the map. On a
           re-ownership scenario (Modern Day, Rome, WWII: stock GADM geometry,
           nothing hand-drawn) regions-fill is the ONLY thing painting owners
@@ -1205,10 +1401,14 @@ const WorldMap = ({ isGlobe = false }) => {
       {/* Author-DRAWN geometry only (splits/new regions) — GADM regions paint the
           stock tiles above for crisp borders at every zoom. Empty (and inert)
           unless world.customRegions is set. */}
-      {/* tolerance 0: GeoJSON sources simplify geometry per zoom by default,
-          and each region simplifies independently — shared borders drift
-          apart at low zoom. Full resolution keeps them connected everywhere;
-          the seed geometry is coarse enough that this stays cheap. */}
+      {/* tolerance 0.6 (default is 0.375). This was tolerance 0 for a long time,
+          on the reasoning that GeoJSON sources simplify per zoom and each region
+          simplifies independently, so shared borders drift apart at low zoom.
+          What that actually bought was staircased outlines from the separate
+          world-view tier that existed to compensate; simplifying MORE, and
+          dropping that tier, came out smoother (upstream 41dde56). Leaving the
+          old note here as if it described the code cost an audit pass — the value
+          is deliberate, not a regression. */}
       <Source id="custom-regions-source" type="geojson" data={enrichedCustomRegionData} tolerance={0.6}>
         {/* Zoomed-out fill for GADM regions from the seed geometry — the stock
             tiles are too simplified at low zoom and show sliver gaps there. */}
@@ -1229,12 +1429,22 @@ const WorldMap = ({ isGlobe = false }) => {
           filter={STOCK_GEOMETRY_FILTER}
           paint={{
             "line-color": "#000",
-            "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.3, 6.5, 0.6],
-            // Fades in over the same 3->4 band as the fill above, handing off from the
-            // ultra tier's hairlines so borders never double up or blink.
-            "line-opacity": customActive
-              ? ["interpolate", ["linear"], ["zoom"], 3, 0.35, 5.5, 0.55, 6.5, 0]
-              : 0,
+            "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.3 * borderScale, 6.5, 0.6 * borderScale],
+            // OFF. This layer drew a hairline on every province edge from z3 to
+            // z6.5 — the whole planet's internal subdivisions, at the zoom where the
+            // player is reading which country is which. Pushing the TILE hairlines
+            // back to z7.5 without touching this one produced the exact inversion
+            // reported: borders visible zoomed out, gone zoomed in, because these
+            // were the ones being seen.
+            //
+            // Nothing is lost by silencing them. Every region is filled with its
+            // OWNER's colour, so two provinces of one country share a fill and the
+            // hairline between them is the only thing that ever made a country look
+            // subdivided — while two different countries meet at a colour change,
+            // which reads as a border without any line at all. Silencing this is
+            // what makes a country render as one mass at world zoom, which is how
+            // the original looks.
+            "line-opacity": 0,
           }}
         />
         {/* Striped fill over disputed regions: far twin for GADM seed geometry,
@@ -1268,9 +1478,9 @@ const WorldMap = ({ isGlobe = false }) => {
             "line-color": "#000",
             "line-width": [
               "interpolate", ["linear"], ["zoom"],
-              3, 0.2,
-              8, 0.6,
-              12, 1.0,
+              3, 0.2 * borderScale,
+              8, 0.6 * borderScale,
+              12, 1.0 * borderScale,
             ],
             "line-opacity": customActive
               ? ["interpolate", ["linear"], ["zoom"], 3, 0, 4, 0.35, 8, 0.6]
@@ -1278,6 +1488,33 @@ const WorldMap = ({ isGlobe = false }) => {
           }}
         />
       </Source>
+
+      {/* NATIONAL BORDERS — above every fill, below every label.
+          Position is the point: as the first source in this file its layers sat
+          at the BOTTOM of the stack, under 0.72-opacity region fills that would
+          have muted the line to a grey smudge even once it was ungated. A border
+          belongs on top of the colour it divides. */}
+      <Source id="countries-source" type="vector" url={countriesUrl} maxzoom={8}>
+        <Layer
+          id="countries-outline"
+          type="line"
+          source-layer="countries"
+          paint={countriesOutlinePaint}
+        />
+      </Source>
+
+      {/* Only mounted when land has actually changed hands. */}
+      {divergedRegionIds.length > 0 && (
+        <Source id="diverged-borders-source" type="vector" url={regionsUrl} maxzoom={8}>
+          <Layer
+            id="diverged-borders"
+            type="line"
+            source-layer="regions"
+            filter={["in", ["get", "GID_1"], ["literal", divergedRegionIds]]}
+            paint={divergedBorderPaint}
+          />
+        </Source>
+      )}
 
       <Source id="country-curved-label-source" type="geojson" data={activeCurvedLabelData}>
         <Layer

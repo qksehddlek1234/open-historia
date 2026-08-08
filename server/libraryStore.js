@@ -82,7 +82,18 @@ const resolveOwnerRef = (value, world) => {
   if (verbatimPolity?.verbatim) return String(verbatimPolity.name ?? raw).trim() || raw;
   if (overrides && typeof overrides === "object") {
     for (const [key, polity] of Object.entries(overrides)) {
-      const name = String(polity?.name ?? key).trim();
+      // `|| key`, not just `?? key`: a polity entry may carry an EMPTY name, and that
+      // is the COMMON case rather than a corner one — a turn whose polityChange only
+      // sets a note, a reputation or a stat sheet on an existing country mints
+      // exactly {code:"South Korea", name:"", color:"", aliases:[]}. `??` does not
+      // fire on "", so `name` came out empty, the self-named guard below could not
+      // catch it, and `key === raw` then resolved that country to the EMPTY STRING.
+      // One write blanked every reference to it at once — each of its
+      // regionOwnershipOverrides values, its ownerCodes entry and its own
+      // polityOverrides key — after which the client's normalize dropped them all
+      // and the country fell off the map into neutral grey. Blanking an identity is
+      // never a valid resolution: fall back to the key it is stored under.
+      const name = String(polity?.name ?? key).trim() || key;
       // A polity that names itself after the very token we are resolving tells us
       // nothing the token didn't already say — skip it and let the registry decide.
       //
@@ -402,13 +413,50 @@ const readJsonFile = (targetPath, fallback = null) => {
     return JSON.parse(fs.readFileSync(targetPath, "utf-8"));
   } catch (error) {
     console.error(`Failed to parse JSON file: ${targetPath}`, error);
+    // A parse failure here is not a missing file — it is a file that exists and
+    // is damaged, and the fallback for a game store is an EMPTY one. Keep the
+    // damaged bytes: without this the next write replaces them and the only copy
+    // of that campaign's queue, events or world is gone with nothing to inspect.
+    // Best-effort; a failure to preserve must not stop the game from loading.
+    try {
+      const rescuePath = `${targetPath}.corrupt`;
+      if (!fs.existsSync(rescuePath)) {
+        fs.copyFileSync(targetPath, rescuePath);
+        console.error(`Kept the unparseable contents at ${rescuePath} before falling back.`);
+      }
+    } catch {
+      // Nothing more to do — the fallback below still keeps the game running.
+    }
     return fallback;
   }
 };
 
+// Write to a sibling temp file and rename over the target. rename is atomic
+// within a filesystem, so a reader sees either the whole old file or the whole
+// new one and never a half-flushed prefix.
+//
+// This matters most for the one file the project cannot afford to lose: a plain
+// writeFileSync interrupted by a crash, a power cut or a full disk leaves
+// storage/actions.json truncated, and truncated JSON reads as the empty-array
+// default one function above — every queued order in the campaign gone in a
+// single event, with only a line in the server console to say so. Same exposure
+// applied to world.json and events.json.
 const writeJsonFile = (targetPath, value) => {
   ensureDirectory(path.dirname(targetPath));
-  fs.writeFileSync(targetPath, JSON.stringify(value, null, 2), "utf-8");
+  const serialized = JSON.stringify(value, null, 2);
+  const tempPath = `${targetPath}.tmp-${process.pid}-${Date.now().toString(36)}`;
+  try {
+    fs.writeFileSync(tempPath, serialized, "utf-8");
+    fs.renameSync(tempPath, targetPath);
+  } catch (error) {
+    // Clean up the partial temp file so a failed write cannot litter the store.
+    try {
+      if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+    } catch {
+      // Ignore — the original target is untouched either way, which is the point.
+    }
+    throw error;
+  }
   // Any write can change what the catalogs describe, so drop them. This is the
   // one choke point every meta and manifest write goes through — including
   // create and delete, which rewrite the manifest — so hooking it here is what

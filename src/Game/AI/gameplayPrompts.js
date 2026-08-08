@@ -1,5 +1,5 @@
 /*! Open Historia — portions (troop & era prompt additions) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
-import DEFAULT_PROMPTS from "./defaultPrompts.json";
+import DEFAULT_PROMPTS from "./defaultPrompts.json" with { type: "json" };
 const normalizeString = (value) => String(value ?? "").trim();
 
 const PROMPT_ADVISOR_DEFAULT = DEFAULT_PROMPTS.advisor;
@@ -167,6 +167,19 @@ export const PROMPT_SECTION_DEFINITIONS = [
     type: "task",
   },
   {
+    // The operative instructions are appended at call time in gameplay.js so
+    // they also reach campaigns whose prompt pack was frozen before this task
+    // existed. This entry is what makes the task editable in Settings.
+    description: "Report which national statistics a simulated period actually moved.",
+    helpers: [
+      "PLAYER_POLITY",
+      "ORIGIN_ROUND_DATE",
+    ],
+    key: "countryStatShift",
+    label: "National Statistics",
+    type: "task",
+  },
+  {
     description: "Create branching catalyst scenes.",
     helpers: [
       "PLAYER_POLITY",
@@ -219,6 +232,26 @@ export const PROMPT_SECTION_DEFINITIONS = [
     ],
     key: "gameMaster",
     label: "Game Master",
+    type: "task",
+  },
+  {
+    description:
+      "Unprompted diplomatic notes that arrive while the player sits between rounds.",
+    // This task interpolates raw variables (${playerPolity}, ${worldSummary}, …)
+    // rather than named helpers, so it declares none. It was missing from this
+    // list entirely, which meant it was the one task the player could not see or
+    // edit in Settings → Prompts & Rules — not by decision, just by omission.
+    helpers: [],
+    key: "idleDiplomacy",
+    label: "Idle Diplomacy",
+    type: "task",
+  },
+  {
+    description:
+      "Bookkeeping pass after a time skip: decides which generated events carried out which of the player's queued orders, so those orders clear from the queue.",
+    helpers: ["PLAYER_POLITY"],
+    key: "actionCoverage",
+    label: "Queued Order Matching",
     type: "task",
   },
 ];

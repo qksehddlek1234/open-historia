@@ -10,7 +10,7 @@ import {
     loadCountryNames,
     loadRegionCatalog,
 } from "../../runtime/assets.js";
-import { loadRollbackSnapshots, maybeGeneratePregameHistory, rollBackToSnapshot, simulateAutoJump, simulateTimelineJump } from "../AI/gameplay.js";
+import { loadRollbackSnapshots, maybeGeneratePregameHistory, refreshBackstoryIfDue, rollBackToSnapshot, setJumpProgressListener, simulateAutoJump, simulateTimelineJump, submitJumpIntervention } from "../AI/gameplay.js";
 import { isMainMenuOpen } from "./libraryBar";
 import {
     applyEventImpactsToWorld,
@@ -18,11 +18,14 @@ import {
     readEventsState,
     readGameData,
     readWorldState,
+    unitTypeLabel,
 } from "../../runtime/gameState.js";
 import { setWorldStateOverride } from "../Map/useWorldState.js";
 import { setUnitsOverride } from "../Map/unitsController.js";
 import { useIsMobile } from "../../runtime/useIsMobile.js";
 import { MAP_SETTING_KEYS, useMapSetting } from "../../runtime/mapSettings.js";
+import { mentionsName } from "../../runtime/relatedEvents.js";
+import { translateLabel } from "../../runtime/translator.js";
 
 dayjs.extend(advancedFormat);
 
@@ -228,8 +231,69 @@ const resolveRegionName = (transfer, regionLookup) => {
     return transfer.regionName || regionLookup.get(transfer.regionId)?.name || transfer.regionId || "";
 };
 
-const getEventMapChangeCount = (event) =>
-(event?.impacts?.regionTransfers?.length || 0) + (event?.impacts?.polityChanges?.length || 0);
+const getEventMapChangeCount = (event) => {
+    const impacts = event?.impacts;
+    // Every lever that moves the map counts, not just borders and polities: a turn
+    // whose only impact was a new base or a fleet used to read "0 map changes" while
+    // the map visibly changed under the player.
+    return (impacts?.regionTransfers?.length || 0)
+    + (impacts?.polityChanges?.length || 0)
+    + (impacts?.unitOps?.length || 0)
+    + (impacts?.markerOps?.length || 0);
+};
+
+// What an event actually did to the map, split the way a player asks about it:
+// what appeared, what disappeared, what changed hands or changed shape. Rendered
+// under the event on demand (see EventCard's map-change disclosure) so the
+// narration and the map can be checked against each other without hunting.
+const describeEventMapChanges = (event, { polityLookup, regionLookup } = {}) => {
+    const impacts = event?.impacts ?? {};
+    const created = [];
+    const removed = [];
+    const changed = [];
+    const owner = (code) => resolvePolityName(code, polityLookup) || code || "—";
+
+    for (const transfer of impacts.regionTransfers ?? []) {
+        const region = resolveRegionName(transfer, regionLookup) || transfer?.regionId || "";
+        if (!region) continue;
+        const from = transfer?.fromCode ? owner(transfer.fromCode) : "";
+        changed.push(`${region}: ${from ? `${from} → ` : "→ "}${owner(transfer?.toCode)}`);
+    }
+
+    for (const change of impacts.polityChanges ?? []) {
+        const label = change?.name || owner(change?.code);
+        const parts = [];
+        if (change?.name) parts.push(`renamed to ${change.name}`);
+        if (change?.color) parts.push("recolored");
+        if (change?.aliases?.length) parts.push(`also known as ${change.aliases.join(", ")}`);
+        if (Number.isFinite(change?.reputation)) parts.push(`standing ${change.reputation}`);
+        if (change?.tags?.length) parts.push(`tags: ${change.tags.join(", ")}`);
+        if (change?.stats?.leader) parts.push(`led by ${change.stats.leader}`);
+        else if (change?.stats) parts.push("statistics updated");
+        // A polityChange carrying only a note is still worth showing — it is the
+        // reason the country's dossier moved this turn.
+        if (!parts.length && change?.note) parts.push(change.note);
+        changed.push(parts.length ? `${label} — ${parts.join(", ")}` : label);
+    }
+
+    for (const op of impacts.markerOps ?? []) {
+        const kind = op?.marker?.kind ? ` (${op.marker.kind})` : "";
+        if (op?.op === "build") created.push(`${op?.marker?.name || "structure"}${kind}`);
+        else if (op?.op === "remove") removed.push(op?.name || op?.marker?.name || "structure");
+        else if (op?.op === "rename") changed.push(`${op?.name || "?"} → ${op?.newName || "?"}`);
+    }
+
+    for (const op of impacts.unitOps ?? []) {
+        const unit = op?.unit ?? {};
+        const type = unit.type ? ` · ${unitTypeLabel(unit.type)}` : "";
+        if (op?.op === "spawn") created.push(`${unit.name || "unit"}${type}${unit.ownerCode ? ` · ${owner(unit.ownerCode)}` : ""}`);
+        else if (op?.op === "remove") removed.push(op?.note || op?.unitId || "unit");
+        else if (op?.op === "move") changed.push(op?.note || `unit moved${op?.regionId ? ` to ${op.regionId}` : ""}`);
+        else if (op?.op === "strength") changed.push(op?.note || `unit strength → ${op?.strength ?? "?"}`);
+    }
+
+    return { changed, created, removed };
+};
 
 const collectEventTags = (event, { polityLookup, regionLookup }) => {
     const labels = new Set();
@@ -404,8 +468,87 @@ const loadCountryBounds = async () => {
     return countryBoundsPromise;
 };
 
-const getEventFocusBounds = (event, { countryBounds, regionBounds }) => {
+// A point on the map, as a (tiny) bounds. focusMapOnBounds pads anything under
+// ~0.35° out to a readable frame, so this lands the camera ON the thing.
+const pointBounds = (lng, lat) => {
+    let x = Number(lng);
+    let y = Number(lat);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    // 0,0 is the engine's "unset" placeholder (open ocean off West Africa) and
+    // must never pull the camera.
+    if (x === 0 && y === 0) return null;
+    // A latitude beyond ±90 with a longitude that would read as one is the
+    // classic transposition — repair it rather than hand maplibre a value it
+    // throws on. Anything still out of range after the swap is garbage, and
+    // garbage must not move (or crash) the camera.
+    if (Math.abs(y) > 90 && Math.abs(x) <= 90) [x, y] = [y, x];
+    if (Math.abs(y) > 90 || Math.abs(x) > 180) return null;
+    return [[x, y], [x, y]];
+};
+
+// HALF THE OPS DO NOT CARRY A COORDINATE, AND THE MAP ALREADY KNOWS WHERE THEY ARE.
+//
+// A `build` op carries its marker's lng/lat, so the camera flies to it. A
+// `rename` or a `remove` names an EXISTING structure and carries no coordinate
+// at all — and neither does a unit `strength` or `remove`, which carry a unitId.
+// So the camera sat still for exactly the events that renamed or demolished
+// something, which are as visible a map change as founding one.
+//
+// Measured on the turn covering 2017-12-21 -> 2018-01-20: of twelve events, ONE
+// pinned a point. Three more carried marker ops that were all renames, and fell
+// through to matching country names in the prose. The world state has those
+// markers and units with their positions in it; this is a lookup, not a guess.
+const opPointBounds = (op, { markers, units }) => {
+    const named = (list, key, wanted) => {
+        const needle = String(wanted ?? "").trim().toLowerCase();
+        if (!needle) return null;
+        const hit = list.find((entry) => String(entry?.[key] ?? "").trim().toLowerCase() === needle);
+        return hit ? pointBounds(hit.lng, hit.lat) : null;
+    };
+    // What the op states outright always wins — a move op's destination is where
+    // the unit is going, not where the stored copy still says it is.
+    const stated = pointBounds(
+        op?.marker?.lng ?? op?.unit?.lng ?? op?.lng ?? op?.toLng,
+        op?.marker?.lat ?? op?.unit?.lat ?? op?.lat ?? op?.toLat,
+    );
+    if (stated) return stated;
+    // A RENAME NAMES THE THING BY THE NAME IT NO LONGER HAS.
+    //
+    // The lookup above was written to catch renames and caught none of them: a
+    // rename op carries `name` (the OLD name) and `newName`, and by the time the
+    // camera looks, the world it is searching has already been renamed. Measured
+    // over this campaign's 22 rename ops: 0 resolved, 18 resolve once newName is
+    // tried. The remaining 4 name a structure the world holds under neither name
+    // (they were recorded as stock-city renames instead) and cannot be found here.
+    //
+    // The model does not emit marker ids — every rename this campaign produced
+    // carried markerId: "" — so the id branch is for the engine's own ops, not
+    // the model's, and the name branches are what actually do the work.
+    return named(markers, "id", op?.markerId)
+        ?? named(units, "id", op?.unitId)
+        ?? named(markers, "name", op?.newName ?? op?.marker?.newName)
+        ?? named(units, "name", op?.newName ?? op?.unit?.newName)
+        ?? named(markers, "name", op?.name ?? op?.marker?.name)
+        ?? named(units, "name", op?.name ?? op?.unit?.name);
+};
+
+const getEventFocusBounds = (event, { countryBounds, regionBounds, markers = [], units = [] }) => {
     let resolvedBounds = null;
+
+    // Structures raised or destroyed, and forces raised or moved, are the most
+    // precise thing an event knows about itself — and they were the ONE impact
+    // type this never looked at, so the camera stayed put for exactly the events
+    // that visibly changed the map. Points win: a new base is worth flying to,
+    // whereas a polityChange only ever yields the whole country's box.
+    for (const op of event?.impacts?.markerOps ?? []) {
+        resolvedBounds = extendBounds(resolvedBounds, opPointBounds(op, { markers, units }));
+    }
+    for (const op of event?.impacts?.unitOps ?? []) {
+        resolvedBounds = extendBounds(resolvedBounds, opPointBounds(op, { markers, units }));
+    }
+    if (resolvedBounds) {
+        return resolvedBounds;
+    }
 
     for (const transfer of event?.impacts?.regionTransfers ?? []) {
         const regionId = String(transfer?.regionId ?? "");
@@ -431,8 +574,8 @@ const getEventFocusBounds = (event, { countryBounds, regionBounds }) => {
 // Every event moves the camera. When the impacts don't pin a location, fall
 // back to the chat participants, then to the countries the event's text
 // actually mentions.
-const deriveEventFocusBounds = (event, { countryBounds, regionBounds, polityLookup }) => {
-    const impactBounds = getEventFocusBounds(event, { countryBounds, regionBounds });
+const deriveEventFocusBounds = (event, { countryBounds, regionBounds, polityLookup, markers, units, playerCode }) => {
+    const impactBounds = getEventFocusBounds(event, { countryBounds, regionBounds, markers, units });
     if (impactBounds) {
         return impactBounds;
     }
@@ -449,17 +592,48 @@ const deriveEventFocusBounds = (event, { countryBounds, regionBounds, polityLook
         return bounds;
     }
 
-    const haystack = `${event?.title ?? ""} ${event?.description ?? ""}`.toLowerCase();
+    // THE LAST RESORT WAS READING ENGLISH AT A KOREAN CAMPAIGN.
+    //
+    // The catalogue's names are English GADM romanizations ("South Korea",
+    // "China"); the events are Korean prose. This scan therefore matched nothing
+    // at all — 0 of 344 events — and every event whose impacts pinned no place
+    // ended here with null bounds and left the camera motionless. Measured before
+    // this change: 168 of 344 events moved the camera and 176 did not. After it:
+    // 299 move, 45 do not, and those 45 name no country in any language.
+    //
+    // The localized name comes from the same translation cache the region and
+    // country panels already read, so a profile that has never translated
+    // anything simply falls back to today's English-only behaviour rather than
+    // breaking. mentionsName carries the word-boundary rule and the reasoning
+    // behind it.
+    const haystack = `${event?.title ?? ""} ${event?.description ?? ""}`;
     for (const [code, name] of polityLookup) {
-        // Very short names ("Chad") false-match inside other words rarely
-        // enough to accept; sub-4-character names don't.
-        if (!name || String(name).length < 4) {
+        if (!name) {
             continue;
         }
 
-        if (haystack.includes(String(name).toLowerCase())) {
+        if (mentionsName(haystack, name) || mentionsName(haystack, translateLabel(name))) {
             bounds = extendBounds(bounds, countryBounds.get(code) || null);
         }
+    }
+    if (bounds) {
+        return bounds;
+    }
+
+    // AN EVENT ABOUT YOUR OWN COUNTRY RARELY SAYS ITS NAME.
+    //
+    // 49 events still ended here with nothing, and 41 of them were the player's:
+    // 국내 균형 발전, 에너지 안보 및 장기 전략 선도, 다층 외교를 통한 정책적 자율성
+    // 확보. Domestic policy written in the player's own language does not keep
+    // repeating whose country it is, so no name scan can ever find one — and the
+    // camera sat still for the very events the player caused.
+    //
+    // playerRelated is the engine's own flag rather than a guess at the prose,
+    // and it discriminates: of 356 events, 266 carry it and every one of the 90
+    // kind:"world" events does not. So this is the last resort and only the last
+    // resort — a country the text actually names always wins over it.
+    if (event?.playerRelated && playerCode) {
+        return countryBounds.get(String(playerCode)) || null;
     }
 
     return bounds;
@@ -475,14 +649,30 @@ const focusMapOnBounds = (mapRef, bounds) => {
 
     let [[west, south], [east, north]] = bounds;
 
+    // A point event (a new base, a unit) gets a tighter frame than it used to,
+    // so the camera actually leans in on what changed instead of showing the
+    // whole province around it. Deliberately restrained — this is emphasis, not
+    // a close-up.
     if (Math.abs(east - west) < 0.35) {
-        west -= 0.6;
-        east += 0.6;
+        west -= 0.35;
+        east += 0.35;
     }
 
     if (Math.abs(north - south) < 0.35) {
-        south -= 0.45;
-        north += 0.45;
+        south -= 0.26;
+        north += 0.26;
+    }
+
+    // maplibre THROWS on |lat| > 90 — and this is a render path, so one bad
+    // coordinate took the whole UI down with it (round 6 live: a structure the
+    // model placed at exactly lat 90 was padded to 90.26 by the frame above,
+    // and the ErrorBoundary was the next thing the player saw). The camera is
+    // emphasis, never a crash: clamp to the web-mercator display range and
+    // skip outright if the numbers are not numbers.
+    south = Math.max(-85, Math.min(85, south));
+    north = Math.max(-85, Math.min(85, north));
+    if (![west, south, east, north].every(Number.isFinite)) {
+        return;
     }
 
     map.fitBounds(
@@ -493,8 +683,8 @@ const focusMapOnBounds = (mapRef, bounds) => {
         {
             duration: 1800,
             essential: true,
-            maxZoom: 6.8,
-            padding: 80,
+            maxZoom: 7.6,
+            padding: 64,
         },
     );
 };
@@ -635,9 +825,44 @@ const ghostButtonStyle = {
     transition: "all 0.15s ease",
 };
 
+// One group of the map-change disclosure ("Added" / "Removed" / "Changed").
+const MapChangeGroup = ({ items, label, tone }) => {
+    if (!items.length) return null;
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.22rem" }}>
+        <div style={{ color: tone, fontSize: "0.66rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+        {label}
+        </div>
+        {items.map((item, index) => (
+            <div
+            key={`${label}-${index}`}
+            style={{
+                color: "rgba(221,228,240,0.8)",
+                display: "flex",
+                fontSize: "0.72rem",
+                gap: "0.4rem",
+                lineHeight: "1.5",
+            }}
+            >
+            <span aria-hidden="true" style={{ color: tone, flexShrink: 0 }}>•</span>
+            <span>{item}</span>
+            </div>
+        ))}
+        </div>
+    );
+};
+
 const EventCard = ({ event, footer = null, lookups }) => {
     const tags = collectEventTags(event, lookups);
     const mapChangeCount = getEventMapChangeCount(event);
+    // Collapsed by default: the details are for checking the map against the story,
+    // not for reading every turn, and an always-open list buries the narration.
+    const [showMapChanges, setShowMapChanges] = useState(false);
+    const mapChanges = useMemo(
+        () => (mapChangeCount > 0 ? describeEventMapChanges(event, lookups) : null),
+        [event, lookups, mapChangeCount],
+    );
 
     return (
         <div
@@ -691,6 +916,41 @@ const EventCard = ({ event, footer = null, lookups }) => {
         {event.description && (
             <div className="timeline-markdown" style={{ color: "rgba(221,228,240,0.82)", fontSize: "0.77rem", lineHeight: "1.58" }}>
             <ReactMarkdown>{event.description}</ReactMarkdown>
+            </div>
+        )}
+
+        {mapChanges && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <button
+            type="button"
+            onClick={() => setShowMapChanges((open) => !open)}
+            style={{
+                ...ghostButtonStyle,
+                alignSelf: "flex-start",
+                fontSize: "0.72rem",
+                padding: "0.36rem 0.62rem",
+            }}
+            >
+            <MapIcon />
+            {showMapChanges ? "Hide details" : "View map changes"}
+            </button>
+            {showMapChanges && (
+                <div
+                style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    borderRadius: "12px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.55rem",
+                    padding: "0.65rem 0.75rem",
+                }}
+                >
+                <MapChangeGroup items={mapChanges.created} label="Added" tone="rgba(126,231,166,0.9)" />
+                <MapChangeGroup items={mapChanges.removed} label="Removed" tone="rgba(248,150,150,0.9)" />
+                <MapChangeGroup items={mapChanges.changed} label="Changed" tone="rgba(150,190,255,0.9)" />
+                </div>
+            )}
             </div>
         )}
 
@@ -870,6 +1130,32 @@ const TimelineSkipPanel = ({
 }) => {
     const [customValue, setCustomValue] = useState("");
     const [customUnit, setCustomUnit] = useState("days");
+    // Which step of the turn is running. A jump is several model calls deep and
+    // each one takes a minute or more locally, so a silent "Simulating…" is
+    // indistinguishable from a hang.
+    const [jumpPhase, setJumpPhase] = useState("");
+    useEffect(() => {
+        setJumpProgressListener(setJumpPhase);
+        return () => setJumpProgressListener(null);
+    }, []);
+    // Notes the player sent into the turn that is currently generating.
+    const [interventionText, setInterventionText] = useState("");
+    const [interventionNotes, setInterventionNotes] = useState([]);
+    const sendIntervention = () => {
+        const note = interventionText.trim();
+        if (!note) return;
+        submitJumpIntervention(note);
+        setInterventionNotes((previous) => [...previous, note]);
+        setInterventionText("");
+    };
+    // Each new turn starts with a clean slate of notes.
+    useEffect(() => {
+        if (!isLoading) {
+            setInterventionNotes([]);
+            setInterventionText("");
+            setJumpPhase("");
+        }
+    }, [isLoading]);
     const unitToDays = { hours: 1 / 24, days: 1, weeks: 7, months: 30, years: 365 };
     const runCustomJump = () => {
         const amount = Number(customValue);
@@ -1073,7 +1359,7 @@ const TimelineSkipPanel = ({
             }}
             >
             <SpinnerRing size={15} />
-            <span>Simulating…</span>
+            <span>{jumpPhase || "Simulating…"}</span>
             {onCancel && (
                 <button
                 type="button"
@@ -1092,6 +1378,67 @@ const TimelineSkipPanel = ({
                 >
                 Cancel
                 </button>
+            )}
+            </div>
+        )}
+
+        {/* Mid-turn intervention. A jump is several minutes of model calls, and
+            Cancel used to be the only lever while it ran — this lets the player
+            steer the turn that is currently being written. The note is picked up
+            at the next call boundary inside the same turn. */}
+        {isLoading && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginTop: "0.5rem" }}>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+            <input
+            type="text"
+            value={interventionText}
+            placeholder="Steer this turn while it runs…"
+            onChange={(event) => setInterventionText(event.target.value)}
+            onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    sendIntervention();
+                }
+            }}
+            style={{
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "8px",
+                color: "#e5e7eb",
+                flex: 1,
+                fontSize: "0.74rem",
+                minWidth: 0,
+                padding: "0.4rem 0.55rem",
+            }}
+            />
+            <button
+            type="button"
+            onClick={sendIntervention}
+            disabled={!interventionText.trim()}
+            style={{
+                background: interventionText.trim() ? "rgba(59,130,246,0.22)" : "rgba(255,255,255,0.05)",
+                border: `1px solid ${interventionText.trim() ? "rgba(147,197,253,0.5)" : "rgba(255,255,255,0.12)"}`,
+                borderRadius: "8px",
+                color: interventionText.trim() ? "#bfdbfe" : "rgba(255,255,255,0.35)",
+                cursor: interventionText.trim() ? "pointer" : "default",
+                fontSize: "0.74rem",
+                fontWeight: 600,
+                padding: "0.4rem 0.7rem",
+                whiteSpace: "nowrap",
+            }}
+            >
+            Send
+            </button>
+            </div>
+            {interventionNotes.length > 0 && (
+                <div style={{ color: "rgba(191,219,254,0.85)", fontSize: "0.7rem", lineHeight: 1.45 }}>
+                {interventionNotes.map((note, index) => (
+                    <div key={`${index}-${note.slice(0, 12)}`}>↳ {note}</div>
+                ))}
+                <div style={{ color: "rgba(255,255,255,0.45)", marginTop: "0.15rem" }}>
+                Applied at the next step of this turn.
+                </div>
+                </div>
             )}
             </div>
         )}
@@ -1126,10 +1473,18 @@ const TimelineHistoryPanel = ({
     visibleEventCount,
     warning,
 }) => {
-    const totalEvents = record?.events?.length || 0;
+    // The turn's closing clock marker is NOT an event and must not be revealed
+    // as one — in the original it is the deliberate last beat that moves the
+    // calendar ("진행 1935/12/5"), and mixed into the list as an ordinary card it
+    // read as "one more thing that happened on the same day". It is pulled out
+    // here, kept out of every count, and rendered below as the final step.
+    const allEntries = record?.events || [];
+    const advanceMarker = allEntries.find((entry) => entry?.kind === "advance") || null;
+    const storyEvents = advanceMarker ? allEntries.filter((entry) => entry !== advanceMarker) : allEntries;
+    const totalEvents = storyEvents.length;
     const visibleEvents =
     totalEvents > 0
-    ? record.events.slice(0, Math.min(visibleEventCount, totalEvents))
+    ? storyEvents.slice(0, Math.min(visibleEventCount, totalEvents))
     : [];
     const hasMoreEvents = visibleEvents.length < totalEvents;
     const lastVisibleEventRef = React.useRef(null);
@@ -1216,6 +1571,40 @@ const TimelineHistoryPanel = ({
                 <span>Skip to end ({totalEvents - visibleEvents.length} more)</span>
                 </button>
                 </>
+            )}
+            {/* The clock marker. Only once the whole turn has actually been read
+                through — skipping the reveal jumps straight here too, but it is
+                still a separate, deliberate beat rather than another card in the
+                stack, so the date visibly moves at the END of the turn instead of
+                looking like something that happened on the same day. */}
+            {advanceMarker && !hasMoreEvents && (
+                <button
+                type="button"
+                onClick={() => onClose?.()}
+                style={{
+                    alignItems: "center",
+                    background: "linear-gradient(180deg, rgba(59,130,246,0.30), rgba(37,99,235,0.22))",
+                    border: "1px solid rgba(147,197,253,0.6)",
+                    borderRadius: "12px",
+                    color: "#eff6ff",
+                    cursor: "pointer",
+                    display: "flex",
+                    gap: "0.6rem",
+                    justifyContent: "center",
+                    marginTop: "0.25rem",
+                    padding: "0.85rem 0.9rem",
+                    textAlign: "left",
+                    width: "100%",
+                }}
+                >
+                <span style={{ fontSize: "1.05rem" }}>»</span>
+                <span style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                <strong style={{ fontSize: "0.9rem", letterSpacing: "0.01em" }}>{advanceMarker.title}</strong>
+                <span style={{ color: "rgba(219,234,254,0.8)", fontSize: "0.72rem" }}>
+                {advanceMarker.description || "The turn ends here — the calendar moves to this date."}
+                </span>
+                </span>
+                </button>
             )}
             </div>
         )}
@@ -1410,8 +1799,17 @@ const DateWidget = ({
             setVisibleEventCount(1);
             if (result.generation?.source === "fallback") {
                 setFallbackWarning(`Turn generated by fallback: ${result.generation.fallbackReason || "structured AI output was unavailable"}`);
+            } else if (result.generation?.notice) {
+                // Not a failure — the turn ran, but the clock is being held
+                // because an order is still outstanding. Saying so matters:
+                // otherwise the date simply does not move and it reads as a bug.
+                setFallbackWarning(result.generation.notice);
             }
             setPanel("history");
+            // The turn is over and the player is reading it — a good moment to
+            // let the advisor's chronicle catch up on its own if it has fallen
+            // behind. Deliberately not awaited: it must never delay the turn.
+            void refreshBackstoryIfDue();
         } catch (jumpError) {
             if (controller.signal.aborted || jumpError?.name === "AbortError") {
                 // Player cancelled — nothing was written, so just close out quietly.
@@ -1489,10 +1887,14 @@ const DateWidget = ({
     const persistedFallbackWarning = latestTurnRecord?.source === "fallback"
     ? `Turn generated by fallback: ${latestTurnRecord.fallbackReason || "structured AI output was unavailable"}`
     : "";
-    const totalVisibleEvents = latestTurnRecord?.events?.length || 0;
+    // The closing clock marker is not part of the reveal, so it must not count
+    // towards it either — otherwise "Skip to end (N more)" is off by one and the
+    // reveal ends one step early.
+    const totalVisibleEvents = (latestTurnRecord?.events || [])
+        .filter((entry) => entry?.kind !== "advance").length;
     const activeVisibleEvent =
     openPanel === "history" && totalVisibleEvents > 0
-    ? latestTurnRecord.events[Math.min(Math.max(visibleEventCount, 1), totalVisibleEvents) - 1]
+    ? latestTurnRecord.events.filter((entry) => entry?.kind !== "advance")[Math.min(Math.max(visibleEventCount, 1), totalVisibleEvents) - 1]
     : null;
 
     // Resolve a valid date defensively: gameDate, else startDate, else nothing.
@@ -1527,14 +1929,39 @@ const DateWidget = ({
     // The camera follows EVERY revealed event — impacts pin the exact spot,
     // otherwise the countries the event involves do. Opt out via the
     // "Disable camera movement during events" map setting.
+    // ONE flight per event. This used to re-run whenever any of its inputs
+    // changed identity — and the lookups it depends on are rebuilt every time
+    // the staged world updates during a reveal — so the camera kept snapping
+    // back to the same event the moment the player tried to pan away. The event
+    // id is the only thing that should trigger a move.
+    const lastFocusedEventId = React.useRef(null);
     useEffect(() => {
         if (!activeVisibleEvent || disableEventCamera) {
             return;
         }
-
-        const bounds = deriveEventFocusBounds(activeVisibleEvent, { countryBounds, regionBounds, polityLookup });
+        const eventId = activeVisibleEvent.id ?? `${activeVisibleEvent.date}|${activeVisibleEvent.title}`;
+        if (lastFocusedEventId.current === eventId) {
+            return;
+        }
+        lastFocusedEventId.current = eventId;
+        const bounds = deriveEventFocusBounds(activeVisibleEvent, {
+            countryBounds,
+            regionBounds,
+            polityLookup,
+            markers: worldState?.markers ?? [],
+            units: worldState?.units ?? [],
+            playerCode: gameData?.country ?? "",
+        });
         focusMapOnBounds(mapRef, bounds);
-    }, [activeVisibleEvent, countryBounds, disableEventCamera, mapRef, polityLookup, regionBounds]);
+        // countryBounds/regionBounds/polityLookup are read, not tracked, on purpose.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeVisibleEvent, disableEventCamera]);
+
+    // A new turn starts the reveal over, so the first event may legitimately be
+    // the same one the camera last visited.
+    useEffect(() => {
+        lastFocusedEventId.current = null;
+    }, [latestTurnRecord?.id]);
 
     const revealNextEvent = () => {
         setVisibleEventCount((current) => {
@@ -1613,8 +2040,11 @@ const DateWidget = ({
             setUnitsOverride(null);
             return;
         }
-        const revealed = record.events.slice(0, Math.max(1, visibleEventCount));
+        const revealed = record.events
+            .filter((entry) => entry?.kind !== "advance")
+            .slice(0, Math.max(1, visibleEventCount));
         const { world: stagedWorld } = applyEventImpactsToWorld({
+            quiet: true,
             colors: {},
             events: revealed,
             world: stagedBase.world,

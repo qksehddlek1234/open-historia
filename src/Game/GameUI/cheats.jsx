@@ -22,6 +22,18 @@ import COUNTRY_NAMES from "../../runtime/generated/countryNames.js";
 import { DIFFICULTY_LEVELS, normalizeDifficulty } from "../../runtime/difficulty.js";
 import { applyGameMasterCommand } from "../AI/gameplay.js";
 import { setRegionClickInterceptor } from "../Selection/Regions.jsx";
+import { UNIT_TYPES, unitStatusLabel, unitTypeLabel } from "../../runtime/gameState.js";
+import { getAllowedUnitTypes } from "../Map/unitsController.js";
+
+// The branches, drawn the same way structure kinds are. Statuses come from
+// gameState's own set — "defeated" is left out on purpose: applyUnitOps removes
+// a defeated unit from the map, so offering it here would be a delete wearing
+// the wrong label.
+const UNIT_TYPE_EMOJI = { infantry: "🪖", armor: "🛡", air: "✈", naval: "⚓", artillery: "💥", garrison: "🏰" };
+const UNIT_STATUSES = ["idle", "moving", "engaged", "pending"];
+import { FEATURE_KINDS, emojiForFeatureKind, inferFeatureKind, labelForFeatureKind, tidyFeatureKind } from "../../runtime/featureKinds.js";
+import { cityToMarker, loadCitySeed, promotedCityNames, searchCitySeed } from "../../runtime/cityFeatures.js";
+import { ConsolidationPanel } from "./settings.jsx";
 
 const PANEL_TOP = "4.75rem";
 const EMPTY_FEATURES = { type: "FeatureCollection", features: [] };
@@ -30,15 +42,19 @@ const TOOLS = [
     { id: "master-ai", title: "Master AI", subtitle: "Full control over the game with AI assistance" },
     { id: "roll-back-turn", title: "Roll Back Turn", subtitle: "Restore the game to the start of an earlier turn" },
     { id: "your-country", title: "Your Country", subtitle: "Change which country you're playing as" },
-    { id: "difficulty", title: "Difficulty", subtitle: "Adjust the game difficulty level" },
+    // A CHEAT, NOT A SETTING — the original classifies it here for a reason.
+    // Difficulty is chosen when a campaign starts and steers every prompt after
+    // that; changing it halfway leaves the model's picture of the world at odds
+    // with the run so far, which is exactly the kind of mid-campaign rewrite the
+    // rest of this panel is for.
+    { id: "difficulty", title: "Difficulty", subtitle: "Change it mid-campaign — the AI has been playing to the old one" },
     { id: "annex-country", title: "Annex Country", subtitle: "Click a country to annex it into another" },
     { id: "annex-regions", title: "Annex Regions", subtitle: "Click individual regions to transfer them to a country" },
     { id: "edit-country", title: "Edit Country", subtitle: "Modify existing country properties" },
     { id: "add-country", title: "Add Country", subtitle: "Create a new country on the map" },
     { id: "regions", title: "Regions", subtitle: "Edit region names, tags, and properties" },
-    { id: "sea-regions", title: "Sea Regions", subtitle: "Turn the world's seas into ownable territory" },
-    { id: "edit-feature", title: "Edit Map Feature", subtitle: "Edit cities, structures, landmarks, and units" },
-    { id: "add-feature", title: "Add Map Feature", subtitle: "Create new map features with custom properties" },
+    { id: "edit-feature", title: "Edit Map Feature", subtitle: "Edit cities, structures, landmarks, and armies" },
+    { id: "add-feature", title: "Add Map Feature", subtitle: "Place a structure, a city, or an army with custom properties" },
     { id: "clear-features", title: "Clear Map Features", subtitle: "Clean up old and irrelevant features" },
     { id: "events", title: "Events", subtitle: "Edit historical events and their descriptions" },
 ];
@@ -164,6 +180,225 @@ const PolitySelect = ({ polities, value, onChange, placeholder = "Pick a country
     ))}
     </select>
 );
+
+// A MAP FEATURE IS NOT A CITY.
+//
+// Both of these panels used to be city forms. "Add Map Feature" could only add a
+// city — name, tier, population — so there was no way to place a structure at
+// all, and "Edit Map Feature" offered a structure nothing but a name, a
+// free-text kind and a size. That free-text box is how the live map came to
+// carry "mil11a" and "energy_plant" next to "power plant".
+//
+// The kind grid is the catalogue (runtime/featureKinds.js), so what the player
+// can choose is exactly what the map can draw. The free-text box stays underneath
+// it, because a campaign is allowed a kind nobody predicted — it just is not the
+// only way in any more.
+// A CITY IS A FEATURE NOW (runtime/cityFeatures.js).
+//
+// On a stock-cities map this list used to say, in so many words, that cities
+// cannot be edited: the 70,082 of them live in a PMTiles archive and the only
+// thing the game could do to one was change its printed name. So the feature
+// editor read the per-game cities.geojson, which on such a map is empty, and
+// showed nothing at all.
+//
+// The archive is immutable, but the map is a stack. Search it, pick one, and it
+// is PROMOTED into world.markers as a kind:"city" feature — from then on it is
+// editable, movable, re-ownable and deletable exactly like every other feature,
+// and the stock layer stops drawing its copy. Only the ones somebody touches are
+// ever copied; a save does not gain seventy thousand markers.
+const StockCityPromoter = ({ busy, markers, onPromote }) => {
+    const [query, setQuery] = useState("");
+    const [seed, setSeed] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    // The seed is ~70k entries, so it is fetched the first time somebody types
+    // here and never on the map's path.
+    useEffect(() => {
+        if (query.trim().length < 2 || seed || loading) return;
+        setLoading(true);
+        loadCitySeed().then((list) => { setSeed(list); setLoading(false); }).catch(() => { setSeed([]); setLoading(false); });
+    }, [query, seed, loading]);
+
+    const already = useMemo(() => promotedCityNames(markers), [markers]);
+    const results = useMemo(() => searchCitySeed(seed ?? [], query, 25), [seed, query]);
+
+    return (
+        <div style={{ marginBottom: "0.5rem" }}>
+        {/* This search WRITES: picking a result promotes the stock city into
+            world.markers. The first player to meet it searched Seoul, clicked
+            the result to see what it was, and had promoted their capital
+            without meaning to — so the heading names the action, and each row
+            carries an explicit "make editable" label instead of reading like a
+            plain search hit. */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.8)", fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.06em", margin: "0.9rem 0 0.4rem", paddingTop: "0.6rem", textTransform: "uppercase" }}>
+        Promote a stock city
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem", lineHeight: 1.45, marginBottom: "0.4rem" }}>
+        This map draws its cities from the built-in world database, which cannot be
+        edited directly. Search it here and promote one: the city becomes an
+        ordinary editable feature in the dropdown above — same spot on the map,
+        plus a name, an owner, a size and a description you can change.
+        </div>
+        <input
+        style={inputStyle}
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Find a city to edit — 서울, Busan, Hanoi…"
+        />
+        {loading && <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem" }}>Loading the city list…</div>}
+        {query.trim().length >= 2 && !loading && results.length === 0 && (
+            <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem" }}>No city by that name.</div>
+        )}
+        {results.map((city) => {
+            const taken = already.has(String(city.name).trim().toLowerCase());
+            return (
+                <button
+                key={`${city.name}-${city.coord?.[0]}-${city.coord?.[1]}`}
+                type="button"
+                disabled={busy || taken}
+                onClick={() => runPromote(city, onPromote)}
+                style={{
+                    alignItems: "center",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 8,
+                    color: "white",
+                    cursor: taken ? "default" : "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "0.25rem",
+                    opacity: taken ? 0.45 : 1,
+                    padding: "0.4rem 0.6rem",
+                    textAlign: "left",
+                    width: "100%",
+                }}
+                >
+                <span style={{ fontSize: "0.8rem", fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                🏙 <span data-no-translate>{city.name}</span>
+                {Number(city.population) ? <span data-no-translate style={{ color: "rgba(255,255,255,0.45)", fontWeight: 400 }}> · {Number(city.population).toLocaleString()}명</span> : null}
+                </span>
+                <span style={{ background: taken ? "transparent" : "rgba(59,130,246,0.25)", border: taken ? "none" : "1px solid rgba(96,165,250,0.6)", borderRadius: 999, color: taken ? "rgba(255,255,255,0.45)" : "#bfdbfe", flexShrink: 0, fontSize: "0.66rem", fontWeight: 700, padding: "0.15rem 0.55rem" }}>
+                {taken ? "already a feature" : "make editable"}
+                </span>
+                </button>
+            );
+        })}
+        </div>
+    );
+};
+
+// Owner comes from the ground it stands on — the same answer the placement pass
+// gives an AI-founded structure, so a promoted city is owned consistently with
+// everything else on the map rather than by whoever happened to click it.
+const runPromote = async (city, onPromote) => {
+    let ownerCode = "";
+    try {
+        const [{ loadTerritoryIndex, locateRegion }, { readWorldState }] = await Promise.all([
+            import("../../runtime/territory.js"),
+            import("../../runtime/gameState.js"),
+        ]);
+        const [index, world] = await Promise.all([loadTerritoryIndex(), readWorldState({ force: false })]);
+        ownerCode = locateRegion(index, city.coord[0], city.coord[1], world?.regionOwnershipOverrides ?? {})?.owner ?? "";
+    } catch {
+        // No geometry available — the city still becomes a feature, just unowned.
+    }
+    const marker = cityToMarker(city, { ownerCode });
+    if (marker) onPromote(marker, `${marker.name} is a feature now${ownerCode ? ` (${ownerCode})` : ""}.`);
+};
+
+const KindPicker = ({ value, onChange }) => {
+    const current = tidyFeatureKind(value);
+    const known = FEATURE_KINDS.some((kind) => kind.id === current);
+    return (
+        <>
+        <div style={{ display: "grid", gap: "0.25rem", gridTemplateColumns: "repeat(auto-fill, minmax(5.1rem, 1fr))" }}>
+        {FEATURE_KINDS.map((kind) => {
+            const active = kind.id === current;
+            return (
+                <button
+                key={kind.id}
+                type="button"
+                title={kind.id}
+                onClick={() => onChange(kind.id)}
+                style={{
+                    alignItems: "center",
+                    background: active ? "rgba(59,130,246,0.28)" : "rgba(255,255,255,0.05)",
+                    border: active ? "1px solid rgba(96,165,250,0.75)" : "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 8,
+                    color: "white",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.1rem",
+                    padding: "0.35rem 0.2rem",
+                }}
+                >
+                <span style={{ fontSize: "1rem", lineHeight: 1 }}>{kind.emoji}</span>
+                <span style={{ fontSize: "0.62rem", whiteSpace: "nowrap" }}>{kind.label}</span>
+                </button>
+            );
+        })}
+        </div>
+        <input
+        style={{ ...inputStyle, marginTop: "0.35rem" }}
+        value={known ? "" : (value ?? "")}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={known ? `Chosen: ${labelForFeatureKind(current)} — type here only for a kind the list does not have` : "Type a kind the list does not have"}
+        />
+        </>
+    );
+};
+
+// Latitude and longitude, typed or picked. The pick button reuses the panel's
+// existing click-capture mode — the same one the annex tools ride on — so the
+// map behaves identically to every other "click the map" flow here.
+const CoordinateFields = ({ lng, lat, onChange, onPick, picking }) => (
+    <>
+    <div style={{ display: "flex", gap: "0.35rem" }}>
+    <input
+    style={{ ...inputStyle, flex: 1 }}
+    value={lng ?? ""}
+    onChange={(event) => onChange({ lat, lng: event.target.value })}
+    placeholder="Longitude"
+    inputMode="decimal"
+    />
+    <input
+    style={{ ...inputStyle, flex: 1 }}
+    value={lat ?? ""}
+    onChange={(event) => onChange({ lat: event.target.value, lng })}
+    placeholder="Latitude"
+    inputMode="decimal"
+    />
+    </div>
+    <button
+    type="button"
+    onClick={onPick}
+    style={{ ...buttonStyle, marginTop: "0.3rem", width: "100%" }}
+    >
+    {picking ? "Click the map…" : "📍 Pick on the map"}
+    </button>
+    </>
+);
+
+const SizeField = ({ value, onChange }) => {
+    const size = Math.max(0.5, Math.min(3, Number(value) || 1));
+    return (
+        <div style={{ alignItems: "center", display: "flex", gap: "0.5rem" }}>
+        <input
+        type="range"
+        min={0.5}
+        max={3}
+        step={0.5}
+        value={size}
+        onChange={(event) => onChange(event.target.value)}
+        style={{ accentColor: "#3b82f6", flex: 1 }}
+        />
+        <span style={{ fontSize: "0.74rem", fontVariantNumeric: "tabular-nums", minWidth: "4.6rem", textAlign: "right" }}>
+        {size.toFixed(1)} {size >= 2.5 ? "monumental" : (size >= 1.5 ? "large" : (size <= 0.5 ? "minor" : "normal"))}
+        </span>
+        </div>
+    );
+};
 
 const CheatsPanel = ({ open, onClose, onOpenForces }) => {
     const [tool, setTool] = useState(null);
@@ -299,16 +534,22 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
                 capped-height panel — without them a flex child refuses to
                 shrink and the menu just clips at the bottom. */}
             <div style={{ display: "flex", flex: 1, flexDirection: "column", gap: "0.35rem", minHeight: 0, overflowY: "auto" }}>
-            {/* Manual force deployment moved here from the toolbar: hand-
-                placing troops is a cheat, not a normal play surface. */}
+            {/* PLACING A FORMATION IS ADDING A MAP FEATURE. Deployment used to
+                be its own entry here, opening a separate Forces panel with its
+                own branch/strength/name form and its own map mode — a second,
+                differently-shaped way to put a thing on the map, sitting a
+                centimetre from the one that adds structures. It is a feature
+                type in Add Map Feature now. The Forces panel itself stays, for
+                what only it does: moving and attacking with units already on the
+                map. */}
             {typeof onOpenForces === "function" && (
                 <button
                 type="button"
                 onClick={onOpenForces}
                 style={{ ...buttonStyle, alignItems: "flex-start", flexDirection: "column", gap: "0.1rem", textAlign: "left" }}
                 >
-                <span style={{ fontWeight: 700 }}>⚔️ Manual force deployment</span>
-                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", fontWeight: 500 }}>Open the Forces panel to spawn, move, and command units by hand.</span>
+                <span style={{ fontWeight: 700 }}>⚔️ Forces — move &amp; attack</span>
+                <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", fontWeight: 500 }}>Command units already on the map. To place a new one, use Add Map Feature.</span>
                 </button>
             )}
             {TOOLS.map((entry) => (
@@ -332,6 +573,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
             status={status}
             game={game}
             polities={polities}
+            clickMode={clickMode}
             refresh={refresh}
             runBusy={runBusy}
             beginClickMode={beginClickMode}
@@ -347,7 +589,7 @@ const CheatsPanel = ({ open, onClose, onOpenForces }) => {
     );
 };
 
-const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy, beginClickMode, endClickMode, setStatus }) => {
+const ToolView = ({ tool, header, busy, status, game, polities, clickMode, refresh, runBusy, beginClickMode, endClickMode, setStatus }) => {
     const meta = TOOLS.find((entry) => entry.id === tool);
     const [text, setText] = useState("");
     const [target, setTarget] = useState("");
@@ -374,8 +616,9 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                 .then(([evts, world]) => setItems({
                     events: evts,
                     history: Array.isArray(world?.simulationHistory) ? world.simulationHistory : [],
+                    consolidations: Array.isArray(world?.consolidatedHistory) ? world.consolidatedHistory : [],
                 }))
-                .catch(() => setItems({ events: [], history: [] }));
+                .catch(() => setItems({ events: [], history: [], consolidations: [] }));
         }
         if (tool === "roll-back-turn") {
             readJson(JSON_URLS.snapshots, { defaultValue: [], force: true })
@@ -404,11 +647,6 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                     renames: world?.cityRenames && typeof world.cityRenames === "object" ? world.cityRenames : {},
                 }))
                 .catch(() => setItems({ cities: [], markers: [], units: [], renames: {} }));
-        }
-        if (tool === "sea-regions") {
-            readWorldState({ force: true })
-                .then((world) => setItems(Array.isArray(world?.seaRegions) ? world.seaRegions : []))
-                .catch(() => setItems([]));
         }
     }, [tool]);
 
@@ -812,90 +1050,46 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
         );
     }
 
-    if (tool === "sea-regions") {
-        // Sea shapes are stored on world.seaRegions — per-game and WRITABLE.
-        // (The first version merged them into the scenario's regions.geojson,
-        // which the server rightly refuses to let the runtime overwrite — the
-        // enable click failed with "Unsupported JSON asset key".) The map
-        // merges world.seaRegions into its region layer and picks changes up
-        // on its 5-second world poll.
-        const seaCount = Array.isArray(items) ? items.length : null;
-        return (
-            <>
-            {header(meta.title, meta.subtitle)}
-            <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
-            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.76rem", lineHeight: 1.5 }}>
-            Adds 118 named seas, oceans, gulfs and straits to this game as
-            transferable regions — like the original's sea regions. Unclaimed
-            water shows a faint blue grid; a claimed sea is tinted with its
-            owner's color. Meant for Earth-based maps.
-            {seaCount !== null && seaCount > 0 && (
-                <div style={{ color: "rgba(134,239,172,0.85)", marginTop: "0.35rem" }}>
-                Sea regions in this game now: {seaCount}
-                </div>
-            )}
-            </div>
-            <button
-            type="button"
-            disabled={busy}
-            onClick={() => runBusy(async () => {
-                const response = await fetch("/data/sea-regions.json");
-                if (!response.ok) throw new Error("Couldn't load the bundled sea-region shapes.");
-                const seas = await response.json();
-                const world = await readWorldState({ force: true });
-                const current = Array.isArray(world.seaRegions) ? world.seaRegions : [];
-                if (current.length >= (seas.features?.length ?? 0)) {
-                    setItems(current);
-                    return "Sea regions are already enabled in this game.";
-                }
-                await writeWorldState({ ...world, seaRegions: seas.features ?? [] });
-                setItems(seas.features ?? []);
-                // The AI's region catalog memoizes per game — refresh it so the
-                // seas are nameable in prompts right away.
-                loadRegionCatalog({ force: true }).catch(() => {});
-                return `${(seas.features ?? []).length} sea regions added. The map shows them within ~5 seconds; the AI sees them from the next task. Consider adding a naval rule to Settings → Prompts & Rules (e.g. "Sea regions represent naval control: transfer them only through naval victories, blockades, or treaties.").`;
-            })}
-            style={{ ...primaryButtonStyle, marginTop: "0.6rem", width: "100%" }}
-            >
-            Enable sea territories
-            </button>
-            <button
-            type="button"
-            disabled={busy}
-            onClick={() => runBusy(async () => {
-                const world = await readWorldState({ force: true });
-                const current = Array.isArray(world.seaRegions) ? world.seaRegions : [];
-                if (current.length === 0) return "This game has no sea regions to remove.";
-                // Drop any ownership overrides that pointed at the removed seas.
-                const overrides = Object.fromEntries(
-                    Object.entries(world.regionOwnershipOverrides ?? {}).filter(([regionId]) => !regionId.startsWith("sea_")),
-                );
-                await writeWorldState({ ...world, seaRegions: [], regionOwnershipOverrides: overrides });
-                setItems([]);
-                loadRegionCatalog({ force: true }).catch(() => {});
-                return `${current.length} sea regions removed (their ownership records were cleaned up too).`;
-            })}
-            style={{ ...buttonStyle, marginTop: "0.5rem", width: "100%" }}
-            >
-            Remove sea territories
-            </button>
-            {statusLine}
-            </div>
-            </>
-        );
-    }
 
     if (tool === "edit-feature") {
+        // ONE FEATURE AT A TIME, IN THE ORIGINAL'S ORDER.
+        //
+        // This panel used to be three stacked lists — cities, structures, units —
+        // each rendering up to forty rows, each row able to expand into its own
+        // full form. At 116 structures that is a scroll with no bottom, and the
+        // player's own 88 sat mixed in with China's 7, the UAE's 5 and a Zimbabwe
+        // landmark, sorted by nothing anybody chose.
+        //
+        // The original's shape solves it by not showing the forms at all until
+        // you have picked something: search, choose one, then edit it in named
+        // sections. Only one form is ever on screen, so the panel's height stops
+        // depending on how long the campaign has run. Sections follow the
+        // original's order — name & owner, placement & styling, tags, location,
+        // colour override — with one deliberate substitution: where it offers a
+        // free symbol, this keeps the kind catalogue (runtime/featureKinds.js),
+        // which is what makes the map able to DRAW the thing that was chosen.
         const cities = items?.cities ?? [];
         const markers = items?.markers ?? [];
         const units = items?.units ?? [];
         const renames = items?.renames ?? {};
-        const q = search.trim().toLowerCase();
-        const matches = (text) => !q || String(text).toLowerCase().includes(q);
+        const playerCode = game?.country || "";
+
+        const saveWorldList = async (key, nextList, message) => {
+            const world = await readWorldState({ force: true });
+            await writeWorldState({ ...world, [key]: nextList });
+            setItems({ ...items, [key]: nextList });
+            return message;
+        };
+        const saveRenames = async (nextRenames, message) => {
+            const world = await readWorldState({ force: true });
+            await writeWorldState({ ...world, cityRenames: nextRenames });
+            setItems({ ...items, renames: nextRenames });
+            return message;
+        };
         const saveCities = async (nextFeatures, message) => {
-            // Server-backed scenarios refuse runtime writes to their static
-            // city geometry — fall back to the always-writable rename table so
-            // at least the NAME change sticks (the map label follows it).
+            // Server-backed scenarios refuse runtime writes to their static city
+            // geometry — fall back to the always-writable rename table so at
+            // least the NAME change sticks (the map label follows it).
             try {
                 await writeJson(JSON_URLS.citiesGeojson, { type: "FeatureCollection", features: nextFeatures }, { pretty: true });
                 setItems({ ...items, cities: nextFeatures });
@@ -914,31 +1108,253 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                 throw error;
             }
         };
-        const saveWorldList = async (key, nextList, message) => {
-            const world = await readWorldState({ force: true });
-            await writeWorldState({ ...world, [key]: nextList });
-            setItems({ ...items, [key]: nextList });
-            return message;
-        };
-        const saveRenames = async (nextRenames, message) => {
-            const world = await readWorldState({ force: true });
-            await writeWorldState({ ...world, cityRenames: nextRenames });
-            setItems({ ...items, renames: nextRenames });
-            return message;
-        };
-        const sectionHeading = (text) => (
-            <div style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.05em", margin: "0.7rem 0 0.3rem", textTransform: "uppercase" }}>{text}</div>
+
+        const section = (text) => (
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.8)", fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.06em", margin: "0.9rem 0 0.4rem", paddingTop: "0.6rem", textTransform: "uppercase" }}>{text}</div>
         );
 
-        const shownCities = cities.map((feature, index) => ({ feature, index }))
-            .filter(({ feature }) => matches(feature?.properties?.city ?? feature?.properties?.name ?? "")).slice(0, 40);
-        const shownMarkers = markers.filter((marker) => matches(`${marker?.name} ${marker?.kind} ${marker?.ownerCode}`)).slice(0, 40);
-        const shownUnits = units.filter((unit) => matches(`${unit?.name} ${unit?.type} ${unit?.ownerCode}`)).slice(0, 40);
+        // ---- ONE SHAPE FOR EVERY FEATURE ----------------------------------
+        // Structures, promoted cities, scenario cities and units are four
+        // different records in the save. The list, the search and the selection
+        // all want one shape, so they are folded into one here and unfolded
+        // again only at the moment of saving.
+        const entries = [
+            ...markers.map((marker) => ({
+                key: `marker-${marker.id}`,
+                type: "marker",
+                name: marker.name || "",
+                kind: marker.kind || "landmark",
+                owner: marker.ownerCode || "",
+                emoji: emojiForFeatureKind(marker.kind),
+                typeLabel: labelForFeatureKind(marker.kind),
+                building: marker.status === "under-construction",
+                ready: marker.readyAt || "",
+                tags: Array.isArray(marker.tags) ? marker.tags : [],
+                source: marker,
+            })),
+            ...cities.map((feature, index) => ({
+                key: `city-${index}`,
+                type: "city",
+                name: feature?.properties?.city || feature?.properties?.name || `Feature ${index + 1}`,
+                kind: "city",
+                owner: "",
+                emoji: emojiForFeatureKind("city"),
+                typeLabel: labelForFeatureKind("city"),
+                building: false,
+                ready: "",
+                tags: [],
+                source: feature,
+                index,
+            })),
+            ...units.map((unit) => ({
+                key: `unit-${unit.id}`,
+                type: "unit",
+                name: unit.name || "",
+                kind: unit.type || "infantry",
+                owner: unit.ownerCode || "",
+                emoji: UNIT_TYPE_EMOJI[unit.type] ?? "⚔️",
+                typeLabel: unitTypeLabel(unit.type),
+                building: false,
+                ready: "",
+                tags: Array.isArray(unit.tags) ? unit.tags : [],
+                source: unit,
+            })),
+        ];
+
+        // WHOSE FEATURES YOU ARE LOOKING AT. Defaults to the player's own,
+        // because 88 of the live map's 116 structures are theirs and the other 28
+        // belong to nine countries they did not build for. "Everyone" is one
+        // click away and the counts are on the buttons, so nothing is hidden —
+        // it is only put behind a choice.
+        const scope = fields.scope ?? (playerCode ? "mine" : "all");
+        const mineCount = entries.filter((entry) => entry.owner === playerCode).length;
+        const buildingCount = entries.filter((entry) => entry.building).length;
+        const scoped = entries.filter((entry) => {
+            if (scope === "mine") return entry.owner === playerCode;
+            if (scope === "building") return entry.building;
+            return true;
+        });
+
+        const q = search.trim().toLowerCase();
+        const matched = q
+            ? scoped.filter((entry) =>
+                `${entry.name} ${entry.kind} ${entry.typeLabel} ${entry.owner} ${entry.tags.join(" ")}`
+                    .toLowerCase().includes(q))
+            : scoped;
+        const sorted = [...matched].sort((a, b) => a.name.localeCompare(b.name));
+
+        const selected = entries.find((entry) => entry.key === editingId) ?? null;
+
+        const openEntry = (entry) => {
+            setEditingId(entry.key);
+            if (entry.type === "marker") {
+                const marker = entry.source;
+                setFields({
+                    scope,
+                    color: marker.color || "",
+                    kind: marker.kind || "landmark",
+                    lat: String(marker.lat ?? ""),
+                    lng: String(marker.lng ?? ""),
+                    name: marker.name || "",
+                    note: marker.note || "",
+                    ownerCode: marker.ownerCode || "",
+                    size: String(marker.size ?? 1),
+                    tagText: (Array.isArray(marker.tags) ? marker.tags : []).join(", "),
+                });
+            } else if (entry.type === "city") {
+                const props = entry.source?.properties ?? {};
+                setFields({
+                    scope,
+                    name: props.city || props.name || "",
+                    population: String(props.population ?? ""),
+                    tier: String(props.tier ?? 2),
+                });
+            } else {
+                const unit = entry.source;
+                setFields({
+                    scope,
+                    color: unit.color || "",
+                    history: unit.history || "",
+                    lat: String(unit.lat ?? ""),
+                    lng: String(unit.lng ?? ""),
+                    name: unit.name || "",
+                    note: unit.note || "",
+                    ownerCode: unit.ownerCode || "",
+                    status: unit.status || "idle",
+                    strength: String(unit.strength ?? 100),
+                    tagText: (Array.isArray(unit.tags) ? unit.tags : []).join(", "),
+                    type: unit.type || "infantry",
+                });
+            }
+        };
+
+        const closeEntry = () => { setEditingId(null); setFields({ scope }); };
+
+        // A tag list the player typed, cleaned the same way the normalizer will
+        // clean it, so what the field shows and what the save holds agree.
+        const parseTags = (value) => [...new Set(
+            String(value ?? "").split(",").map((tag) => tag.trim()).filter(Boolean),
+        )].slice(0, 12);
+
+        const pickPosition = (label) => beginClickMode(`Click where “${label}” stands`, (props) => {
+            if (!props?.lngLat) return;
+            setFields((prior) => ({ ...prior, lat: String(props.lngLat.lat.toFixed(4)), lng: String(props.lngLat.lng.toFixed(4)) }));
+            endClickMode();
+            setStatus("Position picked — press Save to keep it.");
+        });
+
+        const saveSelected = () => runBusy(async () => {
+            if (!selected) return "";
+            const tags = parseTags(fields.tagText);
+            const color = /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(String(fields.color ?? "").trim())
+                ? String(fields.color).trim() : "";
+            // A blank or unreadable coordinate keeps the one the feature already
+            // had: this editor must never be a way to lose a position, and 0,0 is
+            // the Atlantic.
+            const lng = Number(fields.lng);
+            const lat = Number(fields.lat);
+            const keepLng = (entry) => (Number.isFinite(lng) && lng >= -180 && lng <= 180 ? lng : entry.lng);
+            const keepLat = (entry) => (Number.isFinite(lat) && lat >= -90 && lat <= 90 ? lat : entry.lat);
+
+            if (selected.type === "marker") {
+                const size = Math.max(0.5, Math.min(3, Number(fields.size) || 1));
+                const next = markers.map((entry) => entry.id !== selected.source.id ? entry : {
+                    ...entry,
+                    kind: tidyFeatureKind(fields.kind) || entry.kind || "landmark",
+                    lat: keepLat(entry),
+                    lng: keepLng(entry),
+                    name: fields.name || entry.name,
+                    note: fields.note ?? entry.note ?? "",
+                    ownerCode: fields.ownerCode ?? entry.ownerCode ?? "",
+                    size,
+                    ...(tags.length ? { tags } : {}),
+                    ...(color ? { color } : {}),
+                });
+                closeEntry();
+                return saveWorldList("markers", next, `${fields.name || selected.name} saved.`);
+            }
+            if (selected.type === "unit") {
+                const strength = Math.max(1, Math.min(1000, Number(fields.strength) || 100));
+                const next = units.map((entry) => entry.id !== selected.source.id ? entry : {
+                    ...entry,
+                    history: fields.history ?? entry.history ?? "",
+                    lat: keepLat(entry),
+                    lng: keepLng(entry),
+                    name: fields.name || entry.name,
+                    note: fields.note ?? entry.note ?? "",
+                    ownerCode: fields.ownerCode ?? entry.ownerCode ?? "",
+                    status: fields.status || entry.status || "idle",
+                    strength,
+                    type: fields.type || entry.type || "infantry",
+                    updatedAt: new Date().toISOString(),
+                    ...(tags.length ? { tags } : {}),
+                    ...(color ? { color } : {}),
+                });
+                closeEntry();
+                return saveWorldList("units", next, `${fields.name || selected.name} saved.`);
+            }
+            const nextFeatures = cities.map((entry, i) => {
+                if (i !== selected.index) return entry;
+                const population = Number(fields.population);
+                const tier = Math.max(1, Math.min(4, Number(fields.tier) || 2));
+                return {
+                    ...entry,
+                    properties: {
+                        ...entry.properties,
+                        capital: tier === 4,
+                        city: fields.name || entry.properties?.city,
+                        name: fields.name || entry.properties?.name,
+                        tier,
+                        ...(Number.isFinite(population) && population > 0 ? { population } : null),
+                    },
+                };
+            });
+            closeEntry();
+            return saveCities(nextFeatures, `${fields.name || selected.name} saved.`);
+        });
+
+        const deleteSelected = () => runBusy(async () => {
+            if (!selected) return "";
+            const name = selected.name;
+            closeEntry();
+            if (selected.type === "marker") {
+                return saveWorldList("markers", markers.filter((entry) => entry.id !== selected.source.id), `${name} removed.`);
+            }
+            if (selected.type === "unit") {
+                return saveWorldList("units", units.filter((entry) => entry.id !== selected.source.id), `${name} disbanded.`);
+            }
+            return saveCities(cities.filter((_, i) => i !== selected.index), `${name} deleted.`);
+        });
+
+        const scopeButton = (id, label, count) => (
+            <button
+            key={id}
+            type="button"
+            onClick={() => setFields({ ...fields, scope: id })}
+            style={{
+                background: scope === id ? "rgba(59,130,246,0.28)" : "rgba(255,255,255,0.05)",
+                border: scope === id ? "1px solid rgba(96,165,250,0.75)" : "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 999,
+                color: "white",
+                cursor: "pointer",
+                flex: 1,
+                fontSize: "0.68rem",
+                fontWeight: scope === id ? 700 : 500,
+                padding: "0.3rem 0.4rem",
+                whiteSpace: "nowrap",
+            }}
+            >
+            {label} <span data-no-translate style={{ opacity: 0.6 }}>{count}</span>
+            </button>
+        );
 
         return (
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
+            <div style={{ minHeight: 0, overflowY: "auto", paddingRight: "0.2rem" }}>
+
+            {section("Map feature search")}
             {/* Detection the way players expect it: click the thing ON THE MAP.
                 The map click handler reports the city/structure/unit under the
                 cursor (featureHit/unitHit) while a cheat click-mode is armed. */}
@@ -946,131 +1362,269 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             type="button"
             onClick={() => beginClickMode("Click a city, structure, or unit on the map to edit it", async (props) => {
                 endClickMode();
-                if (props.unitHit?.id) {
-                    const unit = units.find((entry) => String(entry.id) === String(props.unitHit.id));
-                    if (unit) {
-                        setSearch(unit.name || "");
-                        setEditingId(`unit-${unit.id}`);
-                        setFields({ name: unit.name || "", strength: String(unit.strength ?? 100) });
-                        setStatus(`Unit "${unit.name}" selected.`);
-                        return;
-                    }
-                }
-                const hit = props.featureHit;
-                if (!hit) {
-                    setStatus("Nothing editable there — click directly on a city, structure, or unit icon.");
+                const hitKey = props.unitHit?.id
+                    ? `unit-${props.unitHit.id}`
+                    : props.featureHit?.source === "marker"
+                        ? `marker-${props.featureHit.id}`
+                        : null;
+                const hit = hitKey ? entries.find((entry) => entry.key === hitKey) : null;
+                if (hit) {
+                    // Widen the scope if the thing they clicked is not in it —
+                    // clicking a Chinese base and being told nothing is there
+                    // would be the filter lying about the map.
+                    if (hit.owner !== playerCode) setFields((prior) => ({ ...prior, scope: "all" }));
+                    setSearch("");
+                    openEntry(hit);
+                    setStatus(`“${hit.name}” selected.`);
                     return;
                 }
-                if (hit.source === "marker") {
-                    const marker = markers.find((entry) => String(entry.id) === String(hit.id));
-                    setSearch(hit.name || "");
-                    if (marker) {
-                        setEditingId(`marker-${marker.id}`);
-                        setFields({ name: marker.name || "", kind: marker.kind || "landmark", size: String(marker.size ?? 1) });
-                        setStatus(`Structure "${marker.name}" selected.`);
-                    }
+                const cityName = props.featureHit?.source === "city" ? props.featureHit.name : "";
+                if (cityName) {
+                    const byName = entries.find((entry) => entry.name.toLowerCase() === cityName.toLowerCase());
+                    if (byName) { openEntry(byName); setStatus(`“${byName.name}” selected.`); return; }
+                    setSearch(cityName);
+                    setStatus(`“${cityName}” is a standard-map city — search for it below to make it an editable feature.`);
                     return;
                 }
-                // A city. Custom-city maps edit the feature; stock-city maps rename.
-                const cityIndex = cities.findIndex((feature) => {
-                    const props2 = feature?.properties ?? {};
-                    return String(props2.city || props2.name || "").toLowerCase() === String(hit.name || "").toLowerCase();
-                });
-                setSearch(hit.name || "");
-                if (cityIndex >= 0) {
-                    const props2 = cities[cityIndex]?.properties ?? {};
-                    setEditingId(`city-${cityIndex}`);
-                    setFields({ name: props2.city || props2.name || "", tier: String(props2.tier ?? 2), population: String(props2.population ?? "") });
-                    setStatus(`City "${hit.name}" selected.`);
-                } else {
-                    setFields({ renameFrom: hit.name || "", renameTo: "" });
-                    setStatus(`"${hit.name}" is a standard-map city — its geometry lives in the map tiles, so it can be RENAMED below (population ${hit.population ?? "?"}).`);
-                }
+                setStatus("Nothing editable there — click directly on a city, structure, or unit icon.");
             })}
-            style={{ ...primaryButtonStyle, marginBottom: "0.5rem", width: "100%" }}
+            style={{ ...primaryButtonStyle, marginBottom: "0.4rem", width: "100%" }}
             >
             Pick a feature on the map
             </button>
-            <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search cities, structures, units…" />
-            <div style={{ minHeight: 0, overflowY: "auto" }}>
+            <input
+            style={inputStyle}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Name, kind, owner, or tag…"
+            />
+            <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.35rem" }}>
+            {playerCode && scopeButton("mine", "Mine", mineCount)}
+            {scopeButton("all", "Everyone", entries.length)}
+            {buildingCount > 0 && scopeButton("building", "Building", buildingCount)}
+            </div>
 
-            {sectionHeading(`Cities (${cities.length})`)}
-            {cities.length === 0 && (
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem", lineHeight: 1.45 }}>
-                This map uses the standard world city database, which lives in the
-                map tiles and can't be edited directly — but cities can be RENAMED
-                below, and Add Map Feature can place new custom cities.
-                </div>
-            )}
-            {shownCities.map(({ feature, index }) => {
-                const props = feature?.properties ?? {};
-                const isEditing = editingId === `city-${index}`;
+            {section(`Feature selection (${sorted.length})`)}
+            {/* A DROPDOWN, which is the point of the original's design: the
+                panel's height stops depending on how many features the campaign
+                has accumulated, because a hundred options scroll INSIDE the
+                control rather than down the panel. This also retires the 25-row
+                cap the list needed — the dropdown holds every match, so nothing
+                is cut and there is nothing to announce as cut. */}
+            <select
+            value={selected && sorted.some((entry) => entry.key === selected.key) ? selected.key : ""}
+            onChange={(event) => {
+                const entry = entries.find((candidate) => candidate.key === event.target.value);
+                if (entry) openEntry(entry);
+                else closeEntry();
+            }}
+            style={{ ...inputStyle, cursor: "pointer" }}
+            >
+            <option value="">
+            {sorted.length === 0
+                ? "Nothing matches — widen the filter or clear the search"
+                : `— pick a feature (${sorted.length}) —`}
+            </option>
+            {[
+                { type: "marker", label: "Structures & landmarks" },
+                { type: "city", label: "Cities" },
+                { type: "unit", label: "Armies & units" },
+            ].map(({ type, label }) => {
+                const ofType = sorted.filter((entry) => entry.type === type);
+                if (ofType.length === 0) return null;
                 return (
-                    <div key={`city-${index}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.5rem 0.6rem" }}>
-                    <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-                    <span
-                    onClick={() => { setEditingId(isEditing ? null : `city-${index}`); setFields(isEditing ? {} : { name: props.city || props.name || "", tier: String(props.tier ?? 2), population: String(props.population ?? "") }); }}
-                    title="Click to edit"
-                    style={{ cursor: "pointer", fontSize: "0.82rem", fontWeight: 700, minWidth: 0 }}
-                    >
-                    {props.city || props.name || `Feature ${index + 1}`}
-                    </span>
-                    <button
-                    type="button"
-                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
-                    disabled={busy}
-                    onClick={() => runBusy(async () => saveCities(cities.filter((_, i) => i !== index), `${props.city || props.name || "Feature"} deleted.`))}
-                    >
-                    🗑
-                    </button>
-                    </div>
-                    {isEditing && (
-                        <div style={{ marginTop: "0.4rem" }}>
-                        <label style={labelStyle}>Name</label>
-                        <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
-                        <label style={labelStyle}>Tier (1 town … 4 capital)</label>
-                        <input style={inputStyle} type="number" min={1} max={4} value={fields.tier ?? "2"} onChange={(event) => setFields({ ...fields, tier: event.target.value })} />
-                        <label style={labelStyle}>Population (optional)</label>
-                        <input style={inputStyle} value={fields.population ?? ""} onChange={(event) => setFields({ ...fields, population: event.target.value })} />
-                        <button
-                        type="button"
-                        disabled={busy}
-                        style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
-                        onClick={() => runBusy(async () => {
-                            const nextFeatures = cities.map((entry, i) => {
-                                if (i !== index) return entry;
-                                const population = Number(fields.population);
-                                const tier = Math.max(1, Math.min(4, Number(fields.tier) || 2));
-                                return {
-                                    ...entry,
-                                    properties: {
-                                        ...entry.properties,
-                                        city: fields.name || entry.properties?.city,
-                                        name: fields.name || entry.properties?.name,
-                                        tier,
-                                        ...(Number.isFinite(population) && population > 0 ? { population } : null),
-                                        capital: tier === 4,
-                                    },
-                                };
-                            });
-                            setEditingId(null);
-                            return saveCities(nextFeatures, `${fields.name || "Feature"} saved.`);
-                        })}
-                        >
-                        Save feature
-                        </button>
-                        </div>
-                    )}
-                    </div>
+                    <optgroup key={type} label={`${label} (${ofType.length})`}>
+                    {ofType.map((entry) => (
+                        <option key={entry.key} value={entry.key} style={{ color: "black" }}>
+                        {`${entry.emoji} ${entry.name}${entry.owner ? ` · ${entry.owner}` : ""}${entry.building ? " · 건설 중" : ""}`}
+                        </option>
+                    ))}
+                    </optgroup>
                 );
             })}
-
+            </select>
             {cities.length === 0 && (
+                <StockCityPromoter
+                    busy={busy}
+                    markers={markers}
+                    onPromote={(marker, message) => runBusy(async () => saveWorldList("markers", [...markers, marker], message))}
+                />
+            )}
+
+            {selected && (
+            <>
+            {section("Name and owner")}
+            <label style={labelStyle}>Name</label>
+            <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
+            {selected.type !== "city" && (
                 <>
-                {sectionHeading(`Stock city renames (${Object.keys(renames).length})`)}
+                <label style={labelStyle}>Owner</label>
+                <PolitySelect
+                    polities={polities}
+                    value={fields.ownerCode ?? ""}
+                    onChange={(ownerCode) => setFields({ ...fields, ownerCode })}
+                    placeholder={selected.type === "unit" ? "Pick a country…" : "Nobody in particular"}
+                />
+                </>
+            )}
+
+            {section("Placement and styling")}
+            {selected.type === "marker" && (
+                <>
+                <label style={labelStyle}>Kind</label>
+                <KindPicker value={fields.kind ?? ""} onChange={(kind) => setFields({ ...fields, kind })} />
+                <label style={labelStyle}>Size</label>
+                <SizeField value={fields.size} onChange={(size) => setFields({ ...fields, size })} />
+                <label style={labelStyle}>Note (optional)</label>
+                <input style={inputStyle} value={fields.note ?? ""} onChange={(event) => setFields({ ...fields, note: event.target.value })} placeholder="What this place is for" />
+                </>
+            )}
+            {selected.type === "unit" && (
+                <>
+                <label style={labelStyle}>Branch</label>
+                <div style={{ display: "grid", gap: "0.25rem", gridTemplateColumns: "repeat(auto-fill, minmax(5.1rem, 1fr))" }}>
+                {UNIT_TYPES.map((type) => {
+                    const active = type === (fields.type ?? selected.kind);
+                    return (
+                        <button
+                        key={type}
+                        type="button"
+                        title={type}
+                        onClick={() => setFields({ ...fields, type })}
+                        style={{
+                            alignItems: "center",
+                            background: active ? "rgba(59,130,246,0.28)" : "rgba(255,255,255,0.05)",
+                            border: active ? "1px solid rgba(96,165,250,0.75)" : "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: 8,
+                            color: "white",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.1rem",
+                            padding: "0.35rem 0.2rem",
+                        }}
+                        >
+                        <span style={{ fontSize: "1rem", lineHeight: 1 }}>{UNIT_TYPE_EMOJI[type]}</span>
+                        <span data-no-translate="" style={{ fontSize: "0.62rem", whiteSpace: "nowrap" }}>{unitTypeLabel(type)}</span>
+                        </button>
+                    );
+                })}
+                </div>
+                <label style={labelStyle}>Strength</label>
+                <input style={inputStyle} type="number" min={1} max={1000} value={fields.strength ?? "100"} onChange={(event) => setFields({ ...fields, strength: event.target.value })} />
+                <label style={labelStyle}>Status</label>
+                <select
+                value={fields.status ?? "idle"}
+                onChange={(event) => setFields({ ...fields, status: event.target.value })}
+                style={{ ...inputStyle, cursor: "pointer" }}
+                >
+                {UNIT_STATUSES.map((status) => (
+                    <option key={status} value={status} style={{ color: "black" }}>{unitStatusLabel(status)}</option>
+                ))}
+                </select>
+                <label style={labelStyle}>Standing orders (the AI rewrites this)</label>
+                <input style={inputStyle} value={fields.note ?? ""} onChange={(event) => setFields({ ...fields, note: event.target.value })} placeholder="Holding the eastern approach" />
+                {/* THE FORMATION'S OWN STORY. Separate from the note above, which
+                    the AI overwrites every time it moves the unit. This one is the
+                    player's and nothing in the engine touches it — it rides into
+                    the order of battle the model reads, so a division given a past
+                    gets written about with that past. */}
+                <label style={labelStyle}>📖 History &amp; lore</label>
+                <textarea
+                value={fields.history ?? ""}
+                onChange={(event) => setFields({ ...fields, history: event.target.value.slice(0, 600) })}
+                placeholder="Raised in 1950, held the line at…"
+                style={{ ...inputStyle, minHeight: "4.5rem", resize: "vertical" }}
+                />
+                </>
+            )}
+            {selected.type === "city" && (
+                <>
+                <label style={labelStyle}>Tier (1 town … 4 capital)</label>
+                <input style={inputStyle} type="number" min={1} max={4} value={fields.tier ?? "2"} onChange={(event) => setFields({ ...fields, tier: event.target.value })} />
+                <label style={labelStyle}>Population (optional)</label>
+                <input style={inputStyle} value={fields.population ?? ""} onChange={(event) => setFields({ ...fields, population: event.target.value })} />
+                </>
+            )}
+
+            {selected.type !== "city" && (
+            <>
+            {section("Tags")}
+            {/* Free text, comma separated — the same thing the search box reads,
+                which is what makes 116 structures findable by something other
+                than the name the AI happened to give them. */}
+            <input
+            style={inputStyle}
+            value={fields.tagText ?? ""}
+            onChange={(event) => setFields({ ...fields, tagText: event.target.value })}
+            placeholder="반도체, 1급 보안, 서해"
+            />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginTop: "0.3rem" }}>
+            {parseTags(fields.tagText).map((tag) => (
+                <span key={tag} data-no-translate style={{ background: "rgba(255,255,255,0.08)", borderRadius: 999, fontSize: "0.68rem", padding: "0.15rem 0.5rem" }}>{tag}</span>
+            ))}
+            </div>
+
+            {section("Location")}
+            <CoordinateFields
+            lng={fields.lng}
+            lat={fields.lat}
+            picking={Boolean(clickMode)}
+            onChange={(next) => setFields({ ...fields, ...next })}
+            onPick={() => pickPosition(fields.name || selected.name)}
+            />
+
+            {section("Colour override")}
+            {/* Empty means "take the owner's colour", which is the right default
+                and the thing a reset has to be able to get back to — so the swatch
+                is paired with a clear, not left as a colour you can only change. */}
+            <div style={{ alignItems: "center", display: "flex", gap: "0.4rem" }}>
+            <input
+            type="color"
+            value={/^#[0-9a-f]{6}$/i.test(String(fields.color ?? "")) ? fields.color : "#60a5fa"}
+            onChange={(event) => setFields({ ...fields, color: event.target.value })}
+            style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, cursor: "pointer", height: "2rem", padding: 0, width: "3rem" }}
+            />
+            <span style={{ color: "rgba(255,255,255,0.6)", flex: 1, fontSize: "0.72rem" }}>
+            {fields.color ? "Pinned to this colour." : "Following its owner's colour."}
+            </span>
+            <button
+            type="button"
+            onClick={() => setFields({ ...fields, color: "" })}
+            disabled={!fields.color}
+            style={{ ...buttonStyle, opacity: fields.color ? 1 : 0.4, padding: "0.25rem 0.6rem" }}
+            >
+            Reset
+            </button>
+            </div>
+            </>
+            )}
+
+            <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.8rem" }}>
+            <button type="button" disabled={busy} style={{ ...primaryButtonStyle, flex: 1 }} onClick={saveSelected}>
+            Save
+            </button>
+            <button
+            type="button"
+            disabled={busy}
+            style={{ ...buttonStyle, borderColor: "rgba(248,113,113,0.5)", color: "#fca5a5" }}
+            onClick={deleteSelected}
+            >
+            🗑 Delete
+            </button>
+            </div>
+            </>
+            )}
+
+            {/* Stock-city renames stay reachable on a map whose cities live in the
+                tiles: promoting is the better answer, but a rename is the cheaper
+                one and old saves already hold three. */}
+            {cities.length === 0 && Object.keys(renames).length > 0 && (
+                <>
+                {section(`Stock city renames (${Object.keys(renames).length})`)}
                 {Object.entries(renames).map(([from, to]) => (
                     <div key={from} style={{ alignItems: "center", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, display: "flex", justifyContent: "space-between", marginBottom: "0.3rem", padding: "0.4rem 0.6rem" }}>
-                    <span style={{ fontSize: "0.76rem" }}>{from} → <strong>{to}</strong></span>
+                    <span data-no-translate style={{ fontSize: "0.76rem" }}>{from} → <strong>{to}</strong></span>
                     <button
                     type="button"
                     style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
@@ -1085,136 +1639,9 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
                     </button>
                     </div>
                 ))}
-                <label style={labelStyle}>Rename a stock city</label>
-                <input style={inputStyle} value={fields.renameFrom ?? ""} onChange={(event) => setFields({ ...fields, renameFrom: event.target.value })} placeholder="Current name (e.g. Seoul)" />
-                <input style={{ ...inputStyle, marginTop: "0.3rem" }} value={fields.renameTo ?? ""} onChange={(event) => setFields({ ...fields, renameTo: event.target.value })} placeholder="New name" />
-                <button
-                type="button"
-                disabled={busy || !String(fields.renameFrom ?? "").trim() || !String(fields.renameTo ?? "").trim()}
-                style={{ ...primaryButtonStyle, marginTop: "0.4rem", width: "100%" }}
-                onClick={() => runBusy(async () => {
-                    const from = fields.renameFrom.trim().toLowerCase();
-                    const to = fields.renameTo.trim();
-                    setFields({ ...fields, renameFrom: "", renameTo: "" });
-                    return saveRenames({ ...renames, [from]: to }, `"${fields.renameFrom.trim()}" now shows as "${to}". The map updates within a few seconds.`);
-                })}
-                >
-                Save rename
-                </button>
                 </>
             )}
 
-            {sectionHeading(`Structures & landmarks (${markers.length})`)}
-            {markers.length === 0 && (
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem" }}>
-                None yet — the AI founds these during play (bases, embassies, monuments…).
-                </div>
-            )}
-            {shownMarkers.map((marker) => {
-                const isEditing = editingId === `marker-${marker.id}`;
-                return (
-                    <div key={`marker-${marker.id}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.5rem 0.6rem" }}>
-                    <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-                    <span
-                    onClick={() => { setEditingId(isEditing ? null : `marker-${marker.id}`); setFields(isEditing ? {} : { name: marker.name || "", kind: marker.kind || "landmark", size: String(marker.size ?? 1) }); }}
-                    title="Click to edit"
-                    style={{ cursor: "pointer", minWidth: 0 }}
-                    >
-                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{marker.name}</span>
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}> · {marker.kind}{marker.ownerCode ? ` · ${marker.ownerCode}` : ""}</span>
-                    </span>
-                    <button
-                    type="button"
-                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
-                    disabled={busy}
-                    onClick={() => runBusy(async () => saveWorldList("markers", markers.filter((entry) => entry.id !== marker.id), `${marker.name} removed.`))}
-                    >
-                    🗑
-                    </button>
-                    </div>
-                    {isEditing && (
-                        <div style={{ marginTop: "0.4rem" }}>
-                        <label style={labelStyle}>Name</label>
-                        <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
-                        <label style={labelStyle}>Kind</label>
-                        <input style={inputStyle} value={fields.kind ?? ""} onChange={(event) => setFields({ ...fields, kind: event.target.value })} placeholder="military base, embassy, monument…" />
-                        <label style={labelStyle}>Size (0.5 small … 3 monumental)</label>
-                        <input style={inputStyle} type="number" min={0.5} max={3} step={0.5} value={fields.size ?? "1"} onChange={(event) => setFields({ ...fields, size: event.target.value })} />
-                        <button
-                        type="button"
-                        disabled={busy}
-                        style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
-                        onClick={() => runBusy(async () => {
-                            const size = Math.max(0.5, Math.min(3, Number(fields.size) || 1));
-                            const next = markers.map((entry) => entry.id === marker.id
-                                ? { ...entry, name: fields.name || entry.name, kind: (fields.kind || entry.kind || "landmark").toLowerCase(), size }
-                                : entry);
-                            setEditingId(null);
-                            return saveWorldList("markers", next, `${fields.name || marker.name} saved.`);
-                        })}
-                        >
-                        Save structure
-                        </button>
-                        </div>
-                    )}
-                    </div>
-                );
-            })}
-
-            {sectionHeading(`Armies & units (${units.length})`)}
-            {units.length === 0 && (
-                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem" }}>
-                None on the map — deploy some via Manual force deployment above.
-                </div>
-            )}
-            {shownUnits.map((unit) => {
-                const isEditing = editingId === `unit-${unit.id}`;
-                return (
-                    <div key={`unit-${unit.id}`} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, marginBottom: "0.3rem", padding: "0.5rem 0.6rem" }}>
-                    <div style={{ alignItems: "center", display: "flex", justifyContent: "space-between" }}>
-                    <span
-                    onClick={() => { setEditingId(isEditing ? null : `unit-${unit.id}`); setFields(isEditing ? {} : { name: unit.name || "", strength: String(unit.strength ?? 100) }); }}
-                    title="Click to edit"
-                    style={{ cursor: "pointer", minWidth: 0 }}
-                    >
-                    <span style={{ fontSize: "0.8rem", fontWeight: 700 }}>{unit.name}</span>
-                    <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}> · {unit.type} · {unit.ownerCode} · {unit.strength}</span>
-                    </span>
-                    <button
-                    type="button"
-                    style={{ ...buttonStyle, padding: "0.2rem 0.5rem" }}
-                    disabled={busy}
-                    onClick={() => runBusy(async () => saveWorldList("units", units.filter((entry) => entry.id !== unit.id), `${unit.name} disbanded.`))}
-                    >
-                    🗑
-                    </button>
-                    </div>
-                    {isEditing && (
-                        <div style={{ marginTop: "0.4rem" }}>
-                        <label style={labelStyle}>Name</label>
-                        <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} />
-                        <label style={labelStyle}>Strength</label>
-                        <input style={inputStyle} type="number" min={1} value={fields.strength ?? "100"} onChange={(event) => setFields({ ...fields, strength: event.target.value })} />
-                        <button
-                        type="button"
-                        disabled={busy}
-                        style={{ ...primaryButtonStyle, marginTop: "0.5rem", width: "100%" }}
-                        onClick={() => runBusy(async () => {
-                            const strength = Math.max(1, Math.round(Number(fields.strength) || unit.strength || 100));
-                            const next = units.map((entry) => entry.id === unit.id
-                                ? { ...entry, name: fields.name || entry.name, strength }
-                                : entry);
-                            setEditingId(null);
-                            return saveWorldList("units", next, `${fields.name || unit.name} saved.`);
-                        })}
-                        >
-                        Save unit
-                        </button>
-                        </div>
-                    )}
-                    </div>
-                );
-            })}
             </div>
             {statusLine}
             </div>
@@ -1223,57 +1650,238 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
     }
 
     if (tool === "add-feature") {
+        // A MAP FEATURE, NOT ONLY A CITY. This panel offered Name / Tier /
+        // Population and wrote a city into citiesGeojson — so the one kind of
+        // thing it could not add was a structure, which is most of what is on
+        // the map. The type switch decides which of the two lists it lands in.
+        const featureType = fields.featureType ?? "structure";
+        const isCity = featureType === "city";
+        const isUnit = featureType === "unit";
+        const allowed = getAllowedUnitTypes();
+        const deployableTypes = Array.isArray(allowed) && allowed.length
+            ? UNIT_TYPES.filter((type) => allowed.includes(type))
+            : UNIT_TYPES;
+        const name = String(fields.name ?? "").trim();
+        const lng = Number(fields.lng);
+        const lat = Number(fields.lat);
+        const hasPosition = Number.isFinite(lng) && Number.isFinite(lat)
+            && lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90;
+
+        const placeStructure = async (atLng, atLat) => {
+            const world = await readWorldState({ force: true });
+            const list = Array.isArray(world?.markers) ? world.markers : [];
+            const marker = {
+                foundedAt: game?.gameDate ?? "",
+                id: `marker-manual-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+                kind: tidyFeatureKind(fields.kind) || inferFeatureKind(name) || "landmark",
+                lat: atLat,
+                lng: atLng,
+                name,
+                note: String(fields.note ?? "").trim(),
+                ownerCode: fields.ownerCode ?? "",
+                size: Math.max(0.5, Math.min(3, Number(fields.size) || 1)),
+            };
+            await writeWorldState({ ...world, markers: [...list, marker] });
+            return `${name} built. It is on the map now.`;
+        };
+
+        const placeCity = async (atLng, atLat) => {
+            const tier = Math.max(1, Math.min(4, Number(fields.tier) || 2));
+            const population = Number(fields.population);
+            const geojson = await readJson(JSON_URLS.citiesGeojson, { defaultValue: EMPTY_FEATURES, force: true });
+            const features = [...(geojson?.features ?? []), {
+                type: "Feature",
+                geometry: { type: "Point", coordinates: [atLng, atLat] },
+                properties: {
+                    city: name,
+                    name,
+                    tier,
+                    capital: tier === 4,
+                    ...(Number.isFinite(population) && population > 0 ? { population } : null),
+                },
+            }];
+            await writeJson(JSON_URLS.citiesGeojson, { type: "FeatureCollection", features }, { pretty: true });
+            const world = await readWorldState({ force: true });
+            if (!world.customCities) {
+                // The custom layer replaces the stock one, so flag it on —
+                // otherwise the new feature would never render.
+                await writeWorldState({ ...world, customCities: true });
+            }
+            return `${name} placed. The map picks it up within a few seconds.`;
+        };
+
+        // MANUAL FORCE DEPLOYMENT LIVES HERE NOW.
+        //
+        // It used to be its own tool at the top of the cheats panel, asking for a
+        // branch, a strength and a name and then putting the map into a deploy
+        // mode — a second, differently-shaped way to put a thing on the map,
+        // sitting a few centimetres from the one that adds structures. A
+        // formation IS a map feature; the only thing that differs is which list
+        // it lands in.
+        const placeUnit = async (atLng, atLat) => {
+            const world = await readWorldState({ force: true });
+            const list = Array.isArray(world?.units) ? world.units : [];
+            const type = fields.unitType || "infantry";
+            const unit = {
+                history: String(fields.history ?? "").slice(0, 600),
+                id: `unit-manual-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+                lat: atLat,
+                lng: atLng,
+                name,
+                note: String(fields.note ?? "").trim(),
+                ownerCode: fields.ownerCode || game?.country || "",
+                source: "player",
+                // A hand-placed formation is on the map immediately — "pending" is
+                // for a deployment the AI has still to resolve, and this one has
+                // no order behind it to resolve.
+                status: "idle",
+                strength: Math.max(1, Math.min(1000, Math.round(Number(fields.strength) || 100))),
+                type,
+            };
+            await writeWorldState({ ...world, units: [...list, unit] });
+            return `${name} deployed.`;
+        };
+
+        const place = (atLng, atLat) => runBusy(async () => {
+            let message;
+            if (isCity) message = await placeCity(atLng, atLat);
+            else if (isUnit) message = await placeUnit(atLng, atLat);
+            else message = await placeStructure(atLng, atLat);
+            setFields({ featureType });
+            return message;
+        });
+
         return (
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            <label style={labelStyle}>What are you adding?</label>
+            <div style={{ display: "flex", gap: "0.35rem" }}>
+            {[["structure", "🏗 Structure"], ["city", "🏙 City"], ["unit", "⚔️ Army"]].map(([id, label]) => (
+                <button
+                key={id}
+                type="button"
+                onClick={() => setFields({ ...fields, featureType: id })}
+                style={{
+                    ...buttonStyle,
+                    background: featureType === id ? "rgba(59,130,246,0.28)" : buttonStyle.background,
+                    border: featureType === id ? "1px solid rgba(96,165,250,0.75)" : buttonStyle.border,
+                    flex: 1,
+                }}
+                >
+                {label}
+                </button>
+            ))}
+            </div>
+
             <label style={labelStyle}>Name</label>
-            <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder="Alexandria" />
-            <label style={labelStyle}>Tier (1 town … 4 capital)</label>
-            <input style={inputStyle} type="number" min={1} max={4} value={fields.tier ?? "2"} onChange={(event) => setFields({ ...fields, tier: event.target.value })} />
-            <label style={labelStyle}>Population (optional)</label>
-            <input style={inputStyle} value={fields.population ?? ""} onChange={(event) => setFields({ ...fields, population: event.target.value })} />
-            <button
-            type="button"
-            disabled={!String(fields.name ?? "").trim()}
-            onClick={() => {
-                const name = fields.name.trim();
-                const tier = Math.max(1, Math.min(4, Number(fields.tier) || 2));
-                const population = Number(fields.population);
-                beginClickMode(`Click the map where “${name}” goes`, async (props) => {
-                    try {
-                        if (!props.lngLat) return;
-                        const geojson = await readJson(JSON_URLS.citiesGeojson, { defaultValue: EMPTY_FEATURES, force: true });
-                        const features = [...(geojson?.features ?? []), {
-                            type: "Feature",
-                            geometry: { type: "Point", coordinates: [props.lngLat.lng, props.lngLat.lat] },
-                            properties: {
-                                city: name,
-                                name,
-                                tier,
-                                capital: tier === 4,
-                                ...(Number.isFinite(population) && population > 0 ? { population } : null),
-                            },
-                        }];
-                        await writeJson(JSON_URLS.citiesGeojson, { type: "FeatureCollection", features }, { pretty: true });
-                        const world = await readWorldState({ force: true });
-                        if (!world.customCities) {
-                            // The custom layer replaces the stock one, so flag it on —
-                            // otherwise the new feature would never render.
-                            await writeWorldState({ ...world, customCities: true });
-                        }
-                        setStatus(`${name} placed. The map picks it up within a few seconds.`);
-                    } catch (error) {
-                        setStatus(`Failed: ${error.message}`);
-                    }
+            <input style={inputStyle} value={fields.name ?? ""} onChange={(event) => setFields({ ...fields, name: event.target.value })} placeholder={isCity ? "Alexandria" : (isUnit ? "27th Infantry Division" : "Busan Hydrogen Terminal")} />
+
+            {isUnit ? (
+                <>
+                <label style={labelStyle}>Branch</label>
+                {/* The scenario may restrict which branches exist — no air arm in
+                    1200. That restriction lived in the old Forces deploy form and
+                    had to come with it. */}
+                <div style={{ display: "grid", gap: "0.25rem", gridTemplateColumns: "repeat(auto-fill, minmax(5.1rem, 1fr))" }}>
+                {deployableTypes.map((type) => {
+                    const active = type === (fields.unitType ?? deployableTypes[0] ?? "infantry");
+                    return (
+                        <button
+                        key={type}
+                        type="button"
+                        title={type}
+                        onClick={() => setFields({ ...fields, unitType: type })}
+                        style={{
+                            alignItems: "center",
+                            background: active ? "rgba(59,130,246,0.28)" : "rgba(255,255,255,0.05)",
+                            border: active ? "1px solid rgba(96,165,250,0.75)" : "1px solid rgba(255,255,255,0.12)",
+                            borderRadius: 8,
+                            color: "white",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.1rem",
+                            padding: "0.35rem 0.2rem",
+                        }}
+                        >
+                        <span style={{ fontSize: "1rem", lineHeight: 1 }}>{UNIT_TYPE_EMOJI[type]}</span>
+                        <span data-no-translate="" style={{ fontSize: "0.62rem", whiteSpace: "nowrap" }}>{unitTypeLabel(type)}</span>
+                        </button>
+                    );
+                })}
+                </div>
+                <label style={labelStyle}>Owner</label>
+                <PolitySelect polities={polities} value={fields.ownerCode ?? ""} onChange={(ownerCode) => setFields({ ...fields, ownerCode })} placeholder={game?.country || "Pick a country…"} />
+                <label style={labelStyle}>Strength</label>
+                <input style={inputStyle} type="number" min={1} max={1000} value={fields.strength ?? "100"} onChange={(event) => setFields({ ...fields, strength: event.target.value })} />
+                <label style={labelStyle}>Standing orders (the AI rewrites this)</label>
+                <input style={inputStyle} value={fields.note ?? ""} onChange={(event) => setFields({ ...fields, note: event.target.value })} placeholder="Holding the eastern approach" />
+                <label style={labelStyle}>📖 History &amp; lore</label>
+                <textarea
+                value={fields.history ?? ""}
+                onChange={(event) => setFields({ ...fields, history: event.target.value.slice(0, 600) })}
+                placeholder="Raised in 1953 from the survivors of the Chosin withdrawal."
+                rows={3}
+                style={{ ...inputStyle, fontFamily: "inherit", lineHeight: 1.45, resize: "vertical" }}
+                />
+                </>
+            ) : isCity ? (
+                <>
+                <label style={labelStyle}>Tier (1 town … 4 capital)</label>
+                <input style={inputStyle} type="number" min={1} max={4} value={fields.tier ?? "2"} onChange={(event) => setFields({ ...fields, tier: event.target.value })} />
+                <label style={labelStyle}>Population (optional)</label>
+                <input style={inputStyle} value={fields.population ?? ""} onChange={(event) => setFields({ ...fields, population: event.target.value })} />
+                </>
+            ) : (
+                <>
+                <label style={labelStyle}>Kind</label>
+                <KindPicker value={fields.kind ?? ""} onChange={(kind) => setFields({ ...fields, kind })} />
+                {!String(fields.kind ?? "").trim() && inferFeatureKind(name) && (
+                    <div style={{ color: "rgba(191,219,254,0.85)", fontSize: "0.7rem", marginTop: "0.25rem" }}>
+                    Left blank, this name reads as {labelForFeatureKind(inferFeatureKind(name))}.
+                    </div>
+                )}
+                <label style={labelStyle}>Owner</label>
+                <PolitySelect polities={polities} value={fields.ownerCode ?? ""} onChange={(ownerCode) => setFields({ ...fields, ownerCode })} placeholder="Nobody in particular" />
+                <label style={labelStyle}>Size</label>
+                <SizeField value={fields.size} onChange={(size) => setFields({ ...fields, size })} />
+                <label style={labelStyle}>Note (optional)</label>
+                <input style={inputStyle} value={fields.note ?? ""} onChange={(event) => setFields({ ...fields, note: event.target.value })} placeholder="What this place is for" />
+                </>
+            )}
+
+            <label style={labelStyle}>Position</label>
+            <CoordinateFields
+            lng={fields.lng}
+            lat={fields.lat}
+            picking={Boolean(clickMode)}
+            onChange={(next) => setFields({ ...fields, ...next })}
+            onPick={() => {
+                if (!name) {
+                    setStatus("Give it a name first.");
+                    return;
+                }
+                beginClickMode(`Click the map where “${name}” goes`, (props) => {
+                    if (!props?.lngLat) return;
+                    endClickMode();
+                    void place(props.lngLat.lng, props.lngLat.lat);
                 });
             }}
-            style={{ ...primaryButtonStyle, marginTop: "0.7rem", width: "100%" }}
+            />
+
+            <button
+            type="button"
+            disabled={busy || !name || !hasPosition}
+            onClick={() => place(lng, lat)}
+            style={{ ...primaryButtonStyle, marginTop: "0.7rem", opacity: (!name || !hasPosition) ? 0.5 : 1, width: "100%" }}
             >
-            Place on map
+            {isCity ? "Add city" : (isUnit ? "Deploy army" : "Add structure")}
             </button>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", marginTop: "0.5rem" }}>
-            On maps that still use the standard world cities, adding the first custom feature switches the map to custom features only.
+            {isCity
+                ? "On maps that still use the standard world cities, adding the first custom feature switches the map to custom features only."
+                : "Picking on the map places it straight away; typing coordinates needs the button."}
             </div>
             {statusLine}
             </div>
@@ -1323,8 +1931,146 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
     if (tool === "events") {
         const events = items?.events ?? [];
         const history = items?.history ?? [];
+        const consolidations = items?.consolidations ?? [];
         const q = search.trim().toLowerCase();
         const matches = (text) => !q || String(text).toLowerCase().includes(q);
+
+        // THE ORIGINAL'S SECOND TAB. Events → Consolidations: read the compressed
+        // summaries the AI actually remembers old rounds by, edit their content,
+        // delete one, and adjust the consolidation settings — which render here
+        // as the SAME panel Settings shows, not a copy of it.
+        const activeTab = fields.eventsTab === "consolidations" ? "consolidations" : "rounds";
+        const tabStrip = (
+            <div style={{ display: "flex", flexShrink: 0, gap: "0.3rem", marginBottom: "0.5rem" }}>
+            {[
+                { id: "rounds", label: `Rounds (${history.length})` },
+                { id: "consolidations", label: `Consolidations (${consolidations.length})` },
+            ].map((tab) => (
+                <button
+                key={tab.id}
+                type="button"
+                onClick={() => { setFields({ ...fields, eventsTab: tab.id }); setEditingId(null); }}
+                style={{
+                    background: activeTab === tab.id ? "rgba(59,130,246,0.28)" : "rgba(255,255,255,0.05)",
+                    border: activeTab === tab.id ? "1px solid rgba(96,165,250,0.75)" : "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: 999,
+                    color: "white",
+                    cursor: "pointer",
+                    flex: 1,
+                    fontSize: "0.72rem",
+                    fontWeight: activeTab === tab.id ? 700 : 500,
+                    padding: "0.32rem 0.5rem",
+                }}
+                >
+                {tab.label}
+                </button>
+            ))}
+            </div>
+        );
+
+        if (activeTab === "consolidations") {
+            const persistConsolidations = async (nextList, message) => {
+                const world = await readWorldState({ force: true });
+                await writeWorldState({ ...world, consolidatedHistory: nextList });
+                setItems({ ...items, consolidations: nextList });
+                return message;
+            };
+            const newestIndex = consolidations.length - 1;
+            return (
+                <>
+                {header(meta.title, meta.subtitle)}
+                <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
+                {tabStrip}
+                <div style={{ minHeight: 0, overflowY: "auto", paddingRight: "0.2rem" }}>
+                <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.72rem", lineHeight: 1.5, marginBottom: "0.6rem" }}>
+                Each entry is the compressed memory the AI reads INSTEAD of the old rounds it covers. Edit one to reshape what the campaign remembers. Deleting the newest entry makes its rounds eligible for re-consolidation; deleting an older one just removes its paragraph.
+                </div>
+                {consolidations.length === 0 && (
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem" }}>
+                    None yet — consolidation begins once the campaign passes the starting round set below.
+                    </div>
+                )}
+                {consolidations.map((entry, index) => ({ entry, index })).reverse().map(({ entry, index }) => {
+                    const isEditing = editingId === `consol-${index}`;
+                    const summary = String(entry?.summary ?? "");
+                    return (
+                        <div key={`consol-${index}`} style={{ background: "rgba(14,116,144,0.10)", border: "1px solid rgba(103,232,249,0.28)", borderRadius: 8, marginBottom: "0.4rem", padding: "0.5rem 0.6rem" }}>
+                        <div style={{ alignItems: "center", display: "flex", gap: "0.4rem", justifyContent: "space-between" }}>
+                        <div
+                        onClick={() => { setEditingId(isEditing ? null : `consol-${index}`); setFields({ ...fields, consText: summary }); }}
+                        title={isEditing ? "Click to close the editor" : "Click to edit this consolidation"}
+                        style={{ cursor: "pointer", minWidth: 0 }}
+                        >
+                        <span style={{ fontSize: "0.78rem", fontWeight: 700 }}>
+                        #{index + 1}{index === newestIndex ? " · newest" : ""}
+                        </span>
+                        <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem" }}>
+                        {" "}· through <span data-no-translate>{entry?.throughDate || "?"}</span>
+                        {entry?.throughRound ? <> · round <span data-no-translate>{entry.throughRound}</span></> : null}
+                        {" "}· <span data-no-translate>{summary.length}</span> chars
+                        </span>
+                        </div>
+                        <button
+                        type="button"
+                        style={{ ...buttonStyle, flexShrink: 0, padding: "0.2rem 0.5rem" }}
+                        disabled={busy}
+                        onClick={() => runBusy(async () => persistConsolidations(
+                            consolidations.filter((_, i) => i !== index),
+                            index === newestIndex
+                                ? "Consolidation deleted — its rounds' events are eligible for re-consolidation on the next run."
+                                : "Consolidation deleted.",
+                        ))}
+                        >
+                        🗑
+                        </button>
+                        </div>
+                        {isEditing ? (
+                            <div style={{ marginTop: "0.4rem" }}>
+                            <textarea
+                            value={fields.consText ?? ""}
+                            onChange={(event) => setFields({ ...fields, consText: event.target.value })}
+                            style={{ ...inputStyle, minHeight: "9rem", resize: "vertical" }}
+                            />
+                            <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem" }}>
+                            <button
+                            type="button"
+                            disabled={busy}
+                            style={{ ...primaryButtonStyle, padding: "0.3rem 0.8rem" }}
+                            onClick={() => runBusy(async () => {
+                                const text = String(fields.consText ?? "").trim();
+                                setEditingId(null);
+                                if (!text) return "Nothing saved — a consolidation cannot be blank (delete it instead).";
+                                return persistConsolidations(
+                                    consolidations.map((item, i) => (i === index ? { ...item, summary: text } : item)),
+                                    "Consolidation updated — the AI reads the new text from the next turn.",
+                                );
+                            })}
+                            >
+                            Save
+                            </button>
+                            <button type="button" style={{ ...buttonStyle, padding: "0.3rem 0.8rem" }} onClick={() => setEditingId(null)}>
+                            Cancel
+                            </button>
+                            </div>
+                            </div>
+                        ) : (
+                            <div style={{ color: "rgba(255,255,255,0.62)", fontSize: "0.73rem", lineHeight: 1.45, marginTop: "0.25rem", maxHeight: "5.6rem", overflow: "hidden", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                            {summary.length > 420 ? `${summary.slice(0, 420)}…` : summary}
+                            </div>
+                        )}
+                        </div>
+                    );
+                })}
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.8)", fontSize: "0.68rem", fontWeight: 800, letterSpacing: "0.06em", margin: "0.9rem 0 0.5rem", paddingTop: "0.6rem", textTransform: "uppercase" }}>
+                Consolidation settings
+                </div>
+                <ConsolidationPanel />
+                </div>
+                {statusLine}
+                </div>
+                </>
+            );
+        }
 
         // Round grouping mirroring the Event Manager: each recorded turn shows
         // the actions the player had submitted (BLUE) and the events the turn
@@ -1433,6 +2179,7 @@ const ToolView = ({ tool, header, busy, status, game, polities, refresh, runBusy
             <>
             {header(meta.title, meta.subtitle)}
             <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
+            {tabStrip}
             <input style={inputStyle} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search this round…" />
             {groups.length === 0 && (
                 <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.76rem", marginTop: "0.6rem" }}>No rounds recorded yet.</div>

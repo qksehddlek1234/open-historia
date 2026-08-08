@@ -24,7 +24,11 @@ import {
 
 const CACHE_PREFIX = "i18n_cache_";
 const CACHE_LIMIT = 8000;
-const BATCH_SIZE = 60;
+// 60 strings in one JSON array was more than the smallest configured model could
+// hold together — it is the batch size that produces the hybrids the guard above
+// now catches. Smaller batches cost more round trips in principle; in practice the
+// script-aware filter above removed most of the volume, so this is cheaper overall.
+const BATCH_SIZE = 24;
 const MAX_CONCURRENT_BATCHES = 3;
 const SCAN_DEBOUNCE_MS = 350;
 const MAX_CONSECUTIVE_FAILURES = 3;
@@ -86,10 +90,43 @@ const announceUpdate = () => {
   }, 800);
 };
 
+// The hybrid guard has to run on READ as well as on write, and this is the half
+// that was missing. Rejecting a bad translation at the moment it is generated
+// does nothing about the ones already sitting in localStorage and in the shared
+// server pack from before the guard existed — those are merged straight into the
+// cache and applied forever, which is why "Chagang-do" kept coming back as
+// "차anggan도" in a brand-new scenario: the corruption does not live in the
+// scenario at all, it lives in the language cache, and a language cache outlives
+// every game in it. Measured on one real device: 6,462 cached strings, 70 with
+// Han characters bled into Korean and 10 with a romanised run left inside a
+// Hangul word ("Karuzi" → "카ruz이", "Leningrad" → "레ninger드").
+//
+// Dropping an entry is cheap and self-healing: the string falls back to English,
+// gets queued for translation again, and if the model produces another hybrid the
+// write guard keeps the English. Nothing is lost that was worth keeping.
+export const dropCorrupted = (pairs, label) => {
+  const kept = [];
+  let dropped = 0;
+  for (const [source, translated] of pairs) {
+    if (typeof source !== "string" || typeof translated !== "string") continue;
+    if (looksMistranslated(translated)) { dropped += 1; continue; }
+    kept.push([source, translated]);
+  }
+  if (dropped > 0) {
+    console.info(`[i18n] dropped ${dropped} corrupted cached translation(s) from the ${label}; they will be retranslated.`);
+  }
+  return kept;
+};
+
 const loadCache = () => {
   try {
     const raw = localStorage.getItem(cacheKey());
-    cache = new Map(Object.entries(raw ? JSON.parse(raw) : {}));
+    const stored = Object.entries(raw ? JSON.parse(raw) : {});
+    const clean = dropCorrupted(stored, "local cache");
+    cache = new Map(clean);
+    // Rewrite immediately when anything was dropped, so a cache that has been
+    // cleaned once does not pay for it on every boot.
+    if (clean.length !== stored.length) persistCache();
   } catch {
     cache = new Map();
   }
@@ -136,9 +173,56 @@ const updateProgress = () => {
 // Only strings with real words need translating; glyphs, numbers, dates-only
 // fragments and emoji stay as-is. The authored language is English, so
 // requiring two Latin letters is a safe "has words" test.
+// Scripts that are unmistakably NOT English. When the player's language uses one
+// of these, a string already written in it has nothing to gain from a round trip
+// through the translation model — and a great deal to lose.
+//
+// This is the fix for two problems that turned out to be the same problem. Most of
+// the text on screen is AI-generated, and every AI call already carries a directive
+// to write in the player's language, so it arrives in Korean. But the old test was
+// just "does this contain two Latin letters", and Korean prose is full of them —
+// "AI", "GDP", "6G", a country code. So the game's own Korean output was being fed
+// back through an 8B translation model, which returned things like "[기술 기반外交]"
+// and "차anggan도": half-translated hybrids that read as corruption to the player.
+// Every one of those round trips also competed with the advisor for the single GPU,
+// which is why an advisor reply that should stream in seconds took minutes.
+//
+// Latin-script targets (French, German) are deliberately NOT listed: "Berlin" is
+// spelled the same either way, so script tells you nothing there and the existing
+// cache/exact-match path already handles it.
+const NON_LATIN_SCRIPTS = {
+  ar: /[\u0600-\u06ff]/g,
+  el: /[\u0370-\u03ff]/g,
+  fa: /[\u0600-\u06ff]/g,
+  he: /[\u0590-\u05ff]/g,
+  hi: /[\u0900-\u097f]/g,
+  ja: /[\u3040-\u30ff\u4e00-\u9fff]/g,
+  ko: /[\uac00-\ud7af\u1100-\u11ff]/g,
+  ru: /[\u0400-\u04ff]/g,
+  th: /[\u0e00-\u0e7f]/g,
+  uk: /[\u0400-\u04ff]/g,
+  ur: /[\u0600-\u06ff]/g,
+  zh: /[\u4e00-\u9fff]/g,
+};
+
+// True when the string is ALREADY in the player's language, judged by script.
+// One stray Hangul syllable is not enough — a mostly-English string with a single
+// Korean word in it still wants translating — so this asks whether the target
+// script carries the string rather than merely appears in it.
+const isAlreadyInTargetScript = (text) => {
+  const pattern = NON_LATIN_SCRIPTS[language];
+  if (!pattern) return false;
+  const target = (text.match(pattern) ?? []).length;
+  if (target === 0) return false;
+  const latin = (text.match(/[A-Za-z]/g) ?? []).length;
+  return target >= latin;
+};
+
 const isTranslatable = (text) => {
   const trimmed = text.trim();
-  return trimmed.length > 1 && trimmed.length < 3000 && /[A-Za-z]{2}/.test(trimmed);
+  if (trimmed.length <= 1 || trimmed.length >= 3000) return false;
+  if (!/[A-Za-z]{2}/.test(trimmed)) return false;
+  return !isAlreadyInTargetScript(trimmed);
 };
 
 const applyToTextNode = (node, translated) => {
@@ -302,6 +386,34 @@ const extractJsonArray = (raw) => {
   }
 };
 
+// A returned translation that is visibly broken. The model doing this work is the
+// smallest one configured, and when it slips it does not fail — it returns a
+// plausible-looking hybrid, which is worse than the English it replaced. Two
+// signals catch nearly all of it, both conservative enough to leave good
+// translations alone:
+//
+//   Han characters in KOREAN output. Modern Korean UI text does not use Hanja, so
+//   "[기술 기반外交]" is the model reaching for the wrong script mid-string. (Not
+//   applied to ja/zh, where Han is simply correct.)
+//
+//   Latin glued INSIDE a run of the target script — "차anggan도", where the model
+//   translated the start and end of a word and left the middle romanised. Latin
+//   ADJACENT to Hangul is normal ("AI반도체"), so this only fires when target-script
+//   characters sit on BOTH sides of a lowercase Latin run.
+const MISTRANSLATION_CHECKS = {
+  ko: [/[\u4e00-\u9fff]/, /[\uac00-\ud7af][a-z]{2,}[\uac00-\ud7af]/],
+  ru: [/[\u0400-\u04ff][a-z]{2,}[\u0400-\u04ff]/],
+  uk: [/[\u0400-\u04ff][a-z]{2,}[\u0400-\u04ff]/],
+  el: [/[\u0370-\u03ff][a-z]{2,}[\u0370-\u03ff]/],
+  th: [/[\u0e00-\u0e7f][a-z]{2,}[\u0e00-\u0e7f]/],
+};
+
+export const looksMistranslated = (translated) => {
+  const checks = MISTRANSLATION_CHECKS[language];
+  if (!checks) return false;
+  return checks.some((pattern) => pattern.test(translated));
+};
+
 const translateBatch = async (strings) => {
   // Late import: translator boots at app start, before the AI module's
   // dependency chain (prompt packs, provider config) needs to exist.
@@ -334,6 +446,20 @@ const processQueue = async () => {
   if (inFlight || stopped || pending.size === 0 || Date.now() < cooldownUntil) {
     return;
   }
+  // A turn in progress owns the GPU. Translating now makes a single-GPU local
+  // server swap models to serve this smaller role, which kills the turn's
+  // in-flight request (net::ERR_FAILED) and costs the player the whole turn.
+  // The queue just waits — nothing is dropped, and everything still gets
+  // translated the moment the turn finishes.
+  try {
+    const { isHeavyAiTaskRunning } = await import("../Game/AI/main.jsx");
+    if (isHeavyAiTaskRunning()) {
+      scheduleScan();
+      return;
+    }
+  } catch {
+    // If that signal is unavailable, behave exactly as before.
+  }
 
   inFlight = true;
   try {
@@ -362,6 +488,16 @@ const processQueue = async () => {
           const translated = typeof result.translations[index] === "string"
             ? result.translations[index].trim()
             : "";
+          // Leave the English in place rather than caching a hybrid: a broken
+          // translation would otherwise be pinned for the session AND synced up to
+          // the shared language pack, spreading one bad batch to every device.
+          // Dropped from `pending` either way so a persistently bad string cannot
+          // spin the queue forever.
+          if (translated && looksMistranslated(translated)) {
+            console.warn(`[i18n] discarded a malformed translation: ${JSON.stringify(source)} -> ${JSON.stringify(translated)}`);
+            pending.delete(source);
+            return;
+          }
           cache.set(source, translated || source);
           unsyncedEntries[source] = translated || source;
           pending.delete(source);
@@ -559,10 +695,13 @@ const loadServerPack = async () => {
     const response = await fetch(`/api/lang/${language}`);
     if (!response.ok) return;
     const pack = await response.json();
-    for (const [source, translated] of Object.entries(pack ?? {})) {
-      if (typeof source === "string" && typeof translated === "string" && !cache.has(source)) {
-        cache.set(source, translated);
-      }
+    // Same guard as the local cache, for the same reason — and it matters MORE
+    // here: the pack is shared, so one device that cached a hybrid before the
+    // write guard existed hands it to every other device and every future
+    // session. Filtering on merge means a poisoned pack entry simply never
+    // enters play, without needing the pack itself to be rewritten.
+    for (const [source, translated] of dropCorrupted(Object.entries(pack ?? {}), "server language pack")) {
+      if (!cache.has(source)) cache.set(source, translated);
     }
     persistCache();
   } catch {
@@ -583,6 +722,10 @@ const whenStartupScreenGone = () => new Promise((resolve) => {
   };
   check();
 });
+
+// Test seam: the guards read module-level `language`, and there is no other way
+// to exercise them per-language from outside.
+export const __setLanguageForTests = (code) => { language = code; };
 
 export const startTranslator = () => {
   if (typeof document === "undefined") {

@@ -22,8 +22,22 @@ import {
     MAP_SETTING_KEYS,
     getMapSetting,
     setMapSetting,
+    useMapSetting,
+    setMapChoice,
+    useMapChoice,
+    getContextTokens,
+    setContextTokens,
+    DISPLAY_BOUNDS,
+    DISPLAY_DEFAULTS,
+    getDisplayScale,
+    setDisplayScale,
+    CONSOLIDATION_BOUNDS,
+    CONSOLIDATION_DEFAULTS,
+    getConsolidationSettings,
+    setConsolidationSetting,
 } from "../../runtime/mapSettings.js";
-import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
+import { ESRI_BASEMAPS, OHM_BASEMAP_ID, JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
+import { readGameData } from "../../runtime/gameState.js";
 import {
     PROMPT_SECTION_DEFINITIONS,
     normalizePromptPack,
@@ -886,6 +900,267 @@ const Section = ({ title, icon, defaultOpen = false, children }) => {
     );
 };
 
+// THE BASEMAP PICKER THAT WAS NEVER THERE.
+//
+// Ten ESRI basemaps ship and are fully wired — tile template, max zoom, protocol
+// handler, preloader all take an id — and nothing could ever set that id. Map/
+// World.jsx said so outright: "the in-game basemap picker was removed". Every
+// campaign has run on the "ocean" default since.
+//
+// A scenario may declare its own basemap, and a scenario with a custom uploaded
+// background replaces ESRI entirely; neither is overridden here. This sets the
+// PLAYER's preference, and "Scenario default" clears it.
+const BasemapPicker = () => {
+    const chosen = useMapChoice(MAP_SETTING_KEYS.basemapStyle);
+    const options = [
+        { id: "", label: "Scenario default" },
+        ...ESRI_BASEMAPS.map(({ id, label }) => ({ id, label })),
+        // Plan F: the era's own map under the political one. A vector style,
+        // date-filtered to the campaign clock — see World.jsx.
+        { id: OHM_BASEMAP_ID, label: "OpenHistoricalMap (era)" },
+    ];
+    return (
+        <div style={{ marginTop: "0.5rem" }}>
+        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem" }}>Map style</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+        {options.map((option) => {
+            const active = chosen === option.id;
+            return (
+                <button
+                key={option.id || "default"}
+                type="button"
+                onClick={() => setMapChoice(MAP_SETTING_KEYS.basemapStyle, option.id)}
+                style={{
+                    background: active ? "rgba(59,130,246,0.3)" : "rgba(255,255,255,0.06)",
+                    border: `1px solid ${active ? "rgba(96,165,250,0.7)" : "rgba(255,255,255,0.14)"}`,
+                    borderRadius: "999px",
+                    color: active ? "#bfdbfe" : "rgba(255,255,255,0.75)",
+                    cursor: "pointer",
+                    fontSize: "0.72rem",
+                    fontWeight: active ? 700 : 500,
+                    padding: "0.3rem 0.7rem",
+                }}
+                >
+                {option.label}
+                </button>
+            );
+        })}
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "0.4rem" }}>
+        Tiles come from ESRI and are cached as you browse. A scenario that ships its own uploaded map ignores this.
+        {" "}OpenHistoricalMap instead draws the world AS IT WAS on the campaign's current date — community-mapped, so coverage varies a lot by era and region (an empty countryside means nobody has mapped its history yet), and it needs the internet.
+        </div>
+        </div>
+    );
+};
+
+// PLAN F'S OTHER HALF: THE ATLASES THE GAME MAY POINT AT BUT NEVER COPY.
+//
+// Omniatlas and GeaCron are hand-authored commercial atlases — all rights
+// reserved, no API, data licensed only by arrangement. Drawing their borders
+// into the game the way OpenHistoricalMap's open data is drawn would be
+// plain copyright infringement, however useful. What linking CAN deliver is
+// the accuracy check itself: Omniatlas deep-links to a specific date (an
+// arbitrary date lands on the nearest published map, verified live), so one
+// click opens the professional cartography for the campaign's exact moment
+// next to our map. GeaCron's atlas takes no date parameter; it opens at its
+// own start and the year is picked inside.
+const OMNIATLAS_REGIONS = [
+    { id: "east-asia", label: "East Asia" },
+    { id: "europe", label: "Europe" },
+    { id: "asia-pacific", label: "Asia-Pacific" },
+    { id: "south-asia", label: "South Asia" },
+    { id: "southeast-asia", label: "Southeast Asia" },
+    { id: "northern-eurasia", label: "Northern Eurasia" },
+    { id: "eastern-mediterranean", label: "Eastern Mediterranean" },
+    { id: "northern-africa", label: "Northern Africa" },
+    { id: "sub-saharan-africa", label: "Sub-Saharan Africa" },
+    { id: "north-america", label: "North America" },
+    { id: "south-america", label: "South America" },
+];
+
+const EraAtlasLinks = () => {
+    const region = useMapChoice(MAP_SETTING_KEYS.atlasRegion) || "east-asia";
+    const openOmniatlas = async () => {
+        // The date is read at click time — a settings panel must not poll the
+        // game clock for a button nobody may press.
+        let stamp = "";
+        try {
+            const game = await readGameData({ force: true });
+            stamp = String(game?.gameDate || game?.startDate || "").replaceAll("-", "");
+        } catch { /* fall through to the undated index */ }
+        const url = /^\d{8}$/.test(stamp)
+            ? `https://omniatlas.com/maps/${region}/${stamp}/`
+            : "https://omniatlas.com/maps/";
+        window.open(url, "_blank", "noopener");
+    };
+    const linkStyle = {
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.14)",
+        borderRadius: "999px",
+        color: "rgba(255,255,255,0.8)",
+        cursor: "pointer",
+        fontSize: "0.72rem",
+        padding: "0.3rem 0.7rem",
+    };
+    return (
+        <div style={{ marginTop: "0.7rem" }}>
+        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.4rem" }}>Era atlas cross-reference</div>
+        <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+        <select
+        value={region}
+        onChange={(event) => setMapChoice(MAP_SETTING_KEYS.atlasRegion, event.target.value)}
+        style={{ background: "rgba(0,0,0,0.28)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 8, color: "white", cursor: "pointer", fontSize: "0.72rem", padding: "0.28rem 0.4rem" }}
+        >
+        {OMNIATLAS_REGIONS.map((entry) => (
+            <option key={entry.id} value={entry.id} style={{ color: "black" }}>{entry.label}</option>
+        ))}
+        </select>
+        <button type="button" style={linkStyle} onClick={openOmniatlas}>
+        Omniatlas — this date ↗
+        </button>
+        <button type="button" style={linkStyle} onClick={() => window.open("https://geacron.com/map/atlas/mapal.html", "_blank", "noopener")}>
+        GeaCron atlas ↗
+        </button>
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "0.4rem" }}>
+        Professional historical atlases, opened beside the game to check borders against — Omniatlas lands on its map nearest the campaign's current date; GeaCron's year is picked inside. Both are copyrighted reference works: the game links to them and never copies their data.
+        </div>
+        </div>
+    );
+};
+
+// THE THREE DIALS THE ORIGINAL HAS AND THIS DID NOT.
+//
+// Zoom sensitivity, border thickness, feature size. Each multiplies the curve the
+// map already computes rather than replacing it, so the zoom-dependent tuning
+// survives and 1.0 is exactly what shipped.
+const DISPLAY_SLIDERS = [
+    { name: "zoomSensitivity", label: "Zoom sensitivity", hint: "How far one wheel click or trackpad swipe travels." },
+    { name: "borderWidth", label: "Border thickness", hint: "Country borders and province lines together, each keeping its weight relative to the other. Province lines gain opacity as well as width, since at 14% they are too faint for width alone to show. They stay hidden until you are inside a country." },
+    { name: "featureSize", label: "Feature size", hint: "How big structures, bases and cities draw on the map." },
+];
+
+const DisplayScalePanel = () => {
+    const [values, setValues] = useState(() => Object.fromEntries(
+        DISPLAY_SLIDERS.map((slider) => [slider.name, getDisplayScale(slider.name)]),
+    ));
+    const absolute = useMapSetting(MAP_SETTING_KEYS.featureSizeAbsolute);
+    return (
+        <div>
+        {DISPLAY_SLIDERS.map((slider) => {
+            const [min, max] = DISPLAY_BOUNDS[slider.name];
+            const value = values[slider.name];
+            return (
+                <div key={slider.name} style={{ marginBottom: "0.85rem" }}>
+                <div style={{ alignItems: "baseline", display: "flex", justifyContent: "space-between", marginBottom: "0.2rem" }}>
+                <span style={{ fontSize: "0.82rem", fontWeight: 600 }}>{slider.label}</span>
+                <button
+                type="button"
+                onClick={() => {
+                    setValues((current) => ({ ...current, [slider.name]: DISPLAY_DEFAULTS[slider.name] }));
+                    setDisplayScale(slider.name, DISPLAY_DEFAULTS[slider.name]);
+                }}
+                style={{
+                    background: "none", border: "none", color: "rgba(147,197,253,0.85)",
+                    cursor: "pointer", fontSize: "0.72rem", padding: 0,
+                }}
+                >
+                {value.toFixed(2)}× · reset
+                </button>
+                </div>
+                <input
+                type="range"
+                min={min}
+                max={max}
+                step={0.05}
+                value={value}
+                onChange={(event) => {
+                    const next = Number(event.target.value);
+                    setValues((current) => ({ ...current, [slider.name]: next }));
+                    setDisplayScale(slider.name, next);
+                }}
+                style={{ accentColor: "#3b82f6", width: "100%" }}
+                />
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35 }}>{slider.hint}</div>
+                </div>
+            );
+        })}
+        <Toggle
+        label="Uniform feature size"
+        enabled={absolute}
+        onToggle={() => setMapSetting(MAP_SETTING_KEYS.featureSizeAbsolute, !absolute)}
+        />
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "-0.7rem" }}>
+        Off (default): a feature draws at its own recorded importance, so a monumental
+        works reads bigger than an outpost. On: every feature draws the same size,
+        which scans better when the map is a working document.
+        </div>
+        </div>
+    );
+};
+
+// CONSOLIDATION, WHICH THE ORIGINAL EXPOSES AND THIS DID NOT.
+//
+// Every few rounds the campaign's older events are compressed into a summary so
+// the prompt stops growing forever. When that fires was four constants in
+// gameplay.js that nothing could reach — and on a local model with a fixed
+// context window it is one of the few settings that decides whether a turn's
+// prompt fits at all. The original ships it as an advanced settings page.
+const CONSOLIDATION_FIELDS = [
+    { name: "startRound", label: "First round it may run", hint: "Early rounds are the ones later turns most need verbatim, and the cheapest to carry." },
+    { name: "intervalRounds", label: "Run every N rounds", hint: "How often after that." },
+    { name: "retainEvents", label: "Recent events always kept whole", hint: "Never compressed. Compressing what just happened is how a campaign loses the thread." },
+    { name: "sizeThreshold", label: "Force a run past N unconsolidated", hint: "Fires early when the backlog grows regardless of the round." },
+];
+
+// Exported: the Events tool's Consolidations tab renders the SAME panel, so the
+// original's arrangement (settings adjustable from the consolidations view) holds
+// without a second copy of the sliders drifting from this one.
+export const ConsolidationPanel = () => {
+    const [values, setValues] = useState(() => getConsolidationSettings());
+    return (
+        <div>
+        {CONSOLIDATION_FIELDS.map((field) => {
+            const [min, max] = CONSOLIDATION_BOUNDS[field.name];
+            return (
+                <div key={field.name} style={{ marginBottom: "0.7rem" }}>
+                <div style={{ fontSize: "0.8rem", fontWeight: 600, marginBottom: "0.25rem" }}>{field.label}</div>
+                <input
+                type="number"
+                min={min}
+                max={max}
+                value={values[field.name]}
+                onChange={(event) => {
+                    const next = Number(event.target.value);
+                    setValues((current) => ({ ...current, [field.name]: next }));
+                    setConsolidationSetting(field.name, next);
+                }}
+                style={{
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.14)",
+                    borderRadius: "8px",
+                    color: "rgba(255,255,255,0.9)",
+                    fontSize: "0.8rem",
+                    padding: "0.35rem 0.55rem",
+                    width: "6rem",
+                }}
+                />
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "0.25rem" }}>
+                {field.hint} Default {CONSOLIDATION_DEFAULTS[field.name]}, range {min}–{max}.
+                </div>
+                </div>
+            );
+        })}
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35 }}>
+        Takes effect on the next turn. Nothing is destroyed by a consolidation — the
+        events stay in the save and in the Event Manager; they just stop riding in
+        every prompt.
+        </div>
+        </div>
+    );
+};
+
 // "Prompts & Rules" — the original game's in-game prompt editor, recreated:
 // a player-authored Simulation Rules text that rides on every simulation task
 // (the local equivalent of a preset's 시뮬레이션 규칙), plus per-mechanism AI
@@ -1052,6 +1327,7 @@ const SettingsMenu = ({
 }) => {
     const selectedProvider = apiProvider ?? DEFAULT_PROVIDER;
 
+    const [contextTokens, setContextTokensState] = useState(() => getContextTokens());
     const [mapSettings, setMapSettingsState] = useState(() => ({
         hideCountryLabels: getMapSetting(MAP_SETTING_KEYS.hideCountryLabels),
         disableIdleRotation: getMapSetting(MAP_SETTING_KEYS.disableIdleRotation),
@@ -1126,6 +1402,37 @@ const SettingsMenu = ({
         On: time skips give the model 5 minutes, then fall back to canned events. Off (default): generation waits as long as the model needs. Cancel works either way.
         </div>
         </div>
+
+        <div style={{ marginTop: "0.9rem" }}>
+        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.35rem" }}>Model context window (tokens)</div>
+        <input
+        type="number"
+        min={4096}
+        step={1024}
+        value={contextTokens}
+        onChange={(event) => {
+            const next = Number(event.target.value);
+            setContextTokensState(next);
+            setContextTokens(next);
+        }}
+        style={{
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.14)",
+            borderRadius: "8px",
+            color: "rgba(255,255,255,0.9)",
+            fontSize: "0.8rem",
+            padding: "0.4rem 0.6rem",
+            width: "9rem",
+        }}
+        />
+        <div style={{ marginTop: "0.35rem", fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.35 }}>
+        How much room the prompt may take, and how much is held back for the answer. Set it to what your server actually runs with — for Ollama that is OLLAMA_CONTEXT_LENGTH, or a Modelfile num_ctx. This does not change the server: budgeting for more room than the server has is what makes a busy turn come back unparseable.
+        </div>
+        </div>
+        </Section>
+
+        <Section title="History Consolidation" icon="🗜" defaultOpen={false}>
+        <ConsolidationPanel />
         </Section>
 
         <Section title="Prompts & Rules" icon="📜" defaultOpen={false}>
@@ -1159,6 +1466,10 @@ const SettingsMenu = ({
         <Toggle label="3D Terrain" enabled={isTerrainEnabled} onToggle={onToggleTerrain} />
         <div style={{ margin: "0.5rem 0 0", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
         <div style={{ fontSize: "0.84rem", fontWeight: 700, marginBottom: "0.6rem" }}>Map</div>
+        <BasemapPicker />
+        <EraAtlasLinks />
+        <div style={{ height: "0.9rem" }} />
+        <DisplayScalePanel />
         <Toggle
         label="Hide country labels"
         enabled={mapSettings.hideCountryLabels}

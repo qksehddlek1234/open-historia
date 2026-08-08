@@ -1,6 +1,9 @@
 /*! Open Historia — map feature (city/structure) selection UI © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { emojiForFeatureKind, labelForFeatureKind } from "../../runtime/featureKinds.js";
+import { findRelatedEvents } from "../../runtime/relatedEvents.js";
+import { readEventsState } from "../../runtime/gameState.js";
 import { useMap } from "react-map-gl/maplibre";
 import { useWorldState } from "../Map/useWorldState.js";
 import { useCountryDisplayName } from "../../runtime/polityNames.js";
@@ -35,34 +38,11 @@ export const dismissFeaturePopup = () => {
   if (_currentSelection) _dismiss?.();
 };
 
-// DOM-side emoji per kind (the on-map glyphs are font-limited; the popup isn't).
-const KIND_EMOJI = [
-  [/city|town|settlement|metropolis|capital/, "🏙"],
-  [/military base|army base|fort|fortress|barracks|garrison|outpost|citadel|castle/, "🏰"],
-  [/bunker|shelter/, "🛡"],
-  [/missile|silo|launch/, "🚀"],
-  [/embassy|consulate/, "🏛"],
-  [/port|harbor|harbour|naval/, "⚓"],
-  [/airbase|airfield|airport|air base/, "✈"],
-  [/nuclear|reactor|plant|power/, "⚡"],
-  [/factory|industrial|refinery|mine/, "🏭"],
-  [/radar|listening|intelligence|spy/, "📡"],
-  [/monument|memorial|shrine|temple|cathedral|mosque/, "🗿"],
-];
-
-const emojiForKind = (kind) => {
-  const normalized = String(kind || "").toLowerCase();
-  for (const [pattern, emoji] of KIND_EMOJI) {
-    if (pattern.test(normalized)) return emoji;
-  }
-  return "📍";
-};
-
-const titleCase = (value) =>
-  String(value || "")
-    .split(/\s+/)
-    .map((word) => (word ? word[0].toUpperCase() + word.slice(1) : word))
-    .join(" ");
+// The popup emoji comes from the shared catalogue (runtime/featureKinds.js).
+// It used to be a second list here that had drifted out of step with the one
+// deciding kinds — "medical center" and "airfield" were inferable kinds with no
+// emoji entry, so both drew the generic pin.
+const emojiForKind = (kind) => emojiForFeatureKind(kind);
 
 const TIER_LABEL = { 1: "Town", 2: "City", 3: "Major city", 4: "Capital" };
 
@@ -182,6 +162,33 @@ const FeaturePopup = () => {
   // Hook order must not depend on the selection — called before any return.
   const ownerName = useCountryDisplayName(liveMarker?.ownerCode || selection?.ownerCode || "");
 
+  // WHAT HAPPENED HERE. The original answers this for every feature you click,
+  // and it is the question a player actually has about a thing on their map.
+  // Loaded on demand so opening the popup stays as cheap as it was.
+  //
+  // ABOVE THE EARLY RETURN, like every other hook here, and the comment above
+  // says so for a reason: I put these three below it and shipped React error
+  // #310 — "rendered more hooks than during the previous render". With nothing
+  // selected the component returns at the guard having run eight hooks; select a
+  // feature and it runs eleven, and React tears the tree down. Keyed on
+  // `selection` rather than the derived `feature`, since that is what exists up
+  // here — and it is the identity that changes when the player clicks elsewhere.
+  const [showEvents, setShowEvents] = useState(false);
+  const [related, setRelated] = useState(null);
+
+  useEffect(() => { setShowEvents(false); setRelated(null); }, [selection?.id, selection?.name]);
+
+  useEffect(() => {
+    if (!showEvents || related !== null || !selection) return undefined;
+    let cancelled = false;
+    readEventsState({ force: true })
+      .then((events) => {
+        if (!cancelled) setRelated(findRelatedEvents(events, { id: selection.id, name: selection.name }, 20));
+      })
+      .catch(() => { if (!cancelled) setRelated([]); });
+    return () => { cancelled = true; };
+  }, [showEvents, related, selection]);
+
   if (!selection || !screenPos) return null;
 
   const feature = liveMarker
@@ -191,7 +198,7 @@ const FeaturePopup = () => {
   const isCity = selection.source === "city";
   const kind = isCity
     ? (feature.capital === "primary" ? "Capital city" : TIER_LABEL[feature.tier] || "City")
-    : titleCase(feature.kind || "Landmark");
+    : (labelForFeatureKind(feature.kind) || "랜드마크");
   const population = Number(feature.population);
 
   const POPUP_WIDTH = report !== null ? 280 : 220;
@@ -302,6 +309,43 @@ const FeaturePopup = () => {
               {feature.note}
             </div>
           ) : null}
+
+          <button
+            onClick={() => setShowEvents((prior) => !prior)}
+            style={{
+              background: showEvents ? "rgba(59,130,246,0.22)" : "rgba(255,255,255,0.06)",
+              border: showEvents ? "1px solid rgba(96,165,250,0.55)" : "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "6px",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "10px",
+              fontWeight: 600,
+              marginTop: "9px",
+              padding: "4px 0",
+              width: "100%",
+            }}
+          >
+            {showEvents ? "▾ Related events" : "▸ Related events"}
+          </button>
+
+          {showEvents && (
+            <div style={{ maxHeight: "160px", overflowY: "auto" }}>
+              {related === null && (
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", padding: "5px 0" }}>Looking…</div>
+              )}
+              {related?.length === 0 && (
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", padding: "5px 0" }}>
+                  No recorded event mentions this yet.
+                </div>
+              )}
+              {(related ?? []).map((event) => (
+                <div key={event.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "5px 0" }}>
+                  <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "9px" }}>{event.date}</div>
+                  <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "10.5px", lineHeight: 1.4 }}>{event.title}</div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {isRenaming ? (
             <div style={{ display: "flex", gap: "5px", marginTop: "8px" }}>

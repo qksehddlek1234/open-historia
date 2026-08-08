@@ -8,6 +8,7 @@ import { generateActionSuggestions, refinePlayerAction } from "../AI/gameplay.js
 import { revertUnitOrder } from "../Map/unitsController.js";
 import {
     buildActionDisplayText,
+    isStalledOrder,
     normalizeActionEntry,
     readActionsState,
     writeActionsState,
@@ -92,6 +93,8 @@ const loadPersistedSuggestions = async () => {
     }
 };
 
+// No title: what the player typed IS the order. The original writes none either,
+// and setting one here made the whole body render as a heading above itself.
 const createManualAction = (input) =>
 normalizeActionEntry({
     kind: "action",
@@ -99,7 +102,6 @@ normalizeActionEntry({
     source: "manual",
     status: "planned",
     text: input,
-    title: input,
 });
 
 const normalizeSuggestionAction = (action) =>
@@ -109,7 +111,7 @@ normalizeActionEntry({
     status: "planned",
 });
 
-const ActionItem = ({ action, onDelete, onEdit }) => {
+const ActionItem = ({ action, onDelete, onEdit, onRetry }) => {
     const [hovered, setHovered] = React.useState(false);
     const [isEditing, setIsEditing] = React.useState(false);
     const [draft, setDraft] = React.useState("");
@@ -121,6 +123,14 @@ const ActionItem = ({ action, onDelete, onEdit }) => {
 
     const label = buildActionDisplayText(normalized);
     const showTitle = normalized.title && normalized.title !== label;
+    // A queued order carrying a verdict is one that FAILED and bounced back —
+    // the queue used to show it identical to a fresh order, which is how the
+    // player watched the same order fail for three turns without ever being
+    // told once. One failure retries by itself next turn; the second stalls it
+    // here until retried, edited, or deleted.
+    const bounced = normalized.status === "planned"
+        && (normalized.outcome === "failed" || normalized.outcome === "backfired");
+    const stalled = isStalledOrder(normalized);
 
     const startEdit = () => {
         setDraft(normalized.rawInput || normalized.text || label);
@@ -142,7 +152,9 @@ const ActionItem = ({ action, onDelete, onEdit }) => {
         style={{
             alignItems: "center",
             backgroundColor: hovered ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.07)",
+            border: stalled
+                ? "1px solid rgba(248,113,113,0.55)"
+                : bounced ? "1px solid rgba(251,146,60,0.4)" : "1px solid rgba(255,255,255,0.07)",
             borderRadius: "10px",
             color: "rgba(255,255,255,0.85)",
             display: "flex",
@@ -224,6 +236,56 @@ const ActionItem = ({ action, onDelete, onEdit }) => {
         >
         {normalized.kind} • {normalized.status}
         </div>
+        {bounced && (
+            <div style={{ marginTop: "0.35rem" }}>
+            <div style={{ alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+            <span
+            style={{
+                background: stalled ? "rgba(248,113,113,0.18)" : "rgba(251,146,60,0.15)",
+                border: stalled ? "1px solid rgba(248,113,113,0.5)" : "1px solid rgba(251,146,60,0.45)",
+                borderRadius: 999,
+                color: stalled ? "#fca5a5" : "#fdba74",
+                fontSize: "0.68rem",
+                fontWeight: 700,
+                padding: "0.1rem 0.5rem",
+            }}
+            >
+            {stalled
+                ? `stalled — failed ${normalized.failCount} times`
+                : normalized.outcome === "backfired" ? "backfired — retries next turn" : "failed — retries next turn"}
+            </span>
+            {stalled && onRetry && (
+                <button
+                type="button"
+                onClick={(event) => { event.stopPropagation(); onRetry(); }}
+                title="Try it again as written — clears the failure record"
+                style={{
+                    background: "rgba(59,130,246,0.22)",
+                    border: "1px solid rgba(96,165,250,0.6)",
+                    borderRadius: 999,
+                    color: "#bfdbfe",
+                    cursor: "pointer",
+                    fontSize: "0.68rem",
+                    fontWeight: 700,
+                    padding: "0.1rem 0.55rem",
+                }}
+                >
+                Retry
+                </button>
+            )}
+            </div>
+            {normalized.outcomeNote && (
+                <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.73rem", lineHeight: 1.45, marginTop: "0.2rem" }}>
+                {normalized.outcomeNote}
+                </div>
+            )}
+            {stalled && (
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.7rem", lineHeight: 1.4, marginTop: "0.15rem" }}>
+                Parked until you retry, edit, or delete it — it will not run again by itself.
+                </div>
+            )}
+            </div>
+        )}
         </div>
         {!isEditing && (
             <button
@@ -254,56 +316,135 @@ const ActionItem = ({ action, onDelete, onEdit }) => {
     );
 };
 
-const SuggestionCard = ({ topic, onQueue, queuedIds }) => (
-    <div
-    style={{
-        background: "rgba(255,255,255,0.04)",
-                                                border: "1px solid rgba(255,255,255,0.08)",
-                                                borderRadius: "12px",
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: "0.55rem",
-                                                padding: "0.7rem 0.8rem",
-    }}
-    >
-    <div>
-    <div style={{ color: "rgba(255,255,255,0.94)", fontSize: "0.8rem", fontWeight: 700 }}>{topic.title}</div>
-    <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.76rem", lineHeight: "1.5", marginTop: "0.2rem" }}>
-    {topic.description}
-    </div>
-    </div>
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-    {topic.actions.map((action) => {
-        const isQueued = queuedIds?.has(action.id);
-        return (
-            <button
-            key={action.id}
-            type="button"
-            onClick={() => onQueue(action)}
-            title={isQueued ? "Click to un-adopt this suggestion" : "Click to adopt this suggestion"}
+// One BIG TOPIC per collapsible row, like the original's board. Ten topics of
+// two-to-four suggestions each made the panel a scroll marathon ("스크롤양이
+// 많아지네"), so a topic now shows only its disclosure row until opened: the
+// chevron, the title, and a count that carries the adoption state (✓2 · 4) so
+// a folded topic still says how much of it the player has taken. Local state
+// on purpose — a refreshed brainstorm arrives as new topic ids and starts
+// folded again, and adopting from one topic never moves another.
+const SuggestionCard = ({ topic, onQueue, queuedIds }) => {
+    const [open, setOpen] = React.useState(false);
+    const queuedCount = topic.actions.filter((action) => queuedIds?.has(action.id)).length;
+    return (
+        <div
+        style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: open ? "0.55rem" : 0,
+            padding: "0.55rem 0.8rem",
+        }}
+        >
+        <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        style={{
+            alignItems: "center",
+            background: "none",
+            border: "none",
+            color: "inherit",
+            cursor: "pointer",
+            display: "flex",
+            fontFamily: "sans-serif",
+            gap: "0.5rem",
+            padding: 0,
+            textAlign: "left",
+            width: "100%",
+        }}
+        >
+        <span
+        data-no-translate
+        aria-hidden="true"
+        style={{
+            color: "rgba(196,165,255,0.85)",
+            display: "inline-block",
+            fontSize: "0.72rem",
+            transform: open ? "rotate(90deg)" : "none",
+            transition: "transform 0.15s ease",
+        }}
+        >
+        {"▶"}
+        </span>
+        <span style={{ color: "rgba(255,255,255,0.94)", flex: 1, fontSize: "0.8rem", fontWeight: 700 }}>{topic.title}</span>
+        {/* The strategic horizon, when the model labeled one: this period's
+            crisis vs the multi-year task ("전략의 시급성을 한눈에"). */}
+        {(topic.horizon === "immediate" || topic.horizon === "long") && (
+            <span
             style={{
-                background: isQueued ? "rgba(34,197,94,0.12)" : "rgba(109,40,217,0.12)",
-                border: isQueued ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(139,92,246,0.24)",
-                borderRadius: "10px",
-                color: "rgba(255,255,255,0.9)",
-                cursor: "pointer",
-                fontFamily: "sans-serif",
-                padding: "0.55rem 0.7rem",
-                textAlign: "left",
+                background: topic.horizon === "immediate" ? "rgba(245,158,11,0.14)" : "rgba(59,130,246,0.14)",
+                border: topic.horizon === "immediate" ? "1px solid rgba(251,191,36,0.35)" : "1px solid rgba(96,165,250,0.35)",
+                borderRadius: "999px",
+                color: topic.horizon === "immediate" ? "rgba(252,211,77,0.95)" : "rgba(147,197,253,0.95)",
+                flexShrink: 0,
+                fontSize: "0.62rem",
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                padding: "0.1rem 0.45rem",
+                textTransform: "uppercase",
             }}
             >
-            <div style={{ fontSize: "0.76rem", fontWeight: 700 }}>
-            {isQueued ? `✓ Queued — ${action.title}` : action.title}
+            {topic.horizon === "immediate" ? "Now" : "Long-term"}
+            </span>
+        )}
+        <span
+        data-no-translate
+        style={{
+            background: queuedCount > 0 ? "rgba(34,197,94,0.14)" : "rgba(255,255,255,0.06)",
+            border: queuedCount > 0 ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(255,255,255,0.1)",
+            borderRadius: "999px",
+            color: queuedCount > 0 ? "rgba(134,239,172,0.95)" : "rgba(255,255,255,0.55)",
+            flexShrink: 0,
+            fontSize: "0.68rem",
+            fontWeight: 700,
+            padding: "0.1rem 0.5rem",
+        }}
+        >
+        {queuedCount > 0 ? `✓${queuedCount} · ${topic.actions.length}` : topic.actions.length}
+        </span>
+        </button>
+        {open && (
+            <>
+            <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.76rem", lineHeight: "1.5" }}>
+            {topic.description}
             </div>
-            <div style={{ color: "rgba(255,255,255,0.62)", fontSize: "0.74rem", lineHeight: "1.45", marginTop: "0.18rem" }}>
-            {action.text}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            {topic.actions.map((action) => {
+                const isQueued = queuedIds?.has(action.id);
+                return (
+                    <button
+                    key={action.id}
+                    type="button"
+                    onClick={() => onQueue(action)}
+                    title={isQueued ? "Click to un-adopt this suggestion" : "Click to adopt this suggestion"}
+                    style={{
+                        background: isQueued ? "rgba(34,197,94,0.12)" : "rgba(109,40,217,0.12)",
+                        border: isQueued ? "1px solid rgba(74,222,128,0.35)" : "1px solid rgba(139,92,246,0.24)",
+                        borderRadius: "10px",
+                        color: "rgba(255,255,255,0.9)",
+                        cursor: "pointer",
+                        fontFamily: "sans-serif",
+                        padding: "0.55rem 0.7rem",
+                        textAlign: "left",
+                    }}
+                    >
+                    <div style={{ fontSize: "0.76rem", fontWeight: 700 }}>
+                    {isQueued ? `✓ Queued — ${action.title}` : action.title}
+                    </div>
+                    <div style={{ color: "rgba(255,255,255,0.62)", fontSize: "0.74rem", lineHeight: "1.45", marginTop: "0.18rem" }}>
+                    {action.text}
+                    </div>
+                    </button>
+                );
+            })}
             </div>
-            </button>
-        );
-    })}
-    </div>
-    </div>
-);
+            </>
+        )}
+        </div>
+    );
+};
 
 const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
     const [actions, setActions] = React.useState([]);
@@ -311,7 +452,11 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
     const [country, setCountry] = React.useState("your nation");
     // Full display name for the header, never the code.
     const countryDisplayName = useCountryDisplayName(country);
-    const [gameDate, setGameDate] = React.useState("the current date");
+    // Blank until the real date arrives. It used to hold the phrase "the current
+    // date" as a stand-in inside a sentence; as a heading beside the country name
+    // that placeholder would read as the date itself, so the heading simply omits
+    // it (and its separator) for the moment before the fetch lands.
+    const [gameDate, setGameDate] = React.useState("");
     const [suggestions, setSuggestions] = React.useState([]);
     const [hasRequestedSuggestions, setHasRequestedSuggestions] = React.useState(false);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -507,8 +652,12 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
     const handleEdit = async (index, newText) => {
         const original = actions[index];
         const source = normalizeActionEntry(original)?.source || "manual";
+        // Editing IS the reconsidering a failed order waits for: the failure
+        // record (outcome, note, counter — and with it any stall) clears, and
+        // the rewritten order goes back into play as a fresh attempt.
+        const { outcome: _outcome, outcomeNote: _note, failCount: _failCount, ...withoutVerdict } = original ?? {};
         const updated = normalizeActionEntry({
-            ...original,
+            ...withoutVerdict,
             rawInput: newText,
             text: newText,
             ...(source === "suggested" ? {} : { title: "" }),
@@ -517,6 +666,15 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
             return;
         }
         await persistActions(actions.map((entry, entryIndex) => (entryIndex === index ? updated : entry)));
+    };
+
+    // "Try it again as written": clears the failure record without changing the
+    // order, un-stalling it for the next turn.
+    const handleRetry = async (index) => {
+        const original = actions[index];
+        if (!original) return;
+        const { outcome: _outcome, outcomeNote: _note, failCount: _failCount, ...rest } = original;
+        await persistActions(actions.map((entry, entryIndex) => (entryIndex === index ? rest : entry)));
     };
 
     const refreshSuggestions = async () => {
@@ -620,15 +778,46 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem", padding: "0.875rem 1.25rem", flex: 1, minHeight: 0, overflow: "hidden" }}>
+        {/* NEVER SPLIT A SENTENCE ACROSS AN INTERPOLATION.
+            React makes each run of text its own DOM node, and the UI translator
+            works node by node — so "Submit actions for {country} for {date}."
+            reached a Korean player as 액션 제출 대한민국 에 대한 8월 18일,
+            2018행동이…: four fragments translated separately, in English word
+            order, with the sentence break swallowed. Korean puts the verb last,
+            so no amount of per-fragment translation can reassemble it.
+            The country and the date become a heading instead — a separator, not
+            grammar — and the sentence below them is one whole node.
+
+            Neither is marked data-no-translate, deliberately: polityDisplayName
+            hands back "South Korea" and dayjs formats "August 18th, 2018", so the
+            Korean the player reads comes from this same translator. As standalone
+            nodes it renders both correctly — that part always worked. It was the
+            connective tissue around them that could not survive being cut up. */}
+        <div
+        style={{
+            color: "rgba(255,255,255,0.92)",
+            fontSize: "0.86rem",
+            fontWeight: 600,
+            margin: 0,
+        }}
+        >
+        <span>{countryDisplayName}</span>
+        {gameDate && (
+        <>
+        <span data-no-translate style={{ color: "rgba(255,255,255,0.4)", margin: "0 0.4rem" }}>·</span>
+        <span>{gameDate}</span>
+        </>
+        )}
+        </div>
         <p
         style={{
             color: "rgba(255,255,255,0.75)",
             fontSize: "0.82rem",
             lineHeight: "1.55",
-            margin: 0,
+            margin: "-0.5rem 0 0",
         }}
         >
-        Submit actions for {countryDisplayName} for {gameDate}. Your actions will affect how the game world responds.
+        Everything you order here shapes how the world answers on the next turn.
         </p>
 
         {/* One button, one job: brainstorming IS the AI suggestions run. The old
@@ -702,9 +891,16 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
                 No AI suggestions generated yet.
                 </p>
             )}
-            {suggestions.map((topic) => (
-                <SuggestionCard key={topic.id} topic={topic} onQueue={handleQueueSuggestion} queuedIds={queuedSuggestionIds} />
-            ))}
+            {/* Immediate crises first, the multi-year tasks after — the board
+                reads by urgency ([Horizon]); unlabeled topics sit between. */}
+            {[...suggestions]
+                .sort((left, right) => {
+                    const rank = (topic) => (topic.horizon === "immediate" ? 0 : topic.horizon === "long" ? 2 : 1);
+                    return rank(left) - rank(right);
+                })
+                .map((topic) => (
+                    <SuggestionCard key={topic.id} topic={topic} onQueue={handleQueueSuggestion} queuedIds={queuedSuggestionIds} />
+                ))}
             </>
         )}
 
@@ -732,6 +928,7 @@ const ActionsPanel = ({ isOpen, onClose, onOpenAdvisor }) => {
             action={normalized}
             onDelete={() => handleDelete(originalIndex)}
             onEdit={(newText) => handleEdit(originalIndex, newText)}
+            onRetry={() => handleRetry(originalIndex)}
             />
         ))}
         </div>

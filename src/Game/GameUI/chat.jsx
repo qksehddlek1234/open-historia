@@ -205,8 +205,10 @@ const MessageBubble = ({ msg }) => {
             </div>
         )}
 
-        {/* Player-typed text stays verbatim under UI translation. */}
-        <div data-no-translate={isPlayer ? "" : undefined} style={{
+        {/* Neither side of a diplomatic exchange is machine-translated: the player's
+            words are their own, and the counterpart's arrive already written in the
+            chat language. See the advisor bubble for what re-translating them cost. */}
+        <div data-no-translate="" style={{
             padding: "0.6rem 0.85rem",
             borderRadius: isPlayer ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
             backgroundColor: isPlayer

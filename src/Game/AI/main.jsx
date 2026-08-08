@@ -9,10 +9,12 @@ import {
 } from "./providerConfig.js";
 import { JSON_URLS, readJson } from "../../runtime/assets.js";
 import { chatLanguageDirective, languageDirective } from "../../runtime/i18n.js";
-import { difficultyDirective } from "../../runtime/difficulty.js";
+import { difficultyChatDirective, difficultyDirective } from "../../runtime/difficulty.js";
+import { addressesPlayerByRank, stripPlayerHonorific } from "../../runtime/playerAddress.js";
 import { normalizePromptPack } from "./gameplayPrompts.js";
 import {
     buildPromptContext,
+    playerIdentityDirective,
     renderTemplate,
     resolveHelperValues,
 } from "./promptContext.js";
@@ -679,7 +681,15 @@ async function callOpenAIStyleChatCompletions({
     tokenLimitField = "max_tokens",
     reasoningOn,
 }) {
-    let structuredMode = tool ? "tool" : "text";
+    // Backends that answer without ever calling the tool, remembered for the
+    // session. The fallback below discovers this correctly, but it costs a WHOLE
+    // GENERATION to discover — and it is a property of the model, not of the
+    // request, so it was being rediscovered on every task. Measured on one turn:
+    // seven of these, each a full local generation thrown away before the real one
+    // started. Learn it once.
+    const toolKey = `${normalizeEndpoint(endpoint)}::${model}`;
+    let structuredMode = !tool ? "text"
+        : (allowJsonSchemaFallback && ENDPOINTS_WITHOUT_TOOL_CALLS.has(toolKey) ? "json_schema" : "tool");
     let disableToolReasoning = false;
     // Captured once (role-resolved value wins) so retries and late request
     // builds can't race a concurrent call running under a different role.
@@ -859,7 +869,33 @@ async function callOpenAIStyleChatCompletions({
             const partial = data?.__partial === true ? { partial: true } : {};
             const toolInput = structuredMode === "tool" ? extractOpenAIToolInput(data, tool) : null;
             if (toolInput) return { rawText: text, toolInput, ...partial };
-            if (structuredMode === "tool") return { rawText: extractOpenAIToolRaw(data, tool) || text, toolInput: null, ...partial };
+            if (structuredMode === "tool") {
+                // The request SUCCEEDED and came back as prose-wrapped JSON with no
+                // tool call. That is not a transport failure — the 400/422 fallbacks
+                // above never fire — it means this backend is not emitting tool calls
+                // for this model at all, which Ollama does whenever its template for
+                // the model has no tool support. And when the tool is dropped, so is
+                // the SCHEMA: it lives only in the tool definition, so the model never
+                // sees the shape it is being graded against. That is why turns kept
+                // coming back with a number where a string belongs and fields with no
+                // slot — it was answering blind.
+                //
+                // Switching to json_schema puts the schema in the system prompt
+                // instead, where a model that ignores tools can still read it. Once
+                // per call, and only when there is something to retry with.
+                if (allowJsonSchemaFallback && text) {
+                    if (!ENDPOINTS_WITHOUT_TOOL_CALLS.has(toolKey)) {
+                        ENDPOINTS_WITHOUT_TOOL_CALLS.add(toolKey);
+                        console.warn(
+                            `[ai] ${providerLabel} answered without calling the tool — putting the schema in the prompt instead, `
+                            + `for ${model} from here on.`,
+                        );
+                    }
+                    structuredMode = "json_schema";
+                    continue;
+                }
+                return { rawText: extractOpenAIToolRaw(data, tool) || text, toolInput: null, ...partial };
+            }
             if (structuredMode === "json_schema" && text) return { rawText: text, toolInput: null, ...partial };
             return { rawText: text, toolInput: null, ...partial };
         }
@@ -1189,20 +1225,58 @@ export async function callAI(systemPrompt, history, opts = {}) {
     const resolved = resolveRoleSettings(role);
     providerOpts.resolved = resolved;
 
-    switch (resolved.provider) {
-    case "openai":
-        return callOpenAI(systemPrompt, history, providerOpts);
-    case "anthropic":
-        return callAnthropic(systemPrompt, history, providerOpts);
-    case "anthropic-compatible":
-        return callAnthropicCompatible(systemPrompt, history, providerOpts);
-    case "openai-compatible":
-        return callOpenAICompatible(systemPrompt, history, providerOpts);
-    case "gemini":
-    default:
-        return callGemini(systemPrompt, history, providerOpts);
+    const dispatch = () => {
+        switch (resolved.provider) {
+        case "openai":
+            return callOpenAI(systemPrompt, history, providerOpts);
+        case "anthropic":
+            return callAnthropic(systemPrompt, history, providerOpts);
+        case "anthropic-compatible":
+            return callAnthropicCompatible(systemPrompt, history, providerOpts);
+        case "openai-compatible":
+            return callOpenAICompatible(systemPrompt, history, providerOpts);
+        case "gemini":
+        default:
+            return callGemini(systemPrompt, history, providerOpts);
+        }
+    };
+
+    // The gate below used to be claimed only by heavy JSON tasks — a timeline
+    // jump. But an ADVISOR reply is served by the same single GPU, and while one
+    // streams the translator happily asks for its own smaller model: Ollama unloads
+    // the advisor's model mid-stream to make room, and the reply that should take
+    // seconds takes minutes as the two models trade places token by token. (Field
+    // report: first advisor question instant, second ~3 minutes, third ~2.) Every
+    // call that is not itself the translator claims the GPU now, so background
+    // translation waits its turn instead of pulling the model out from under a
+    // reply the player is watching arrive.
+    if (role === "translate") return dispatch();
+    beginHeavyAiTask();
+    try {
+        return await dispatch();
+    } finally {
+        endHeavyAiTask();
     }
 }
+
+// A single local GPU runs ONE model at a time. When a background job — the UI
+// translator most of all — asks for a DIFFERENT role's model while a turn is
+// being generated, Ollama unloads the turn's model to make room and the
+// in-flight request dies mid-stream: the browser reports net::ERR_FAILED and a
+// finished turn becomes a canned fallback. (Confirmed in the server log: KV
+// caches for both a 40-layer and a 36-layer model, i.e. the 14B and the 8B,
+// being loaded in turn.) Heavy work announces itself here so background callers
+// can wait instead of pulling the model out from under it.
+// endpoint::model pairs that accept a `tools` request, succeed, and answer with
+// prose anyway. Ollama does this whenever its template for a model has no tool
+// support. Session-scoped: a model swap or a server restart deserves a fresh look,
+// and the cost of being wrong is one extra generation, once.
+const ENDPOINTS_WITHOUT_TOOL_CALLS = new Set();
+
+let heavyAiTaskDepth = 0;
+export const beginHeavyAiTask = () => { heavyAiTaskDepth += 1; };
+export const endHeavyAiTask = () => { heavyAiTaskDepth = Math.max(0, heavyAiTaskDepth - 1); };
+export const isHeavyAiTaskRunning = () => heavyAiTaskDepth > 0;
 
 let promptPack = normalizePromptPack({});
 let promptsReady = null;
@@ -1272,7 +1346,10 @@ async function buildAdvisorSystemPrompt() {
     });
     const helperValues = resolveHelperValues(promptPack.helpers, variables);
 
-    return renderTemplate(promptPack.advisor, { ...variables, ...helperValues });
+    // The advisor is the voice that talks to the player most, so it is the one
+    // that got the address wrong most often. It serves the player, not the head
+    // of state, and the two are not the same person.
+    return `${renderTemplate(promptPack.advisor, { ...variables, ...helperValues })}\n\n${playerIdentityDirective(variables.playerPolity)}\nYou advise the PLAYER. You are not the head of state's aide, and you do not speak to the player as though they held that office.`;
 }
 
 export async function buildDiplomaticSystemPrompt(countries, playerCountry) {
@@ -1301,8 +1378,22 @@ export async function buildDiplomaticSystemPrompt(countries, playerCountry) {
     };
     const helperValues = resolveHelperValues(promptPack.helpers, variables);
 
-    // Leaders negotiate as softly or ruthlessly as the chosen difficulty.
-    return `${renderTemplate(promptPack.leader, { ...variables, ...helperValues })}\n\n${difficultyDirective(gameData?.difficulty)}`;
+    // Leaders negotiate as softly or ruthlessly as the chosen difficulty — and
+    // they are writing to a state, not to a counterpart head of state.
+    // A DIFFICULTY THAT LEAVES DIPLOMACY ALONE IS ONE YOU TALK AROUND.
+    //
+    // The simulation directive rode here on its own, and it says nothing useful
+    // in a negotiation — "rival nations act passively" is not an answer to
+    // whether this country will sign. The original ships a second, chat-specific
+    // helper for exactly this, and its own wiki names the failure: players find
+    // the hard modes easy in practice because an LLM agrees with the user too
+    // readily. Both go in; the chat one goes LAST, closest to the reply.
+    return [
+      renderTemplate(promptPack.leader, { ...variables, ...helperValues }),
+      difficultyDirective(gameData?.difficulty),
+      playerIdentityDirective(playerCountry),
+      difficultyChatDirective(gameData?.difficulty),
+    ].filter(Boolean).join("\n\n");
 }
 
 let advisorHistory = [];
@@ -1332,7 +1423,12 @@ export async function sendMessage(userMessage, opts) {
         // maxTokens 8192 caps the reply; onChunk (passed by the advisor UI) streams
         // it token-by-token. Providers that can't stream still return the full reply
         // here, so the advisor works either way.
-        const reply = await callAI(systemPrompt, advisorHistory, { maxTokens: 8192, role: "advisor", ...opts, languageMode: "chat" });
+        const raw = await callAI(systemPrompt, advisorHistory, { maxTokens: 8192, role: "advisor", ...opts, languageMode: "chat" });
+        // The player holds no office. The directive in the system prompt says so
+        // and the model says "대통령님," anyway, because its own transcript is a
+        // stack of worked examples doing exactly that — see runtime/playerAddress.js.
+        const reply = stripPlayerHonorific(raw);
+        if (reply !== raw) console.info("[advisor] took an office title off the reply — the player holds no rank.");
         advisorHistory.push({ role: "model", parts: [{ text: reply }] });
         return reply;
     } catch (err) {
@@ -1342,12 +1438,23 @@ export async function sendMessage(userMessage, opts) {
 }
 
 export function loadHistory(savedMessages) {
+    // THE HALF THAT ACTUALLY BREAKS THE HABIT. A saved transcript is replayed as
+    // conversation history, so every stored reply that opened with "대통령님," is
+    // another example the model is about to copy. Cleaning each new reply alone
+    // would leave eleven older ones still teaching it. The player's own turns are
+    // never touched — what they typed is theirs.
+    let carried = 0;
     advisorHistory = savedMessages
     .filter((msg) => msg.role === "user" || msg.role === "advisor")
-    .map((msg) => ({
-        role: msg.role === "user" ? "user" : "model",
-        parts: [{ text: msg.text }],
-    }));
+    .map((msg) => {
+        if (msg.role === "user") return { role: "user", parts: [{ text: msg.text }] };
+        const text = stripPlayerHonorific(msg.text);
+        if (text !== String(msg.text ?? "")) carried += 1;
+        return { role: "model", parts: [{ text }] };
+    });
+    if (carried > 0) {
+        console.info(`[advisor] ${carried} saved repl(ies) addressed the player by rank — cleaned before they are replayed as examples.`);
+    }
     advisorHistory = compactConversationHistory(advisorHistory);
 }
 
@@ -1395,7 +1502,12 @@ export async function sendDiplomaticMessage(playerMessage, speakingAs, countries
 
     try {
         const raw = await callAI(freshPrompt, historyWithInstruction, { role: "chat", ...opts, languageMode: "chat" });
-        const { reply, reaction } = parseReaction(raw);
+        const parsed = parseReaction(raw);
+        // Same rule on the diplomatic side: another polity writes to the player's
+        // STATE, never to the player as a fellow head of government.
+        const reply = stripPlayerHonorific(parsed.reply);
+        if (addressesPlayerByRank(parsed.reply)) console.info(`[chat] ${speakingAs} addressed the player by rank — title removed.`);
+        const reaction = parsed.reaction;
         diplomaticHistory.push({ role: "model", parts: [{ text: `[${speakingAs}]: ${reply}` }] });
         return { reply, reaction };
     } catch (err) {

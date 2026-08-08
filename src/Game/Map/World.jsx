@@ -1,5 +1,5 @@
 /*! Open Historia — portions (troop system integration + globe sun/stars) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Map from "react-map-gl/maplibre";
 import Nations from "./Nations";
 import { useCustomBackground } from "./useCustomBackground.js";
@@ -12,18 +12,101 @@ import Units from "./Units";
 import UnitPopup from "../Selection/Units";
 import MarkersLayer from "./MarkersLayer.jsx";
 import FeaturePopup from "../Selection/Features.jsx";
+import { MAP_SETTING_KEYS, useDisplayScale, useMapChoice } from "../../runtime/mapSettings.js";
 import {
   DEFAULT_BASEMAP_ID,
+  OHM_BASEMAP_ID,
+  OHM_STYLE_URL,
   TERRAIN_TILE_TEMPLATE,
   basemapMaxZoom,
   basemapProtocolTemplate,
   ensureBasemapProtocol,
   esriTileTemplate,
 } from "../../runtime/assets.js";
+import { readGameData } from "../../runtime/gameState.js";
+// OHM's own date plugin. NOT a side-effect import: the package only patches
+// Map.prototype.filterByDate when a GLOBAL maplibregl exists (a <script> tag
+// world), and in a bundled app it takes its CommonJS branch and exports plain
+// functions instead — the live console proved it, `filterByDate is not a
+// function` on every styledata. The named export takes the map as its first
+// argument and works in any module world.
+import { filterByDate as filterOhmByDate } from "@openhistoricalmap/maplibre-gl-dates";
 
 // The high-res source goes through the ohbase protocol so ESRI's "Map Data
 // Not Yet Available" placeholders get replaced with upscaled ancestor tiles.
 ensureBasemapProtocol();
+
+// Every source THIS game mounts (react children on the map). On the OHM
+// basemap, symbol layers from any OTHER source are the base style's own
+// labels and are hidden — the game supplies its own political labels.
+const OWN_MAP_SOURCES = new Set([
+  "countries-source", "countries-fill-source", "regions-source",
+  "custom-regions-source", "diverged-borders-source",
+  "country-curved-label-source", "country-point-label-source",
+  "cities-source", "cities-label-source",
+  "markers-source", "markers-label-source",
+  "units-source", "units-label-source",
+]);
+
+// THE OHM STYLE, TAKEN APART BEFORE IT MOUNTS. Handing react-map-gl the raw
+// style URL worked, but the live console showed what it costs per session:
+// hundreds of 404s from static-tiles.openhistoricalmap.org (the style's
+// ohm_landcover_hillshade raster backdrop is only sparsely pre-rendered — most
+// tiles at most zooms simply do not exist), plus a glyph 404 for nearly every
+// Latin range (OHM's font server lacks whole ranges even of its own fonts,
+// and our political labels asked it for theirs too). So the style is fetched
+// once and rebuilt:
+//   • symbol layers dropped at the source — the game supplies its own labels
+//     ("지도에 써있는 글자들은 싹 없애줘"), and dropping beats hiding because
+//     hidden layers still trigger glyph fetches and a flash before styledata;
+//   • raster sources and their layers dropped — the vector data is the point,
+//     and the sparse raster backdrop was pure 404 noise;
+//   • the glyphs endpoint removed — with no OHM symbol layers left, nothing
+//     needs a font server, and MapLibre then rasterizes OUR labels from local
+//     fonts exactly as it does on every other basemap this game runs.
+// If the fetch fails, the raw URL is the fallback and the styledata scrub
+// below still hides the labels the old way.
+const transformOhmStyle = (style) => {
+  const sources = {};
+  const rasterSources = new Set();
+  for (const [key, source] of Object.entries(style?.sources ?? {})) {
+    if (source?.type === "raster") rasterSources.add(key);
+    else sources[key] = source;
+  }
+  const layers = (Array.isArray(style?.layers) ? style.layers : [])
+    .filter((layer) => layer?.type !== "symbol" && !rasterSources.has(layer?.source));
+  const next = { ...style, layers, sources, sky: { "atmosphere-blend": 0 } };
+  delete next.glyphs;
+  return next;
+};
+
+let ohmStylePromise = null;
+const loadOhmStyle = () => {
+  if (!ohmStylePromise) {
+    ohmStylePromise = fetch(OHM_STYLE_URL)
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(transformOhmStyle)
+      .catch((error) => {
+        // Do not cache the failure — a transient outage must not pin the
+        // fallback for the whole session.
+        ohmStylePromise = null;
+        throw error;
+      });
+  }
+  return ohmStylePromise;
+};
+
+// Neutral placeholder while the OHM style loads — same idea as the declared-
+// background placeholder: never flash the satellite Earth under an era map.
+const OHM_LOADING_STYLE = {
+  version: 8,
+  sources: {},
+  layers: [{ id: "ohm-loading", type: "background", paint: { "background-color": "#0b1a2b" } }],
+  sky: { "atmosphere-blend": 0 },
+};
 
 // Grading applied to whichever ESRI basemap is picked: cap brightness so it
 // sits against the dark UI, with a little desaturation/contrast that suits both
@@ -172,23 +255,108 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
     bearing: 0,
     pitch: 0,
   });
-  // A custom uploaded map (image or vector) replaces the ESRI basemap; otherwise
-  // the world is fixed to the ocean preset (the in-game basemap picker was removed).
+  // A custom uploaded map (image or vector) replaces the ESRI basemap entirely.
+  // Otherwise: the PLAYER'S pick wins, then whatever the scenario asked for, then
+  // the ocean default. The picker used to not exist at all — ten basemaps shipped
+  // fully wired and every campaign ran on the default because nothing could set
+  // the key.
   // `declared` flips on from the light world.json poll (before the heavy payload)
   // so the map drops ESRI immediately rather than flashing satellite Earth.
   const { background: customBg, declared: bgDeclared, basemap: worldBasemap } = useCustomBackground();
+  const chosenBasemap = useMapChoice(MAP_SETTING_KEYS.basemapStyle);
+  // HOW FAR ONE WHEEL CLICK GOES. MapLibre has no zoom-rate prop, so this is
+  // applied to the live handler after the map exists — see the effect below.
+  const zoomSensitivity = useDisplayScale("zoomSensitivity");
   const isGlobe = projection === "globe";
   const mapProjection = useMemo(() => ({ type: projection }), [projection]);
   const styleUsesGlobeCoords = customBg?.kind === "image" && isGlobe;
+  // The OHM basemap swaps the WHOLE base style for OpenHistoricalMap's own
+  // stylesheet (a URL — react-map-gl accepts one), date-filtered to the
+  // campaign below. Our political layers are react children, so they mount on
+  // top of it exactly as they do on the homegrown style. A scenario's own
+  // uploaded background still wins: that map IS the world, whatever basemap
+  // taste says.
+  const activeBasemap = chosenBasemap || worldBasemap || DEFAULT_BASEMAP_ID;
+  const ohmActive = activeBasemap === OHM_BASEMAP_ID && !customBg && !bgDeclared;
+  // The transformed OHM style object once fetched; the raw style URL if the
+  // fetch failed (old behaviour, scrub-on-styledata); null while loading.
+  const [ohmStyle, setOhmStyle] = useState(null);
+  useEffect(() => {
+    if (!ohmActive) return undefined;
+    let cancelled = false;
+    loadOhmStyle()
+      .then((style) => { if (!cancelled) setOhmStyle(style); })
+      .catch((error) => {
+        console.warn("[basemap] could not fetch the OHM style for rebuilding — using it as-is:", error);
+        if (!cancelled) setOhmStyle(OHM_STYLE_URL);
+      });
+    return () => { cancelled = true; };
+  }, [ohmActive]);
   const worldStyle = useMemo(
-    () => buildWorldStyle(worldBasemap || DEFAULT_BASEMAP_ID, customBg, bgDeclared, styleUsesGlobeCoords),
-    [customBg, bgDeclared, styleUsesGlobeCoords, worldBasemap],
+    () => (ohmActive
+      ? (ohmStyle ?? OHM_LOADING_STYLE)
+      : buildWorldStyle(activeBasemap, customBg, bgDeclared, styleUsesGlobeCoords)),
+    [activeBasemap, ohmActive, ohmStyle, customBg, bgDeclared, styleUsesGlobeCoords],
   );
+
+  // THE DATE IS THE POINT. An OHM basemap that ignores the campaign clock
+  // would draw 21st-century motorways under a 1936 war — the plugin filters
+  // every OHM feature to the campaign's current date, re-applied on every
+  // styledata (style swaps rebuild layers) and whenever a turn moves the
+  // clock. Polling matches the world poll's cadence; when OHM is off this
+  // effect is inert.
+  const [ohmDate, setOhmDate] = useState("");
+  useEffect(() => {
+    if (!ohmActive) return undefined;
+    let cancelled = false;
+    const readDate = () => {
+      readGameData({ force: false })
+        .then((game) => {
+          if (cancelled) return;
+          const date = String(game?.gameDate || game?.startDate || "").trim();
+          if (date) setOhmDate(date);
+        })
+        .catch(() => {});
+    };
+    readDate();
+    const timer = setInterval(readDate, 5000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [ohmActive]);
+  useEffect(() => {
+    if (!ohmActive || !ohmDate) return undefined;
+    const map = mapRef?.current?.getMap?.();
+    if (!map) return undefined;
+    const apply = () => {
+      try {
+        filterOhmByDate(map, ohmDate);
+      } catch (error) {
+        console.warn("[basemap] could not date-filter the OHM basemap:", error);
+      }
+      // THE BASEMAP KEEPS ITS GEOGRAPHY AND LOSES ITS WORDS. OHM ships its own
+      // place and country labels, which fight the game's political labels for
+      // the same pixels in another language. Every symbol layer that is not
+      // OURS goes invisible; ours are recognized by their sources, so a layer
+      // this game adds later is safe by construction.
+      try {
+        for (const layer of map.getStyle()?.layers ?? []) {
+          if (layer.type !== "symbol" || OWN_MAP_SOURCES.has(layer.source)) continue;
+          if (map.getLayoutProperty(layer.id, "visibility") !== "none") {
+            map.setLayoutProperty(layer.id, "visibility", "none");
+          }
+        }
+      } catch (error) {
+        console.warn("[basemap] could not hide the OHM basemap labels:", error);
+      }
+    };
+    if (map.isStyleLoaded?.()) apply();
+    map.on("styledata", apply);
+    return () => map.off("styledata", apply);
+  }, [ohmActive, ohmDate]);
   // Globe terrain is unsupported by MapLibre and can leave its shader cache invalid
   // when projections change. Keep the setting enabled and restore it on flat maps.
   const terrain = useMemo(
     () =>
-      terrainEnabled && !isGlobe && !customBg && !bgDeclared
+      terrainEnabled && !isGlobe && !customBg && !bgDeclared && !ohmActive
         ? {
             source: "terrain-source",
             exaggeration: 15,
@@ -229,6 +397,21 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
     clearTimeout(loadTimerRef.current);
     loadTimerRef.current = setTimeout(() => setLoading(false), 8000);
   }, []);
+
+  // ZOOM SENSITIVITY. react-map-gl exposes no rate prop, and MapLibre keeps the
+  // wheel rate on the live scrollZoom handler, so it is set on the instance —
+  // whenever the setting changes and once whenever the map is rebuilt (a
+  // projection switch replaces it, which is what `key={projection}` does).
+  //
+  // The defaults are MapLibre's own (1/100 per wheel delta, 1/450 per trackpad
+  // pixel); the setting scales both so a wheel and a trackpad move together.
+  useEffect(() => {
+    const map = mapRef?.current?.getMap?.();
+    const scrollZoom = map?.scrollZoom;
+    if (!scrollZoom?.setWheelZoomRate) return;
+    scrollZoom.setWheelZoomRate((1 / 450) * zoomSensitivity);
+    scrollZoom.setZoomRate((1 / 100) * zoomSensitivity);
+  }, [zoomSensitivity, mapRef, projection, loading]);
 
   return (
     // Stars and the single projected sun sit behind the transparent MapLibre

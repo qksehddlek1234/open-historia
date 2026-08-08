@@ -1,8 +1,10 @@
 /*! Open Historia — portions (drawer close/slide + mobile layout) © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
 import React, { useState, useRef, useEffect } from "react";
+import { stripPlayerHonorific } from "../../runtime/playerAddress.js";
 import ReactMarkdown from "react-markdown";
 import { Chart, registerables } from "chart.js";
 import { sendMessage, startChat, loadHistory } from "../AI/main.jsx";
+import { generateAdvisorTopics } from "../AI/gameplay.js";
 import { generateBackstory } from "../AI/gameplay.js";
 import { JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
 import { chatLanguageDiffersFromUi, isRtlLanguage, resolveChatLanguage } from "../../runtime/i18n.js";
@@ -193,6 +195,15 @@ const BackstoryPane = ({ active }) => {
     const [world, setWorld] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState("");
+    // THE ORIGINAL'S SHAPE, PROPERLY THIS TIME: chapters are a HORIZONTAL
+    // chip strip — the same design language as the Event Manager's round
+    // selector chips, which this codebase already mirrors from the original.
+    // The strip sits OUTSIDE the scrollable content and scrolls sideways on
+    // its own, so fifteen chapters add zero vertical scroll; exactly one
+    // thing shows below it — the selected chapter's prose, or the current
+    // chapter (narrative + its round summaries). "current" is the default:
+    // the pane opens on the living story, with history one tap left.
+    const [selectedChapter, setSelectedChapter] = useState("current");
 
     useEffect(() => {
         if (!active) return undefined;
@@ -203,8 +214,19 @@ const BackstoryPane = ({ active }) => {
         return () => { cancelled = true; };
     }, [active, isGenerating]);
 
+    // The original's shape: consolidated CHAPTERS stand as their own separated
+    // blocks, the generated narrative covers only the current chapter, and the
+    // per-round summaries listed underneath are only the UNCONSOLIDATED ones —
+    // rounds a consolidation has absorbed live inside their chapter now instead
+    // of stacking here forever.
+    const chapters = Array.isArray(world?.consolidatedHistory)
+    ? world.consolidatedHistory.filter((entry) => entry && entry.summary)
+    : [];
+    const boundaryRound = Number(chapters.at(-1)?.throughRound) || 0;
     const rounds = Array.isArray(world?.simulationHistory)
-    ? world.simulationHistory.slice().reverse().filter((entry) => entry && (entry.summary || entry.round))
+    ? world.simulationHistory.slice().reverse()
+        .filter((entry) => entry && (entry.summary || entry.round))
+        .filter((entry) => (Number(entry?.round) || 0) > boundaryRound)
     : [];
     const backstory = world?.backstory && typeof world.backstory === "object" ? world.backstory : null;
 
@@ -223,9 +245,12 @@ const BackstoryPane = ({ active }) => {
 
     const handleExport = () => {
         const parts = [];
-        if (backstory?.text) parts.push(backstory.text);
+        chapters.forEach((entry, index) => {
+            parts.push(`## Chapter ${index + 1} — through ${entry.throughDate || "?"}\n\n${entry.summary || ""}`);
+        });
+        if (backstory?.text) parts.push(`## The current chapter\n\n${backstory.text}`);
         for (const entry of rounds.slice().reverse()) {
-            parts.push(`## Round ${entry.round ?? "?"} (${entry.fromDate || "?"} → ${entry.toDate || "?"})\n\n${entry.summary || ""}`);
+            parts.push(`### Round ${entry.round ?? "?"} (${entry.fromDate || "?"} → ${entry.toDate || "?"})\n\n${entry.summary || ""}`);
         }
         const blob = new Blob([parts.join("\n\n---\n\n") || "No backstory yet."], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
@@ -260,6 +285,64 @@ const BackstoryPane = ({ active }) => {
         </button>
         </div>
 
+        {chapters.length > 0 && (
+            <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", flexShrink: 0, gap: "0.35rem", overflowX: "auto", padding: "0.55rem 0.75rem", scrollbarWidth: "thin" }}>
+            {chapters.map((entry, index) => {
+                const active = selectedChapter === index;
+                return (
+                    <button
+                    key={`chapter-chip-${index}`}
+                    type="button"
+                    onClick={() => setSelectedChapter(active ? "current" : index)}
+                    title={String(entry.summary).split("\n")[0]}
+                    style={{
+                        alignItems: "center",
+                        background: active ? "rgba(14,116,144,0.35)" : "rgba(255,255,255,0.05)",
+                        border: active ? "1px solid rgba(103,232,249,0.65)" : "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: 8,
+                        color: "white",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        flexShrink: 0,
+                        gap: "0.1rem",
+                        minWidth: "4.4rem",
+                        padding: "0.3rem 0.5rem",
+                    }}
+                    >
+                    <span style={{ color: active ? "rgba(165,243,252,0.95)" : "rgba(255,255,255,0.85)", fontSize: "0.74rem", fontWeight: 800 }}>{"§"}{index + 1}</span>
+                    <span data-no-translate style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.6rem", whiteSpace: "nowrap" }}>
+                    ~{entry.throughDate || "?"}
+                    </span>
+                    </button>
+                );
+            })}
+            <button
+            type="button"
+            onClick={() => setSelectedChapter("current")}
+            style={{
+                alignItems: "center",
+                background: selectedChapter === "current" ? "rgba(109,40,217,0.3)" : "rgba(255,255,255,0.05)",
+                border: selectedChapter === "current" ? "1px solid rgba(139,92,246,0.7)" : "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 8,
+                color: "white",
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                flexShrink: 0,
+                gap: "0.1rem",
+                minWidth: "4.4rem",
+                padding: "0.3rem 0.5rem",
+            }}
+            >
+            <span style={{ color: selectedChapter === "current" ? "rgba(196,165,255,0.95)" : "rgba(255,255,255,0.85)", fontSize: "0.74rem", fontWeight: 800 }}>Now</span>
+            <span data-no-translate style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.6rem", whiteSpace: "nowrap" }}>
+            r{boundaryRound + 1}~
+            </span>
+            </button>
+            </div>
+        )}
+
         <div style={{ display: "flex", flex: 1, flexDirection: "column", gap: "0.9rem", minHeight: 0, overflowY: "auto", padding: "0.75rem", scrollbarWidth: "none" }}>
         {error && (
             <p style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "rgba(255,200,200,0.95)", fontSize: "0.78rem", margin: 0, padding: "0.5rem 0.7rem" }}>
@@ -267,10 +350,22 @@ const BackstoryPane = ({ active }) => {
             </p>
         )}
 
-        {backstory?.text ? (
+        {typeof selectedChapter === "number" && chapters[selectedChapter] ? (
+            <div>
+            <div style={{ color: "rgba(165,243,252,0.85)", fontSize: "0.68rem", letterSpacing: "0.06em", marginBottom: "0.35rem", textTransform: "uppercase" }}>
+            Chapter {selectedChapter + 1}
+            <span data-no-translate style={{ color: "rgba(255,255,255,0.4)" }}>
+            {" "}· ~{chapters[selectedChapter].throughDate || "?"}{chapters[selectedChapter].throughRound ? ` · ~round ${chapters[selectedChapter].throughRound}` : ""}
+            </span>
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.85rem", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {chapters[selectedChapter].summary}
+            </div>
+            </div>
+        ) : backstory?.text ? (
             <div>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem", letterSpacing: "0.06em", marginBottom: "0.35rem", textTransform: "uppercase" }}>
-            The story so far{backstory.generatedAt ? ` — up to ${backstory.generatedAt}` : ""}
+            {chapters.length > 0 ? "The current chapter" : "The story so far"}{backstory.generatedAt ? ` — up to ${backstory.generatedAt}` : ""}
             </div>
             <div className="advisor-markdown" style={{ color: "rgba(255,255,255,0.88)", fontSize: "0.85rem", lineHeight: "1.6" }}>
             <ReactMarkdown>{backstory.text}</ReactMarkdown>
@@ -284,10 +379,10 @@ const BackstoryPane = ({ active }) => {
             )
         )}
 
-        {rounds.length > 0 && (
+        {selectedChapter === "current" && rounds.length > 0 && (
             <div>
             <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.68rem", letterSpacing: "0.06em", marginBottom: "0.4rem", textTransform: "uppercase" }}>
-            Round summaries
+            Round summaries — current chapter
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
             {rounds.map((entry, index) => (
@@ -311,8 +406,8 @@ const BackstoryPane = ({ active }) => {
 };
 
 // Suggested prompts shown as chips above the advisor input — the quick topics
-// Pax Historia offers under its advisor box. English source strings; the UI
-// translator renders them in the player's interface language.
+// Pax Historia offers under its advisor box. Shown until the situation-aware set
+// arrives (generateAdvisorTopics), and used verbatim if it cannot be written.
 const ADVISOR_PROMPTS = [
     "Assess our current strategic position",
     "What are the biggest threats to us right now?",
@@ -328,6 +423,9 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
     const messagesEndRef            = useRef(null);
     const [hasOpened, setHasOpened] = useState(isAdvisorOpen);
     const [hasBootstrapped, setHasBootstrapped] = useState(false);
+    // The situation-aware topic chips. Starts as the standing set so the panel is
+    // never empty, and is replaced once the round's own questions arrive.
+    const [topics, setTopics] = useState(ADVISOR_PROMPTS);
     const [activeTab, setActiveTab] = useState("advisor");
     const inputRef = useRef(null);
     const [isResizing, setIsResizing] = useState(false);
@@ -379,6 +477,21 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         return () => { cancelled = true; };
     }, [hasBootstrapped, isAdvisorOpen]);
 
+    // Written once per round and cached on the world state, so opening the panel
+    // again in the same round costs nothing. Deliberately NOT awaited alongside the
+    // transcript above — the panel opens immediately with the standing chips and
+    // swaps them in when they are ready.
+    useEffect(() => {
+        if (!isAdvisorOpen) return undefined;
+        let cancelled = false;
+        generateAdvisorTopics()
+            .then((next) => {
+                if (!cancelled && Array.isArray(next) && next.length > 0) setTopics(next);
+            })
+            .catch(() => { /* the standing chips stay */ });
+        return () => { cancelled = true; };
+    }, [isAdvisorOpen]);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
@@ -428,7 +541,9 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         });
 
         try {
-            const reply = await sendMessage(text, { onChunk: (_delta, full) => showStreaming(full) });
+            // The live bubble is stripped too, so the title never even flashes on
+            // screen before the finished reply replaces it.
+            const reply = await sendMessage(text, { onChunk: (_delta, full) => showStreaming(stripPlayerHonorific(full)) });
             setMessages(prev => {
                 const next = prev.slice();
                 const last = next[next.length - 1];
@@ -566,8 +681,15 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
                     {msg.role === "error" ? "⚠️ Error" : "🧭 Advisor"}
                     </span>
                 )}
-                {/* Player-typed text stays verbatim under UI translation. */}
-                <div data-no-translate={msg.role === "user" || asWritten ? "" : undefined} dir={asWritten ? chatDir : undefined} style={{
+                {/* Nothing in this bubble is ever machine-translated. The player's own
+                    text must stay verbatim, and the advisor's reply already ARRIVES in
+                    the player's language — callAI pins it (chatLanguageDirective). This
+                    used to be conditional on the chat language DIFFERING from the UI
+                    language, so in the ordinary case where they match, every reply was
+                    fed back through the translation model: it corrupted the Korean it
+                    was given, and it did so token by token as the reply streamed in,
+                    fighting the advisor for the same GPU. */}
+                <div data-no-translate="" dir={asWritten ? chatDir : undefined} style={{
                     maxWidth: "90%", width: chartConfig ? "90%" : undefined,
                     padding: "0.6rem 0.85rem",
                     borderRadius: msg.role === "user" ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
@@ -601,10 +723,12 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         <div ref={messagesEndRef} />
         </div>
 
-        {/* Suggested topics (Pax Historia-style): one tap asks the advisor.
-            Authored in English; the UI translator renders the player's language. */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", padding: "0.6rem 1rem 0" }}>
-        {ADVISOR_PROMPTS.map((prompt) => (
+        {/* Suggested topics (Pax Historia-style): one tap asks the advisor. Written
+            for the CURRENT situation, once a round, already in the player's language
+            — hence data-no-translate, which is also what stops five chips being
+            re-translated on every render. */}
+        <div data-no-translate="" style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", padding: "0.6rem 1rem 0" }}>
+        {topics.map((prompt) => (
             <button
             key={prompt}
             type="button"

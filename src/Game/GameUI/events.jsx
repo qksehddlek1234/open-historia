@@ -14,10 +14,13 @@ import { useDragWindow } from "./useDragWindow.js";
 // The original game's Event Manager (Ctrl+E) is its own draggable window with a
 // HORIZONTAL round selector (numbered chips with dates) and, per round, the
 // submitted player actions and the generated events as SEPARATE color-coded
-// sections — this recreates that. Restore points ("reset to the moment just
-// before this turn's actions ran") live at the top. The advisor's Background
-// Story and the event consolidator both read the live event list, so pruning
-// or rewording events here curates the campaign's integrated narrative.
+// sections — this recreates that. Restoring ("reset to the moment just before
+// this round's actions ran") hangs off the selected chip as a single button,
+// the way the original does it: a separate list of restore points, one row per
+// turn, grew a screenful of scrolling by round twenty and put every round on
+// screen twice. The advisor's Background Story and the event consolidator both
+// read the live event list, so pruning or rewording events here curates the
+// campaign's integrated narrative.
 
 // Section palette, mirroring the original's distinct coloring: player actions
 // read BLUE, generated events read PURPLE.
@@ -311,6 +314,25 @@ const EventsManagerPanel = ({ open, onClose }) => {
     // Default selection: the newest round (rightmost chip), like the original.
     const activeKey = selectedKey || roundGroups.at(-1)?.key || "";
     const activeGroup = roundGroups.find((group) => group.key === activeKey) || null;
+    // The restore point belonging to the selected round, or -1 when there is
+    // none — the scenario "S" chip has no snapshot, and neither does a round
+    // recorded before restore points existed. The button hides in that case
+    // rather than offering a rewind that would fail.
+    //
+    // MATCH BY THE TURN'S OWN DATES, not by round number. A history entry
+    // carries the round the turn PRODUCED (5) while its snapshot carries the
+    // round it REPLACED (4) — matching the numbers meant the newest round's
+    // chip never found its restore point, which is exactly when a player
+    // wants one ("바로 전턴으로 돌아갈 방법이 없어", live, after a crash).
+    // Both records carry the same from/to window, so the window is the key;
+    // the round-minus-one fallback covers snapshots from before dates were
+    // recorded on either side.
+    const activeSnapshotIndex = activeGroup && activeGroup.round !== ""
+        ? snapshots.findIndex((snap) =>
+            (String(snap?.fromDate || "") !== "" && String(snap?.fromDate) === String(activeGroup.fromDate)
+                && String(snap?.toDate) === String(activeGroup.toDate))
+            || String(snap?.round) === String(Number(activeGroup.round) - 1))
+        : -1;
 
     // Persist an edited SUBMITTED ACTION back into its round's history record
     // (world.simulationHistory[..].plannedActions).
@@ -431,51 +453,26 @@ const EventsManagerPanel = ({ open, onClose }) => {
         </div>
 
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0.9rem 1.1rem 1rem" }}>
-        <div style={{ fontSize: "0.82rem", fontWeight: 700, marginBottom: "0.2rem" }}>Restore points</div>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", lineHeight: 1.45, marginBottom: "0.4rem" }}>
-        Each turn records the game as it was right before that turn's actions
-        were executed. Restoring rewinds everything — map, events, actions,
-        chats — to that moment and discards the newer turns.
-        </div>
-        {snapshots.length === 0 && (
-            <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.75rem", marginBottom: "0.6rem" }}>
-            No restore points yet — one is saved automatically every turn.
-            </div>
-        )}
-        {snapshots.map((snap, index) => (
-            <div
-            key={snap.id || index}
-            style={{
-                alignItems: "center",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                borderRadius: 8,
-                display: "flex",
-                gap: "0.5rem",
-                justifyContent: "space-between",
-                marginBottom: "0.35rem",
-                padding: "0.4rem 0.6rem",
-            }}
-            >
-            <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: "0.76rem", fontWeight: 600 }}>Round {snap.round}</div>
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}>
-            {(snap.fromDate || "?")} → {(snap.toDate || "?")}
-            </div>
-            </div>
+        <div style={{ alignItems: "center", display: "flex", gap: "0.5rem", justifyContent: "space-between", marginBottom: "0.2rem" }}>
+        <div style={{ fontSize: "0.82rem", fontWeight: 700 }}>Rounds</div>
+        {/* ONE BUTTON, FOR WHICHEVER ROUND IS SELECTED.
+            This used to be a separate "Restore points" list above the selector,
+            one row per turn — so by round twenty the player scrolled past twenty
+            near-identical rows to reach the round selector, and the same round
+            was on screen twice saying two different things. The chips already
+            pick a round; the reset belongs to whatever they picked. */}
+        {activeSnapshotIndex >= 0 && (
             <button
             type="button"
             disabled={busy}
             onClick={() => {
-                if (confirmRestore === index) {
-                    restoreSnapshot(index);
-                } else {
-                    setConfirmRestore(index);
-                }
+                if (confirmRestore === activeSnapshotIndex) restoreSnapshot(activeSnapshotIndex);
+                else setConfirmRestore(activeSnapshotIndex);
             }}
+            title="Rewinds the map, events, actions and chats to just before this round ran, and discards the newer rounds."
             style={{
-                background: confirmRestore === index ? "rgba(239,68,68,0.25)" : "rgba(59,130,246,0.2)",
-                border: confirmRestore === index ? "1px solid rgba(239,68,68,0.6)" : "1px solid rgba(96,165,250,0.4)",
+                background: confirmRestore === activeSnapshotIndex ? "rgba(239,68,68,0.25)" : "rgba(59,130,246,0.2)",
+                border: confirmRestore === activeSnapshotIndex ? "1px solid rgba(239,68,68,0.6)" : "1px solid rgba(96,165,250,0.4)",
                 borderRadius: 8,
                 color: "white",
                 cursor: busy ? "wait" : "pointer",
@@ -485,12 +482,12 @@ const EventsManagerPanel = ({ open, onClose }) => {
                 padding: "0.3rem 0.6rem",
             }}
             >
-            {confirmRestore === index ? "Click again to confirm" : "Reset to this point"}
+            {confirmRestore === activeSnapshotIndex
+                ? "Click again to confirm"
+                : `↺ Reset to round ${activeGroup?.chip ?? ""}`}
             </button>
-            </div>
-        ))}
-
-        <div style={{ fontSize: "0.82rem", fontWeight: 700, margin: "1rem 0 0.2rem" }}>Rounds</div>
+        )}
+        </div>
         {roundGroups.length === 0 && (
             <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.75rem" }}>No rounds recorded yet.</div>
         )}
@@ -512,7 +509,13 @@ const EventsManagerPanel = ({ open, onClose }) => {
                 <button
                 key={group.key}
                 type="button"
-                onClick={() => setSelectedKey(group.key)}
+                onClick={() => {
+                    setSelectedKey(group.key);
+                    // Changing rounds must not carry an armed confirmation over
+                    // to the new one — that would turn a second chip click into
+                    // a rewind nobody asked for.
+                    setConfirmRestore(-1);
+                }}
                 style={{
                     alignItems: "center",
                     background: isActive ? "rgba(59,130,246,0.22)" : "rgba(255,255,255,0.05)",

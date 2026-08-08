@@ -6,6 +6,7 @@ import { readEventsState, readWorldState } from "../../runtime/gameState.js";
 import { generateRegionBrief } from "../AI/gameplay.js";
 import { openCountryPanel } from "./CountryPanel.jsx";
 import { useDragWindow } from "../GameUI/useDragWindow.js";
+import { translateLabel } from "../../runtime/translator.js";
 
 // Bridge: the region popup's second ⓘ button (the REGION row) opens this panel
 // from outside React — it used to do nothing at all, which read as "region
@@ -37,11 +38,45 @@ const pillStyle = {
 };
 
 // Does this event involve the region? Transfers are checked by id, prose by name.
+// A PROVINCE IS NAMED IN THE LANGUAGE THE EVENTS ARE WRITTEN IN.
+//
+// This compared the region's catalogue name against the event text, and the
+// catalogue is GADM: "Gangwon-do", "Gyeongsangbuk-do", "Jeju". The events are
+// Korean. So every province in a Korean campaign reported "No recorded events
+// mention this region yet" — measured across all seventeen of South Korea's and
+// 308 events, the count was zero for every single one. Countries were fine
+// because their panel matches on the display name, which IS localised.
+//
+// The engine already knows every region's name in the player's language: it
+// draws them on the map through the same translation cache. So this is a lookup.
+//
+// AND THE STEM, because a person writes 강원, not 강원도. Dropping the
+// administrative suffix takes 강원도 from 0 events to 10, and 경상북도 from 0 to
+// 10 — the directional syllable goes too, so an event about 경상 지역 correctly
+// belongs to both Gyeongsangs. The cost is honest and small: a two-syllable stem
+// that is also an ordinary word picks up the odd unrelated event (경기 is both a
+// province and a sporting fixture, so Gyeonggi's list carries one Olympics
+// headline). Ten right and one wrong beats zero, and the panel has a search box.
+const localNames = (regionName) => {
+    const english = String(regionName ?? "").trim();
+    if (!english) return [];
+    const names = new Set([english.toLowerCase()]);
+    const local = String(translateLabel(english) ?? "").trim();
+    if (local && local !== english) {
+        names.add(local.toLowerCase());
+        const stem = local.replace(/(특별자치도|특별시|광역시|자치도|도|시)$/u, "").replace(/[북남]$/u, "");
+        // Two syllables is the shortest thing that is still a place. One would
+        // match almost every sentence in the language.
+        if (stem.length >= 2 && stem !== local) names.add(stem.toLowerCase());
+    }
+    return [...names];
+};
+
 const eventInvolvesRegion = (event, regionId, regionName) => {
     const transfers = event?.impacts?.regionTransfers ?? [];
     if (regionId && transfers.some((transfer) => String(transfer?.regionId) === String(regionId))) return true;
     const haystack = `${event?.title ?? ""} ${event?.description ?? ""}`.toLowerCase();
-    return Boolean(regionName) && haystack.includes(String(regionName).toLowerCase());
+    return localNames(regionName).some((name) => haystack.includes(name));
 };
 
 const RegionInfoPanel = () => {

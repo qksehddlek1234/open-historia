@@ -98,7 +98,9 @@ export const resolveOwnerRef = (value, world) => {
   if (verbatimPolity?.verbatim) return String(verbatimPolity.name ?? raw).trim() || raw;
   if (overrides && typeof overrides === "object") {
     for (const [key, polity] of Object.entries(overrides)) {
-      const name = String(polity?.name ?? key).trim();
+      // `|| key`, not just `?? key` — an empty name must never resolve a country to
+      // the empty string and blank every reference to it. See server/libraryStore.js.
+      const name = String(polity?.name ?? key).trim() || key;
       // Self-named: tells us nothing the token didn't. Skip it so the registry gets
       // a chance — {"MNG":{name:"MNG"}} would otherwise pin MNG forever. Safe for
       // genuinely self-named polities: they miss the registry and come back as

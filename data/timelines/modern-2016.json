@@ -1,0 +1,664 @@
+{
+  "id": "modern-2016",
+  "revision": 4,
+  "label": "Modern Day — 2016–2017",
+  "note": "Dates verified against Wikipedia, CFR and CRS (see PLAN.md). Korea-relevant entries are weighted pivotal because the shipped Modern Day scenario starts there; a campaign playing elsewhere can reweight without changing the dates. `foreseeable` carries the outcome-free phrasing a contemporary could have written in advance; entries without it were surprises and stay hidden from the suggestion board. `effect` is what the entry does to world state — the engine writes it into the event that tells the entry's story if the model narrated the change without carrying it. Only entries whose consequence is unambiguous on the day carry one: a head of government actually taking office, a site actually existing. An election won by someone who is inaugurated later belongs to the inauguration entry, not the election entry.",
+  "entries": [
+    {
+      "date": "2016-01-06",
+      "title": "북한 4차 핵실험",
+      "detail": "북한이 풍계리에서 4차 핵실험을 실시하고 '수소탄 시험 성공'이라 발표했다. 인공지진이 중국 지린성 접경까지 감지됐고 중국 외교부는 사전 통보를 받지 못했다며 규탄했다.",
+      "actors": [
+        "North Korea",
+        "South Korea",
+        "China",
+        "United States"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "markerOps": [
+          {
+            "op": "build",
+            "marker": {
+              "name": "풍계리 핵실험장",
+              "kind": "nuclear test site",
+              "ownerCode": "North Korea",
+              "lng": 129.087,
+              "lat": 41.28,
+              "size": 1.5,
+              "note": "2016년 1월 4차 핵실험. 북한은 수소탄 시험이라고 주장했다."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-01-08",
+      "title": "대북 확성기 방송 재개",
+      "detail": "대한민국이 핵실험에 대한 대응으로 군사분계선 일대 대북 확성기 방송을 재개했다.",
+      "actors": [
+        "South Korea",
+        "North Korea"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2016-02-07",
+      "title": "광명성 4호 발사, 한미 사드 협의 착수",
+      "detail": "북한이 서해 동창리에서 은하 로켓으로 광명성 4호를 발사했다. 같은 날 한국과 미국은 THAAD 배치 협의 개시를 발표했다.",
+      "actors": [
+        "North Korea",
+        "South Korea",
+        "United States"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "markerOps": [
+          {
+            "op": "build",
+            "marker": {
+              "name": "동창리 서해위성발사장",
+              "kind": "missile silo",
+              "ownerCode": "North Korea",
+              "lng": 124.705,
+              "lat": 39.66,
+              "size": 1.6,
+              "note": "2016년 2월 광명성 4호를 쏘아 올린 위성·장거리 로켓 발사장."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-02-10",
+      "title": "개성공단 가동 전면 중단",
+      "detail": "대한민국 정부가 개성공단의 '전면 중단'을 발표했다. 북한은 인원 추방, 자산 동결, 군 통신선 차단, 군사통제구역 선포로 맞대응했다. 2004년 이후 유지돼 온 마지막 남북 경제협력 통로가 끊겼다.",
+      "actors": [
+        "South Korea",
+        "North Korea"
+      ],
+      "weight": "pivotal"
+    },
+    {
+      "date": "2016-03-02",
+      "title": "유엔 안보리 결의 2270 채택",
+      "detail": "안보리가 만장일치로 결의 2270을 채택했다. 무기 거래와 확산 활동 제한, 해상·항공 화물 검색 의무화, 금융 거래와 대외 무역 제한을 포함한 역대 최광범위 대북 제재다.",
+      "actors": [
+        "North Korea",
+        "United States",
+        "China",
+        "Russia"
+      ],
+      "weight": "pivotal"
+    },
+    {
+      "date": "2016-04-03",
+      "title": "파나마 페이퍼스 공개",
+      "detail": "국제탐사보도언론인협회가 모색 폰세카 유출 문서를 공개하며 각국 정상과 유력 인사들의 역외 법인 보유가 드러났다. 여러 나라에서 정치적 파장이 이어졌다.",
+      "actors": [
+        "Iceland",
+        "United Kingdom",
+        "Russia",
+        "China"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2016-04-13",
+      "title": "제20대 국회의원 선거",
+      "detail": "대한민국 총선에서 여당인 새누리당이 과반 확보에 실패하고 원내 1당 자리를 내주며 여소야대 국회가 성립했다. 박근혜 정부의 국정 추진력이 크게 약화됐다.",
+      "actors": [
+        "South Korea"
+      ],
+      "weight": "pivotal",
+      "foreseeable": "제20대 국회의원 선거가 4월 13일로 예정되어 있다. 결과는 아직 아무도 모른다."
+    },
+    {
+      "date": "2016-05-09",
+      "title": "필리핀 대선, 두테르테 당선",
+      "detail": "로드리고 두테르테가 필리핀 대통령에 당선됐다. 이후 마닐라는 워싱턴과 거리를 두고 베이징 쪽으로 기울었다.",
+      "actors": [
+        "Philippines",
+        "United States",
+        "China"
+      ],
+      "weight": "major",
+      "foreseeable": "필리핀 대통령 선거가 5월 9일 실시될 예정이다."
+    },
+    {
+      "date": "2016-06-30",
+      "title": "두테르테 필리핀 대통령 취임",
+      "detail": "로드리고 두테르테가 제16대 필리핀 대통령으로 취임했다. 취임 직후 마약과의 전쟁을 선포했다.",
+      "actors": [
+        "Philippines"
+      ],
+      "weight": "major",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "Philippines",
+            "stats": {
+              "leader": "로드리고 두테르테"
+            },
+            "note": "2016-06-30 취임."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-06-23",
+      "title": "영국 EU 탈퇴 국민투표 가결",
+      "detail": "영국이 52 대 48로 EU 탈퇴를 선택했다. 예측 기관들이 모두 빗나갔고 데이비드 캐머런 총리는 사임을 발표했다.",
+      "actors": [
+        "United Kingdom",
+        "France",
+        "Germany"
+      ],
+      "weight": "pivotal",
+      "foreseeable": "영국이 6월 23일 EU 탈퇴 여부를 묻는 국민투표를 실시하기로 확정했다.",
+      "foreseeableFrom": "2016-02-20"
+    },
+    {
+      "date": "2016-07-08",
+      "title": "사드 한국 배치 공식 발표",
+      "detail": "한미 양국이 THAAD 포대의 대한민국 배치를 공식 발표했다. 중국과 러시아가 강하게 반발하며 한중 관계가 급랭했다.",
+      "actors": [
+        "South Korea",
+        "United States",
+        "China",
+        "Russia"
+      ],
+      "weight": "pivotal"
+    },
+    {
+      "date": "2016-07-13",
+      "title": "메이 영국 총리 취임",
+      "detail": "브렉시트 국민투표 후 사임한 데이비드 캐머런의 뒤를 이어 테리사 메이가 총리로 취임했다.",
+      "actors": [
+        "United Kingdom"
+      ],
+      "weight": "major",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "United Kingdom",
+            "stats": {
+              "leader": "테리사 메이"
+            },
+            "note": "2016-07-13 취임. 캐머런 사임에 따른 승계."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-07-15",
+      "title": "터키 쿠데타 시도 실패",
+      "detail": "터키군 일부가 정권 전복을 시도했으나 실패했다. 에르도안 대통령은 시민 저항을 조직해 진압한 뒤 대규모 숙청에 착수했다.",
+      "actors": [
+        "Turkey"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2016-08-05",
+      "title": "리우데자네이루 하계 올림픽 개막",
+      "detail": "브라질이 정치·경제 위기 속에 올림픽을 개최했다. 러시아는 도핑 스캔들로 선수단 상당수가 출전 금지됐다.",
+      "actors": [
+        "Brazil",
+        "Russia"
+      ],
+      "weight": "minor",
+      "foreseeable": "리우데자네이루 하계 올림픽이 8월 5일 개막할 예정이다."
+    },
+    {
+      "date": "2016-08-31",
+      "title": "브라질 호세프 대통령 탄핵",
+      "detail": "브라질 상원이 예산 조작 혐의로 지우마 호세프 대통령을 파면했다.",
+      "actors": [
+        "Brazil"
+      ],
+      "weight": "major",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "Brazil",
+            "stats": {
+              "leader": "미셰우 테메르"
+            },
+            "note": "2016-08-31 호세프 파면과 동시에 부통령이 대통령직 승계."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-09-09",
+      "title": "북한 5차 핵실험",
+      "detail": "북한이 5차 핵실험을 강행했다. 위력 약 10킬로톤으로 그때까지 최대 규모였다.",
+      "actors": [
+        "North Korea",
+        "South Korea",
+        "United States",
+        "China"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "markerOps": [
+          {
+            "op": "build",
+            "marker": {
+              "name": "풍계리 핵실험장",
+              "kind": "nuclear test site",
+              "ownerCode": "North Korea",
+              "lng": 129.087,
+              "lat": 41.28,
+              "size": 1.8,
+              "note": "2016년 1월 4차, 9월 5차 핵실험이 실시된 지하 갱도 시험장."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-10-24",
+      "title": "국정농단 의혹 보도",
+      "detail": "민간인의 국정 개입 의혹이 보도되며 대한민국 정국이 급격히 흔들리기 시작했다. 대규모 촛불집회로 이어졌다.",
+      "actors": [
+        "South Korea"
+      ],
+      "weight": "pivotal"
+    },
+    {
+      "date": "2016-11-08",
+      "title": "미국 대선, 트럼프 당선",
+      "detail": "도널드 트럼프가 제45대 미국 대통령에 당선됐다. 전국 득표에서는 뒤졌으나 선거인단에서 승리했다. 환태평양경제동반자협정(TPP)은 사실상 무산됐고 동맹 방위비 분담 요구가 예고됐다.",
+      "actors": [
+        "United States",
+        "China",
+        "South Korea",
+        "Japan"
+      ],
+      "weight": "pivotal",
+      "foreseeable": "미국 대통령 선거가 11월 8일 실시될 예정이다."
+    },
+    {
+      "date": "2016-12-09",
+      "title": "박근혜 대통령 탄핵소추안 국회 가결",
+      "detail": "국회가 대통령 탄핵소추안을 가결했다. 대통령 직무가 정지되고 헌법재판소 심판이 시작됐으며 황교안 국무총리가 권한대행을 맡았다.",
+      "actors": [
+        "South Korea"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "South Korea",
+            "stats": {
+              "leader": "황교안 (대통령 권한대행)"
+            },
+            "note": "2016-12-09 탄핵소추안 가결로 대통령 직무 정지, 국무총리가 권한대행."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2016-12-22",
+      "title": "동알레포 함락",
+      "detail": "시리아 정부군이 반군 지역 동알레포를 장악하고 주민 대피가 진행됐다. 내전의 전환점이 됐다.",
+      "actors": [
+        "Syria",
+        "Russia",
+        "Turkey"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-01-20",
+      "title": "트럼프 미국 대통령 취임",
+      "detail": "도널드 트럼프가 제45대 미국 대통령으로 취임했다. 취임사에서 '미국 우선주의'를 천명했다.",
+      "actors": [
+        "United States"
+      ],
+      "weight": "pivotal",
+      "foreseeable": "미국 대통령 취임식이 1월 20일로 예정되어 있다.",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "United States",
+            "stats": {
+              "leader": "도널드 트럼프"
+            },
+            "note": "2017-01-20 취임."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-01-23",
+      "title": "미국 TPP 탈퇴 행정명령",
+      "detail": "트럼프 대통령이 환태평양경제동반자협정 탈퇴 행정명령에 서명했다. 아시아·태평양 통상 질서가 재편되기 시작했다.",
+      "actors": [
+        "United States",
+        "Japan",
+        "South Korea"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-02-13",
+      "title": "김정남 말레이시아 피살",
+      "detail": "김정은의 이복형 김정남이 쿠알라룸푸르 공항에서 신경작용제로 살해됐다. 말레이시아와 북한의 관계가 급랭했다.",
+      "actors": [
+        "North Korea",
+        "Malaysia"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-03-06",
+      "title": "사드 발사대 한국 반입",
+      "detail": "주한미군이 사드 발사대와 장비를 오산기지로 반입했다. 중국의 보복성 조치가 본격화됐다.",
+      "actors": [
+        "South Korea",
+        "United States",
+        "China"
+      ],
+      "weight": "pivotal"
+    },
+    {
+      "date": "2017-03-10",
+      "title": "헌법재판소, 박근혜 대통령 파면 결정",
+      "detail": "헌법재판소가 재판관 전원일치로 탄핵을 인용해 대통령을 파면했다. 헌정 사상 최초의 대통령 파면이며 60일 이내 대선이 확정됐다.",
+      "actors": [
+        "South Korea"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "South Korea",
+            "stats": {
+              "leader": "황교안 (대통령 권한대행)"
+            },
+            "note": "2017-03-10 파면 확정. 대선까지 국무총리 권한대행 체제."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-04-07",
+      "title": "미국, 시리아 정부군 공군기지 순항미사일 타격",
+      "detail": "칸셰이쿤 화학무기 공격에 대응해 미국이 토마호크 59발로 샤이라트 기지를 타격했다. 러시아가 강하게 반발했다.",
+      "actors": [
+        "United States",
+        "Syria",
+        "Russia"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-05-09",
+      "title": "제19대 대통령 선거",
+      "detail": "보궐 성격의 대선에서 문재인 후보가 당선됐다. 9년 만의 정권 교체다.",
+      "actors": [
+        "South Korea"
+      ],
+      "weight": "pivotal",
+      "foreseeable": "제19대 대통령 선거가 5월 9일 실시될 예정이다. 결과는 아직 아무도 모른다."
+    },
+    {
+      "date": "2017-05-10",
+      "title": "문재인 대통령 취임",
+      "detail": "인수위 없이 당선 다음 날 곧바로 취임했다. 대북 대화 기조와 사드 배치 절차 재검토를 예고했다.",
+      "actors": [
+        "South Korea",
+        "North Korea",
+        "United States",
+        "China"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "South Korea",
+            "stats": {
+              "leader": "문재인"
+            },
+            "note": "2017-05-10 취임. 보궐선거로 인수위 없이 임기 시작."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-05-14",
+      "title": "마크롱 프랑스 대통령 취임",
+      "detail": "에마뉘엘 마크롱이 결선에서 마린 르펜을 꺾고 취임했다. 기성 양당 밖에서 나온 최연소 대통령이다.",
+      "actors": [
+        "France"
+      ],
+      "weight": "major",
+      "foreseeable": "프랑스 대통령 선거 결선 투표가 5월 7일 실시될 예정이다.",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "France",
+            "stats": {
+              "leader": "에마뉘엘 마크롱"
+            },
+            "note": "2017-05-14 취임."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-06-08",
+      "title": "영국 조기 총선, 보수당 과반 상실",
+      "detail": "테리사 메이 총리가 브렉시트 협상력 강화를 노리고 조기 총선을 실시했으나 과반을 잃었다. 소수 정부로 협상에 들어갔다.",
+      "actors": [
+        "United Kingdom"
+      ],
+      "weight": "major",
+      "foreseeable": "영국이 6월 8일 조기 총선을 실시하기로 했다.",
+      "foreseeableFrom": "2017-04-18"
+    },
+    {
+      "date": "2017-07-04",
+      "title": "북한 화성-14형 ICBM 첫 시험발사",
+      "detail": "북한이 미국 독립기념일에 맞춰 대륙간탄도미사일급 화성-14형을 고각 발사했다. 미 본토 사정권 진입이 처음으로 현실화됐다.",
+      "actors": [
+        "North Korea",
+        "United States",
+        "South Korea",
+        "Japan"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "markerOps": [
+          {
+            "op": "build",
+            "marker": {
+              "name": "평양 미사일 종합연구단지",
+              "kind": "factory",
+              "ownerCode": "North Korea",
+              "lng": 125.87,
+              "lat": 39.2,
+              "size": 1.6,
+              "note": "2017년 7월 화성-14형 ICBM 첫 시험발사. 이동식 발사대로 운용됐다."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-08-05",
+      "title": "유엔 안보리 결의 2371 채택",
+      "detail": "석탄·철광석·수산물 수출을 전면 금지하는 대북 제재가 만장일치로 채택됐다. 북한 외화 수입의 3분의 1을 겨냥했다.",
+      "actors": [
+        "North Korea",
+        "United States",
+        "China",
+        "Russia"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-09-03",
+      "title": "북한 6차 핵실험",
+      "detail": "북한이 수소탄이라고 주장한 6차 핵실험을 실시했다. 위력은 이전 실험을 크게 뛰어넘었고 풍계리 일대 지형이 변형됐다.",
+      "actors": [
+        "North Korea",
+        "South Korea",
+        "United States",
+        "China",
+        "Japan"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "markerOps": [
+          {
+            "op": "build",
+            "marker": {
+              "name": "풍계리 핵실험장",
+              "kind": "nuclear test site",
+              "ownerCode": "North Korea",
+              "lng": 129.087,
+              "lat": 41.28,
+              "size": 2.2,
+              "note": "2017년 9월 6차 핵실험으로 갱도 상당 부분이 붕괴된 것으로 관측됐다."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-09-15",
+      "title": "화성-12형, 일본 상공 통과",
+      "detail": "북한이 중거리 탄도미사일을 홋카이도 상공으로 통과시켜 태평양에 낙하시켰다. 일본 전역에 경보가 발령됐다.",
+      "actors": [
+        "North Korea",
+        "Japan",
+        "United States"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-09-19",
+      "title": "트럼프 유엔 총회 연설",
+      "detail": "트럼프 대통령이 유엔 총회에서 북한을 '완전히 파괴'할 수 있다고 발언했다. 북미 간 언사가 최고조에 달했다.",
+      "actors": [
+        "United States",
+        "North Korea"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-10-01",
+      "title": "카탈루냐 독립 주민투표",
+      "detail": "스페인 정부가 위헌으로 규정한 가운데 카탈루냐가 독립 투표를 강행했고 경찰 진압으로 다수의 부상자가 나왔다.",
+      "actors": [
+        "Spain"
+      ],
+      "weight": "major",
+      "foreseeable": "카탈루냐 자치정부가 10월 1일 독립 주민투표를 실시하겠다고 선언했다."
+    },
+    {
+      "date": "2017-10-17",
+      "title": "락까 함락, IS 수도 상실",
+      "detail": "시리아민주군이 이슬람국가의 사실상 수도 락까를 탈환했다. IS의 영토 지배가 사실상 끝났다.",
+      "actors": [
+        "Syria",
+        "United States",
+        "Turkey"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-10-22",
+      "title": "일본 중의원 총선, 자민당 압승",
+      "detail": "아베 신조 총리가 조기 해산 후 총선에서 연립 여당의 3분의 2 의석을 지켰다.",
+      "actors": [
+        "Japan"
+      ],
+      "weight": "major",
+      "foreseeable": "일본이 10월 22일 중의원 총선을 실시한다.",
+      "foreseeableFrom": "2017-09-28"
+    },
+    {
+      "date": "2017-11-21",
+      "title": "짐바브웨 무가베 사임",
+      "detail": "군의 개입과 탄핵 절차 속에 37년간 집권한 로버트 무가베가 사임했다. 에머슨 음낭가과가 뒤를 이었다.",
+      "actors": [
+        "Zimbabwe"
+      ],
+      "weight": "major",
+      "effect": {
+        "polityChanges": [
+          {
+            "code": "Zimbabwe",
+            "stats": {
+              "leader": "에머슨 음낭가과"
+            },
+            "note": "2017-11-21 무가베 사임, 11-24 취임."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-11-29",
+      "title": "북한 화성-15형 발사, '국가핵무력 완성' 선언",
+      "detail": "북한이 최대 사거리 ICBM 화성-15형을 발사한 뒤 국가핵무력 완성을 선언했다. 이후 도발이 급감하고 대화 국면이 열렸다.",
+      "actors": [
+        "North Korea",
+        "United States",
+        "South Korea"
+      ],
+      "weight": "pivotal",
+      "effect": {
+        "markerOps": [
+          {
+            "op": "build",
+            "marker": {
+              "name": "평양 미사일 종합연구단지",
+              "kind": "factory",
+              "ownerCode": "North Korea",
+              "lng": 125.87,
+              "lat": 39.2,
+              "size": 2.0,
+              "note": "2017년 11월 화성-15형 발사 후 '국가핵무력 완성' 선언."
+            }
+          }
+        ],
+        "polityChanges": [
+          {
+            "code": "North Korea",
+            "stats": {
+              "leader": "김정은"
+            },
+            "note": "2017-11-29 화성-15형 발사 뒤 국가핵무력 완성을 선언. 이후 도발이 급감하고 대화 국면이 열렸다."
+          }
+        ]
+      }
+    },
+    {
+      "date": "2017-12-06",
+      "title": "미국, 예루살렘을 이스라엘 수도로 인정",
+      "detail": "트럼프 대통령이 예루살렘을 이스라엘의 수도로 인정하고 대사관 이전을 지시했다. 아랍권과 유럽이 일제히 반발했다.",
+      "actors": [
+        "United States",
+        "Israel"
+      ],
+      "weight": "major"
+    },
+    {
+      "date": "2017-12-22",
+      "title": "유엔 안보리 결의 2397 채택",
+      "detail": "정유제품 공급을 90% 가까이 줄이고 해외 파견 노동자 24개월 내 송환을 의무화하는 결의가 채택됐다.",
+      "actors": [
+        "North Korea",
+        "United States",
+        "China",
+        "Russia"
+      ],
+      "weight": "major"
+    }
+  ]
+}

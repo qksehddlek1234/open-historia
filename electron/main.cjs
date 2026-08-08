@@ -12,6 +12,7 @@
 const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
+const net = require("node:net");
 const { spawn } = require("node:child_process");
 
 // Everything the app writes lives under Electron's per-user data directory.
@@ -27,6 +28,18 @@ const ASSETS_DIR = path.join(USER_ROOT, "public", "assets");
 // changes to the fetcher, and one place that decides the layout.
 process.env.OH_DATA_DIR = DATA_DIR;
 process.env.OH_ASSETS_DIR = ASSETS_DIR;
+
+// The build id the release workflow stamped in. The server passes it to the page so
+// the update banner can compare it against the published one. Deliberately routed
+// this way rather than through a preload: attaching a preload to the game window is
+// what broke the app last time, and this adds nothing to how the window is created.
+try {
+  process.env.OH_DESKTOP_BUILD = String(
+    JSON.parse(fs.readFileSync(path.join(__dirname, "build-id.json"), "utf8")).build || "",
+  );
+} catch {
+  /* dev build: unstamped, so no update is ever offered */
+}
 
 const APP_ROOT = path.join(__dirname, "..");
 // asarUnpack keeps scripts/ outside the archive so a child process can run it.
@@ -112,10 +125,6 @@ const createMainWindow = () => {
     backgroundColor: "#0d1122",
     show: false,
     title: "Open Historia",
-    // The game is a localhost page: it cannot tell it is inside the desktop app,
-    // and cannot fetch a release asset itself (GitHub sends no CORS headers).
-    // gamePreload gives it exactly those two things and nothing more.
-    webPreferences: { preload: path.join(__dirname, "gamePreload.cjs") },
   });
   // Links to GitHub/Discord open in the real browser rather than replacing the
   // game with a page the player cannot navigate back from.
@@ -127,58 +136,46 @@ const createMainWindow = () => {
   return win;
 };
 
-// --- desktop updates ------------------------------------------------------
-
-// This build's id, written by the release workflow. A dev run has no such file and
-// therefore never reports an update, which is what we want.
-const readBuildId = () => {
-  try {
-    return String(JSON.parse(fs.readFileSync(path.join(__dirname, "build-id.json"), "utf8")).build || "");
-  } catch {
-    return "";
-  }
-};
-const BUILD_ID = readBuildId();
-// A small latest.json sits beside the installers on the release. Reading that rather
-// than the GitHub API matters: the API is rate limited PER IP, and players behind one
-// carrier NAT share an IP, so at any scale the check starts 403ing for all of them at
-// once. A release asset is a plain CDN download with no such limit.
-const LATEST_URL =
-  "https://github.com/Open-Historia/open-historia/releases/download/desktop-stable/latest.json";
-const UPDATE_CHECK_MS = 6 * 60 * 60 * 1000;
-// Which installer this machine should be offered.
-const ASSET_FOR_PLATFORM = { win32: "windows", darwin: "mac", linux: "linux" };
-
-let updateState = null;
-
-const checkForUpdate = async () => {
-  if (!BUILD_ID) return; // unstamped (dev) build - nothing to compare against
-  try {
-    const res = await fetch(LATEST_URL, { cache: "no-store", signal: AbortSignal.timeout(10000) });
-    if (!res.ok) return;
-    const latest = await res.json();
-    const build = String(latest?.build || "");
-    // Any DIFFERENCE counts, not just "newer": the ids are opaque, and a rollback is
-    // just as much "not what you are running".
-    if (!build || build === BUILD_ID) return;
-    const url = latest?.[ASSET_FOR_PLATFORM[process.platform]] || latest?.url;
-    if (!url) return;
-    updateState = { build, notes: String(latest?.notes || ""), url };
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send("desktop:update", updateState);
-    }
-  } catch {
-    /* fail open: a failed check simply shows no banner */
-  }
-};
-
 // --- boot -------------------------------------------------------------------
 
+// Find a port nothing else holds, starting at `start`. requestSingleInstanceLock
+// already stops US from double-binding, but it cannot help when something else
+// owns the port — Docker publishing 3000, another dev server, Grafana. Then
+// server.js's app.listen() fails and the failure reaches the main process as an
+// uncaught exception: the raw "A JavaScript error occurred in the main process"
+// dialog, with no hint that a port is the problem. server.js DOES have a friendly
+// EADDRINUSE handler, but it attaches to the returned server on the line AFTER
+// listen(), which is too late if listen() throws synchronously rather than
+// emitting. Probing first sidesteps the whole question: by the time server.js
+// runs, the port it is about to take is known free.
+const findFreePort = (start, attempts = 20) =>
+  new Promise((resolve, reject) => {
+    if (attempts <= 0) {
+      reject(new Error(`No free port found in ${start - 20}-${start}.`));
+      return;
+    }
+    const probe = net.createServer();
+    probe.unref();
+    probe.once("error", () => resolve(findFreePort(start + 1, attempts - 1)));
+    probe.once("listening", () => probe.close(() => resolve(start)));
+    // Bind the wildcard, not 127.0.0.1: server.js listens on every interface, so
+    // a loopback-only probe would call a port free that a 0.0.0.0 publisher
+    // (Docker's default) already owns — exactly the case this exists for.
+    probe.listen(start);
+  });
+
 // Starting the server is importing it: server.js calls app.listen() at module
-// scope. It reads OH_DATA_DIR / OH_ASSETS_DIR, both already set above.
+// scope. It reads OH_DATA_DIR / OH_ASSETS_DIR / PORT, all set before the import.
 const startServer = async () => {
   fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.mkdirSync(ASSETS_DIR, { recursive: true });
+  const requested = Number(process.env.PORT) || 3000;
+  const port = await findFreePort(requested);
+  if (port !== requested) {
+    console.log(`Port ${requested} is in use — starting Open Historia on ${port} instead.`);
+  }
+  // Both server.js and the loadURL below read this, so they cannot disagree.
+  process.env.PORT = String(port);
   await import(`file://${path.join(APP_ROOT, "server", "server.js").replace(/\\/g, "/")}`);
 };
 
@@ -210,8 +207,6 @@ const boot = async () => {
   mainWindow = createMainWindow();
   const port = process.env.PORT || 3000;
   await mainWindow.loadURL(`http://localhost:${port}`);
-  checkForUpdate();
-  setInterval(checkForUpdate, UPDATE_CHECK_MS);
   setupWindow?.close();
   setupWindow = null;
 };
@@ -230,9 +225,4 @@ if (!app.requestSingleInstanceLock()) {
   app.whenReady().then(boot);
   app.on("window-all-closed", () => app.quit());
   ipcMain.handle("setup:cancel", () => app.quit());
-  ipcMain.handle("desktop:update-state", () => updateState);
-  ipcMain.handle("desktop:download", (_event, url) => {
-    // Only ever the installer from our own release - never a URL the page invented.
-    if (typeof url === "string" && url === updateState?.url) shell.openExternal(url);
-  });
 }

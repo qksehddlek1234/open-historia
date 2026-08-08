@@ -53,3 +53,11 @@ CLAUDE.md
 /trust/*.key.pem
 # generated per release build by the desktop workflow
 electron/build-id.json
+
+# OHM era-border pipeline outputs (generated dumps)
+scripts/ohm/out*/
+
+# generated preset scenarios are build products of scripts/presets/*.spec.mjs
+# (each regions.geojson is ~55MB — rebuild with: node scripts/presets/rebuild-all.mjs)
+server/data/scenarios/*/
+!server/data/scenarios/default/

@@ -73,6 +73,7 @@ const Units = () => {
   }, [units, colorMap]);
 
   return (
+    <>
     <Source id="units-source" type="geojson" data={data}>
       <Layer
         id="units-fill"
@@ -132,6 +133,49 @@ const Units = () => {
         }}
       />
     </Source>
+      {/* THE FORMATION'S NAME.
+          A unit drew as a glyph and a strength number and nothing else, so an
+          army on the map was an anonymous counter — the player had to click each
+          one to find out which it was. Named like the structures layer, and for
+          the same reason.
+
+          Its own source id, same `data` object: the map runs with
+          crossSourceCollisions={false}, so one source per layer gives the glyphs
+          and the names separate collision groups. Sharing a source, the name
+          (offset below the point) landed on the strength label's box and one of
+          the two was always dropped.
+
+          Offset below the strength number rather than above, because the glyph
+          layer already reserves the space above the point. */}
+      <Source id="units-label-source" type="geojson" data={data}>
+        <Layer
+          id="units-labels"
+          type="symbol"
+          minzoom={4}
+          layout={{
+            "symbol-sort-key": ["-", ["get", "strength"]],
+            "text-field": ["get", "name"],
+            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            // Thinned, unlike the glyph and the strength: those two ARE the unit
+            // and must always draw, but a dozen division names stacked on one
+            // front is unreadable, so the names give way to each other.
+            "text-allow-overlap": false,
+            "text-ignore-placement": false,
+            "text-offset": [0, 2.5],
+            "text-padding": 4,
+            "text-size": ["interpolate", ["linear"], ["zoom"], 4, 9, 8, 11, 12, 12.5],
+          }}
+          paint={{
+            "text-color": "#ffffff",
+            "text-halo-color": "#333333",
+            "text-halo-width": 2,
+            // A deployment the AI has not resolved yet is drawn translucent
+            // everywhere else; its name follows suit rather than reading as final.
+            "text-opacity": ["case", ["==", ["get", "status"], "pending"], 0.55, 1],
+          }}
+        />
+      </Source>
+    </>
   );
 };
 

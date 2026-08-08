@@ -1,4 +1,6 @@
 /*! Open Historia — troop selection & orders UI © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
+import { unitTypeLabel, unitStatusLabel, readEventsState } from "../../runtime/gameState.js";
+import { findRelatedEvents } from "../../runtime/relatedEvents.js";
 import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMap } from "react-map-gl/maplibre";
@@ -33,14 +35,9 @@ export const dismissUnitPopup = () => {
   if (_currentSelection) _dismiss?.();
 };
 
-const TYPE_LABEL = {
-  infantry: "Infantry",
-  armor: "Armor",
-  air: "Air",
-  naval: "Naval",
-  artillery: "Artillery",
-  garrison: "Garrison",
-};
+// Localised in runtime/gameState.js — see the note there about "armor"/"air"
+// being mistranslated when handed to the UI translator as bare words.
+const TYPE_LABEL = new Proxy({}, { get: (_t, key) => unitTypeLabel(String(key)) });
 const TYPE_GLYPH = {
   infantry: "🛡",
   armor: "⚙",
@@ -101,6 +98,13 @@ const UnitPopup = () => {
   const [unit, setUnit] = useState(null);
   const [screenPos, setScreenPos] = useState(null);
   const [animKey, setAnimKey] = useState(0);
+  // Which half of the popup is showing. A formation with a history has something
+  // to say beyond its strength bar, and the panel is 220px wide — a tab is the
+  // only way to give it room without pushing the order buttons off the bottom.
+  const [tab, setTab] = useState("status");
+  // The turns this formation appears in. Loaded only when the info tab is opened,
+  // so clicking a unit stays as cheap as it was.
+  const [related, setRelated] = useState(null);
   const [dismissing, setDismissing] = useState(false);
   const { current: map } = useMap();
 
@@ -185,6 +189,18 @@ const UnitPopup = () => {
     };
   }, [map, selection, unit]);
 
+  // A new unit opens on its status, never on the tab the last one was left on.
+  useEffect(() => { setTab("status"); setRelated(null); }, [selection?.unitId, unit?.id]);
+
+  useEffect(() => {
+    if (tab !== "history" || related !== null || !unit) return undefined;
+    let cancelled = false;
+    readEventsState({ force: true })
+      .then((events) => { if (!cancelled) setRelated(findRelatedEvents(events, { id: unit.id, name: unit.name }, 20)); })
+      .catch(() => { if (!cancelled) setRelated([]); });
+    return () => { cancelled = true; };
+  }, [tab, related, unit]);
+
   // Full owner name, never the code (called before the early return —
   // hook order must not depend on the selection).
   const ownerName = useCountryDisplayName(unit?.ownerCode || "");
@@ -194,6 +210,9 @@ const UnitPopup = () => {
   const POPUP_WIDTH = 220;
   const isOwn = unit.ownerCode === getPlayerCode();
   const strengthPct = Math.max(2, Math.min(100, (unit.strength / 1000) * 100));
+  // Only a formation the player has written a history for gets the second tab;
+  // for every other unit the popup is exactly what it was.
+  const history = String(unit.history ?? "").trim();
 
   const beginMove = () => {
     setInteractionMode({ kind: "move", unitId: unit.id });
@@ -264,6 +283,72 @@ const UnitPopup = () => {
           </button>
         </div>
 
+        {(
+          <div style={{ display: "flex", gap: "4px", padding: "0 12px 8px" }}>
+            {[["status", "Status"], ["history", "📖 Info"]].map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                style={{
+                  background: tab === id ? "rgba(59,130,246,0.28)" : "rgba(255,255,255,0.06)",
+                  border: tab === id ? "1px solid rgba(96,165,250,0.7)" : "1px solid rgba(255,255,255,0.12)",
+                  borderRadius: "6px",
+                  color: "white",
+                  cursor: "pointer",
+                  flex: 1,
+                  fontSize: "10px",
+                  fontWeight: 600,
+                  padding: "4px 0",
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {tab === "history" && (
+          <div style={{ padding: "0 12px 10px" }}>
+            {history ? (
+              <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "11px", lineHeight: 1.55, maxHeight: "150px", overflowY: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                {history}
+              </div>
+            ) : (
+              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: "10px", fontStyle: "italic" }}>
+                No history written for this formation yet — add one in Edit Map Feature.
+              </div>
+            )}
+
+            <div style={{ borderTop: "1px solid rgba(255,255,255,0.12)", fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.55)", letterSpacing: "0.04em", marginTop: "9px", paddingTop: "8px", textTransform: "uppercase" }}>
+              Appears in
+            </div>
+            <div style={{ maxHeight: "150px", overflowY: "auto" }}>
+              {related === null && (
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", padding: "4px 0" }}>Looking…</div>
+              )}
+              {related?.length === 0 && (
+                <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", padding: "4px 0" }}>
+                  No recorded event mentions this formation yet.
+                </div>
+              )}
+              {(related ?? []).map((event) => (
+                <div key={event.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "5px 0" }}>
+                  <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "9px" }}>{event.date}</div>
+                  <div style={{ color: "rgba(255,255,255,0.85)", fontSize: "10.5px", lineHeight: 1.4 }}>{event.title}</div>
+                </div>
+              ))}
+            </div>
+
+            {isOwn && (
+              <div style={{ display: "flex", gap: "5px", marginTop: "10px" }}>
+                <ActionButton label="Move" tone="primary" onClick={beginMove} />
+                <ActionButton label="Attack" tone="danger" onClick={beginAttack} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === "status" && (
         <div style={{ padding: "0 12px 10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255,255,255,0.7)", marginBottom: "3px" }}>
             <span>Strength</span>
@@ -281,7 +366,7 @@ const UnitPopup = () => {
 
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255,255,255,0.6)", marginTop: "7px" }}>
             <span>Status</span>
-            <span style={{ color: "rgba(255,255,255,0.9)", textTransform: "capitalize" }}>{unit.status}</span>
+            <span data-no-translate="" style={{ color: "rgba(255,255,255,0.9)" }}>{unitStatusLabel(unit.status)}</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255,255,255,0.6)", marginTop: "3px" }}>
             <span>Location</span>
@@ -302,6 +387,7 @@ const UnitPopup = () => {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>,
     document.body,
