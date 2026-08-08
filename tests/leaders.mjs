@@ -142,7 +142,7 @@ test("Cowork handover: gaps filled, and a direct key beats its era alias", () =>
   // handover bug: Slovakia@1939 answered Czechoslovakia's 에밀 하하).
   assert.equal(referenceLeadership("Slovakia", "1939-09-01").leader, "총리 요제프 티소");
   assert.equal(referenceLeadership("Slovakia", "1939-09-01").headOfState, "(없음)");
-  assert.equal(referenceLeadership("Slovakia", "1955-01-01").leader, undefined, "post-war Slovakia rides the Czechoslovakia alias again (no own row)");
+  assert.equal(referenceLeadership("Slovakia", "1955-01-01").leader, "제1서기 안토닌 노보트니", "post-war Slovakia rides the Czechoslovakia alias again");
   assert.equal(referenceLeadership("Serbia", "1914-07-28").leader, "국왕 페타르 1세");
   assert.equal(referenceLeadership("Serbia", "1914-07-28").deputy, "총리 니콜라 파시치");
   assert.equal(referenceLeadership("France", "1946-03-05").leader, "총리 펠릭스 구앵");
