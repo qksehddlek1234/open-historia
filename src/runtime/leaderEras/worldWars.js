@@ -2835,6 +2835,8 @@ export const POLITICAL_FIGURES = {
 };
 
 export const ALIASES = {
+  "US Military Government in Korea": "South Korea",
+  "Soviet Civil Administration in Korea": "North Korea",
   "Abyssinia": "Ethiopia",
   "Britain": "United Kingdom",
   "Burma": "Myanmar",

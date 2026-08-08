@@ -6,6 +6,195 @@
 export const ERA = { key: "early-modern", from: "1444-01-01", until: "1749-12-31" };
 
 export const REFERENCE = {
+  // ---- magna-1444 프리셋 시딩 보강 (바르나 다음날의 세계) ----
+  "Empire of Trebizond": {
+    leader: [
+      { name: "황제 요안니스 4세 콤니노스", from: "1429-04-26", until: "1459-04-22" },
+      { name: "황제 다비드 콤니노스", from: "1459-04-22", until: "1461-08-15" },
+    ],
+  },
+  "Karamanids": {
+    leader: [
+      { name: "베이 이브라힘 2세", from: "1424-01-01", until: "1464-07-16" },
+      { name: "베이 피르 아흐메트", from: "1464-07-16", until: "1471-01-01" },
+    ],
+  },
+  "Aq Qoyunlu": {
+    leader: [
+      { name: "베이 자한기르", from: "1444-01-01", until: "1453-01-01" },
+      { name: "술탄 우준 하산", from: "1453-01-01", until: "1478-01-06" },
+      { name: "술탄 야쿠브", from: "1478-07-15", until: "1490-12-24" },
+    ],
+  },
+  "Qara Qoyunlu": {
+    leader: [
+      { name: "술탄 자한 샤", from: "1438-04-01", until: "1467-11-11" },
+      { name: "술탄 하산 알리", from: "1467-11-11", until: "1469-04-01" },
+    ],
+  },
+  "Kingdom of Bosnia": {
+    leader: [
+      { name: "국왕 스테판 토마시", from: "1443-11-01", until: "1461-07-10" },
+      { name: "국왕 스테판 토마셰비치", from: "1461-07-10", until: "1463-06-05" },
+    ],
+  },
+  "League of Lezhë": {
+    leader: [
+      { name: "총사령관 제르지 카스트리오티 스칸데르베그", from: "1444-03-02", until: "1468-01-17" },
+    ],
+  },
+  "Republic of Ragusa": {
+    // 매달 새 렉토르를 뽑는 귀족 공화정 — 개인이 아니라 제도가 수반이다.
+    leader: [
+      { name: "렉토르 (월례 윤번제)" },
+    ],
+  },
+  "Teutonic Order": {
+    leader: [
+      { name: "총장 콘라트 폰 에를리히스하우젠", from: "1441-04-12", until: "1449-11-07" },
+      { name: "총장 루트비히 폰 에를리히스하우젠", from: "1450-03-21", until: "1467-04-04" },
+      { name: "총장 하인리히 로이스 폰 플라우엔", from: "1467-10-17", until: "1470-01-02" },
+    ],
+  },
+  "Duchy of Brittany": {
+    leader: [
+      { name: "공작 프랑수아 1세", from: "1442-08-29", until: "1450-07-19" },
+      { name: "공작 피에르 2세", from: "1450-07-19", until: "1457-09-22" },
+      { name: "공작 아르튀르 3세", from: "1457-09-22", until: "1458-12-26" },
+      { name: "공작 프랑수아 2세", from: "1458-12-26", until: "1488-09-09" },
+      { name: "여공작 안", from: "1488-09-09", until: "1514-01-09" },
+    ],
+  },
+  "Kingdom of Navarre": {
+    leader: [
+      { name: "국왕 후안 2세", from: "1425-09-08", until: "1479-01-20" },
+      { name: "여왕 레오노르", from: "1479-01-20", until: "1479-02-12" },
+      { name: "국왕 프란시스코 페부스", from: "1479-02-12", until: "1483-01-30" },
+      { name: "여왕 카탈리나", from: "1483-01-30", until: "1517-02-12" },
+    ],
+  },
+  "Republic of Genoa": {
+    leader: [
+      { name: "도제 라파엘레 아도르노", from: "1443-01-28", until: "1447-01-04" },
+      { name: "도제 자노 프레고소", from: "1447-01-30", until: "1448-12-16" },
+      { name: "도제 피에트로 프레고소", from: "1450-12-08", until: "1458-05-11" },
+    ],
+  },
+  "Novgorod Republic": {
+    // 베체 공화정 — 상설 수반은 노브고로드 대주교가 주재한다.
+    leader: [
+      { name: "대주교 예프피미 2세", from: "1429-11-13", until: "1458-03-10" },
+      { name: "대주교 이오나", from: "1458-03-10", until: "1470-11-05" },
+      { name: "대주교 페오필", from: "1470-11-05", until: "1480-01-01" },
+    ],
+  },
+  "Khanate of Kazan": {
+    leader: [
+      { name: "칸 울루그 무함마드", from: "1438-01-01", until: "1445-07-01" },
+      { name: "칸 마흐무드", from: "1445-07-01", until: "1466-01-01" },
+      { name: "칸 이브라힘", from: "1467-01-01", until: "1479-01-01" },
+    ],
+  },
+  "Great Horde": {
+    leader: [
+      { name: "칸 퀴취크 무함마드", from: "1435-01-01", until: "1459-01-01" },
+      { name: "칸 마흐무드 빈 퀴취크", from: "1459-01-01", until: "1465-01-01" },
+      { name: "칸 아흐메드", from: "1465-01-01", until: "1481-01-06" },
+    ],
+  },
+  "Kingdom of Georgia": {
+    leader: [
+      { name: "국왕 바흐탕 4세", from: "1442-12-01", until: "1446-12-01" },
+      { name: "국왕 기오르기 8세", from: "1446-12-01", until: "1465-01-01" },
+      { name: "국왕 바그라트 6세", from: "1465-01-01", until: "1478-01-01" },
+      { name: "국왕 콘스탄티네 2세", from: "1478-01-01", until: "1505-04-27" },
+    ],
+  },
+  "Timurid Empire": {
+    leader: [
+      { name: "아미르 샤루흐", from: "1405-03-13", until: "1447-03-13" },
+      { name: "술탄 울루그 베그", from: "1447-03-13", until: "1449-10-27" },
+      { name: "술탄 아부 사이드", from: "1451-06-01", until: "1469-02-08" },
+      { name: "술탄 후사인 바이카라", from: "1469-03-01", until: "1506-05-04" },
+    ],
+  },
+  "Hafsid Sultanate": {
+    leader: [
+      { name: "칼리파 아부 우마르 우스만", from: "1435-09-01", until: "1488-09-01" },
+    ],
+  },
+  "Delhi Sultanate": {
+    leader: [
+      { name: "술탄 무함마드 샤", from: "1434-01-01", until: "1445-01-01" },
+      { name: "술탄 알람 샤", from: "1445-01-01", until: "1451-04-19" },
+      { name: "술탄 바흘룰 로디", from: "1451-04-19", until: "1489-07-12" },
+      { name: "술탄 시칸다르 로디", from: "1489-07-17", until: "1517-11-21" },
+    ],
+  },
+  "Bengal Sultanate": {
+    leader: [
+      { name: "술탄 나시루딘 마흐무드 샤", from: "1435-01-01", until: "1459-01-01" },
+      { name: "술탄 루크누딘 바르바크 샤", from: "1459-01-01", until: "1474-01-01" },
+      { name: "술탄 샴수딘 유수프 샤", from: "1474-01-01", until: "1481-01-01" },
+    ],
+  },
+  "Bahmani Sultanate": {
+    leader: [
+      { name: "술탄 알라우딘 아흐마드 샤 2세", from: "1436-04-17", until: "1458-05-07" },
+      { name: "술탄 후마윤 샤", from: "1458-05-07", until: "1461-09-04" },
+      { name: "술탄 무함마드 샤 3세", from: "1463-07-30", until: "1482-03-26" },
+    ],
+  },
+  "Vijayanagara": {
+    leader: [
+      { name: "마하라야 데바 라야 2세", from: "1424-01-01", until: "1446-05-24" },
+      { name: "마하라야 말리카르주나 라야", from: "1446-05-24", until: "1465-01-01" },
+      { name: "마하라야 비루팍샤 라야 2세", from: "1465-01-01", until: "1485-01-01" },
+    ],
+  },
+  "Khmer Kingdom": {
+    leader: [
+      { name: "국왕 퐁헤아 야트", from: "1421-01-01", until: "1463-01-01" },
+      { name: "국왕 노레아이 레아체아", from: "1463-01-01", until: "1469-01-01" },
+    ],
+  },
+  "Champa": {
+    leader: [
+      { name: "국왕 마하 비자야", from: "1441-01-01", until: "1446-01-01" },
+      { name: "국왕 마하 카이", from: "1446-01-01", until: "1449-01-01" },
+      { name: "국왕 트라 토안", from: "1460-01-01", until: "1471-03-01" },
+    ],
+  },
+  "Malacca Sultanate": {
+    leader: [
+      { name: "라자 스리 파라메스와라 데와 샤", from: "1444-01-01", until: "1445-05-01" },
+      { name: "술탄 무자파르 샤", from: "1445-05-01", until: "1459-01-01" },
+      { name: "술탄 만수르 샤", from: "1459-01-01", until: "1477-01-01" },
+      { name: "술탄 알라우딘 리아야트 샤", from: "1477-01-01", until: "1488-01-01" },
+    ],
+  },
+  "Majapahit": {
+    leader: [
+      { name: "여왕 수히타", from: "1429-01-01", until: "1447-01-01" },
+      { name: "국왕 케르타위자야", from: "1447-01-01", until: "1451-01-01" },
+      { name: "국왕 기리샤와르다나", from: "1456-01-01", until: "1466-01-01" },
+      { name: "국왕 싱하위크라마와르다나", from: "1466-01-01", until: "1478-01-01" },
+    ],
+  },
+  "Purépecha Empire": {
+    // 재위 연대는 학계 추정 — 연 단위 근사.
+    leader: [
+      { name: "카손치 탕가슈안 1세", from: "1429-01-01", until: "1454-01-01" },
+      { name: "카손치 치치판다콰레", from: "1454-01-01", until: "1479-01-01" },
+    ],
+  },
+  "Maya Kingdoms": {
+    // 1441 마야판 붕괴 이후 — 단일 수반이 없는 제후 왕국들의 집합.
+    leader: [
+      { name: "제후 왕국들 (마야판 붕괴 이후)" },
+    ],
+  },
+
   Aragon: {
     leader: [
       { name: "국왕 알폰소 5세", from: "1416-04-02", until: "1458-06-27" },
@@ -90,6 +279,8 @@ export const REFERENCE = {
   },
   Bohemia: {
     leader: [
+      { name: "공위 — 후스 전쟁 이후 신분제 통치", from: "1439-10-27", until: "1448-09-03" },
+      { name: "섭정 이르지 스 포데브라트", from: "1448-09-03", until: "1453-10-28" },
       { name: "국왕 라디슬라프 포흐로베크", from: "1453-10-28", until: "1457-11-23" },
       { name: "국왕 이르지 스 포데브라트", from: "1458-03-02", until: "1471-03-22" },
       { name: "국왕 블라디슬라프 2세", from: "1471-05-27", until: "1516-03-13" },
@@ -463,6 +654,8 @@ export const REFERENCE = {
   },
   Moldavia: {
     leader: [
+      { name: "보이보드 스테판 2세", from: "1442-01-01", until: "1447-07-13" },
+      { name: "보이보드 페트루 아론", from: "1451-10-01", until: "1457-04-12" },
       { name: "보이보드 슈테판 3세 (대왕)", from: "1457-04", until: "1504-07-02" },
       { name: "보이보드 페트루 라레슈", from: "1527-01", until: "1538-09" },
       { name: "보이보드 페트루 라레슈", from: "1541-02", until: "1546-09" },
@@ -664,6 +857,7 @@ export const REFERENCE = {
   Poland: {
     leader: [
       { name: "국왕 브와디스와프 3세", from: "1434-06-01", until: "1444-11-10" },
+      { name: "공위 — 바르나 전사 이후 인터레그넘", from: "1444-11-10", until: "1447-06-25" },
       { name: "국왕 카지미에시 4세", from: "1447-06-25", until: "1492-06-07" },
       { name: "국왕 얀 1세 올브라흐트", from: "1492-08-27", until: "1501-06-17" },
       { name: "국왕 알렉산데르", from: "1501-10-03", until: "1506-08-19" },
@@ -1031,6 +1225,8 @@ export const REFERENCE = {
   },
   Wallachia: {
     leader: [
+      { name: "보이보드 블라드 2세 드라쿨", from: "1443-12-01", until: "1447-12-01" },
+      { name: "보이보드 블라디슬라프 2세", from: "1447-12-01", until: "1456-08-20" },
       { name: "보이보드 블라드 3세 (드라쿨라)", from: "1448-10", until: "1448-11" },
       { name: "보이보드 블라드 3세 (드라쿨라)", from: "1456-08", until: "1462-11" },
       { name: "보이보드 블라드 3세 (드라쿨라)", from: "1476-11", until: "1476-12" },
@@ -1223,6 +1419,8 @@ export const POLITICAL_FIGURES = {
 };
 
 export const ALIASES = {
+  "Kingdom of Poland": "Poland",
+  "Kingdom of Bohemia": "Bohemia",
   "Abyssinia": "Ethiopia",
   "Alaouite Morocco": "Morocco",
   "Angola": "Kongo",

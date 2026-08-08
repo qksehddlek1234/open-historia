@@ -158,9 +158,10 @@ Then open **http://localhost:3000** in your browser.
 ## 🌍 Scenarios
 
 **Modern Day** is the built-in default, and this fork ships a local preset fleet built from
-specs in `scripts/presets/`: *World War I — 1914*, *World War II — 1935 Buildup*,
-*World War II — 1939*, *Cold War — 1946*, *Medieval — 1200 AD*, *Rome — 117 AD*,
-*Mongol World — 1300 AD*, *New World — 1650*, and *Bronze Age — 1200 BC*. Community scenarios
+specs in `scripts/presets/`: *Magna Europa — 1444*, *New World — 1650*, *Napoleonic Wars — 1804*,
+*Victorian Era — 1836*, *World War I — 1914*, *World War II — 1935 Buildup*,
+*World War II — 1939*, *Cold War — 1946*, *Millennium Dawn — 2000*, *Medieval — 1200 AD*,
+*Rome — 117 AD*, *Mongol World — 1300 AD*, and *Bronze Age — 1200 BC*. Community scenarios
 live on the [**Scenario Hub**](https://github.com/Open-Historia/Open-historia-scenarios),
 pinned at the top of the in-game **Community** tab.
 
