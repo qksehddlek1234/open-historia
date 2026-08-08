@@ -182,6 +182,39 @@ for (const [code, p] of Object.entries(spec.polities ?? {})) {
   colors[name] = hexToRgb(p.color ?? "#888888");
 }
 
+// ── 3.5 Seed era leadership from the collected officeholder record ────────────
+// The reference (src/runtime/leaderReference.js + leaderEras/ packs) was
+// collected precisely so presets could draw on it. At build time each polity
+// is resolved against the START DATE — by its name, then by each alias (the
+// bridge that lets "British Empire" answer via "United Kingdom") — and the
+// resolved leadership is stamped into polityOverrides for the scenario to
+// carry. Misses are REPORTED, never silent: pre-1444 presets are honestly
+// uncovered (the record starts at 1444 by design), and every other miss is a
+// named to-do for the reference's data lane.
+const { ensureReferenceEra, referenceLeadership } = await import("../../src/runtime/leaderReference.js");
+const startDateForLeaders = spec.game?.startDate ?? "";
+await ensureReferenceEra(startDateForLeaders);
+const leaderReport = { hits: [], misses: [] };
+for (const [code, p] of Object.entries(spec.polities ?? {})) {
+  const name = polityName(code);
+  let resolved = null;
+  let via = null;
+  for (const key of [name, ...(Array.isArray(p.aliases) ? p.aliases : [])]) {
+    const r = referenceLeadership(key, startDateForLeaders);
+    if (r && (r.leader || r.headOfState)) {
+      resolved = r;
+      via = key;
+      break;
+    }
+  }
+  if (resolved) {
+    polityOverrides[name].leadership = { asOf: startDateForLeaders, via, ...resolved };
+    leaderReport.hits.push(`${name} → ${resolved.leader ?? resolved.headOfState}`);
+  } else {
+    leaderReport.misses.push(name);
+  }
+}
+
 // ── 4. Emit scenario folder ───────────────────────────────────────────────────
 const scenarioDir = path.join(SCENARIOS_DIR, spec.id);
 mkdirSync(path.join(scenarioDir, "storage"), { recursive: true });
@@ -348,6 +381,7 @@ if (cityCollection) {
   console.log(`  cities.geojson: ${cityCollection.features.length} era cities (customCities=true)`);
 }
 console.log(`  polities: ${Object.keys(polityOverrides).length}`);
+console.log(`  era leaders seeded: ${leaderReport.hits.length}/${Object.keys(polityOverrides).length}${leaderReport.misses.length ? ` — 미기록: ${leaderReport.misses.join(", ")}` : ""}`);
 console.log("  per-polity region counts:");
 for (const [code, n] of Object.entries(perPolity).sort((a, b) => b[1] - a[1])) {
   console.log(`    ${String(code).padEnd(7)} ${n}`);

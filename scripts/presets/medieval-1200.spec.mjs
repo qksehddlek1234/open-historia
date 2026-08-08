@@ -329,7 +329,8 @@ export default {
     "the Khmer Empire at Angkor rules mainland Southeast Asia, Pagan rules Burma, Dai Viet " +
     "holds the Red River, and Srivijaya commands the straits of the spice trade. Religion — " +
     "Latin Christianity, Orthodoxy, Sunni and Shia Islam — is the primary axis of alliance and " +
-    "war. Mongol unification under Temüjin (Genghis Khan) looms after 1206.",
+    "war. Mongol unification under Temüjin (Genghis Khan) looms after 1206." +
+    " Money is silver pennies and Byzantine bezants; feudal hosts serve forty days and melt away, so wars are sieges and seasons. Historical trajectories the player may bend: the Fourth Crusade turning on Constantinople (1204), Bouvines (1214), Magna Carta (1215), the Albigensian Crusade (1209), and the Mongol storm gathering after 1206. MAP APPROXIMATIONS: feudal sovereignty is layered — vassals, church lands and city republics nest inside kingdoms the grid paints solid; the Holy Roman Empire's color is an election, not a state; Byzantine themes and crusader lordships are garrisoned coasts, not filled provinces.",
 
   startingTimelineText:
     "The year of grace 1200. In Rome the formidable Pope Innocent III asserts the supremacy of " +

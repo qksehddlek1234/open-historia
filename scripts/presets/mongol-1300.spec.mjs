@@ -331,7 +331,8 @@ export default {
     "France feuds with Pope Boniface VIII, the Sicilian Vespers war splits Naples (Anjou) " +
     "from island Sicily (Aragon), and pagan Lithuania resists the Teutonic Order. Kamakura " +
     "Japan has repelled two Mongol invasions (1274, 1281). Unclaimed regions are tribal or " +
-    "stateless lands — steppe, forest, desert — raidable and colonizable but ungoverned.",
+    "stateless lands — steppe, forest, desert — raidable and colonizable but ungoverned." +
+    " The Pax Mongolica keeps the continent's roads open — merchants, missionaries, silver and (in time) plague all travel them. Historical trajectories the player may bend: Ghazan's last marches on Syria (beaten 1303), the Ottoman beylik's improbable rise, the Ilkhanate dissolving after 1335, the Yuan losing the Mandate, and the Black Death riding the khans' own roads west in the 1340s. MAP APPROXIMATIONS: steppe borders are grazing ranges, not lines; tributaries (the Russian principalities, Georgia, Bulgaria, Seljuk Anatolia) keep their own color or their overlord's but answer the khan's census and levy either way; Yuan China governs through Chinese institutions the grid cannot show.",
 
   startingTimelineText:
     "The year 1300. From the Pacific to the Carpathians the descendants of Genghis Khan " +

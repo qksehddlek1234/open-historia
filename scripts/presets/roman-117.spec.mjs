@@ -177,7 +177,8 @@ export default {
     "empty. Unclaimed regions are tribal or stateless lands: they can be raided, colonized or " +
     "federated but have no central government. Religion is pre-Christian: the imperial cult, " +
     "Hellenic and eastern mysteries, Zoroastrianism in Parthia, Buddhism spreading through " +
-    "Kushan lands into Han China.",
+    "Kushan lands into Han China." +
+    " Money is the silver denarius; state revenue is tax and the grain annona, and the legions are paid professionals whose loyalty is political power. Historical trajectories the player may bend: Hadrian's retrenchment and wall-building in Britain (122), the Antonine peace, Parthian revanche, the eventual crisis of succession. MAP APPROXIMATIONS: provinces are drawn on modern regions — client kingdoms (Armenia, Osroene, the Bosporan realm) are Roman-aligned but not Roman; newly annexed Mesopotamia and Dacia are unconsolidated conquests; the limes is a garrisoned road, not a wall of color.",
 
   startingTimelineText:
     "August, 117 AD. Word races along the imperial post roads: Trajan, Optimus Princeps, " +

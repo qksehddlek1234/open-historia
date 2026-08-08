@@ -48,29 +48,29 @@ export default {
   game: { country: "GER", startDate: "1939-09-01", gameDate: "1939-09-01" },
 
   polities: {
-    GER: { name: "Germany", color: "#3a3a3a", aliases: ["Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },
+    GER: { name: "Germany", color: "#3a3a3a", aliases: ["독일", "나치 독일", "Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },
     // Was a countryNameOverrides label (THA -> "Siam"). A label could only rename
     // what the map already showed; a polity is a country the game and the model can
     // actually reason about. The colour is what Thailand rendered as before —
     // codeToColor("THA") — so the map looks identical.
-    SIA: { name: "Siam", color: "#4068bf", aliases: ["Thailand", "Kingdom of Siam"] },
-    SVK: { name: "Slovakia", color: "#9a9a4f", aliases: ["Slovak Republic"] },
-    ITA: { name: "Italy", color: "#4f7942", aliases: ["Kingdom of Italy", "Fascist Italy"] },
-    JAP: { name: "Japan", color: "#b23b3b", aliases: ["Empire of Japan", "Imperial Japan"] },
-    MAN: { name: "Manchukuo", color: "#cc8844", aliases: ["Manchuria", "Manchukuo"] },
-    SOV: { name: "Soviet Union", color: "#8b1a1a", aliases: ["USSR", "Soviet Union", "Soviet Russia"] },
-    GBR: { name: "British Empire", color: "#c0507a", aliases: ["United Kingdom", "Britain", "Great Britain"] },
-    FRA: { name: "French Republic", color: "#3f6fd0", aliases: ["France", "French Empire"] },
-    NLD: { name: "Netherlands", color: "#e08a2e", aliases: ["Dutch Empire", "Holland"] },
-    BEL: { name: "Belgium", color: "#b0902e", aliases: ["Belgian Empire"] },
-    POR: { name: "Portugal", color: "#2e7d6b", aliases: ["Portuguese Empire", "Estado Novo"] },
-    ESP: { name: "Spain", color: "#d0a02e", aliases: ["Spanish State"] },
-    USA: { name: "United States", color: "#4a8f7a", aliases: ["America", "United States of America"] },
-    YUG: { name: "Yugoslavia", color: "#6a8caf", aliases: ["Kingdom of Yugoslavia"] },
-    ROU: { name: "Romania", color: "#c08a3a", aliases: ["Kingdom of Romania"] },
-    CHI: { name: "Republic of China", color: "#4a6db5", aliases: ["China", "Nationalist China", "Kuomintang"] },
-    MON: { name: "Mongolian People's Republic", color: "#a85454", aliases: ["Mongolia", "Outer Mongolia"] },
-    DAN: { name: "Denmark", color: "#8a5f6d", aliases: ["Kingdom of Denmark"] },
+    SIA: { name: "Siam", color: "#4068bf", aliases: ["시암", "Thailand", "Kingdom of Siam"] },
+    SVK: { name: "Slovakia", color: "#9a9a4f", aliases: ["슬로바키아", "Slovak Republic"] },
+    ITA: { name: "Italy", color: "#4f7942", aliases: ["이탈리아", "Kingdom of Italy", "Fascist Italy"] },
+    JAP: { name: "Japan", color: "#b23b3b", aliases: ["일본 제국", "Empire of Japan", "Imperial Japan"] },
+    MAN: { name: "Manchukuo", color: "#cc8844", aliases: ["만주국", "Manchuria", "Manchukuo"] },
+    SOV: { name: "Soviet Union", color: "#8b1a1a", aliases: ["소련", "USSR", "Soviet Union", "Soviet Russia"] },
+    GBR: { name: "British Empire", color: "#c0507a", aliases: ["대영제국", "영국", "United Kingdom", "Britain", "Great Britain"] },
+    FRA: { name: "French Republic", color: "#3f6fd0", aliases: ["프랑스", "France", "French Empire"] },
+    NLD: { name: "Netherlands", color: "#e08a2e", aliases: ["네덜란드", "Dutch Empire", "Holland"] },
+    BEL: { name: "Belgium", color: "#b0902e", aliases: ["벨기에", "Belgian Empire"] },
+    POR: { name: "Portugal", color: "#2e7d6b", aliases: ["포르투갈", "Portuguese Empire", "Estado Novo"] },
+    ESP: { name: "Spain", color: "#d0a02e", aliases: ["스페인", "Spanish State"] },
+    USA: { name: "United States", color: "#4a8f7a", aliases: ["미국", "America", "United States of America"] },
+    YUG: { name: "Yugoslavia", color: "#6a8caf", aliases: ["유고슬라비아", "Kingdom of Yugoslavia"] },
+    ROU: { name: "Romania", color: "#c08a3a", aliases: ["루마니아", "Kingdom of Romania"] },
+    CHI: { name: "Republic of China", color: "#4a6db5", aliases: ["중화민국", "China", "Nationalist China", "Kuomintang"] },
+    MON: { name: "Mongolian People's Republic", color: "#a85454", aliases: ["몽골", "Mongolia", "Outer Mongolia"] },
+    DAN: { name: "Denmark", color: "#8a5f6d", aliases: ["덴마크", "Kingdom of Denmark"] },
   },
 
   // Whole-country grants (every GID_1 of these modern GID_0 -> owner).
@@ -137,6 +137,7 @@ export default {
 
   // Region-level exceptions (applied after, so they win).
   regionAssignments: {
+    "RUS.21_1": "GER",  // Kaliningrad = Königsberg: East Prussia is GERMAN until 1945
     "LTU.3_1": "GER",   // Memelland (Klaipeda), annexed March 1939
     "CHN.HKG": "GBR",   // Hong Kong, British colony
     // Manchukuo — Japanese puppet state in northeast China (the three Manchurian provinces).

@@ -5,7 +5,7 @@
 // stored copies are updated too.
 //
 //   node scripts/presets/sync-prompts.mjs
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { GAMEPLAY_PROMPT_DEFAULTS } from "../../src/Game/AI/gameplayPrompts.js";
@@ -16,7 +16,16 @@ const SCENARIOS_DIR = path.join(PROJECT_ROOT, "server", "data", "scenarios");
 
 // Only the task prompts we edited need syncing.
 const KEYS = ["jumpForward", "autoJumpForward"];
-const SCENARIOS = ["default", "wwii-1939", "medieval-1200"];
+// Every scenario directory, discovered rather than listed: the old hardcoded
+// list silently skipped whichever presets it predated, which is exactly how a
+// scenario ends up running last year's prompt text.
+const SCENARIOS = readdirSync(SCENARIOS_DIR).filter((id) => {
+  try {
+    return statSync(path.join(SCENARIOS_DIR, id)).isDirectory();
+  } catch {
+    return false;
+  }
+}).sort();
 
 for (const id of SCENARIOS) {
   const file = path.join(SCENARIOS_DIR, id, "prompts.json");

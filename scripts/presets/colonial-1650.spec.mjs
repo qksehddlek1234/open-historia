@@ -372,7 +372,8 @@ export default {
     "every contact. In Europe the Thirty Years' War just ended (Westphalia 1648), the " +
     "Khmelnytsky uprising tears at Poland-Lithuania, and the Fronde paralyzes France. The " +
     "Qing have taken Beijing (1644) and are hunting the Ming remnant; Japan is closed " +
-    "(sakoku); the VOC rules the spice trade from Batavia and Dutch Formosa.",
+    "(sakoku); the VOC rules the spice trade from Batavia and Dutch Formosa." +
+    " Historical trajectories the player may bend: the Navigation Act (1651) and three Anglo-Dutch wars, the Stuart Restoration (1660), Qing consolidation and the Revolt of the Three Feudatories, King Philip's War (1675), and the slow ruin of Spain's silver economy. MAP APPROXIMATIONS: colonial color is CLAIM, not control — beyond forts and coasts the land belongs to the nations who live on it; Spanish 'territory' in North America is a mission frontier, and European 'colonies' are towns with charters. The chartered companies (VOC, WIC, EIC) act as states: they wage war, mint coin and sign treaties under their own flags.",
 
   startingTimelineText:
     "The year 1650. In London a king's severed head has made England a republic, and " +

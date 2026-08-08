@@ -181,7 +181,8 @@ export default {
     "federated but have no central government. Religion is polytheist everywhere: Amun-Ra and " +
     "the Aten's memory in Egypt, the Storm God of Hatti, Marduk in Babylon, Ashur in Assyria, " +
     "ancestor oracle-bones in Shang China. Dates are BCE and count DOWN (1200 BCE, then 1199 " +
-    "BCE...); write dates as e.g. '1198 BCE'.",
+    "BCE...); write dates as e.g. '1198 BCE'." +
+    " MAP APPROXIMATIONS: modern regions approximate palace-age spheres — Egypt's empire includes garrisoned Canaan up to Kadesh though the grid draws modern states; Hatti's vassal ring (Ugarit, Amurru, Tarhuntassa) and the Mycenaean palace network are webs of tribute, not bordered states. Treat every drawn border as a zone of control fading into tribal country.",
 
   startingTimelineText:
     "The year is 1200 BCE. In Pi-Ramesses the court of Pharaoh still gleams — tribute barges " +
