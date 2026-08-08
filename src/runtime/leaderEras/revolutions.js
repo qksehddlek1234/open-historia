@@ -5,11 +5,68 @@
 export const ERA = { key: "revolutions", from: "1750-01-01", until: "1899-12-31" };
 
 export const REFERENCE = {
+  // ---- 나폴레옹 시대 폴리티 (napoleonic-1804 프리셋 시딩 공백 보강) ----
+  "Italian Republic": {
+    leader: [
+      { name: "대통령 나폴레오네 보나파르테", from: "1802-01-26", until: "1805-03-17" },
+      { name: "국왕 나폴레오네 1세", from: "1805-03-17", until: "1814-04-11" },
+    ],
+    deputy: [
+      { name: "부통령 프란체스코 멜치 데릴", from: "1802-01-26", until: "1805-03-17" },
+      { name: "부왕 외젠 드 보아르네", from: "1805-06-07", until: "1814-04-11" },
+    ],
+  },
+  "Kingdom of Etruria": {
+    leader: [
+      { name: "국왕 로도비코 1세", from: "1801-03-21", until: "1803-05-27" },
+      { name: "국왕 카를로 로도비코", from: "1803-05-27", until: "1807-12-10" },
+    ],
+    deputy: [
+      { name: "섭정 마리아 루이사", from: "1803-05-27", until: "1807-12-10" },
+    ],
+  },
+  "Electorate of Hanover": {
+    leader: [
+      { name: "선제후 게오르크 3세", from: "1760-10-25", until: "1814-10-12" },
+      { name: "국왕 게오르크 3세", from: "1814-10-12", until: "1820-01-29" },
+      { name: "국왕 게오르크 4세", from: "1820-01-29", until: "1830-06-26" },
+      { name: "국왕 빌헬름", from: "1830-06-26", until: "1837-06-20" },
+      { name: "국왕 에른스트 아우구스트", from: "1837-06-20", until: "1851-11-18" },
+      { name: "국왕 게오르크 5세", from: "1851-11-18", until: "1866-09-20" },
+    ],
+  },
+  "Sikh Empire": {
+    leader: [
+      { name: "마하라자 란지트 싱", from: "1801-04-12", until: "1839-06-27" },
+      { name: "마하라자 카라크 싱", from: "1839-06-27", until: "1840-01-08" },
+      { name: "마하라자 셰르 싱", from: "1841-01-18", until: "1843-09-15" },
+      { name: "마하라자 둘리프 싱", from: "1843-09-15", until: "1849-03-29" },
+    ],
+    deputy: [
+      { name: "와지르 디안 싱", from: "1828-01-01", until: "1843-09-15" },
+    ],
+  },
+  "Maratha Confederacy": {
+    leader: [
+      { name: "페슈와 마다브 라오 2세", from: "1774-05-28", until: "1795-10-27" },
+      { name: "페슈와 바지 라오 2세", from: "1796-12-04", until: "1818-06-03" },
+    ],
+  },
+  "Emirate of Diriyah": {
+    leader: [
+      { name: "에미르 압둘아지즈 빈 무함마드", from: "1765-01-01", until: "1803-11-04" },
+      { name: "에미르 사우드 빈 압둘아지즈", from: "1803-11-04", until: "1814-04-27" },
+      { name: "에미르 압둘라 빈 사우드", from: "1814-04-27", until: "1818-09-11" },
+    ],
+  },
   Afghanistan: {
     leader: [
       { name: "샤 아흐마드 샤 두라니", from: "1747-10-01", until: "1772-06-04" },
       { name: "샤 티무르 샤 두라니", from: "1772-06-04", until: "1793-05-20" },
       { name: "샤 자만 샤 두라니", from: "1793-05-23", until: "1800-07-25" },
+      { name: "샤 마흐무드 샤 두라니", from: "1800-07-25", until: "1803-07-13" },
+      { name: "샤 슈자 두라니", from: "1803-07-13", until: "1809-05-03" },
+      { name: "샤 마흐무드 샤 두라니", from: "1809-05-03", until: "1818-01-01" },
       { name: "에미르 도스트 무함마드 칸", from: "1826-01-01", until: "1839-08-07" },
       { name: "샤 슈자 두라니", from: "1839-08-07", until: "1842-04-05" },
       { name: "에미르 도스트 무함마드 칸", from: "1843-01-01", until: "1863-06-09" },
@@ -1233,6 +1290,15 @@ export const POLITICAL_FIGURES = {
 };
 
 export const ALIASES = {
+  "Kingdom of Italy": "Italian Republic",
+  "Cisalpine Republic": "Italian Republic",
+  "Hanover": "Electorate of Hanover",
+  "Kingdom of Sardinia": "Sardinia",
+  "Piedmont-Sardinia": "Sardinia",
+  "Marathas": "Maratha Confederacy",
+  "Maratha Empire": "Maratha Confederacy",
+  "First Saudi State": "Emirate of Diriyah",
+  "Diriyah": "Emirate of Diriyah",
   "Abyssinia": "Ethiopia",
   "America": "United States",
   "Annam": "Vietnam",
