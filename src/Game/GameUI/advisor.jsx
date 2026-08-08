@@ -505,6 +505,10 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
     // never empty, and is replaced once the round's own questions arrive.
     const [topics, setTopics] = useState(ADVISOR_PROMPTS);
     const [activeTab, setActiveTab] = useState("advisor");
+    // Which voice answers: the advisor (🧭) or world opinion (🌐 Perspectives).
+    // One conversation, one history — the chip only swaps the system prompt and
+    // tags the messages so a replayed transcript shows who spoke.
+    const [advisorMode, setAdvisorMode] = useState("advisor");
     const inputRef = useRef(null);
     const [isResizing, setIsResizing] = useState(false);
     const [handleHover, setHandleHover] = useState(false);
@@ -599,7 +603,11 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
             force: true,
         }).catch(() => ({ gameDate: null }));
 
-        const userMessage = { role: "user", text, time: gameDate };
+        // The mode is captured at send time so flipping the chip mid-stream
+        // cannot relabel a reply that was asked in the other register.
+        const mode = advisorMode === "perspectives" ? "perspectives" : undefined;
+        const modeTag = mode ? { mode } : {};
+        const userMessage = { role: "user", text, time: gameDate, ...modeTag };
         setInput("");
         setMessages(prev => [...prev, userMessage]);
         setIsLoading(true);
@@ -613,7 +621,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
             if (last && last.role === "advisor" && last.streaming) {
                 next[next.length - 1] = { ...last, text: fullText };
             } else {
-                next.push({ role: "advisor", text: fullText, time: gameDate, streaming: true });
+                next.push({ role: "advisor", text: fullText, time: gameDate, streaming: true, ...modeTag });
             }
             return next;
         });
@@ -621,16 +629,16 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         try {
             // The live bubble is stripped too, so the title never even flashes on
             // screen before the finished reply replaces it.
-            const reply = await sendMessage(text, { onChunk: (_delta, full) => showStreaming(stripPlayerHonorific(full)) });
+            const reply = await sendMessage(text, { mode, onChunk: (_delta, full) => showStreaming(stripPlayerHonorific(full)) });
             setMessages(prev => {
                 const next = prev.slice();
                 const last = next[next.length - 1];
                 // Finalise the streaming bubble, or append the full reply if the
                 // provider never streamed a chunk.
                 if (last && last.role === "advisor" && last.streaming) {
-                    next[next.length - 1] = { role: "advisor", text: reply, time: gameDate };
+                    next[next.length - 1] = { role: "advisor", text: reply, time: gameDate, ...modeTag };
                 } else {
-                    next.push({ role: "advisor", text: reply, time: gameDate });
+                    next.push({ role: "advisor", text: reply, time: gameDate, ...modeTag });
                 }
                 saveMessages(next);
                 return next;
@@ -762,7 +770,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
                 <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
                 {msg.role !== "user" && (
                     <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", marginBottom: "0.25rem" }}>
-                    {msg.role === "error" ? "⚠️ Error" : "🧭 Advisor"}
+                    {msg.role === "error" ? "⚠️ Error" : msg.mode === "perspectives" ? "🌐 World Opinion" : "🧭 Advisor"}
                     </span>
                 )}
                 {/* Nothing in this bubble is ever machine-translated. The player's own
@@ -798,7 +806,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
 
         {isLoading && !(messages[messages.length - 1]?.role === "advisor" && messages[messages.length - 1]?.streaming) && (
             <div style={{ display: "flex", alignItems: "flex-start", flexDirection: "column", gap: "0.25rem" }}>
-            <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)" }}>🧭 Advisor</span>
+            <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)" }}>{advisorMode === "perspectives" ? "🌐 World Opinion" : "🧭 Advisor"}</span>
             <div style={{ padding: "0.6rem 0.85rem", borderRadius: "12px 12px 12px 4px", backgroundColor: "rgba(255,255,255,0.08)", fontSize: "0.85rem" }}>
             <ThinkingDots />
             </div>
@@ -837,11 +845,42 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         ))}
         </div>
 
+        {/* Voice chips (Pax parity: Perspectives). One conversation, two
+            registers — the advisor's counsel, or the world's public reaction. */}
+        <div style={{ display: "flex", gap: "0.4rem", padding: "0.6rem 1rem 0" }}>
+        {[
+            { id: "advisor", icon: "🧭", label: "Advice" },
+            { id: "perspectives", icon: "🌐", label: "World Opinion" },
+        ].map((chip) => {
+            const active = advisorMode === chip.id;
+            return (
+                <button
+                key={chip.id}
+                type="button"
+                onClick={() => setAdvisorMode(chip.id)}
+                style={{
+                    background: active ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.05)",
+                    border: active ? "1px solid rgba(59,130,246,0.6)" : "1px solid rgba(255,255,255,0.12)",
+                    borderRadius: "999px",
+                    color: active ? "rgba(191,219,254,0.95)" : "rgba(255,255,255,0.6)",
+                    cursor: "pointer",
+                    fontSize: "0.72rem",
+                    fontWeight: active ? 700 : 500,
+                    padding: "0.3rem 0.75rem",
+                    transition: "background 0.15s, border-color 0.15s",
+                }}
+                >
+                {chip.icon} {chip.label}
+                </button>
+            );
+        })}
+        </div>
+
         {/* Input */}
         <div style={{ padding: "1rem", borderTop: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
         <textarea
         ref={inputRef}
-        placeholder="Ask your advisor…  (Shift+Enter for a new line)"
+        placeholder={advisorMode === "perspectives" ? "Ask how the world is reacting…  (Shift+Enter for a new line)" : "Ask your advisor…  (Shift+Enter for a new line)"}
         rows={1} value={input}
         onChange={e => {
             setInput(e.target.value);

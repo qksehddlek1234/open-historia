@@ -9,6 +9,7 @@ import {
 } from "./providerConfig.js";
 import { JSON_URLS, readJson } from "../../runtime/assets.js";
 import { chatLanguageDirective, languageDirective } from "../../runtime/i18n.js";
+import { buildRelationsText } from "../../runtime/diplomacy.js";
 import { difficultyChatDirective, difficultyDirective } from "../../runtime/difficulty.js";
 import { addressesPlayerByRank, stripPlayerHonorific } from "../../runtime/playerAddress.js";
 import { normalizePromptPack } from "./gameplayPrompts.js";
@@ -1363,6 +1364,72 @@ async function buildAdvisorSystemPrompt() {
     return `${renderTemplate(promptPack.advisor, { ...variables, ...helperValues })}${secretReportsBlock}\n\n${playerIdentityDirective(variables.playerPolity)}\nYou advise the PLAYER. You are not the head of state's aide, and you do not speak to the player as though they held that office.`;
 }
 
+// Perspectives ("세계 여론") — the advisor drawer's second voice (Pax parity).
+// A streaming CHAT mode, deliberately not a JSON task: it renders opinion and
+// changes NOTHING — diplomaticRelations belong to the relations pass, events to
+// the jump. The two hard walls, both stated in the prompt and both structural:
+// it works from the PUBLIC record only (world.secretReports is never read here
+// — the mirror of the advisor-only injection above), and it mutates no state
+// because a chat reply has no write path at all.
+async function buildPerspectivesSystemPrompt() {
+    await ensurePromptsLoaded();
+    const [gameData, actionData, chatData, worldData, eventData, advisorData] = await Promise.all([
+        readJson(JSON_URLS.game, { defaultValue: {} }),
+        readJson(JSON_URLS.actions, { defaultValue: [] }),
+        readJson(JSON_URLS.chat, { defaultValue: [] }),
+        readJson(JSON_URLS.world, { defaultValue: {} }),
+        readJson(JSON_URLS.events, { defaultValue: [] }),
+        readJson(JSON_URLS.advisor, { defaultValue: [] }),
+    ]);
+
+    const variables = await buildPromptVariables({
+        actionData,
+        advisorData,
+        chatData,
+        eventData,
+        gameData,
+        worldData,
+    });
+    const relations = worldData?.diplomaticRelations && typeof worldData.diplomaticRelations === "object"
+        ? worldData.diplomaticRelations
+        : {};
+    const reputation = Number(worldData?.internationalReputation?.[variables.playerPolity]);
+
+    return [
+        `You are WORLD OPINION in a turn-based history simulation — the press galleries, foreign ministries, trading floors and street cafés of every capital EXCEPT the player's. The player leads ${variables.playerPolity || "their country"} and the date is ${variables.date || "unknown"}.`,
+        "",
+        "[What you do]",
+        "• When the player asks how the world sees them (or any question in this mode), answer as THE WORLD: pick 3 to 5 capitals or blocs whose reaction matters most right now, and give each its OWN short reaction (1-3 sentences) in its own voice — a hostile power sneers, an ally worries aloud, a market calculates. Name each speaker plainly (a capital, a government, a bloc, a market).",
+        "• Close with a short synthesis: which way the wind is blowing overall, in 2-3 sentences.",
+        "• Ground every reaction in the recorded events and standings below. Opinion follows facts; it does not invent them.",
+        "",
+        "[What you may NOT do]",
+        "• You know ONLY the public record — newspapers, communiqués, visible deployments, market moves. No government's secrets are known to you, and you never reveal or allude to secret intelligence of any kind.",
+        "• You render OPINION, never outcomes: no standings change, no events happen, no numbers move because of what you say. You are a mirror, not an actor.",
+        "• The player is the PLAYER, not the head of state — the world reacts to their NATION's conduct, and you speak to the player as an observer briefing them, not as a subject addressing a ruler.",
+        "",
+        "[The player's nation]",
+        variables.playerPolity || "(unknown)",
+        "",
+        "[The world's public standing toward them]",
+        buildRelationsText(relations) || "(none recorded yet)",
+        Number.isFinite(reputation) ? `International reputation: ${reputation}/100 — above 70 the benefit of the doubt, below 40 suspicion by default.` : "",
+        "",
+        "[The public record — most recent events]",
+        normalizeStringLoose(variables.recentEvents) || "(no events recorded yet)",
+        "",
+        "[The latest period, as summarized]",
+        normalizeStringLoose(worldData?.lastJumpSummary) || "(no period has run yet)",
+    ].filter((line) => line !== null && line !== undefined).join("\n");
+}
+
+// String coercion for prompt slots that may carry arrays or nullish values —
+// local on purpose: the gameplay module's normalizeString is not imported here.
+function normalizeStringLoose(value) {
+    if (Array.isArray(value)) return value.join("\n").trim();
+    return String(value ?? "").trim();
+}
+
 export async function buildDiplomaticSystemPrompt(countries, playerCountry) {
     await ensurePromptsLoaded();
     const participantList = countries.map((country) => `- ${country}`).join("\n");
@@ -1426,7 +1493,13 @@ function compactConversationHistory(history) {
 }
 
 export async function sendMessage(userMessage, opts) {
-    const systemPrompt = await buildAdvisorSystemPrompt();
+    // mode:"perspectives" swaps the system prompt for the world-opinion voice;
+    // the conversation history is SHARED with the advisor thread on purpose —
+    // the player is having one conversation at one desk, in two registers.
+    const { mode, ...callOpts } = opts && typeof opts === "object" ? opts : {};
+    const systemPrompt = mode === "perspectives"
+        ? await buildPerspectivesSystemPrompt()
+        : await buildAdvisorSystemPrompt();
     advisorHistory.push({ role: "user", parts: [{ text: userMessage }] });
     advisorHistory = compactConversationHistory(advisorHistory);
 
@@ -1434,7 +1507,7 @@ export async function sendMessage(userMessage, opts) {
         // maxTokens 8192 caps the reply; onChunk (passed by the advisor UI) streams
         // it token-by-token. Providers that can't stream still return the full reply
         // here, so the advisor works either way.
-        const raw = await callAI(systemPrompt, advisorHistory, { maxTokens: 8192, role: "advisor", ...opts, languageMode: "chat" });
+        const raw = await callAI(systemPrompt, advisorHistory, { maxTokens: 8192, role: "advisor", ...callOpts, languageMode: "chat" });
         // The player holds no office. The directive in the system prompt says so
         // and the model says "대통령님," anyway, because its own transcript is a
         // stack of worked examples doing exactly that — see runtime/playerAddress.js.

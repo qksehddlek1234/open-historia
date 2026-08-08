@@ -643,5 +643,10 @@
   "Foreign": "외교",
   "Source:": "출처:",
   "Source: ": "출처: ",
-  "No secret reports yet. Your intelligence services report after each period — what they learn stays between you and this desk.": "아직 비밀 보고서가 없습니다. 정보기관은 매 시기가 끝날 때마다 보고합니다 — 그들이 알아낸 것은 당신과 이 책상 사이에만 머뭅니다."
+  "No secret reports yet. Your intelligence services report after each period — what they learn stays between you and this desk.": "아직 비밀 보고서가 없습니다. 정보기관은 매 시기가 끝날 때마다 보고합니다 — 그들이 알아낸 것은 당신과 이 책상 사이에만 머뭅니다.",
+  "Advice": "조언",
+  "World Opinion": "세계 여론",
+  "🌐 World Opinion": "🌐 세계 여론",
+  "🧭 Advisor": "🧭 어드바이저",
+  "Ask how the world is reacting…  (Shift+Enter for a new line)": "세계가 어떻게 반응하는지 물어보세요…  (Shift+Enter로 줄바꿈)"
 }
