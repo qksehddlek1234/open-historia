@@ -85,7 +85,7 @@ export const REFERENCE = {
   },
   Angola: {
     leader: [
-      { name: "대통령 조제 에두아르두 두스산투스", until: "2017-09-26" },
+      { name: "대통령 조제 에두아르두 두스산투스", from: "1979-09-21", until: "2017-09-26" },
       { name: "대통령 주앙 로렌수", from: "2017-09-26" },
     ],
     headOfState: [
@@ -103,7 +103,7 @@ export const REFERENCE = {
       { name: "총리 개스턴 브라운", from: "2014-06-13" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -154,7 +154,7 @@ export const REFERENCE = {
       { name: "총리 앤서니 앨버니지", from: "2022-05-23" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
     deputy: [
@@ -215,7 +215,7 @@ export const REFERENCE = {
       { name: "총리 필립 데이비스", from: "2021-09-17" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -227,7 +227,7 @@ export const REFERENCE = {
       { name: "(없음)" },
     ],
     deputy: [
-      { name: "총리 할리파 빈 살만 알할리파", until: "2020-11-11" },
+      { name: "총리 할리파 빈 살만 알할리파", from: "1970-01-19", until: "2020-11-11" },
       { name: "총리 살만 빈 하마드 알할리파", from: "2020-11-11" },
     ],
   },
@@ -257,7 +257,7 @@ export const REFERENCE = {
       { name: "총리 미아 모틀리", from: "2018-05-25" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2021-11-30" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2021-11-30" },
       { name: "대통령 샌드라 메이슨", from: "2021-11-30" },
     ],
   },
@@ -299,7 +299,7 @@ export const REFERENCE = {
       { name: "총리 조니 브리세뇨", from: "2020-11-12" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -483,7 +483,7 @@ export const REFERENCE = {
       { name: "총리 마크 카니", from: "2025-03-14" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
     deputy: [
@@ -712,7 +712,7 @@ export const REFERENCE = {
       { name: "총리 메테 프레데릭센", from: "2019-06-27" },
     ],
     headOfState: [
-      { name: "여왕 마르그레테 2세", until: "2024-01-14" },
+      { name: "여왕 마르그레테 2세", from: "1972-01-14", until: "2024-01-14" },
       { name: "국왕 프레데리크 10세", from: "2024-01-14" },
     ],
   },
@@ -1036,7 +1036,7 @@ export const REFERENCE = {
       { name: "총리 디컨 미첼", from: "2022-06-24" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -1317,7 +1317,7 @@ export const REFERENCE = {
       { name: "총리 앤드루 홀니스", from: "2016-03-03" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -1959,7 +1959,7 @@ export const REFERENCE = {
       { name: "총리 크리스토퍼 럭슨", from: "2023-11-27" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
     deputy: [
@@ -2085,7 +2085,7 @@ export const REFERENCE = {
   },
   Oman: {
     leader: [
-      { name: "술탄 카부스 빈 사이드", until: "2020-01-10" },
+      { name: "술탄 카부스 빈 사이드", from: "1970-07-23", until: "2020-01-10" },
       { name: "술탄 하이삼 빈 타리크", from: "2020-01-11" },
     ],
     headOfState: [
@@ -2167,7 +2167,7 @@ export const REFERENCE = {
       { name: "총리 제임스 마라페", from: "2019-05-30" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -2345,7 +2345,7 @@ export const REFERENCE = {
       { name: "총리 테런스 드루", from: "2022-08-06" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -2359,7 +2359,7 @@ export const REFERENCE = {
       { name: "총리 필립 피에르", from: "2021-07-28" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -2368,7 +2368,7 @@ export const REFERENCE = {
       { name: "총리 랠프 곤살베스", from: "2001-03-29" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -2541,7 +2541,7 @@ export const REFERENCE = {
       { name: "총리 제레마이아 마넬레", from: "2024-05-02" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -2708,7 +2708,7 @@ export const REFERENCE = {
       { name: "총리 울프 크리스테르손", from: "2022-10-18" },
     ],
     headOfState: [
-      { name: "국왕 칼 16세 구스타프" },
+      { name: "국왕 칼 16세 구스타프", from: "1973-09-15" },
     ],
     deputy: [
       { name: "부총리 마우드 올로프손", from: "2006-10-06", until: "2010-10-05" },
@@ -2790,7 +2790,7 @@ export const REFERENCE = {
       { name: "총리 아누틴 찬위라꾼", from: "2025-09-07" },
     ],
     headOfState: [
-      { name: "국왕 푸미폰 아둔야뎃", until: "2016-10-13" },
+      { name: "국왕 푸미폰 아둔야뎃", from: "1946-06-09", until: "2016-10-13" },
       { name: "국왕 푸미폰 아둔야뎃", from: "1946-06-09", until: "2016-10-13" },
       { name: "국왕 마하 와치랄롱꼰", from: "2016-12-01" },
     ],
@@ -2920,7 +2920,7 @@ export const REFERENCE = {
       { name: "총리 펠레티 테오", from: "2024-02-26" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
   },
@@ -2984,7 +2984,7 @@ export const REFERENCE = {
       { name: "총리 키어 스타머", from: "2024-07-05" },
     ],
     headOfState: [
-      { name: "여왕 엘리자베스 2세", until: "2022-09-08" },
+      { name: "여왕 엘리자베스 2세", from: "1952-02-06", until: "2022-09-08" },
       { name: "국왕 찰스 3세", from: "2022-09-08" },
     ],
     deputy: [
@@ -3742,12 +3742,24 @@ export const referenceLeadership = (country, dateISO) => {
   const time = Date.parse(normalizeString(dateISO));
   if (!key || !Number.isFinite(time)) return {};
   const out = {};
-  for (const rows of rowSources(REFERENCE, "reference", key)) {
-    for (const role of ["leader", "headOfState", "deputy"]) {
-      if (out[role]) continue;
-      const hit = (rows[role] ?? []).find((entry) => inWindow(entry, time));
-      if (hit) out[role] = hit.name;
+  // Across sources, the hit whose window OPENS latest wins: an entry that
+  // omitted its accession date (open start) matches every earlier century,
+  // and must lose to the era pack's dated reign for that century — live:
+  // 1870 Britain answered 엘리자베스 2세 because the modern row lacked from.
+  for (const role of ["leader", "headOfState", "deputy"]) {
+    let best = null;
+    let bestFrom = Number.NEGATIVE_INFINITY;
+    for (const rows of rowSources(REFERENCE, "reference", key)) {
+      for (const entry of rows[role] ?? []) {
+        if (!inWindow(entry, time)) continue;
+        const from = entry.from ? Date.parse(entry.from) : Number.NEGATIVE_INFINITY;
+        if (best === null || from > bestFrom) {
+          best = entry;
+          bestFrom = from;
+        }
+      }
     }
+    if (best) out[role] = best.name;
   }
   return out;
 };

@@ -114,14 +114,37 @@ test("wired into prompt, backfill, and the validator's correction pass", () => {
 console.log("\nEra packs — the record reaches 1444, the bundle does not");
 
 await (async () => {
-  // Loading a pack for a historical date must not throw, and the placeholder
-  // packs (their tables fill era by era) simply add nothing yet.
+  // Loading a pack for a historical date must not throw; unfilled placeholder
+  // packs simply add nothing yet.
   await ensureReferenceEra("1444-11-11");
   await ensureReferenceEra("1836-06-01");
   await ensureReferenceEra("1936-01-01");
   pass += 1;
   console.log("  ok  era packs load on demand for any historical date");
 })();
+
+test("the early-modern pack answers with each polity's own style", () => {
+  // The grand-campaign start date itself.
+  assert.equal(referenceLeadership("France", "1444-11-11").leader, "국왕 샤를 7세");
+  assert.equal(referenceLeadership("United Kingdom", "1520-06-01").leader, "국왕 헨리 8세");
+  assert.equal(referenceLeadership("United Kingdom", "1520-06-01").deputy, "수석장관 토머스 울지");
+  // A republic's own style, and an interregnum's.
+  assert.equal(referenceLeadership("United Kingdom", "1654-01-01").leader, "호국경 올리버 크롬웰");
+  assert.equal(referenceLeadership("France", "1650-01-01").deputy, "재상 마자랭");
+  assert.equal(referenceLeadership("Joseon", "1470-01-01").leader, "국왕 성종");
+});
+
+test("the revolutions pack answers with each polity's own style", () => {
+  assert.equal(referenceLeadership("France", "1811-01-01").leader, "황제 나폴레옹 1세");
+  assert.equal(referenceLeadership("United Kingdom", "1870-06-01").leader, "총리 윌리엄 글래드스턴");
+  // The open-start regression: the modern 엘리자베스 2세 row (accession 1952)
+  // must never mask the era pack's 빅토리아 for 1870.
+  assert.equal(referenceLeadership("United Kingdom", "1870-06-01").headOfState, "여왕 빅토리아");
+  // Historical aliases: a Korean campaign asks by any of its names.
+  assert.equal(referenceLeadership("South Korea", "1780-01-01").leader, "국왕 정조");
+  assert.equal(referenceLeadership("Joseon", "1780-01-01").leader, "국왕 정조");
+  assert.equal(referenceLeadership("Germany", "1885-01-01").deputy, "재상 오토 폰 비스마르크");
+});
 
 test("the coverage contract holds for the shipped preset (Modern Day, 2016)", () => {
   const span = referenceCoverageSpan("2016-01-01", { floor: 15 });
