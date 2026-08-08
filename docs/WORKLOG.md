@@ -4,6 +4,42 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-09 — 11배치 플랜 완주: 인계 이행·프리셋 4종·패리티 2기능·문서 마감 [클로드 코드]
+
+- **인계 이행(배치 2)**: worldWars.js에 티소·페타르 1세·구앵 수정 + 만주국·
+  몬테네그로·슬로바키아·티베트·네지드·미군정/소련군정 조선 신설, 별칭 보강.
+  tests/leaders.mjs에 인계 케이스 전부 pin. 부수: 군정 조선 폴리티 명칭 별칭
+  2건("US Military Government in Korea"→South Korea 등) → coldwar-1946 시딩
+  19/19.
+- **i18n(배치 3-4)**: build-catalog.mjs 연결-문자열 하베스트 수정(첫 조각만
+  수집하던 버그), ko-card-copy.mjs 신설 — 카드 문안 전량 수기 한국어, default
+  개발 플레이스홀더 정식 문안화(DEFAULT_*_META 서버/웹 바이트 동일 + 테스트).
+- **신규 프리셋 4종(배치 5-8)**: millennium-2000(푸틴 대행 취임일, 한국
+  플레이어 훅 6월 정상회담) · napoleonic-1804(대관식 전야, 32폴리티, 3차 분할
+  폴란드) · victorian-1836(알라모 포위, 36폴리티, 조건부 통일 룰) ·
+  magna-1444(바르나 다음날 그랜드 캠페인, 69폴리티, 조선 세종 시작). 전부
+  시딩 100%. 레퍼런스 팩 보강: revolutions 신규 10블록+아프간 공백,
+  earlyModern 신규 26블록+폴란드 바르나 공위·보헤미아·왈라키아·몰다비아
+  1444 공백. README·how-to-play 14종 목록.
+- **Reports(배치 9)**: secretReportsPass 전용 플랫 패스(0-2건/시기, 난이도=
+  정보 질 축, impacts 채널 없음=밝히되 집행 금지), world.secretReports+
+  normalize 명시 필드, 어드바이저 4번째 탭 🕵️, 어드바이저 프롬프트에 최근
+  6건 주입(어드바이저만 안다). tests/reports.mjs.
+- **Perspectives(배치 10)**: 어드바이저 모드 칩(🧭 조언|🌐 세계 여론) 스트리밍
+  모드 — 공개 기록만(빌더가 secretReports 미참조), 상태 무변경, 메시지
+  {mode:"perspectives"} 태그. tests/perspectives.mjs.
+- **문서(배치 11)**: parity-backlog Reports·Perspectives→있음, PLAN.md §F
+  포인터+현황, LOCAL-PAX-HISTORIA-PLAN ODbL→CC0 정정+루트 중복본 삭제,
+  PLAN-F-OHM.md에 열린 문제 6건 리뷰 회신(노딩 비수렴의 기전 특정: round5가
+  T_EPS 게이트 뒤에 적용되어 끝점 키 충돌 시 분할 드롭→무한 재검출.
+  F-3 구현은 Cowork 레인).
+- **라이브 데이터 힐 기록**: server/data/lang/ko.json(라이브 오버레이)에 쓰기
+  3회 — 카드 문안(ko-card-copy.mjs 경유, 시나리오 14종분), Reports UI 10건,
+  Perspectives UI 5건. 파일 흔적은 public/lang/ko.json 커밋에 동일 내용 존재.
+- 커밋: 체크포인트 4개+병합(배치 1), 7602319(2000), 9284194(1804),
+  5a3da29(1836), 2334c86(1444), 95484d4(Reports), 5b0df19(Perspectives),
+  + 이 문서 배치. build-preset.mjs는 읽기만 했음(Cowork 레인 존중).
+
 ## 2026-08-09 — 수집 자산 접합: 공직자 레퍼런스 → 프리셋 시딩 [Cowork]
 
 - 플레이어 지적("수집한 프롬프트·프리셋 시나리오에 못 써먹나? 원래 계획

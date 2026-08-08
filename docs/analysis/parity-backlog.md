@@ -32,8 +32,8 @@
 | 프리셋 스토어(검색·필터) | 커뮤니티 허브(투표·임포트) | **부분** | 검색·저자 필터·카테고리 수준 차이 |
 | 커스텀 베이스맵 | BasemapPicker·communityBasemaps | **있음** | |
 | 어드바이저 다중 스레드 | 단일 스레드 + 이번에 추가한 배경 이야기 탭 | **없음** | 후보: 스레드 목록 UI |
-| Reports(비밀 보고서, JF 생성) | 없음 | **없음** | ★ 이식 가치 높음 — 점프 산출물에 "비밀 보고" 추가 |
-| Perspectives(세계 여론 반응) | 없음 | **없음** | ★ 이식 가치 높음 — 어드바이저 응답 모드로 |
+| Reports(비밀 보고서, JF 생성) | secretReportsPass 전용 플랫 패스 + 어드바이저 🕵️ Reports 탭 | **있음** (2026-08-09 이식) | 밝히되 집행하지 않는 계약 — 스키마에 impacts 채널 없음, 난이도=정보 질 축 |
+| Perspectives(세계 여론 반응) | 어드바이저 모드 칩(🧭 조언\|🌐 세계 여론) 스트리밍 | **있음** (2026-08-09 이식) | 공개 기록만(secretReports 미참조), 상태 무변경 |
 | Catalyst(분기 선택 이벤트) | catalystSchema·catalystCreation 존재 | **있음** | 원본은 UI 개선 진행 중 |
 | Workflows(커스텀 게임 로직) | 없음 | **없음** | 대형 — 프리셋 규칙(rules) 이식이 선행 |
 | 맵 에디터: 엣지 드래그·토폴로지 수리·다중 선택 | 에디터 있음, 도구 세부 비교 필요 | **부분** | map-editor 레포 대조 |
@@ -47,7 +47,7 @@
 ## 우리 계획에 주는 시사점
 
 1. **thinking 공식 확인**: 원본 팀도 "thinking이 불안정 주원인"이라 공지 — Phase 2 역할별 모델 분리에서 **역할별 thinking 제어**(이벤트 생성 시 thinking 끄기 옵션)를 1급 기능으로 승격할 근거.
-2. **Reports·Perspectives**가 원본의 최신 차별화 기능 — 우리 배경 이야기 탭과 같은 계열이며, 점프 스키마에 `secretReports`/여론 반응을 추가하는 것으로 이식 가능. Phase 3 후보 상위 등록.
+2. **Reports·Perspectives**: 2026-08-09 이식 완료. 점프 스키마 optional이 아니라 12B 원칙대로 전용 플랫 패스(secretReportsPass)+어드바이저 스트리밍 모드로 구현 — tests/reports.mjs·tests/perspectives.mjs가 계약을 고정한다.
 3. **Workflows(커스텀 게임 로직)**의 원본 접근 = 프리셋 rules의 발전형. 우리의 프리셋 rules 이식 파이프라인이 같은 방향의 기초 작업.
 4. 맵 에디터는 원본이 활발히 진화 중(GPU 신형 에디터) — 우리 standalone map-editor 레포와의 도구 격차를 Phase 4 이후로 관리.
 
