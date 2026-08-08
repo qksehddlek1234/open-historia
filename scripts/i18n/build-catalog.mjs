@@ -80,9 +80,19 @@ const collectSpecStrings = () => {
   for (const file of readdirSync(dir)) {
     if (!file.endsWith(".spec.mjs")) continue;
     const source = readFileSync(path.join(dir, file), "utf8");
-    // Card text fields only — the fields scenario cards render.
-    for (const match of source.matchAll(/\b(?:name|description|subtitle|eyebrow|heroTitle|heroSubtitle)\s*:\s*"((?:[^"\\]|\\.)+)"/g)) {
-      strings.push(JSON.parse(`"${match[1]}"`));
+    // Card text fields only — the fields scenario cards render. Every preset
+    // description is written as `"chunk " + "chunk " + …`, and the translator
+    // matches the RENDERED string exactly — so the harvest must join the
+    // whole concatenation chain, not keep the first chunk (which produced
+    // catalog fragments no rendered card ever matches, and Korean
+    // translations keyed to those fragments that could never apply).
+    const chunkPattern = /\b(?:name|description|subtitle|eyebrow|heroTitle|heroSubtitle)\s*:\s*("(?:[^"\\]|\\.)+")((?:\s*\+\s*"(?:[^"\\]|\\.)+")*)/g;
+    for (const match of source.matchAll(chunkPattern)) {
+      const chunks = [JSON.parse(match[1])];
+      for (const tail of match[2].matchAll(/"((?:[^"\\]|\\.)+)"/g)) {
+        chunks.push(JSON.parse(`"${tail[1]}"`));
+      }
+      strings.push(chunks.join(""));
     }
   }
   return strings;
