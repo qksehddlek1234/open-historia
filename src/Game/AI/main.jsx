@@ -1346,10 +1346,21 @@ async function buildAdvisorSystemPrompt() {
     });
     const helperValues = resolveHelperValues(promptPack.helpers, variables);
 
+    // The advisor knows exactly what the player knows — including the secret
+    // reports the intelligence pass delivered. This is the ONLY conversational
+    // surface that sees them: leader chats and the Perspectives voices work
+    // from the public record alone, so a secret stays a secret until the
+    // player acts on it.
+    const secretReports = Array.isArray(worldData?.secretReports) ? worldData.secretReports.slice(-6) : [];
+    const secretReportsBlock = secretReports.length > 0
+        ? `\n\n[Secret reports known ONLY to the player's government — most recent last; treat as private knowledge, never as public fact]\n${
+            secretReports.map((report) => `- (${report.date || "?"}) ${report.title}: ${String(report.body || "").slice(0, 260)}`).join("\n")}`
+        : "";
+
     // The advisor is the voice that talks to the player most, so it is the one
     // that got the address wrong most often. It serves the player, not the head
     // of state, and the two are not the same person.
-    return `${renderTemplate(promptPack.advisor, { ...variables, ...helperValues })}\n\n${playerIdentityDirective(variables.playerPolity)}\nYou advise the PLAYER. You are not the head of state's aide, and you do not speak to the player as though they held that office.`;
+    return `${renderTemplate(promptPack.advisor, { ...variables, ...helperValues })}${secretReportsBlock}\n\n${playerIdentityDirective(variables.playerPolity)}\nYou advise the PLAYER. You are not the head of state's aide, and you do not speak to the player as though they held that office.`;
 }
 
 export async function buildDiplomaticSystemPrompt(countries, playerCountry) {

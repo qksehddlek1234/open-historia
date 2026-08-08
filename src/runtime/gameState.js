@@ -1403,6 +1403,32 @@ const normalizeConsolidatedHistory = (value) => normalizeArray(value)
   })
   .filter(Boolean);
 
+// Secret reports (the advisor's Reports pane): delivered by the intelligence
+// pass after a period, revealed to the player only, never enacted — no reader
+// anywhere treats one as a state change. Rows the pass wrote malformed are
+// dropped BY NAME here (title+body are the report; without both there is
+// nothing to show), and an off-list kind folds to "intelligence" rather than
+// leaking free text into the pane's badge slot.
+const SECRET_REPORT_KINDS = new Set(["military", "political", "economic", "intelligence", "foreign"]);
+const normalizeSecretReports = (value) => normalizeArray(value)
+  .map((entry) => {
+    if (!entry || typeof entry !== "object") return null;
+    const title = normalizeOptionalString(entry.title);
+    const body = normalizeOptionalString(entry.body);
+    if (!title || !body) return null;
+    const kind = normalizeOptionalString(entry.kind).toLowerCase();
+    return {
+      id: normalizeOptionalString(entry.id) || `report-${title.slice(0, 24)}`,
+      kind: SECRET_REPORT_KINDS.has(kind) ? kind : "intelligence",
+      title,
+      body,
+      source: normalizeOptionalString(entry.source),
+      date: normalizeOptionalString(entry.date),
+      round: Number.isFinite(Number(entry.round)) && Number(entry.round) > 0 ? Math.trunc(Number(entry.round)) : 0,
+    };
+  })
+  .filter(Boolean);
+
 export const normalizeWorldState = (world) => {
   const nextWorld = world && typeof world === "object" ? world : {};
   const polityOverrides = Object.fromEntries(
@@ -1543,6 +1569,9 @@ export const normalizeWorldState = (world) => {
     ),
     simulationRules: normalizeOptionalString(nextWorld.simulationRules),
     startingTimelineText: normalizeOptionalString(nextWorld.startingTimelineText),
+    // Explicit, like cityRenames above — the documented new-world-field trap:
+    // a field survives every write path only if it is normalized here by name.
+    secretReports: normalizeSecretReports(nextWorld.secretReports),
     // Explicit, like cityRenames above: a new world field only survives every
     // write path if it is normalized here by name.
     periodTimeline: normalizeTimeline(nextWorld.periodTimeline),

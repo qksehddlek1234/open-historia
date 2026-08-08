@@ -985,6 +985,42 @@ const runJsonTask = async (taskKey, {
     ].join("\n");
   }
 
+  // The reports pass carries its whole prompt at call time, like every
+  // dedicated pass: no frozen campaign pack has a template for it. The
+  // reveal-never-enact contract is stated here AND enforced structurally —
+  // the schema has no impacts channel, so a hallucinated coup stays a rumor
+  // in a drawer instead of becoming a state change.
+  if (taskKey === "secretReportsPass") {
+    systemPrompt = [
+      "You are the player's intelligence services in a turn-based history simulation. A period has just been simulated. Deliver the SECRET reports — what your services learned that the newspapers do NOT know.",
+      "",
+      "[Rules]",
+      "• A report REVEALS, it never ENACTS. It may only describe what already happened in the dark or is being prepared in secret. It cannot create events, move armies or change any number — the world stays exactly as the period left it.",
+      "• ZERO to TWO reports. One is the normal yield of an eventful period; a quiet period yields NONE, and an empty list is a valid answer. Padding is worse than silence.",
+      "• Report what other governments HIDE: a secret buildup, a back-channel feeler, a coup being sounded out, a covert program, a leader's failing health, an asset's warning. Never restate what the public events below already say.",
+      "• \"kind\" is exactly one of: military, political, economic, intelligence, foreign.",
+      "• \"title\" and \"body\" in the same language as the events below. The body is 2-5 sentences, concrete — names, places, quantities where the source would plausibly know them.",
+      "• \"source\" says how it was learned, one clause.",
+      "• Stay consistent with this campaign's recorded events and standings — a report that contradicts them is a fabrication, not intelligence.",
+      "",
+      "[Intel quality at this difficulty]",
+      normalizeString(variables?.reportsQualityDirective) || "Your services are competent: reports are solid but incomplete.",
+      "",
+      "[The player]",
+      normalizeString(variables?.reportsPlayer) || "(unknown)",
+      "",
+      "[The player's standing with each power]",
+      normalizeString(variables?.reportsRelations) || "(none recorded)",
+      "",
+      "[What happened this period — the PUBLIC record]",
+      normalizeString(variables?.reportsEvents) || "(no events recorded)",
+      "",
+      "--- OUTPUT FORMAT (return valid JSON only) ---",
+      "{\"reports\":[{\"kind\":\"\",\"title\":\"\",\"body\":\"\",\"source\":\"\"}]}",
+      "Output ONLY that JSON object — no prose, no markdown, no code fences. An empty list is {\"reports\":[]}.",
+    ].join("\n");
+  }
+
   // THE RATING PASS CARRIES ITS WHOLE PROMPT, for the same reason the stat pass
   // does: the task is new, no frozen campaign pack has a template for it, and
   // the campaigns that need it most are the ones already deep in.
@@ -3734,6 +3770,91 @@ const applySimulationResult = async ({
       }
     } catch (error) {
       console.warn("[diplomacy] the outreach pass failed; nobody reaches out this period.", error);
+    }
+
+    // ── SECRET REPORTS (Pax parity: the Reports feature) ─────────────────────
+    // After the period, the player's intelligence services deliver what the
+    // newspapers do not know. Same architecture as every dedicated pass: flat
+    // schema, whole prompt at call time, never allowed to cost the turn. The
+    // 12B-hallucination containment is structural, not rhetorical: the pass
+    // writes world.secretReports and NOTHING else — no impacts channel exists,
+    // so a report can only reveal, never enact (밝히되 집행하지 않는다).
+    try {
+      const playerName = normalizeString(baseGame.country);
+      if (playerName && freshEvents.length > 0) {
+        // Difficulty turns the INTEL-QUALITY dial, not an on/off switch — the
+        // revealsCharacterProfile precedent: easy campaigns get confident,
+        // specific intelligence; hard ones get sparse, hedged fragments.
+        const difficultyId = normalizeString(nextGame?.difficulty ?? baseGame?.difficulty) || "medium";
+        const reportsQualityDirective = /easy/.test(difficultyId)
+          ? "Your services are excellent. Reports are specific and confident — names, numbers, dates. Two reports on an eventful period is normal."
+          : /hard|impossible/.test(difficultyId)
+            ? "Your services are stretched thin. Reports are RARE (zero is common), fragmentary and hedged — sources disagree, numbers are estimates, and a report should carry an honest caveat where its source is weak."
+            : "Your services are competent. One report is the normal yield, and its confidence is stated plainly — what is known, what is inferred.";
+        const reportVariables = await buildTemplateVariables({
+          actions: nextActions,
+          chats: nextChats,
+          events: nextEvents,
+          game: nextGame,
+          world: nextWorld,
+        }, {
+          reportsPlayer: playerName,
+          reportsQualityDirective,
+          reportsRelations: buildRelationsText(normalizeWorldState(nextWorld).diplomaticRelations),
+          reportsEvents: freshEvents
+            .filter((event) => normalizeString(event?.kind) !== "advance")
+            .slice(-14)
+            .map((event) => `- ${normalizeString(event.date)} ${normalizeString(event.title)}: ${normalizeString(event.description).slice(0, 200)}`)
+            .join("\n"),
+        });
+        const { payload } = await runJsonTask("secretReportsPass", {
+          fallback: () => ({ reports: [] }),
+          // Bare-array salvage: a 12B answering `[{...}]` instead of
+          // `{"reports":[...]}` is a shape mistake, not an empty period.
+          repairPayload: (raw) => (Array.isArray(raw) ? { reports: raw } : raw),
+          timeoutMs: getMapSetting(MAP_SETTING_KEYS.limitAiGeneration) ? 60000 : 0,
+          userMessage: "Deliver this period's secret reports, as JSON only.",
+          variables: reportVariables,
+        });
+        const REPORT_KINDS = new Set(["military", "political", "economic", "intelligence", "foreign"]);
+        const currentRound = Number(normalizeWorldState(nextWorld).simulationHistory.at(-1)?.round) || 0;
+        const accepted = [];
+        for (const row of normalizeArray(payload?.reports)) {
+          const title = normalizeString(row?.title);
+          const body = normalizeString(row?.body);
+          if (!title || !body) {
+            if (title || body) console.info("[reports] dropped a report missing its title or body.");
+            continue;
+          }
+          if (accepted.length >= 2) {
+            console.info(`[reports] dropped "${title.slice(0, 48)}" — two reports per period is the ceiling.`);
+            continue;
+          }
+          const kindRaw = normalizeString(row?.kind).toLowerCase();
+          accepted.push({
+            id: `report-${Date.now().toString(36)}-${currentRound}-${accepted.length}`,
+            kind: REPORT_KINDS.has(kindRaw) ? kindRaw : "intelligence",
+            title,
+            body,
+            source: normalizeString(row?.source),
+            date: normalizeString(nextGame?.gameDate) || normalizeString(baseGame?.gameDate),
+            round: currentRound,
+          });
+        }
+        if (accepted.length === 0) {
+          console.info("[reports] no secret reports this period — the services came back empty-handed.");
+        } else {
+          nextWorld = {
+            ...nextWorld,
+            secretReports: [...normalizeArray(nextWorld.secretReports), ...accepted],
+          };
+          for (const report of accepted) {
+            console.info(`[reports] 🕵️ ${report.kind}: "${report.title}"`);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("[reports] the intelligence pass failed; no reports this period.", error);
     }
   }
 

@@ -405,6 +405,84 @@ const BackstoryPane = ({ active }) => {
     );
 };
 
+// Reports pane — the advisor's fourth tab (Pax parity: secret reports). Reads
+// world.secretReports, newest first: what the player's intelligence services
+// delivered after each period and the newspapers never printed. Same lazy
+// read-on-open shape as BackstoryPane, and strictly read-only — the reports are
+// written by the turn's intelligence pass, never from here.
+const REPORT_KIND_BADGES = {
+    military: { emoji: "🎖️", label: "Military" },
+    political: { emoji: "🏛️", label: "Political" },
+    economic: { emoji: "💰", label: "Economic" },
+    intelligence: { emoji: "🕵️", label: "Intelligence" },
+    foreign: { emoji: "🌐", label: "Foreign" },
+};
+
+const ReportsPane = ({ active }) => {
+    const [world, setWorld] = useState(null);
+
+    useEffect(() => {
+        if (!active) return undefined;
+        let cancelled = false;
+        readJson(JSON_URLS.world, { defaultValue: {}, force: true })
+        .then((data) => { if (!cancelled) setWorld(data && typeof data === "object" ? data : {}); })
+        .catch(() => { if (!cancelled) setWorld({}); });
+        return () => { cancelled = true; };
+    }, [active]);
+
+    const reports = Array.isArray(world?.secretReports)
+    ? world.secretReports.slice().reverse().filter((entry) => entry && entry.title && entry.body)
+    : [];
+
+    return (
+        <div style={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0, overflowY: "auto", padding: "0.75rem", scrollbarWidth: "thin" }}>
+        {reports.length === 0 && (
+            <div style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.5, padding: "0.75rem 0.25rem" }}>
+            No secret reports yet. Your intelligence services report after each period — what they learn stays between you and this desk.
+            </div>
+        )}
+        {reports.map((report) => {
+            const badge = REPORT_KIND_BADGES[report.kind] || REPORT_KIND_BADGES.intelligence;
+            return (
+                <div
+                key={report.id || `${report.round}-${report.title}`}
+                style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "10px",
+                    marginBottom: "0.6rem",
+                    padding: "0.7rem 0.8rem",
+                }}
+                >
+                <div style={{ alignItems: "center", display: "flex", gap: "0.45rem", marginBottom: "0.35rem" }}>
+                <span style={{ background: "rgba(190,60,60,0.18)", border: "1px solid rgba(220,90,90,0.4)", borderRadius: "6px", color: "rgba(255,170,170,0.95)", fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.04em", padding: "0.12rem 0.4rem" }}>
+                Secret
+                </span>
+                <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.72rem" }}>
+                {badge.emoji} {badge.label}
+                </span>
+                <span style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", marginLeft: "auto" }}>
+                {report.date || ""}
+                </span>
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.92)", fontSize: "0.88rem", fontWeight: 700, marginBottom: "0.3rem" }}>
+                {report.title}
+                </div>
+                <div style={{ color: "rgba(255,255,255,0.78)", fontSize: "0.83rem", lineHeight: 1.55, whiteSpace: "pre-wrap" }}>
+                {report.body}
+                </div>
+                {report.source && (
+                    <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.74rem", fontStyle: "italic", marginTop: "0.4rem" }}>
+                    Source: {report.source}
+                    </div>
+                )}
+                </div>
+            );
+        })}
+        </div>
+    );
+};
+
 // Suggested prompts shown as chips above the advisor input — the quick topics
 // Pax Historia offers under its advisor box. Shown until the situation-aware set
 // arrives (generateAdvisorTopics), and used verbatim if it cannot be written.
@@ -631,6 +709,7 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         <TabButton icon="🧭" label="Advisor" active={activeTab === "advisor"} onClick={() => setActiveTab("advisor")} />
         <TabButton icon="📊" label="Stats" active={activeTab === "stats"} onClick={() => setActiveTab("stats")} />
         <TabButton icon="📜" label="Backstory" active={activeTab === "backstory"} onClick={() => setActiveTab("backstory")} />
+        <TabButton icon="🕵️" label="Reports" active={activeTab === "reports"} onClick={() => setActiveTab("reports")} />
         <div style={{ flex: 1 }} />
         {activeTab === "advisor" && (
             <button
@@ -658,6 +737,11 @@ const AdvisorPanel = ({ isAdvisorOpen, onClose, width, onResize }) => {
         {/* Backstory pane — the campaign chronicle, as in Pax Historia. */}
         <div style={{ display: activeTab === "backstory" ? "flex" : "none", flex: 1, flexDirection: "column", minHeight: 0 }}>
         <BackstoryPane active={isAdvisorOpen && activeTab === "backstory"} />
+        </div>
+
+        {/* Reports pane — secret intelligence delivered after each period. */}
+        <div style={{ display: activeTab === "reports" ? "flex" : "none", flex: 1, flexDirection: "column", minHeight: 0 }}>
+        <ReportsPane active={isAdvisorOpen && activeTab === "reports"} />
         </div>
 
         <div style={{ display: activeTab === "advisor" ? "flex" : "none", flex: 1, flexDirection: "column", minHeight: 0 }}>

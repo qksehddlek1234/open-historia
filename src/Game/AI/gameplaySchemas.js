@@ -1043,7 +1043,39 @@ export const DIPLOMATIC_OUTREACH_PASS_SCHEMA = {
   additionalProperties: false,
 };
 
+// Secret intelligence reports, revealed to the PLAYER ONLY after a period runs
+// (Pax parity: the Reports feature). Flat by design — one array, four required
+// string fields per row, no nesting. The contract that keeps a 12B honest is
+// structural: the schema has NO impacts channel. A report REVEALS what happened
+// in the dark; it never ENACTS anything — anything the world should feel
+// belongs to the jump's own events, so narration and state cannot diverge.
+export const SECRET_REPORTS_SCHEMA = {
+  type: "object",
+  properties: {
+    reports: {
+      type: "array",
+      description:
+        "0-2 secret reports the player's intelligence services deliver this period. "
+        + "Empty when nothing clandestine surfaced.",
+      items: {
+        type: "object",
+        properties: {
+          kind: { type: "string", description: "One of: military, political, economic, intelligence, foreign." },
+          title: { type: "string", description: "Short headline of the finding." },
+          body: { type: "string", description: "The report itself, 2-5 sentences, concrete." },
+          source: { type: "string", description: "How this was learned, one clause — an intercept, a defector, an attaché." },
+        },
+        required: ["kind", "title", "body", "source"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["reports"],
+  additionalProperties: false,
+};
+
 export const GAMEPLAY_SCHEMAS = Object.freeze({
+  secretReportsPass: SECRET_REPORTS_SCHEMA,
   orderOutcomeRating: ORDER_OUTCOME_RATING_SCHEMA,
   diplomaticRelations: DIPLOMATIC_RELATIONS_SCHEMA,
   diplomaticOutreachPass: DIPLOMATIC_OUTREACH_PASS_SCHEMA,
