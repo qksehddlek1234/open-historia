@@ -123,6 +123,31 @@ await (async () => {
   console.log("  ok  era packs load on demand for any historical date");
 })();
 
+test("the world-wars pack knows the century, including states that no longer exist", () => {
+  assert.equal(referenceLeadership("Germany", "1936-01-01").leader, "총통 아돌프 히틀러");
+  assert.equal(referenceLeadership("Soviet Union", "1936-01-01").leader, "서기장 이오시프 스탈린");
+  // A defunct state answers under its successor's name too.
+  assert.equal(referenceLeadership("Russia", "1936-01-01").leader, "서기장 이오시프 스탈린");
+  assert.equal(referenceLeadership("East Germany", "1955-01-01").leader, "서기장 발터 울브리히트");
+  assert.equal(referenceLeadership("Japan", "1942-01-01").leader, "총리 도조 히데키");
+  assert.equal(referenceLeadership("Japan", "1942-01-01").headOfState, "천황 히로히토");
+  assert.equal(referenceLeadership("South Korea", "1970-01-01").leader, "대통령 박정희");
+  assert.equal(referenceLeadership("China", "1912-06-01").leader, "대총통 위안스카이");
+  assert.ok(referencePoliticalFigures("France", "1941-01-01").some((name) => name.startsWith("샤를 드골")));
+});
+
+test("one unbroken record from the grand-campaign start to the present", () => {
+  // A leader answers for a major polity at every probe across 580 years.
+  for (const [date, country] of [
+    ["1444-11-11", "France"], ["1500-01-01", "Spain"], ["1600-01-01", "United Kingdom"],
+    ["1700-01-01", "Russia"], ["1800-01-01", "United Kingdom"], ["1850-01-01", "France"],
+    ["1900-01-01", "United Kingdom"], ["1950-01-01", "United States"], ["2000-01-01", "United States"],
+    ["2020-01-01", "South Korea"],
+  ]) {
+    assert.ok(referenceLeadership(country, date).leader, `${country} has a leader on record at ${date}`);
+  }
+});
+
 test("the early-modern pack answers with each polity's own style", () => {
   // The grand-campaign start date itself.
   assert.equal(referenceLeadership("France", "1444-11-11").leader, "국왕 샤를 7세");
