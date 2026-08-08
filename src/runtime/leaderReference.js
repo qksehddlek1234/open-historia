@@ -3726,8 +3726,15 @@ const rowSources = (modernTable, eraField, country) => {
   const sources = [];
   if (modernTable[country]) sources.push(modernTable[country]);
   for (const era of loadedEras.values()) {
-    const key = era.aliases[country] ?? country;
-    if (era[eraField][key]) sources.push(era[eraField][key]);
+    // The DIRECT key always, the alias target AS WELL — an alias is a
+    // fallback, never a shadow. Wartime Slovakia has its own 1939-45 rows
+    // while "Slovakia" → "Czechoslovakia" still serves the rest of the
+    // century; consulting only the alias answered Slovakia@1939 with
+    // Czechoslovakia's 에밀 하하 (Cowork handover bug). Windows plus the
+    // latest-opening-wins rule sort out any overlap.
+    if (era[eraField][country]) sources.push(era[eraField][country]);
+    const aliased = era.aliases[country];
+    if (aliased && aliased !== country && era[eraField][aliased]) sources.push(era[eraField][aliased]);
   }
   return sources;
 };

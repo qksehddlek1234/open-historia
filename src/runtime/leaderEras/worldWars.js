@@ -637,6 +637,9 @@ export const REFERENCE = {
       { name: "총리 폴 레노", from: "1940-03-21", until: "1940-06-16" },
       { name: "국가원수 필리프 페탱", from: "1940-06-16", until: "1944-08-20" },
       { name: "임시정부 주석 샤를 드골", from: "1944-08-25", until: "1946-01-20" },
+      { name: "총리 펠릭스 구앵", from: "1946-01-26", until: "1946-06-24" },
+      { name: "총리 조르주 비도", from: "1946-06-24", until: "1946-12-16" },
+      { name: "총리 레옹 블룸", from: "1946-12-16", until: "1947-01-22" },
       { name: "총리 로베르 쉬망", from: "1947-11-24", until: "1948-07-26" },
       { name: "총리 피에르 망데스 프랑스", from: "1954-06-18", until: "1955-02-23" },
       { name: "총리 기 몰레", from: "1956-02-01", until: "1957-06-12" },
@@ -1446,6 +1449,7 @@ export const REFERENCE = {
   },
   "North Korea": {
     leader: [
+      { name: "소련군정 25군 사령관 테렌티 치스차코프", from: "1945-08-26", until: "1947-04-10" },
       { name: "수상 김일성", from: "1948-09-09", until: "1972-12-28" },
       { name: "주석 김일성", from: "1972-12-28", until: "1994-07-08" },
       { name: "국방위원장 김정일", from: "1994-07-08", until: "2011-12-17" },
@@ -1728,15 +1732,76 @@ export const REFERENCE = {
       { name: "총리 압두 디우프", from: "1970-02-26", until: "1980-12-31" },
     ],
   },
+  // ---- Cowork 인계분 (2026-08-09 WORKLOG): 프리셋 시딩 커버리지 공백 ----
+  "Emirate of Nejd": {
+    leader: [
+      { name: "에미르 압둘아지즈 이븐 사우드", from: "1902-01-13", until: "1921-08-22" },
+      { name: "술탄 압둘아지즈 이븐 사우드", from: "1921-08-22", until: "1926-01-08" },
+      { name: "국왕 압둘아지즈 이븐 사우드", from: "1926-01-08", until: "1932-09-23" },
+    ],
+    headOfState: [
+      { name: "(없음)" },
+    ],
+  },
+  Manchukuo: {
+    leader: [
+      { name: "집정 푸이", from: "1932-03-09", until: "1934-03-01" },
+      { name: "황제 푸이(강덕제)", from: "1934-03-01", until: "1945-08-18" },
+    ],
+    headOfState: [
+      { name: "(없음)" },
+    ],
+    deputy: [
+      { name: "국무총리 정샤오쉬", from: "1932-03-09", until: "1935-05-21" },
+      { name: "국무총리 장징후이", from: "1935-05-21", until: "1945-08-18" },
+    ],
+  },
+  Montenegro: {
+    leader: [
+      { name: "공 니콜라 1세", from: "1860-08-13", until: "1910-08-28" },
+      { name: "국왕 니콜라 1세", from: "1910-08-28", until: "1918-11-26" },
+    ],
+    headOfState: [
+      { name: "(없음)", from: "1860-08-13", until: "1918-11-26" },
+    ],
+  },
+  // 전시 슬로바키아국(1939-45)은 자기 행을 갖는다 — "Slovakia" →
+  // "Czechoslovakia" 별칭은 나머지 세기를 맡고, 직접 키가 이 창을 이긴다.
+  Slovakia: {
+    leader: [
+      { name: "총리 요제프 티소", from: "1939-03-14", until: "1939-10-26" },
+      { name: "대통령 요제프 티소", from: "1939-10-26", until: "1945-04-04" },
+    ],
+    headOfState: [
+      { name: "(없음)", from: "1939-03-14", until: "1945-04-04" },
+    ],
+    deputy: [
+      { name: "총리 보이테흐 투카", from: "1939-10-26", until: "1944-09-05" },
+    ],
+  },
+  Tibet: {
+    leader: [
+      { name: "달라이 라마 13세", from: "1895-09-27", until: "1933-12-17" },
+      { name: "달라이 라마 14세", from: "1940-02-22", until: "1951-05-23" },
+    ],
+    headOfState: [
+      { name: "(없음)" },
+    ],
+  },
   Serbia: {
     leader: [
+      { name: "국왕 페타르 1세", from: "1903-06-15", until: "1918-12-01" },
       { name: "총리 조란 진지치", from: "2001-01-25", until: "2003-03-12" },
       { name: "총리 조란 지브코비치", from: "2003-03-18", until: "2004-03-03" },
       { name: "총리 보이슬라브 코슈투니차", from: "2004-03-03", until: "2008-07-07" },
     ],
     headOfState: [
+      { name: "(없음)", from: "1903-06-15", until: "1918-12-01" },
       { name: "국가연합 대통령 스베토자르 마로비치", from: "2003-03-07", until: "2006-06-03" },
       { name: "대통령 보리스 타디치", from: "2004-07-11", until: "2012-05-31" },
+    ],
+    deputy: [
+      { name: "총리 니콜라 파시치", from: "1912-09-12", until: "1918-12-01" },
     ],
   },
   Singapore: {
@@ -1788,6 +1853,7 @@ export const REFERENCE = {
   },
   "South Korea": {
     leader: [
+      { name: "미군정 사령관 존 하지", from: "1945-09-08", until: "1948-07-24" },
       { name: "대통령 이승만", from: "1948-07-24", until: "1960-04-26" },
       { name: "총리 장면", from: "1960-08-19", until: "1961-05-18" },
       { name: "국가재건최고회의 의장 장도영", from: "1961-05-19", until: "1961-07-03" },
@@ -2801,6 +2867,7 @@ export const ALIASES = {
   "Serbia and Montenegro": "Serbia",
   "Siam": "Thailand",
   "Slovakia": "Czechoslovakia",
+  "Nejd": "Emirate of Nejd",
   "South Yemen": "Yemen",
   "Southern Rhodesia": "Zimbabwe",
   "Soviet Russia": "Soviet Union",

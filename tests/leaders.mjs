@@ -136,6 +136,26 @@ test("the world-wars pack knows the century, including states that no longer exi
   assert.ok(referencePoliticalFigures("France", "1941-01-01").some((name) => name.startsWith("샤를 드골")));
 });
 
+test("Cowork handover: gaps filled, and a direct key beats its era alias", () => {
+  // Slovakia 1939-45 has its own rows; the "Slovakia" → "Czechoslovakia"
+  // alias serves the rest of the century and must never shadow them (the
+  // handover bug: Slovakia@1939 answered Czechoslovakia's 에밀 하하).
+  assert.equal(referenceLeadership("Slovakia", "1939-09-01").leader, "총리 요제프 티소");
+  assert.equal(referenceLeadership("Slovakia", "1939-09-01").headOfState, "(없음)");
+  assert.equal(referenceLeadership("Slovakia", "1955-01-01").leader, undefined, "post-war Slovakia rides the Czechoslovakia alias again (no own row)");
+  assert.equal(referenceLeadership("Serbia", "1914-07-28").leader, "국왕 페타르 1세");
+  assert.equal(referenceLeadership("Serbia", "1914-07-28").deputy, "총리 니콜라 파시치");
+  assert.equal(referenceLeadership("France", "1946-03-05").leader, "총리 펠릭스 구앵");
+  assert.equal(referenceLeadership("Montenegro", "1914-07-28").leader, "국왕 니콜라 1세");
+  assert.equal(referenceLeadership("Manchukuo", "1940-01-01").leader, "황제 푸이(강덕제)");
+  assert.equal(referenceLeadership("Manchukuo", "1940-01-01").deputy, "국무총리 장징후이");
+  assert.equal(referenceLeadership("Tibet", "1920-01-01").leader, "달라이 라마 13세");
+  assert.equal(referenceLeadership("Nejd", "1914-07-28").leader, "에미르 압둘아지즈 이븐 사우드");
+  // 해방 공간: 군정 사령관이 지도자 행을 채운다 (1947-48 북측 공백은 정직).
+  assert.equal(referenceLeadership("South Korea", "1946-03-05").leader, "미군정 사령관 존 하지");
+  assert.equal(referenceLeadership("North Korea", "1946-03-05").leader, "소련군정 25군 사령관 테렌티 치스차코프");
+});
+
 test("one unbroken record from the grand-campaign start to the present", () => {
   // A leader answers for a major polity at every probe across 580 years.
   for (const [date, country] of [
