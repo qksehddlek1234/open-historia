@@ -52,6 +52,38 @@ export const REFERENCE = {
       { name: "페슈와 바지 라오 2세", from: "1796-12-04", until: "1818-06-03" },
     ],
   },
+  "German Confederation": {
+    // 연방의 상설 수반은 없었다 — 의장국 오스트리아의 황제가 연방 의장을 맡는다.
+    leader: [
+      { name: "연방의장 오스트리아 황제 프란츠 1세", from: "1815-06-08", until: "1835-03-02" },
+      { name: "연방의장 오스트리아 황제 페르디난트 1세", from: "1835-03-02", until: "1848-12-02" },
+      { name: "연방의장 오스트리아 황제 프란츠 요제프 1세", from: "1850-05-30", until: "1866-08-23" },
+    ],
+  },
+  "Italian Duchies": {
+    // 집합 폴리티 — 최대 공국인 토스카나의 대공을 대표로 세운다.
+    leader: [
+      { name: "토스카나 대공 페르디난도 3세", from: "1814-04-27", until: "1824-06-18" },
+      { name: "토스카나 대공 레오폴도 2세", from: "1824-06-18", until: "1859-07-21" },
+    ],
+  },
+  "Republic of Texas": {
+    leader: [
+      { name: "임시정부 지사 헨리 스미스", from: "1835-11-14", until: "1836-03-16" },
+      { name: "임시 대통령 데이비드 버넷", from: "1836-03-16", until: "1836-10-22" },
+      { name: "대통령 샘 휴스턴", from: "1836-10-22", until: "1838-12-10" },
+      { name: "대통령 미라보 라마", from: "1838-12-10", until: "1841-12-13" },
+      { name: "대통령 샘 휴스턴", from: "1841-12-13", until: "1844-12-09" },
+      { name: "대통령 앤슨 존스", from: "1844-12-09", until: "1846-02-19" },
+    ],
+  },
+  "Federal Republic of Central America": {
+    leader: [
+      { name: "대통령 마누엘 호세 아르세", from: "1825-04-29", until: "1829-04-13" },
+      { name: "대통령 프란시스코 모라산", from: "1830-09-16", until: "1834-09-16" },
+      { name: "대통령 프란시스코 모라산", from: "1835-02-14", until: "1839-02-01" },
+    ],
+  },
   "Emirate of Diriyah": {
     leader: [
       { name: "에미르 압둘아지즈 빈 무함마드", from: "1765-01-01", until: "1803-11-04" },
@@ -1298,6 +1330,10 @@ export const ALIASES = {
   "Marathas": "Maratha Confederacy",
   "Maratha Empire": "Maratha Confederacy",
   "First Saudi State": "Emirate of Diriyah",
+  "Central America": "Federal Republic of Central America",
+  "United Provinces of Central America": "Federal Republic of Central America",
+  "Texas": "Republic of Texas",
+  "Deutscher Bund": "German Confederation",
   "Diriyah": "Emirate of Diriyah",
   "Abyssinia": "Ethiopia",
   "America": "United States",
