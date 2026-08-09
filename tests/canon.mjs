@@ -151,9 +151,14 @@ test("the struggling list carries the model's own failure reasons", () => {
 
 test("the suggestions task carries the rescue obligation with the list", () => {
   const at = GAMEPLAY.indexOf('if (taskKey === "actions")');
-  // The window has grown with the criteria (era lenses, anchoring): slice to
-  // the end of the actions block, not a fixed width.
-  const block = GAMEPLAY.slice(at, at + 16000);
+  // The window has grown with the criteria (era lenses, anchoring, and now the
+  // [Depth] contract): slice to the end of the actions block, not a fixed
+  // width. It was a fixed 16000 and the next addition pushed the rescue
+  // obligation out of frame — the pin then failed for growth rather than for
+  // regression, which is the one thing a source pin must never do.
+  const end = GAMEPLAY.indexOf('if (taskKey === "countryStatSheet")', at);
+  assert.ok(end > at, "the actions block is followed by the sheet block");
+  const block = GAMEPLAY.slice(at, end);
   assert.match(block, /\[Orders In Trouble\]/);
   assert.match(block, /Dedicate ONE full topic to rescuing or replacing/);
   assert.match(block, /CHANGE THE APPROACH/);

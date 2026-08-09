@@ -1085,6 +1085,27 @@ const runJsonTask = async (taskKey, {
     // three intensities of the same move.
     systemPrompt = `${systemPrompt}\n\n[Output Shape]\nAnswer with ONE JSON OBJECT of the exact shape {"topics":[{"title":"...","description":"...","horizon":"immediate" or "long","actions":[{"title":"...","text":"..."}]}]} — AT LEAST 8 topics (aim for 8 to 10, up to 12 when the era's live lenses below demand it), each with 2 to 4 concrete actions. Never answer with a bare array, never wrap it under any other key, and never stop early.\n\n[Topic Coverage]\nTopics must be DISTINCT (no near-duplicates) and together must cover at least:\n1. Immediate response planning for the current world situation and this period's events — including the visible MOVES OF NEIGHBOURING AND RIVAL POWERS: what each is actually doing right now, what threat or opening that creates, and how to answer it — with follow-up contingency measures for how each crisis could evolve.\n2. Military and security readiness — against the SPECIFIC threats this period's geography and rivals actually pose, never abstract modernization for its own sake.\n3. Diplomacy: alliances, rivals, and international standing — including public positions on external events of the day, coalitions of shared cause, value or principle (the era's own ideological and normative alignments), the MAINTENANCE of standing alliances as its own continuous work (burden-sharing, basing, command arrangements, managing friction with a partner or between rival patrons), and influence in the era's own currency: ideological solidarity and bloc-building in one age, cultural soft power and national brand in another.\n4. Economic development.\n5. A second, DIFFERENT economic-strengthening angle — trade, industry, technology, infrastructure, or finance — clearly distinct from topic 4.\n6. Internal stability and domestic affairs — including social integration across the country's own regions and groups, and the era's slow STRUCTURAL pressures where they exist: demography, employment, cohesion, the long-run sustainability of the state itself.\n7. Support for the player's currently queued actions: reinforcing, follow-up, or fallback measures for the plans listed in the context above. If nothing is queued, propose preparatory groundwork for the player's likely next moves instead.\n8. Foresight: if the scenario's date is earlier than the real-world present, far-sighted preparations anticipating developments this era cannot yet see coming (emerging technologies, ideologies, geopolitical shifts); otherwise, long-term strategic positioning over the coming years.\n\n[Era-Conditional Lenses]\nThe eight axes above are the floor; this checklist is where a board earns its VARIETY. Run through every lens and give a topic (or fold one into an existing topic) to each lens that is LIVE for this country at this date — and nothing to a lens that is not:\n• The MATERIAL BASE: food, energy, water, critical materials — wherever supply is precarious, a dependency, or a lever over others.\n• The TREASURY itself: taxation, debt, the soundness of the currency — for eras and states where the purse is the problem, not just growth.\n• LEGITIMACY and the political calendar, in the era's own terms: succession and dynastic ties in one age; elections, scandals and constitutional crises in another; consolidating a revolution or an occupation in a third.\n• FAITH AND IDENTITY where they are statecraft: church and clergy, sects and communal balance, or the modern politics of identity and minorities.\n• The QUIET INSTRUMENTS: intelligence and counter-intelligence, covert action, propaganda, and the era's information struggle (pamphlets once, broadcasts later, cyber and disinformation now).\n• The era's DEFINING TECHNOLOGY RACE and where this country stands in it — gunpowder, dreadnoughts, the bomb, space, semiconductors, AI — as a race being run NOW, distinct from foresight about races to come.\n• The PERIPHERY, for countries that have one: frontiers, colonies, vassals and tributaries, overseas holdings, bases, diaspora and irredenta — their administration, defence, cost and restiveness.\n• The era's INTERNATIONAL ORDER as a thing to act on: its institutions, regimes and treaties — join them, shape them, exploit them, or defy them.\n• NATURE'S OWN SHOCKS where the era carries them: disease, disaster, harvest and climate — preparedness now, not only response after.\nTwo lenses may share one topic when the work is genuinely one; a lens with nothing live this period gets nothing, and padding a dead lens is worse than leaving it out.\n\n[Voice]\nWrite every topic and action as the player's own government would brief it, in that government's register — the tone is part of the era. A 1930s totalitarian state briefs in terse, urgent situation-report prose: power, loyalty, ideological necessity, named enemies. A modern democracy briefs analytically: public opinion, the legislature, coalition partners, economic indicators, legal constraints. Match the SYSTEM too, not just the century — propose only what this form of government could actually do: a democracy needs votes, budgets and public consent and can face courts, elections and protest; an autocracy needs elite loyalty and its security organs and can face factions, purges and succession fear. A policy no such government could enact is not a suggestion, it is a costume.\n\n[Action Spread]\nWithin one topic, the 2 to 4 actions are RIVAL STRATEGIES for the same problem, never three wordings of one move — the player is choosing between COSTS, not between synonyms. Spread them along the levers the topic actually trades (the way a purge trades regime security against the officer corps that must fight the next war, or an energy plan trades price against dependency): typically one assertive option that maximises the goal at a real cost, one balanced option that trades part of the gain for safety, and one restrained or oblique option that preserves resources or works through a DIFFERENT CHANNEL entirely — diplomacy where the others use force, market incentives where the others use decree, covert action where the others move in public. Each action's text names, in one clause, what it trades away or the main risk it accepts. Where the topic spans genuinely distinct arenas (military, economic, diplomatic, internal), differ by arena rather than by intensity alone.\n\n[Horizon]\nLabel every topic with its strategic horizon: "immediate" for this period's live crisis management (an unfolding dispute, a rival's move in progress, damage control), "long" for the multi-year national task (structural reform, capability build-up, demography). List the immediate topics FIRST. A board of only one kind is usually wrong — a period nearly always carries both.\n\n[Era Anchoring]\nAnchor topics and actions in what this DATE actually held: name the real programmes, plans, disputes, institutions and movements live at this time — the way a Second Five-Year Plan, a purge's first signs or a Comintern line would anchor a 1935 Soviet board, and a nuclear crisis, a missile-defence dispute with a neighbour, or a demographic cliff would anchor a modern one — rather than era-less policy prose that could belong to any decade. Match the CHARACTER of the problems to the country and the date: a 1935 command economy industrializes for war and purges its politics, while a 2016 developed democracy manages slow growth, youth unemployment, demographic decline and alliance friction — the same axis takes the form its own era gives it. Where this campaign's own history has diverged from the real one, the campaign's state wins; use the real period for texture that is still consistent with it.`;
 
+    // [Depth] — MEASURED AGAINST THE ORIGINAL, NOT GUESSED.
+    //
+    // The player's capture of Pax Historia's own 1935 Soviet board: each option
+    // runs four to six sentences and is thick with proper nouns — the NKVD
+    // chief by name, the rival being promoted against him, the show trial by
+    // its number and season, the marshals whose survival is at stake, the plants
+    // at Chelyabinsk and Magnitogorsk, the aircraft design bureaus, the
+    // newspapers the campaign runs in. Ours, measured on the live save: a median
+    // of 71 characters — "강력한 공공 메시지를 통해 민심을 달래고, 여야 협치를
+    // 강조하며 정책에 대한 지지 기반을 확보하십시오." An instruction with no
+    // names in it could be issued by any government in any decade, which is
+    // exactly what makes it feel thin. Nothing here asks for padding: the length
+    // comes from SPECIFICS, and a sentence that adds no name, place, quantity or
+    // tradeoff should be cut rather than written.
+    systemPrompt = `${systemPrompt}\n\n[Depth]\nEach action's "text" is an ORDER AS A GOVERNMENT WOULD MINUTE IT — 3 to 6 sentences, and it must name things:\n• The INSTRUMENT: the ministry, agency, bureau, service, command or state company that carries it out, by its real name at this date.\n• The PEOPLE where the era has them: the officials, commanders, rivals or negotiating partners this touches, by name — drawn from the officeholders and figures given in the context above, never invented.\n• The PLACES and THINGS: the cities, plants, ports, railways, fields, formations, weapons or programmes involved, specifically.\n• The SEQUENCE: what happens first, what follows, and roughly when — a timetable a subordinate could act on.\n• The COST, in its own clause: what this trades away, whom it antagonises, or the main risk it accepts.\nA topic's "description" is 2 to 3 sentences: what is happening right now, and what is at stake BOTH ways — what letting it run costs, and what acting too hard costs.\nWrite them as decisions being taken, not as advice being offered ("…한다" rather than "…하십시오"). Never pad: if a sentence adds no name, place, quantity or tradeoff, cut it. A four-sentence order carrying six proper nouns beats an eight-sentence one carrying none.`;
+
+    const officeholders = normalizeString(variables?.officeholderRecordText);
+    if (officeholders) systemPrompt = `${systemPrompt}
+
+${officeholders}`;
+
     // The suggestions template has NO placeholder for the player's own orders,
     // so the brainstormer was blind to everything they had already done and
     // re-proposed it round after round (field data: 48 queued actions carried
@@ -4027,12 +4048,92 @@ export const generateActionSuggestions = async ({ force = true } = {}) => {
   if (outlookEntries.length > 0) {
     console.info(`[timeline] ${outlookEntries.length} publicly-scheduled item(s) offered to the suggestion board.`);
   }
+
+  // THE NAMES THE [Depth] CONTRACT ASKS FOR HAVE TO BE IN THE ROOM. Telling a
+  // 12B to name the officials it acts through, without showing it who they are,
+  // is the exact circumstance that produced "총리 스탠리 메이너드 맥도널드" on
+  // the stat sheets. Same record, same alias chain, same rule: the reference
+  // answers or nobody does — a board that cannot name the NKVD chief writes
+  // around him instead of inventing one.
+  const boardDate = normalizeString(bundle.game?.gameDate) || normalizeString(bundle.game?.startDate);
+  let officeholderText = "";
+  try {
+    await ensureReferenceEra(boardDate);
+    const playerName = normalizeString(bundle.game?.country);
+    const standing = normalizeWorldState(bundle.world).diplomaticRelations ?? {};
+    const wanted = [playerName, ...Object.keys(standing)].filter(Boolean).slice(0, 10);
+    const lines = [];
+    const overrides = normalizeWorldState(bundle.world).polityOverrides ?? {};
+    for (const country of new Set(wanted)) {
+      const record = Object.values(overrides).find((entry) => entry?.name === country) ?? overrides[country] ?? null;
+      const who = resolveLeadership(country, boardDate, {
+        aliases: record?.aliases ?? [],
+        seed: record?.leadership ?? null,
+      });
+      if (!who) continue;
+      const parts = [who.leader, who.headOfState, who.deputy]
+        .map((value) => normalizeString(value))
+        .filter((value) => value && !isRoleSentinel(value));
+      if (parts.length === 0) continue;
+      const figures = resolvePoliticalFigures(country, boardDate, { aliases: record?.aliases ?? [] });
+      const contenders = normalizeArray(figures).map((figure) => normalizeString(figure?.name ?? figure)).filter(Boolean).slice(0, 4);
+      lines.push(`- ${country}: ${parts.join(" · ")}${contenders.length ? ` (그 밖의 주요 인물: ${contenders.join(", ")})` : ""}`);
+    }
+    if (lines.length > 0) {
+      officeholderText = `[Who actually holds office on ${boardDate}]\nUse these names when an action acts through, against or alongside a person. They are the record for this date — do NOT invent an officeholder, and do not promote one of the other figures into an office they do not hold.\n${lines.join("\n")}`;
+      console.info(`[actions] officeholder record offered to the board for ${lines.length} countr(ies).`);
+    }
+  } catch (error) {
+    console.warn("[actions] could not attach the officeholder record; the board writes without names.", error);
+  }
+  // THE DEPTH CONTRACT IS MEASURED, NOT PLEADED FOR (the 12B pattern). A
+  // prompt asking for 3-6 named sentences gets them from a big model and gets
+  // 71 characters of era-less policy prose from a 12B on a bad draw. So: count
+  // what actually came back, ask once more when most of the board is thin, and
+  // — because one failure must not cost the whole board — accept the second
+  // answer either way while saying plainly in the console what was accepted.
+  const SHORT_ACTION_CHARS = 140;
+  const measureDepth = (candidate) => {
+    const list = normalizeArray(Array.isArray(candidate) ? candidate : candidate?.topics ?? candidate?.suggestions);
+    const lengths = list.flatMap((topic) => normalizeArray(topic?.actions).map((action) => normalizeString(action?.text).length));
+    if (lengths.length === 0) return { total: 0, thin: 0, median: 0 };
+    const sorted = [...lengths].sort((a, b) => a - b);
+    return {
+      total: lengths.length,
+      thin: lengths.filter((n) => n < SHORT_ACTION_CHARS).length,
+      median: sorted[Math.floor(sorted.length / 2)],
+    };
+  };
   const { payload } = await runJsonTask("actions", {
     fallback: () => fallbackActionSuggestions(bundle),
     userMessage: `Generate current strategic action suggestions as JSON only.${advisorGuidance}`,
-    variables: outlookEntries.length > 0
-      ? { ...variables, foreseeableOutlookText: buildOutlookText(outlookEntries, { playerPolity: variables.playerPolity }) }
-      : variables,
+    validatePayload: (candidate, { finalAttempt } = {}) => {
+      const depth = measureDepth(candidate);
+      if (depth.total === 0) return undefined; // emptiness is handled below, not here
+      const thinShare = depth.thin / depth.total;
+      if (thinShare > 0.5 && !finalAttempt) {
+        return `${depth.thin} of ${depth.total} actions are under ${SHORT_ACTION_CHARS} characters (median ${depth.median}).`
+          + " Rewrite EVERY action's \"text\" to the [Depth] contract: 3-6 sentences naming the executing ministry or agency,"
+          + " the officials and places involved, the sequence, and what it trades away. Keep the same topics and the same"
+          + " strategies — only the writing gets deeper.";
+      }
+      if (thinShare > 0.5) {
+        console.warn(
+          `[actions] the board came back thin — ${depth.thin} of ${depth.total} actions under ${SHORT_ACTION_CHARS} chars `
+          + `(median ${depth.median}). Accepted anyway: a thin board beats no board.`,
+        );
+      } else {
+        console.info(`[actions] depth: median ${depth.median} chars, ${depth.thin} of ${depth.total} action(s) under ${SHORT_ACTION_CHARS}.`);
+      }
+      return undefined;
+    },
+    variables: {
+      ...variables,
+      ...(outlookEntries.length > 0
+        ? { foreseeableOutlookText: buildOutlookText(outlookEntries, { playerPolity: variables.playerPolity }) }
+        : {}),
+      ...(officeholderText ? { officeholderRecordText: officeholderText } : {}),
+    },
   });
 
   const normalizeTopics = (raw) =>

@@ -20,7 +20,16 @@ const actionSchema = {
   properties: {
     id: textSchema("Optional stable action identifier."),
     title: textSchema("Short display title for the action."),
-    text: textSchema("Concrete, executable description of the action."),
+    // Measured against the original's own board: its options run 4-6 sentences
+    // dense with named ministries, officials, plants and formations, while ours
+    // came back at a 71-character median of era-less policy prose. The prompt
+    // carries the full [Depth] contract; the schema says enough that a model
+    // reading only the schema still knows the shape expected.
+    text: textSchema(
+      "The order as a government would minute it: 3-6 sentences naming the ministry or agency "
+      + "that executes it, the officials and places involved, the sequence, and — in its own "
+      + "clause — what it trades away or the risk it accepts. Not advice; a decision being taken.",
+    ),
     kind: textSchema('Action kind: usually "action", or "chat" only for a diplomatic conversation.'),
     invitees: stringArraySchema("Exact polity names invited when this is a chat action."),
     chatStarter: textSchema("Opening diplomatic message when this is a chat action."),
