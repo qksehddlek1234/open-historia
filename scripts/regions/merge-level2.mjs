@@ -88,6 +88,32 @@ for (const feature of incoming) {
   existingIds.add(id);
 }
 
+// A NAMELESS SUBDIVISION IS WORSE THAN NO SUBDIVISION, AND THAT IS NOT
+// HYPOTHETICAL. Measured on gadm41_GBR_2.json (GADM 4.1, the GeoJSON build):
+// 183 rows, of which 82 — 45%, and 67 of England's own — carry NAME_2 "NA"
+// with VARNAME_2 empty too. Merging it replaced four large provinces with a
+// map that says "NA" eighty-two times. The tool must refuse that on the
+// player's behalf rather than write it and let them discover it on the map.
+const NAMELESS = /^(NA|N\/A|)$/i;
+const nameless = taken.filter((row) => NAMELESS.test(row.properties.name));
+const namelessShare = taken.length > 0 ? nameless.length / taken.length : 0;
+if (nameless.length > 0) {
+  console.log(
+    `\n⚠  ${nameless.length} of ${taken.length} row(s) (${Math.round(namelessShare * 100)}%) have NO NAME in this file `
+    + "— they would render as \"NA\" on the map.",
+  );
+  console.log(`   e.g. ${nameless.slice(0, 5).map((r) => `${r.properties.id} (${r.properties.country || "?"})`).join(", ")}`);
+}
+if (namelessShare > 0.1 && !argv.includes("--force")) {
+  console.error(
+    "\nrefusing to merge: more than 10% of the incoming rows are nameless.\n"
+    + "This GADM GeoJSON build is known to ship empty NAME_2 for much of England.\n"
+    + "Try another source — GADM's GeoPackage/shapefile build, or the ONS Open\n"
+    + "Geography Portal (OGL) for the UK — or pass --force if you truly want it.",
+  );
+  process.exit(2);
+}
+
 let dropped = 0;
 let features = seed.features;
 if (replaceCountry) {
