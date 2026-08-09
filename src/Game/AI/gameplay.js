@@ -24,6 +24,7 @@ import {
   writeJson,
 } from "../../runtime/assets.js";
 import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
+import { isSpeechlessName } from "../../runtime/speechless.js";
 import { buildScheduledCard } from "../../runtime/scheduledCard.js";
 import {
   acceptStanding,
@@ -2076,7 +2077,16 @@ const resolveInvitees = async (names, world, additionalCountries = []) => {
     // contract in the rules says so too, but rule #2 is that the engine checks
     // rather than asks. The player's own side of this — inviting an advisor
     // into a conversation from the chat panel — does not come through here.
-    .filter((entry) => !isTerritorylessVoiceName(entry.name));
+    .filter((entry) => !isTerritorylessVoiceName(entry.name))
+    // AND NEITHER IS SOMETHING THAT CANNOT ANSWER.
+    //
+    // The mirror case: a polity with ground and no voice. A horde holds regions
+    // and takes more, so every heuristic that says "owns territory, therefore a
+    // government" hands it a chat. The zombie board's own rules put this among
+    // its three non-negotiables — nobody opens a channel to the dead, demands
+    // its surrender, or waits for a reply — so the engine enforces it here
+    // rather than trusting the prompt. See runtime/speechless.js.
+    .filter((entry) => !isSpeechlessName(entry.name));
   const unique = new Map(resolved.map((entry) => [entry.code || entry.name, entry]));
   return Array.from(unique.values()).map((entry) => ({
       code: entry.code || "",

@@ -427,7 +427,13 @@ test("THE PASS RUNS ON EVERY JUMP, and cannot cost the turn", () => {
 
 test("…and the baselines it passes are exactly the sheets it SHOWED", () => {
   assert.match(GAMEPLAY, /const baselines = Object\.fromEntries\(sheets\.map\(\(entry\) => \[entry\.code, entry\.sheet\]\)\);/);
-  assert.match(GAMEPLAY, /\n    baselines,\n    date,/);
+  // Newline-agnostic on purpose. This pin used to spell the separator "\n" and
+  // failed on a FRESH CHECKOUT on Windows — git writes CRLF, the file in the
+  // working tree had LF here, and the pin was reading a line-ending style
+  // rather than the code it means to protect. What it protects is that these
+  // two options are passed adjacently; how the file ends its lines is not its
+  // business.
+  assert.match(GAMEPLAY, /[\r\n]+ {4}baselines,[\r\n]+ {4}date,/);
 });
 
 test("…and reports what moved AND what it threw away", () => {
@@ -474,8 +480,11 @@ test("CALL-SITE EXTRAS REACH THE PROMPT: the ledger was never shown its own fact
   // buildPromptContext destructures a fixed option list, so standingFacts —
   // and statSheets after it — were dropped before runJsonTask could read them.
   assert.match(GAMEPLAY, /CALL-SITE EXTRAS HAVE TO SURVIVE THIS\./);
-  const spread = GAMEPLAY.indexOf("    ...options,\n    ...variables,");
-  assert.ok(spread > 0, "options are spread first so a real context variable still wins");
+  // Newline-agnostic, same reason as the pin above: a fresh checkout on Windows
+  // gets CRLF and an exact-string indexOf was silently pinning the file's line
+  // endings alongside its code.
+  assert.match(GAMEPLAY, /[\r\n]+ {4}\.\.\.options,[\r\n]+ {4}\.\.\.variables,/,
+    "options are spread first so a real context variable still wins");
 });
 
 console.log(`\n${pass} passed`);

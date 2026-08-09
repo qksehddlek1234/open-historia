@@ -7,6 +7,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { ensureReferenceEra, REFERENCE, referenceCoverageSpan, referenceLeadership, referencePoliticalFigures } from "../src/runtime/leaderReference.js";
+import { isSpeechlessPolity } from "../src/runtime/speechless.js";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -270,6 +271,10 @@ await (async () => {
     if (!/^\d{4}-/.test(date) || Number(date.slice(0, 4)) < 1444) continue;
     await ensureReferenceEra(date);
     for (const polity of Object.values(spec.polities ?? {})) {
+      // A thing with no voice has no officeholder, and inventing one for it
+      // would be worse than the gap this pin exists to catch. The dead do not
+      // have a head of state. See src/runtime/speechless.js.
+      if (isSpeechlessPolity(polity)) continue;
       if (!resolveLeadership(polity.name, date, { aliases: polity.aliases })) {
         failures.push(`${spec.id}: ${polity.name}`);
       }

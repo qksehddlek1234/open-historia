@@ -9,6 +9,8 @@
 // leaks into any ONE of them stops being an advisor and becomes a country:
 // the roster, the contract in the rules, and the engine guards.
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { isSpeechlessName, isSpeechlessPolity } from "../src/runtime/speechless.js";
 import fs from "node:fs";
 
 let pass = 0;
@@ -116,5 +118,45 @@ test("the predicate reads the NAME, so it survives saves and model output", () =
   // The row flag still counts, for anything that carries the object.
   assert.ok(isTerritorylessVoice({ name: "Germany", territoryless: true }));
 });
+
+
+console.log("\nThe mirror case — ground with no voice");
+
+test("the dead are unaddressable however they are spelled", () => {
+  for (const name of ["The Dead", "the dead", "  Zombies  ", "The Infected", "the horde", "The Swarm"]) {
+    assert.equal(isSpeechlessName(name), true, `${name} should be unaddressable`);
+  }
+});
+
+test("a government is not, and neither is a near-miss", () => {
+  for (const name of ["Germany", "Dead Sea Authority", "Zombie Research Institute", "", null]) {
+    assert.equal(isSpeechlessName(name), false, `${name} is addressable`);
+  }
+});
+
+test("a scenario can mark a name the registry has never heard of", () => {
+  assert.equal(isSpeechlessPolity({ name: "The Northern Blight", speechless: true }), true);
+  assert.equal(isSpeechlessPolity({ name: "The Northern Blight" }), false);
+});
+
+test("resolveInvitees drops them, and the chat picker never lists them", () => {
+  // Both paths must agree, the same way they do for territory-less voices —
+  // one filter without the other leaves a door open.
+  const gameplay = readFileSync(new URL("../src/Game/AI/gameplay.js", import.meta.url), "utf8");
+  assert.match(gameplay, /isSpeechlessName\(entry\.name\)/, "resolveInvitees filters the dead");
+  const chat = readFileSync(new URL("../src/Game/GameUI/chat.jsx", import.meta.url), "utf8");
+  assert.match(chat, /filter\(c => !isUnaddressable\(c\)\)/, "the picker filters them out entirely");
+});
+
+test("the zombie board ships a polity this actually catches", () => {
+  // The builder keeps name/aliases/color and drops unknown spec fields, so the
+  // `speechless: true` flag does NOT survive into world.json. The name is what
+  // carries it — which is the whole reason the name path is primary.
+  const world = JSON.parse(readFileSync(new URL("../server/data/scenarios/zombie-2019/world.json", import.meta.url), "utf8"));
+  const dead = Object.values(world.polityOverrides ?? {}).find((row) => isSpeechlessName(row?.name));
+  assert.ok(dead, "zombie-2019 ships a polity the registry recognises");
+  assert.equal(dead.speechless, undefined, "and it does NOT rely on the flag surviving the build");
+});
+
 
 console.log(`\n${pass} passed\n`);

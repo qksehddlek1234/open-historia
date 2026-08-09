@@ -14,6 +14,7 @@ import {
 import { flagEmojiFromGid } from "../../runtime/countryFlags.js";
 import { readChatsState, writeChatsState, readWorldState } from "../../runtime/gameState.js";
 import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
+import { isSpeechlessName } from "../../runtime/speechless.js";
 
 // ── Storage ───────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,10 @@ const loadAllChats = async ({ force = false } = {}) => {
 // conversation the preset had built for them.
 
 const isVoicePolity = (country) => isTerritorylessVoiceName(country?.name);
+// A voice with no ground is grouped apart and can still be opened. Something
+// with ground and no voice is not in the picker AT ALL — there is no telegram
+// to send. See runtime/speechless.js.
+const isUnaddressable = (country) => isSpeechlessName(country?.name);
 
 const loadCountryNames = async () => {
     const fromTiles = await loadCachedCountryNames();
@@ -396,7 +401,9 @@ const GroupHeading = ({ text }) => (
 const CountrySelectorModal = ({ countries, loading, onStart, onCancel }) => {
     const [search, setSearch]     = React.useState("");
     const [selected, setSelected] = React.useState([]);
-    const filtered      = useMemo(() => countries.filter(c => c.name.toLowerCase().includes(search.toLowerCase())), [countries, search]);
+    const filtered      = useMemo(() => countries
+        .filter(c => !isUnaddressable(c))
+        .filter(c => c.name.toLowerCase().includes(search.toLowerCase())), [countries, search]);
     // The voices come FIRST and under their own heading. They are a handful of
     // rows inside a list of two hundred countries, and the whole point of them
     // is that the player reaches for them instead of the brainstorming board —
