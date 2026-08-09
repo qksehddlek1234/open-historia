@@ -3,7 +3,7 @@
 // all 840 prose fields this campaign holds — one and two, respectively.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { TIMELINE_LIBRARY } from "../src/runtime/timelineLibrary.js";
+import { TIMELINE_LIBRARY, timelineForDate } from "../src/runtime/timelineLibrary.js";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -85,6 +85,34 @@ const timeline = TIMELINE_LIBRARY.find((entry) => entry.id === "modern-2016");
 test("the shipped timeline is still loadable and was revised", () => {
   assert.ok(timeline, "modern-2016 is in the library");
   assert.ok(timeline.revision >= 4, `revision ${timeline.revision} — saves refresh on the next jump`);
+});
+
+// ---- the window a timeline SERVES is not the span of its entries -------------------
+
+test("a campaign gets its own timeline even when the first entry is days away", () => {
+  // This was a live bug: the shipped campaign starts 2016-01-01 and the shipped
+  // 2016 timeline's first entry is 2016-01-06, so timelineForDate — which
+  // derived the window off the entries — handed the app's default campaign
+  // nothing at all. Five days of gap, and the feature never seeded.
+  assert.equal(timelineForDate("2016-01-01")?.id, "modern-2016");
+  assert.equal(timelineForDate("2016-01-06")?.id, "modern-2016");
+});
+
+test("a forward-looking calendar still serves the campaign it was written for", () => {
+  // The 2026 timeline is ALL future fixtures — its first entry is 2026-02-05,
+  // after both 2026 campaigns begin. Without a declared window it would lock
+  // out the very boards it exists for.
+  assert.equal(timelineForDate("2026-01-01")?.id, "real-world-2026", "modern-2026 reaches it");
+  assert.equal(timelineForDate("2026-02-01")?.id, "real-world-2026", "and so does realworld-2026");
+  const rw = TIMELINE_LIBRARY.find((entry) => entry.id === "real-world-2026");
+  assert.ok(rw.entries.every((entry) => entry.date >= "2026-02-01"), "every entry is still ahead of the later board");
+});
+
+test("declaring a window did not widen it into other eras", () => {
+  // The guard the range check exists for: an 1848 campaign must not be handed
+  // the 2016 schedule.
+  assert.equal(timelineForDate("1848-01-01"), null);
+  assert.equal(timelineForDate("2027-01-01"), null, "and the year after runs out honestly");
 });
 
 test("THE CONSOLE'S COMPLAINT: the missile tests now carry what the nuclear ones did", () => {

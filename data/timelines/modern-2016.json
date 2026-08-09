@@ -3,6 +3,8 @@
   "revision": 4,
   "label": "Modern Day — 2016–2017",
   "note": "Dates verified against Wikipedia, CFR and CRS (see PLAN.md). Korea-relevant entries are weighted pivotal because the shipped Modern Day scenario starts there; a campaign playing elsewhere can reweight without changing the dates. `foreseeable` carries the outcome-free phrasing a contemporary could have written in advance; entries without it were surprises and stay hidden from the suggestion board. `effect` is what the entry does to world state — the engine writes it into the event that tells the entry's story if the model narrated the change without carrying it. Only entries whose consequence is unambiguous on the day carry one: a head of government actually taking office, a site actually existing. An election won by someone who is inaugurated later belongs to the inauguration entry, not the election entry.",
+  "note2": "servesFrom은 이 연표가 봉사하는 캠페인 창이지 항목의 범위가 아니다. 첫 항목이 2016-01-06이라 2016-01-01에 시작하는 기본 캠페인이 5일 차이로 이 연표를 못 받고 있었다 — 앱이 기본으로 싣는 바로 그 캠페인이다.",
+  "servesFrom": "2016-01-01",
   "entries": [
     {
       "date": "2016-01-06",

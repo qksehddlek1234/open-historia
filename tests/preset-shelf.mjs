@@ -53,7 +53,7 @@ test("every shipped spec has a parseable start date, and they order chronologica
   // millennium-2000 was the newest until the fleet grew a present-day board.
   // The pin is the ORDERING, not which scenario happens to sit at the end, so it
   // names the current last one and will move again the next time one is added.
-  assert.equal(dated[dated.length - 1].id, "modern-2026", "and closes on the newest");
+  assert.equal(dated[dated.length - 1].id, "realworld-2026", "and closes on the newest");
 });
 
 console.log("\nCard copy — thirteen cards must not read as thirteen copies of one card");

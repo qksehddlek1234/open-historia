@@ -18,6 +18,7 @@
 // a scenario editor ever lets a designer edit the schedule in-game, this becomes a
 // merge and the stamp is what makes that merge possible.
 import modern2016 from "../../data/timelines/modern-2016.json" with { type: "json" };
+import realWorld2026 from "../../data/timelines/real-world-2026.json" with { type: "json" };
 import { normalizeTimeline } from "./periodTimeline.js";
 
 const normalizeString = (value) => String(value ?? "").trim();
@@ -33,12 +34,19 @@ const buildLibraryEntry = (source) => {
     // stays put rather than rewriting the save on every launch.
     revision: Number.isFinite(Number(source?.revision)) ? Math.trunc(Number(source.revision)) : 1,
     entries,
-    from: entries[0].date,
-    to: entries[entries.length - 1].date,
+    // The window this timeline SERVES, which is not always the span of its own
+    // entries. A timeline of things that have already happened brackets its
+    // campaign; a timeline of things that are still coming starts after the
+    // campaign does, and deriving `from` off the first entry would then lock
+    // out the very campaign it was written for. So a file may declare its
+    // window, and only falls back to its entries when it does not.
+    from: normalizeString(source?.servesFrom) || entries[0].date,
+    to: normalizeString(source?.servesTo) || entries[entries.length - 1].date,
   };
 };
 
-export const TIMELINE_LIBRARY = [modern2016].map(buildLibraryEntry).filter(Boolean).filter((entry) => entry.id);
+export const TIMELINE_LIBRARY = [modern2016, realWorld2026]
+  .map(buildLibraryEntry).filter(Boolean).filter((entry) => entry.id);
 
 export const timelineById = (id) => {
   const wanted = normalizeString(id);
