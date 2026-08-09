@@ -28,17 +28,15 @@ export default {
 
   meta: {
     name: "World War I — 1914",
-    heroTitle: "World War I",
-    heroSubtitle: "The July Crisis breaks, 28 July 1914",
-    eyebrow: "Historical Preset",
+    heroTitle: "The Last Summer",
+    heroSubtitle: "Austria has declared war on Serbia, and the alliances begin to pull",
+    eyebrow: "The Great War",
     subtitle: "28 July 1914",
     accentColor: "#5a4a2f",
     coverImage: "public/loading_screen_2.jpg",
     description:
-      "Austria-Hungary has declared war on Serbia and the alliance system is pulling " +
-      "every great power toward the abyss. Four empires stand at their zenith with no idea " +
-      "they are living their final years. Mobilization timetables are ticking. Lead any " +
-      "power through the war that ends the old world.",
+      "Five weeks after a shot in Sarajevo, Vienna has declared war on Belgrade and the machinery starts to turn. Russia mobilises to protect the Serbs, which obliges Germany, which obliges France, and every general staff insists that arriving late is the same as losing. Four dynastic empires — Habsburg, Hohenzollern, Romanov, Ottoman — govern most of Europe and every one of them will be gone within five years, though nobody alive today believes it. Europe's powers command more of the earth than any civilisation before them, and are about to spend it. Take any of them into the war that ends their world.",
+
   },
 
   relabelOwnedCountries: false,
@@ -53,6 +51,24 @@ export default {
   game: { country: "AUH", startDate: "1914-07-28", gameDate: "1914-07-28" },
 
   polities: {
+    // ── 자치령: 왕관은 같아도 정부는 각자다 ───────────────────────────────────
+    // 1931년 웨스트민스터 헌장 이후 자치령은 대외정책까지 자기 것이다 — 1939년
+    // 9월 캐나다는 따로 선전포고했고, 남아공은 의회 표결로 참전을 정했다.
+    CAN: { name: "Dominion of Canada", color: "#c05a6a", aliases: ["캐나다 자치령", "캐나다", "Canada"] },
+    AUS: { name: "Commonwealth of Australia", color: "#d07a5a", aliases: ["호주 연방", "오스트레일리아", "Australia"] },
+    NZL: { name: "Dominion of New Zealand", color: "#b06a7a", aliases: ["뉴질랜드 자치령", "뉴질랜드", "New Zealand"] },
+    SAF: { name: "Union of South Africa", color: "#a87a5a", aliases: ["남아프리카 연방", "남아공", "South Africa"] },
+    // ── 영국령 아프리카: 색 하나가 아니라 총독부 셋 ───────────────────────────
+    BWA: { name: "British West Africa", color: "#c09a6a", aliases: ["영국령 서아프리카", "British West Africa", "Nigeria", "Gold Coast"] },
+    BEA: { name: "British East Africa", color: "#b08a5a", aliases: ["영국령 동아프리카", "British East Africa", "Kenya", "Tanganyika"] },
+    BCA: { name: "British Central Africa", color: "#a89a7a", aliases: ["영국령 중앙아프리카", "로디지아", "Rhodesia", "Nyasaland"] },
+    // ── 제국은 색이 아니라 행정부다 ───────────────────────────────────────────
+    RAJ: { name: "British Raj", color: "#c07a8a", aliases: ["영국령 인도", "인도 제국", "British India", "India"] },
+    AOF: { name: "French West Africa", color: "#5a7fc0", aliases: ["프랑스령 서아프리카", "Afrique-Occidentale française", "AOF"] },
+    AEF: { name: "French Equatorial Africa", color: "#4a6fb0", aliases: ["프랑스령 적도아프리카", "Afrique-Équatoriale française", "AEF"] },
+    FIC: { name: "French Indochina", color: "#6a8fd0", aliases: ["프랑스령 인도차이나", "Indochine française", "Indochina"] },
+    DEI: { name: "Dutch East Indies", color: "#d08a4a", aliases: ["네덜란드령 동인도", "Nederlands-Indië", "Dutch East Indies", "Indonesia"] },
+    BCO: { name: "Belgian Congo", color: "#8a9a3a", aliases: ["벨기에령 콩고", "Congo belge", "Belgian Congo"] },
     GER: { name: "German Empire", color: "#4a4a4a", aliases: ["독일 제국", "Germany", "Kaiserreich", "Imperial Germany", "Deutsches Reich"] },
     AUH: { name: "Austria-Hungary", color: "#c9a227", aliases: ["오스트리아-헝가리 제국", "오헝 제국", "Austro-Hungarian Empire", "Habsburg Empire", "Dual Monarchy"] },
     OTT: { name: "Ottoman Empire", color: "#7a9950", aliases: ["오스만 제국", "Turkey", "Sublime Porte", "Ottoman Turkey"] },
@@ -96,26 +112,24 @@ export default {
     RUS: ["RUS", "UKR", "BLR", "MDA", "FIN", "EST", "LVA", "LTU", "KAZ", "GEO", "ARM", "AZE", "UZB", "TKM", "TJK", "KGZ"],
     // — French Republic and empire. (Togo and Cameroon are German this year;
     //   Morocco is a protectorate since 1912.)
-    FRA: [
-      "FRA", "DZA", "TUN", "MAR", "VNM", "LAO", "KHM",
-      "SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "TCD", "CAF", "COG", "GAB", "MRT",
-      "MDG", "DJI", "COM",
-      "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF",
-    ],
+    FRA: ["FRA", "DZA", "TUN", "MAR", "CMR", "TGO", "MDG", "DJI", "COM", "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF"],
+    AOF: ["SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "MRT"],
+    AEF: ["TCD", "CAF", "COG", "GAB"],
+    FIC: ["VNM", "LAO", "KHM"],
     // — British Empire: the dominions, the Raj, the African colonies, Egypt
     //   (khedivate on paper, British in fact since 1882) and the Sudan, the
     //   Gulf protectorates, Cyprus (occupied since 1878). Ireland is INSIDE
     //   the United Kingdom — Home Rule is on the books and suspended.
-    GBR: [
-      "GBR", "IRL", "IND", "PAK", "BGD", "MMR", "LKA",
-      "CAN", "AUS", "NZL", "ZAF",
-      "EGY", "SDN",
-      "NGA", "GHA", "KEN", "UGA", "ZMB", "ZWE", "MWI", "BWA", "LSO", "SWZ", "SLE", "GMB", "SOM",
-      "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA",
-      "CYP", "MLT", "MYS", "SGP", "BRN",
-      "BHR", "QAT", "ARE", "KWT",
-      "FJI", "SLB", "PNG", "MUS", "SYC",
-    ],
+    GBR: ["GBR", "IRL", "LKA", "EGY", "SDN", "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA", "CYP", "MLT", "MYS", "SGP", "BRN", "FJI", "SLB", "MUS", "SYC"],
+    CAN: ["CAN"],
+    AUS: ["AUS"],
+    NZL: ["NZL"],
+    SAF: ["ZAF", "LSO", "SWZ"],
+    BWA: ["NGA", "GHA", "SLE", "GMB"],
+    // 탕가니카는 아직 독일령 동아프리카다 — 위임통치는 1919년부터.
+    BEA: ["KEN", "UGA"],
+    BCA: ["ZMB", "ZWE", "MWI", "BWA"],
+    RAJ: ["IND", "PAK", "BGD", "MMR"],
     // — Italy: neutral this week (the Triple Alliance is defensive and Vienna
     //   did not consult Rome), holding Libya and the Horn colonies since 1912.
     ITA: ["ITA", "LBY", "ERI"],
@@ -131,8 +145,10 @@ export default {
     BUL: ["BGR"],
     ROU: ["ROU"],
     // — The neutral empires of the west.
-    BEL: ["BEL", "COD"],
-    NLD: ["NLD", "IDN", "SUR"],
+    BEL: ["BEL"],
+    BCO: ["COD"],
+    NLD: ["NLD", "SUR"],
+    DEI: ["IDN"],
     POR: ["PRT", "AGO", "MOZ", "GNB", "CPV", "STP", "TLS"],
     ESP: ["ESP", "ESH", "GNQ"],
     // — Denmark: Iceland is under the Danish crown until 1918, the West

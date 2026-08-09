@@ -21,7 +21,7 @@ export default {
     name: "Cold War — 1946",
     heroTitle: "Dawn of the Cold War",
     heroSubtitle: "An iron curtain descends, 5 March 1946",
-    eyebrow: "Historical Preset",
+    eyebrow: "The Bipolar World",
     subtitle: "5 March 1946",
     accentColor: "#2f4a6b",
     coverImage: "public/loading_screen_2.jpg",
@@ -43,6 +43,40 @@ export default {
   game: { country: "SOV", startDate: "1946-03-05", gameDate: "1946-03-05" },
 
   polities: {
+    // ── 자치령: 왕관은 같아도 정부는 각자다 ───────────────────────────────────
+    // 1931년 웨스트민스터 헌장 이후 자치령은 대외정책까지 자기 것이다 — 1939년
+    // 9월 캐나다는 따로 선전포고했고, 남아공은 의회 표결로 참전을 정했다.
+    CAN: { name: "Dominion of Canada", color: "#c05a6a", aliases: ["캐나다 자치령", "캐나다", "Canada"] },
+    AUS: { name: "Commonwealth of Australia", color: "#d07a5a", aliases: ["호주 연방", "오스트레일리아", "Australia"] },
+    NZL: { name: "Dominion of New Zealand", color: "#b06a7a", aliases: ["뉴질랜드 자치령", "뉴질랜드", "New Zealand"] },
+    SAF: { name: "Union of South Africa", color: "#a87a5a", aliases: ["남아프리카 연방", "남아공", "South Africa"] },
+    // ── 영국령 아프리카: 색 하나가 아니라 총독부 셋 ───────────────────────────
+    BWA: { name: "British West Africa", color: "#c09a6a", aliases: ["영국령 서아프리카", "British West Africa", "Nigeria", "Gold Coast"] },
+    BEA: { name: "British East Africa", color: "#b08a5a", aliases: ["영국령 동아프리카", "British East Africa", "Kenya", "Tanganyika"] },
+    BCA: { name: "British Central Africa", color: "#a89a7a", aliases: ["영국령 중앙아프리카", "로디지아", "Rhodesia", "Nyasaland"] },
+    // ── 소련: 1940년 병합 이후의 16개 연방 공화국 ────────────────────────────
+    RSF: { name: "Russian SFSR", color: "#a03c28", aliases: ["러시아 SFSR", "Russian Soviet Federative Socialist Republic", "RSFSR", "Russia", "Soviet Union", "소련"] },
+    UKS: { name: "Ukrainian SSR", color: "#b9603a", aliases: ["우크라이나 SSR", "우크라이나", "Ukraine"] },
+    BYE: { name: "Byelorussian SSR", color: "#8d5236", aliases: ["벨로루시 SSR", "백러시아", "Byelorussia", "Belarus"] },
+    GEO: { name: "Georgian SSR", color: "#c07a4a", aliases: ["그루지야 SSR", "조지아", "Georgia"] },
+    ARM: { name: "Armenian SSR", color: "#b06a4a", aliases: ["아르메니아 SSR", "아르메니아", "Armenia"] },
+    AZE: { name: "Azerbaijan SSR", color: "#c08a5a", aliases: ["아제르바이잔 SSR", "아제르바이잔", "Azerbaijan"] },
+    UZB: { name: "Uzbek SSR", color: "#c99a52", aliases: ["우즈베크 SSR", "우즈베키스탄", "Uzbekistan"] },
+    TKM: { name: "Turkmen SSR", color: "#b08a4a", aliases: ["투르크멘 SSR", "투르크메니스탄", "Turkmenistan"] },
+    TJK: { name: "Tajik SSR", color: "#a87c46", aliases: ["타지크 SSR", "타지키스탄", "Tajikistan"] },
+    KAZ: { name: "Kazakh SSR", color: "#8f6b3c", aliases: ["카자흐 SSR", "카자흐스탄", "Kazakhstan"] },
+    KGZ: { name: "Kirghiz SSR", color: "#9c7a44", aliases: ["키르기스 SSR", "키르기스스탄", "Kyrgyzstan"] },
+    EST: { name: "Estonian SSR", color: "#7a6a8a", aliases: ["에스토니아 SSR", "에스토니아", "Estonia"] },
+    LVA: { name: "Latvian SSR", color: "#8a7a9a", aliases: ["라트비아 SSR", "라트비아", "Latvia"] },
+    LTU: { name: "Lithuanian SSR", color: "#9a8aaa", aliases: ["리투아니아 SSR", "리투아니아", "Lithuania"] },
+    MDA: { name: "Moldavian SSR", color: "#b08a7a", aliases: ["몰다비아 SSR", "몰도바", "Moldova"] },
+    // ── 제국은 색이 아니라 행정부다 ───────────────────────────────────────────
+    RAJ: { name: "British Raj", color: "#c07a8a", aliases: ["영국령 인도", "인도 제국", "British India", "India"] },
+    AOF: { name: "French West Africa", color: "#5a7fc0", aliases: ["프랑스령 서아프리카", "Afrique-Occidentale française", "AOF"] },
+    AEF: { name: "French Equatorial Africa", color: "#4a6fb0", aliases: ["프랑스령 적도아프리카", "Afrique-Équatoriale française", "AEF"] },
+    FIC: { name: "French Indochina", color: "#6a8fd0", aliases: ["프랑스령 인도차이나", "Indochine française", "Indochina"] },
+    DEI: { name: "Dutch East Indies", color: "#d08a4a", aliases: ["네덜란드령 동인도", "Nederlands-Indië", "Dutch East Indies", "Indonesia"] },
+    BCO: { name: "Belgian Congo", color: "#8a9a3a", aliases: ["벨기에령 콩고", "Congo belge", "Belgian Congo"] },
     SOV: { name: "Soviet Union", color: "#8b1a1a", aliases: ["소련", "USSR", "Soviet Russia", "Stalin's Russia"] },
     USA: { name: "United States", color: "#4a8f7a", aliases: ["미국", "America", "United States of America"] },
     GBR: { name: "British Empire", color: "#c0507a", aliases: ["대영제국", "영국", "United Kingdom", "Britain", "Great Britain"] },
@@ -75,7 +109,21 @@ export default {
     //   annexed, Kaliningrad and Carpathian Ruthenia and Tuva all inside the
     //   modern grid already. Eastern Europe is OCCUPIED, not annexed — those
     //   countries keep their own (Soviet-dominated) governments.
-    SOV: ["RUS", "UKR", "BLR", "EST", "LVA", "LTU", "MDA", "KAZ", "GEO", "ARM", "AZE", "UZB", "TKM", "TJK", "KGZ"],
+    RSF: ["RUS"],
+    UKS: ["UKR"],
+    BYE: ["BLR"],
+    GEO: ["GEO"],
+    ARM: ["ARM"],
+    AZE: ["AZE"],
+    UZB: ["UZB"],
+    TKM: ["TKM"],
+    TJK: ["TJK"],
+    KAZ: ["KAZ"],
+    KGZ: ["KGZ"],
+    EST: ["EST"],
+    LVA: ["LVA"],
+    LTU: ["LTU"],
+    MDA: ["MDA"],
     // — The United States: the Philippines four months from promised
     //   independence, the Pacific islands taken from Japan under military
     //   government (the UN trusteeship comes next year).
@@ -83,27 +131,26 @@ export default {
     // — The British Empire, intact for two more years: the Raj (partition is
     //   1947), the Palestine Mandate, Transjordan (independence treaty this
     //   month!), and military administration of Italy's former colonies.
-    GBR: [
-      "GBR", "IND", "PAK", "BGD", "MMR", "LKA",
-      "CAN", "AUS", "NZL", "ZAF", "NAM",
-      "NGA", "GHA", "KEN", "UGA", "TZA", "ZMB", "ZWE", "MWI", "BWA", "LSO", "SWZ", "SDN", "SLE", "GMB",
-      "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA",
-      "CYP", "MLT", "MYS", "SGP", "BRN", "JOR", "ISR", "PSE",
-      "BHR", "QAT", "ARE", "KWT",
-      "FJI", "SLB", "PNG", "MUS", "SYC",
-      "LBY", "ERI", "SOM",
-    ],
+    GBR: ["GBR", "LKA", "SDN", "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA", "CYP", "MLT", "MYS", "SGP", "BRN", "JOR", "ISR", "PSE", "BHR", "QAT", "ARE", "KWT", "FJI", "SLB", "MUS", "SYC"],
+    CAN: ["CAN"],
+    AUS: ["AUS", "PNG"],
+    NZL: ["NZL", "WSM"],
+    SAF: ["ZAF", "NAM", "LSO", "SWZ"],
+    BWA: ["NGA", "GHA", "SLE", "GMB"],
+    BEA: ["KEN", "UGA", "TZA"],
+    BCA: ["ZMB", "ZWE", "MWI", "BWA"],
+    // 인도 독립은 1947년 8월 — 1946년 3월에는 아직 제국의 인도다.
+    RAJ: ["IND", "PAK", "BGD", "MMR"],
     // — France: the empire holds, but Syria and Lebanon are GONE (independent,
     //   last French troops leaving this spring) and Indochina is a returning
     //   colonial power negotiating with Ho Chi Minh's declared republic —
     //   the Ho–Sainteny accord was signed YESTERDAY (6 March: the map shows
     //   the French claim; the rules carry the DRV reality).
-    FRA: [
-      "FRA", "DZA", "TUN", "MAR", "VNM", "LAO", "KHM",
-      "SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "TCD", "CAF", "COG", "GAB", "CMR", "MRT", "TGO",
-      "MDG", "DJI", "COM",
-      "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF",
-    ],
+    FRA: ["FRA", "DZA", "TUN", "MAR", "CMR", "TGO", "MDG", "DJI", "COM", "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF"],
+    AOF: ["SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "MRT"],
+    AEF: ["TCD", "CAF", "COG", "GAB"],
+    // 1945년 9월 하노이에서 독립이 선포됐고 프랑스는 그것을 인정하지 않는다.
+    FIC: ["VNM", "LAO", "KHM"],
     AUS: ["AUT"],
     CSK: ["CZE", "SVK"],
     YUG: ["SRB", "HRV", "BIH", "MNE", "MKD", "SVN", "XKO"],
@@ -113,8 +160,10 @@ export default {
     // — The Dutch are fighting their way back into an Indonesia that declared
     //   independence in August 1945: the map shows the colonial claim, the
     //   rules carry the Republic on Java and Sumatra.
-    NLD: ["NLD", "IDN", "SUR"],
-    BEL: ["BEL", "COD", "RWA", "BDI"],
+    NLD: ["NLD", "SUR"],
+    DEI: ["IDN"],
+    BEL: ["BEL"],
+    BCO: ["COD", "RWA", "BDI"],
     DAN: ["DNK", "GRL", "FRO"],
     JAP: ["JPN"],
     KOS: ["KOR"],

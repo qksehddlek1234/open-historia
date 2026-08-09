@@ -26,7 +26,7 @@ export default {
     name: "World War II — 1935 Buildup",
     heroTitle: "The Gathering Storm",
     heroSubtitle: "The world drifts toward war, 1 December 1935",
-    eyebrow: "Historical Preset",
+    eyebrow: "The Interwar Years",
     subtitle: "1 December 1935",
     accentColor: "#6b5b2e",
     coverImage: "public/loading_screen_2.jpg",
@@ -45,6 +45,60 @@ export default {
   game: { country: "GER", startDate: "1935-12-01", gameDate: "1935-12-01" },
 
   polities: {
+    // ── 자치령: 왕관은 같아도 정부는 각자다 ───────────────────────────────────
+    // 1931년 웨스트민스터 헌장 이후 자치령은 대외정책까지 자기 것이다 — 1939년
+    // 9월 캐나다는 따로 선전포고했고, 남아공은 의회 표결로 참전을 정했다.
+    CAN: { name: "Dominion of Canada", color: "#c05a6a", aliases: ["캐나다 자치령", "캐나다", "Canada"] },
+    AUS: { name: "Commonwealth of Australia", color: "#d07a5a", aliases: ["호주 연방", "오스트레일리아", "Australia"] },
+    NZL: { name: "Dominion of New Zealand", color: "#b06a7a", aliases: ["뉴질랜드 자치령", "뉴질랜드", "New Zealand"] },
+    SAF: { name: "Union of South Africa", color: "#a87a5a", aliases: ["남아프리카 연방", "남아공", "South Africa"] },
+    // ── 영국령 아프리카: 색 하나가 아니라 총독부 셋 ───────────────────────────
+    BWA: { name: "British West Africa", color: "#c09a6a", aliases: ["영국령 서아프리카", "British West Africa", "Nigeria", "Gold Coast"] },
+    BEA: { name: "British East Africa", color: "#b08a5a", aliases: ["영국령 동아프리카", "British East Africa", "Kenya", "Tanganyika"] },
+    BCA: { name: "British Central Africa", color: "#a89a7a", aliases: ["영국령 중앙아프리카", "로디지아", "Rhodesia", "Nyasaland"] },
+    // ── The Union, as its own constitution draws it ───────────────────────────
+    // The USSR on 1 December 1935 is SEVEN union republics, not one bloc: the
+    // 1936 constitution that promotes Kazakhstan and Kirghizia out of the RSFSR
+    // and dissolves the Transcaucasian federation is a year away. Moscow holds
+    // foreign policy, the army and the Party in one hand (see the rules) — these
+    // are the administrations the era actually ran through, and the reason a
+    // player can take the RSFSR and feel the Union around them.
+    RSF: { name: "Russian SFSR", color: "#a03c28", aliases: ["러시아 SFSR", "러시아 소비에트 연방 사회주의 공화국", "Russian Soviet Federative Socialist Republic", "RSFSR", "Russia", "Soviet Union", "소련"] },
+    UKR: { name: "Ukrainian SSR", color: "#b9603a", aliases: ["우크라이나 SSR", "우크라이나", "Ukraine", "Ukrainian Soviet Socialist Republic"] },
+    BYE: { name: "Byelorussian SSR", color: "#8d5236", aliases: ["벨로루시 SSR", "백러시아", "Byelorussia", "Belarus"] },
+    ZSF: { name: "Transcaucasian SFSR", color: "#c07a4a", aliases: ["자캅카스 SFSR", "트랜스캅카스", "Transcaucasia", "Georgia", "Armenia", "Azerbaijan"] },
+    UZB: { name: "Uzbek SSR", color: "#c99a52", aliases: ["우즈베크 SSR", "우즈베키스탄", "Uzbekistan"] },
+    TKM: { name: "Turkmen SSR", color: "#b08a4a", aliases: ["투르크멘 SSR", "투르크메니스탄", "Turkmenistan"] },
+    TJK: { name: "Tajik SSR", color: "#a87c46", aliases: ["타지크 SSR", "타지키스탄", "Tajikistan"] },
+    KAZ: { name: "Kazak ASSR", color: "#8f6b3c", aliases: ["카자흐 ASSR", "카자흐스탄", "Kazakhstan"] },
+    KGZ: { name: "Kirghiz ASSR", color: "#9c7a44", aliases: ["키르기스 ASSR", "키르기스스탄", "Kyrgyzstan"] },
+
+    // ── China: a republic in name, a patchwork in fact ────────────────────────
+    // Nanjing's writ runs over the lower Yangtze and little else. Everything
+    // below held its own army, taxes and foreign policy in December 1935.
+    SHX: { name: "Shanxi Clique", color: "#7d8f5a", aliases: ["산시 군벌", "옌시산", "Yan Xishan", "Shanxi"] },
+    XIN: { name: "Xinjiang Clique", color: "#6f8f7a", aliases: ["신장 군벌", "성스차이", "Sheng Shicai", "Xinjiang"] },
+    GXC: { name: "New Guangxi Clique", color: "#8a9a4a", aliases: ["신계계", "광시 군벌", "Li Zongren", "Guangxi"] },
+    GDC: { name: "Guangdong Clique", color: "#9aa04a", aliases: ["광둥 군벌", "천지탕", "Chen Jitang", "Guangdong"] },
+    YUN: { name: "Yunnan Clique", color: "#6a9a6a", aliases: ["윈난 군벌", "룽윈", "Long Yun", "Yunnan"] },
+    SZC: { name: "Sichuan Cliques", color: "#8a8a6a", aliases: ["쓰촨 군벌", "류샹", "Liu Xiang", "Sichuan"] },
+    SDC: { name: "Shandong Clique", color: "#9a8a5a", aliases: ["산둥 군벌", "한푸쥐", "Han Fuju", "Shandong"] },
+    MAC: { name: "Ma Clique", color: "#a89a6a", aliases: ["마가군벌", "마부팡", "Ma Bufang", "Qinghai"] },
+    CSR: { name: "Chinese Soviet Republic", color: "#c03030", aliases: ["중화소비에트공화국", "중국공산당", "Chinese Communist Party", "Mao Zedong"] },
+    TIB: { name: "Tibet", color: "#c8c0a0", aliases: ["티베트", "Tibet", "Ganden Phodrang"] },
+    MGL: { name: "Mengjiang", color: "#b0a070", aliases: ["몽강", "내몽골 자치운동", "Inner Mongolia", "De Wang"] },
+
+    // ── The empires, administered ────────────────────────────────────────────
+    // A colony's governor answered to a capital, but the administration was the
+    // thing on the ground with its own army, budget and borders — and drawing
+    // one flat "British Empire" over a fifth of the planet is why the map read
+    // as if colonies were not implemented at all.
+    RAJ: { name: "British Raj", color: "#c07a8a", aliases: ["영국령 인도", "인도 제국", "British India", "India"] },
+    AOF: { name: "French West Africa", color: "#5a7fc0", aliases: ["프랑스령 서아프리카", "Afrique-Occidentale française", "AOF"] },
+    AEF: { name: "French Equatorial Africa", color: "#4a6fb0", aliases: ["프랑스령 적도아프리카", "Afrique-Équatoriale française", "AEF"] },
+    FIC: { name: "French Indochina", color: "#6a8fd0", aliases: ["프랑스령 인도차이나", "Indochine française", "Indochina"] },
+    DEI: { name: "Dutch East Indies", color: "#d08a4a", aliases: ["네덜란드령 동인도", "Nederlands-Indië", "Dutch East Indies", "Indonesia"] },
+    BCO: { name: "Belgian Congo", color: "#8a9a3a", aliases: ["벨기에령 콩고", "Congo belge", "Belgian Congo"] },
     GER: { name: "Germany", color: "#3a3a3a", aliases: ["독일", "나치 독일", "Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },
     AUS: { name: "Austria", color: "#b8b8c8", aliases: ["오스트리아", "Federal State of Austria", "Austrian Republic"] },
     CSK: { name: "Czechoslovakia", color: "#5b7fae", aliases: ["체코슬로바키아", "Czechoslovak Republic", "ČSR"] },
@@ -84,25 +138,34 @@ export default {
     ITA: ["ITA", "LBY", "ERI", "SOM"],
     // — Japan: the home islands, Korea, Taiwan, the South Seas Mandate.
     JAP: ["JPN", "KOR", "TWN", "MNP", "PLW", "MHL", "FSM"],
-    SOV: ["RUS", "UKR", "BLR", "KAZ", "GEO", "ARM", "AZE", "UZB", "TKM", "TJK", "KGZ"],
-    GBR: [
-      "GBR", "IND", "PAK", "BGD", "MMR", "LKA",
-      "CAN", "AUS", "NZL", "ZAF", "NAM",
-      "NGA", "GHA", "KEN", "UGA", "TZA", "ZMB", "ZWE", "MWI", "BWA", "LSO", "SWZ", "SDN", "SLE", "GMB",
-      "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA",
-      "CYP", "MLT", "MYS", "SGP", "BRN", "JOR", "ISR", "PSE",
-      "BHR", "QAT", "ARE", "KWT",
-      "FJI", "SLB", "PNG", "MUS", "SYC",
-    ],
-    FRA: [
-      "FRA", "DZA", "TUN", "MAR", "SYR", "LBN",
-      "VNM", "LAO", "KHM",
-      "SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "TCD", "CAF", "COG", "GAB", "CMR", "MRT", "TGO",
-      "MDG", "DJI", "COM",
-      "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF",
-    ],
-    NLD: ["NLD", "IDN", "SUR"],
-    BEL: ["BEL", "COD", "RWA", "BDI"],
+    // 연방 자체는 지도에 그리지 않는다 — 구성 공화국이 곧 소련이다(룰 참조).
+    RSF: ["RUS"],
+    UKR: ["UKR"],
+    BYE: ["BLR"],
+    ZSF: ["GEO", "ARM", "AZE"],
+    UZB: ["UZB"],
+    TKM: ["TKM"],
+    TJK: ["TJK"],
+    KAZ: ["KAZ"],
+    KGZ: ["KGZ"],
+    GBR: ["GBR", "LKA", "SDN", "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA", "CYP", "MLT", "MYS", "SGP", "BRN", "JOR", "ISR", "PSE", "BHR", "QAT", "ARE", "KWT", "FJI", "SLB", "MUS", "SYC"],
+    CAN: ["CAN"],
+    AUS: ["AUS", "PNG"],
+    NZL: ["NZL", "WSM"],
+    SAF: ["ZAF", "NAM", "LSO", "SWZ"],
+    BWA: ["NGA", "GHA", "SLE", "GMB"],
+    BEA: ["KEN", "UGA", "TZA"],
+    BCA: ["ZMB", "ZWE", "MWI", "BWA"],
+    // 버마는 1937년 4월에야 인도에서 분리된다 — 1935년에는 아직 인도 제국의 주.
+    RAJ: ["IND", "PAK", "BGD", "MMR"],
+    FRA: ["FRA", "DZA", "TUN", "MAR", "SYR", "LBN", "CMR", "TGO", "MDG", "DJI", "COM", "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF"],
+    AOF: ["SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "MRT"],
+    AEF: ["TCD", "CAF", "COG", "GAB"],
+    FIC: ["VNM", "LAO", "KHM"],
+    NLD: ["NLD", "SUR"],
+    DEI: ["IDN"],
+    BEL: ["BEL"],
+    BCO: ["COD", "RWA", "BDI"],
     POR: ["PRT", "AGO", "MOZ", "GNB", "CPV", "STP", "TLS"],
     ESP: ["ESP", "ESH", "GNQ"],
     USA: ["USA", "PHL", "PRI", "GUM", "VIR"],
@@ -114,6 +177,26 @@ export default {
   },
 
   regionAssignments: {
+    // ── 중국: 난징의 영은 하류 양쯔를 넘지 못한다 (1935년 12월) ──────────────
+    // 아래는 전부 자기 군대·세금·대외 교섭을 가진 세력이다. 국민정부는
+    // 강남 8개 성을 실효 지배하고 나머지는 명목상 복속이다.
+    "CHN.25_1": "SHX",  // 산시 — 옌시산의 30년 아성
+    "CHN.28_1": "XIN",  // 신장 — 성스차이, 소련의 후원 아래
+    "CHN.7_1": "GXC",   // 광시 — 신계계
+    "CHN.6_1": "GDC",   // 광둥 — 천지탕
+    "CHN.9_1": "GDC",   // 하이난
+    "CHN.30_1": "YUN",  // 윈난 — 룽윈
+    "CHN.26_1": "SZC",  // 쓰촨 — 류샹
+    "CHN.3_1": "SZC",   // 충칭
+    "CHN.23_1": "SDC",  // 산둥 — 한푸쥐
+    "CHN.21_1": "MAC",  // 칭하이 — 마부팡
+    "CHN.20_1": "MAC",  // 닝샤 — 마훙쿠이
+    "CHN.5_1": "MAC",   // 간쑤 서부(근사)
+    "CHN.22_1": "CSR",  // 산시(섬서) — 대장정이 10월에 끝난 곳, 홍군의 새 근거지
+    "CHN.29_1": "TIB",  // 시짱 — 라싸는 난징의 통치를 받지 않는다
+    "CHN.19_1": "MGL",  // 내몽골 — 더왕의 자치운동
+    // 허베이·차하르는 11월 기동방공자치정부 이후 일본의 그늘에 있다 —
+    // 명목은 국민정부, 실질은 완충지대(룰에서 다룬다).
     // East Prussia is German until 1945.
     "RUS.21_1": "GER",  // Kaliningrad = Königsberg
     // Memel is still LITHUANIAN in 1935 (annexed March 1939) — no override.
@@ -293,7 +376,33 @@ export default {
     "treaty-bound battlefleets (the London Naval Conference opens THIS MONTH). Colonial " +
     "empires are intact. MAP APPROXIMATIONS: modern provinces approximate 1935 borders — " +
     "the Polish Corridor and Danzig are approximate, interwar Poland's eastern territories " +
-    "are not drawn, and the demilitarized Rhineland is a legal status the map cannot show.",
+    "are not drawn, and the demilitarized Rhineland is a legal status the map cannot show." +
+    " THE UNION IS ONE STATE, DRAWN AS ITS REPUBLICS. The RSFSR, Ukrainian, " +
+    "Byelorussian, Transcaucasian, Uzbek, Turkmen and Tajik republics (and the " +
+    "Kazak and Kirghiz ASSRs inside the RSFSR) appear separately because that is " +
+    "how the Union administered itself in 1935 — but Moscow holds foreign policy, " +
+    "the Red Army and the Party in one hand. They do not declare war on each " +
+    "other, do not sign treaties separately, and do not defect: a republic acts " +
+    "against Moscow only through the era's real mechanisms — Party faction, purge, " +
+    "national deviation trial, famine and its aftermath. The 1936 constitution " +
+    "(December) promotes Kazakhstan and Kirghizia to union republics and dissolves " +
+    "the Transcaucasian federation into Georgia, Armenia and Azerbaijan. CHINA IS " +
+    "NOT ONE STATE. Nanjing rules the lower Yangtze and levies its authority " +
+    "elsewhere by negotiation: Shanxi, Xinjiang, Guangxi, Guangdong, Yunnan, " +
+    "Sichuan, Shandong and the Ma family's northwest each hold their own army, " +
+    "taxes and foreign dealings, and several treat with Tokyo or Moscow directly. " +
+    "The Long March ended in October and the Chinese Soviet Republic now sits in " +
+    "northern Shaanxi with the Red Army it saved. Hebei and Chahar slid under a " +
+    "Japanese-sponsored autonomous council in November — nominally Nationalist, in " +
+    "fact a buffer. A united front against Japan is possible and is the era's " +
+    "great question; it is NOT the default, and it costs the player who builds it. " +
+    "COLONIES ARE ADMINISTRATIONS, NOT COLOURS. The British Raj, French West " +
+    "Africa, French Equatorial Africa, French Indochina, the Dutch East Indies and " +
+    "the Belgian Congo appear as themselves because each had its own governor, " +
+    "budget, army and border. They obey the metropole on war and treaty, but their " +
+    "own crises — famine, congress agitation, conscription quotas, a governor's " +
+    "own initiative — are theirs, and a metropole that loses at home does not " +
+    "instantly lose them.",
 
   startingTimelineText:
     "December 1935. In the Ethiopian highlands the Negus's barefoot armies dig in against " +

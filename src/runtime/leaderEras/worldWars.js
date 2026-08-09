@@ -9,6 +9,200 @@
 export const ERA = { key: "world-wars", from: "1900-01-01", until: "2005-12-31" };
 
 export const REFERENCE = {
+  // ---- 영국령 아프리카 총독부 ------------------------------------------------
+  // 이들은 한 사람이 다스린 단일 식민지가 아니라 여러 식민지의 묶음이다.
+  // 대표 총독을 한 명 세우면 그건 만들어낸 사람이 된다 — 제도를 적는다.
+  "British West Africa": {
+    leader: [
+      { name: "각 식민지 총독 (런던 식민성 관할)" },
+    ],
+  },
+  "British East Africa": {
+    leader: [
+      { name: "각 보호령 총독 (런던 식민성 관할)" },
+    ],
+  },
+  "British Central Africa": {
+    leader: [
+      { name: "각 보호령 총독 (남로디지아는 자치 식민지)" },
+    ],
+  },
+
+  // ---- 소련 구성 공화국: 공화국의 실권자는 공산당 제1서기다 -------------------
+  // 인민위원회 의장(정부 수반)은 따로 있고 형식상 상위이지만, 실제로 공화국을
+  // 움직인 것은 당 제1서기다 — 그래서 leader에 제1서기를 적는다.
+  "Georgian SSR": {
+    leader: [
+      { name: "제1서기 라브렌티 베리야", from: "1931-11-14", until: "1938-08-31" },
+      { name: "제1서기 칸디드 차르크비아니", from: "1938-08-31", until: "1952-04-02" },
+      { name: "제1서기 바실리 므자바나제", from: "1953-09-20", until: "1972-09-29" },
+      { name: "제1서기 예두아르트 셰바르드나제", from: "1972-09-29", until: "1985-07-02" },
+    ],
+  },
+  "Armenian SSR": {
+    leader: [
+      { name: "제1서기 아가시 한지얀", from: "1930-05-01", until: "1936-07-09" },
+      { name: "제1서기 아마툰 아마툰", from: "1936-07-09", until: "1937-09-15" },
+      { name: "제1서기 그리고리 아루튜노프", from: "1937-09-15", until: "1953-11-28" },
+    ],
+  },
+  "Estonian SSR": {
+    leader: [
+      { name: "제1서기 카를 세레", from: "1940-08-25", until: "1950-03-26" },
+      { name: "제1서기 요하네스 케빈", from: "1950-03-26", until: "1978-07-26" },
+    ],
+  },
+  "Latvian SSR": {
+    leader: [
+      { name: "제1서기 야니스 칼른베르진스", from: "1940-08-05", until: "1959-11-25" },
+      { name: "제1서기 아르비드스 펠셰", from: "1959-11-25", until: "1966-04-15" },
+    ],
+  },
+  "Lithuanian SSR": {
+    leader: [
+      { name: "제1서기 안타나스 스니에치쿠스", from: "1940-08-15", until: "1974-01-22" },
+    ],
+  },
+  "Moldavian SSR": {
+    leader: [
+      { name: "제1서기 니키타 살로고르", from: "1942-02-01", until: "1946-05-01" },
+      { name: "제1서기 니콜라이 코발", from: "1946-05-01", until: "1950-07-26" },
+      { name: "제1서기 레오니트 브레즈네프", from: "1950-07-26", until: "1952-10-25" },
+    ],
+  },
+
+  // ---- 중국 군벌 (1935 전후) ------------------------------------------------
+  // 난징의 영이 미치지 않는 곳들. 성 주석직과 실권이 어긋나는 경우가 흔해서,
+  // 실제로 병력과 세금을 쥔 인물을 적되 직함은 그가 실제로 가진 것으로 적는다.
+  "Shanxi Clique": {
+    leader: [
+      { name: "산시성 주석 옌시산", from: "1911-10-29", until: "1949-04-24" },
+    ],
+  },
+  "Xinjiang Clique": {
+    leader: [
+      { name: "신장 변방독판 진수런", from: "1928-07-07", until: "1933-04-12" },
+      { name: "신장 변방독판 성스차이", from: "1933-04-12", until: "1944-09-11" },
+    ],
+  },
+  "New Guangxi Clique": {
+    // 성 주석은 황쉬추지만 신계계의 실권은 리쭝런·바이충시 두 사람에게 있었다.
+    leader: [
+      { name: "제4집단군 총사령 리쭝런", from: "1929-01-01", until: "1949-01-01" },
+    ],
+    deputy: [
+      { name: "부총사령 바이충시", from: "1929-01-01", until: "1949-01-01" },
+    ],
+  },
+  "Guangdong Clique": {
+    leader: [
+      { name: "제1집단군 총사령 천지탕", from: "1929-03-01", until: "1936-07-18" },
+    ],
+  },
+  "Yunnan Clique": {
+    leader: [
+      { name: "윈난성 주석 룽윈", from: "1927-06-14", until: "1945-10-03" },
+    ],
+  },
+  "Sichuan Cliques": {
+    leader: [
+      { name: "쓰촨성 주석 장췬", from: "1938-01-20", until: "1940-11-01" },
+      { name: "쓰촨성 주석 류샹", from: "1935-02-10", until: "1938-01-20" },
+    ],
+  },
+  "Shandong Clique": {
+    leader: [
+      { name: "산둥성 주석 한푸쥐", from: "1930-09-05", until: "1938-01-11" },
+    ],
+  },
+  "Ma Clique": {
+    // 마가군벌은 한 사람이 아니라 집안이다 — 칭하이·닝샤·간쑤에 각각 앉아 있다.
+    leader: [
+      { name: "닝샤성 주석 마훙쿠이", from: "1933-03-01", until: "1949-09-01" },
+    ],
+    deputy: [
+      { name: "칭하이성 주석 마린", from: "1931-01-01", until: "1936-09-01" },
+      { name: "칭하이성 주석 마부팡", from: "1936-09-01", until: "1949-09-01" },
+    ],
+  },
+  "Chinese Soviet Republic": {
+    leader: [
+      { name: "중앙군사위원회 주석 마오쩌둥", from: "1937-09-22", until: "1949-10-01" },
+      { name: "중앙집행위원회 주석 마오쩌둥", from: "1931-11-07", until: "1937-09-22" },
+    ],
+    deputy: [
+      { name: "인민위원회 주석 장원톈", from: "1935-01-15", until: "1937-09-22" },
+    ],
+  },
+  "Mengjiang": {
+    leader: [
+      { name: "몽골지방자치정무위원회 위원장 더왕", from: "1934-04-23", until: "1936-05-12" },
+      { name: "몽골군정부 총재 더왕", from: "1936-05-12", until: "1945-08-19" },
+    ],
+  },
+
+  // ---- 식민지 행정부: 총독이 곧 그 땅의 정부다 -------------------------------
+  "British Raj": {
+    leader: [
+      { name: "인도 부왕 어윈 남작", from: "1926-04-03", until: "1931-04-18" },
+      { name: "인도 부왕 윌링던 후작", from: "1931-04-18", until: "1936-04-18" },
+      { name: "인도 부왕 린리스고 후작", from: "1936-04-18", until: "1943-10-01" },
+      { name: "인도 부왕 웨이벌 자작", from: "1943-10-20", until: "1947-02-21" },
+      { name: "인도 부왕 마운트배튼 백작", from: "1947-02-21", until: "1947-08-15" },
+    ],
+  },
+  "French West Africa": {
+    leader: [
+      { name: "총독 윌리엄 퐁티", from: "1908-03-01", until: "1915-06-22" },
+      { name: "총독 조스트 판 볼렌호번", from: "1917-05-01", until: "1918-01-01" },
+      { name: "총독 피에르 코르니에", from: "1943-07-01", until: "1946-03-01" },
+      { name: "총독 르네 바르그", from: "1946-03-01", until: "1948-02-01" },
+      { name: "총독 쥘 브레비에", from: "1930-10-01", until: "1936-09-27" },
+      { name: "총독 마르셀 드 코페", from: "1936-09-27", until: "1938-10-01" },
+      { name: "총독 레옹 카일라", from: "1939-01-01", until: "1940-06-25" },
+      { name: "총독 피에르 부아송", from: "1940-06-25", until: "1943-07-01" },
+    ],
+  },
+  "French Equatorial Africa": {
+    leader: [
+      { name: "총독 마르시알 메를랭", from: "1910-01-01", until: "1917-01-01" },
+      { name: "총독 앙드레 바송피에르", from: "1946-01-01", until: "1947-01-01" },
+      { name: "총독 레몽 드 생캉탱", from: "1932-01-01", until: "1934-01-01" },
+      // 르나르 총독은 1935년 11월 15일 항공 사고로 사망했다. 후임 레스트가
+      // 부임하기 전까지는 대리 체제이며, 그 자리를 사람 이름으로 채우지 않는다.
+      { name: "총독 에두아르 르나르", from: "1934-01-01", until: "1935-11-15" },
+      { name: "총독 대리 (르나르 총독 사망 후)", from: "1935-11-15", until: "1936-01-16" },
+      { name: "총독 프랑수아 조제프 레스트", from: "1936-01-16", until: "1939-11-01" },
+      { name: "총독 펠릭스 에부에", from: "1940-11-12", until: "1944-05-17" },
+    ],
+  },
+  "French Indochina": {
+    leader: [
+      { name: "총독 알베르 사로", from: "1911-11-15", until: "1914-01-01" },
+      { name: "총독 조제프 라베", from: "1914-01-01", until: "1915-01-01" },
+      { name: "고등판무관 조르주 티에리 다르장리외", from: "1945-08-17", until: "1947-03-05" },
+      { name: "총독 피에르 파스키에", from: "1928-12-26", until: "1934-01-15" },
+      { name: "총독 르네 로뱅", from: "1934-09-15", until: "1936-11-01" },
+      { name: "총독 쥘 브레비에", from: "1937-01-01", until: "1939-08-23" },
+      { name: "총독 조르주 카트루", from: "1939-08-23", until: "1940-07-20" },
+      { name: "총독 장 드쿠", from: "1940-07-20", until: "1945-03-09" },
+    ],
+  },
+  "Belgian Congo": {
+    leader: [
+      { name: "총독 펠릭스 퓌셰르", from: "1912-01-01", until: "1916-01-01" },
+      { name: "총독 오귀스트 티리", from: "1927-01-01", until: "1934-09-14" },
+      { name: "총독 피에르 리크만스", from: "1934-09-14", until: "1946-08-31" },
+      { name: "총독 외젠 자냉", from: "1946-09-01", until: "1951-01-01" },
+    ],
+  },
+  "Dutch East Indies": {
+    leader: [
+      { name: "총독 보니파시위스 더용어", from: "1931-09-12", until: "1936-09-16" },
+      { name: "총독 알리디위스 취아르다 판 스타르컨보르흐 스타하우어르", from: "1936-09-16", until: "1942-03-09" },
+    ],
+  },
+
   Afghanistan: {
     leader: [
       { name: "아미르 압두르 라흐만 칸", from: "1880-07-22", until: "1901-10-01" },
@@ -2855,6 +3049,14 @@ export const POLITICAL_FIGURES = {
 };
 
 export const ALIASES = {
+  "Yan Xishan": "Shanxi Clique",
+  "Sheng Shicai": "Xinjiang Clique",
+  "Guangxi Clique": "New Guangxi Clique",
+  "Inner Mongolia": "Mengjiang",
+  "British India": "British Raj",
+  "Indochina": "French Indochina",
+  "AOF": "French West Africa",
+  "AEF": "French Equatorial Africa",
   "US Military Government in Korea": "South Korea",
   "Soviet Civil Administration in Korea": "North Korea",
   "Abyssinia": "Ethiopia",

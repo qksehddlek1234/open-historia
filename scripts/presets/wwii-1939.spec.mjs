@@ -106,6 +106,48 @@ export default {
   },
 
   polities: {
+    // ── 자치령: 왕관은 같아도 정부는 각자다 ───────────────────────────────────
+    // 1931년 웨스트민스터 헌장 이후 자치령은 대외정책까지 자기 것이다 — 1939년
+    // 9월 캐나다는 따로 선전포고했고, 남아공은 의회 표결로 참전을 정했다.
+    CAN: { name: "Dominion of Canada", color: "#c05a6a", aliases: ["캐나다 자치령", "캐나다", "Canada"] },
+    AUS: { name: "Commonwealth of Australia", color: "#d07a5a", aliases: ["호주 연방", "오스트레일리아", "Australia"] },
+    NZL: { name: "Dominion of New Zealand", color: "#b06a7a", aliases: ["뉴질랜드 자치령", "뉴질랜드", "New Zealand"] },
+    SAF: { name: "Union of South Africa", color: "#a87a5a", aliases: ["남아프리카 연방", "남아공", "South Africa"] },
+    // ── 영국령 아프리카: 색 하나가 아니라 총독부 셋 ───────────────────────────
+    BWA: { name: "British West Africa", color: "#c09a6a", aliases: ["영국령 서아프리카", "British West Africa", "Nigeria", "Gold Coast"] },
+    BEA: { name: "British East Africa", color: "#b08a5a", aliases: ["영국령 동아프리카", "British East Africa", "Kenya", "Tanganyika"] },
+    BCA: { name: "British Central Africa", color: "#a89a7a", aliases: ["영국령 중앙아프리카", "로디지아", "Rhodesia", "Nyasaland"] },
+    // ── 소련: 1936년 헌법이 그린 11개 연방 공화국 ────────────────────────────
+    // 자캅카스 연방은 해체됐고 카자흐·키르기스는 연방 공화국으로 승격했다.
+    // 발트 3국과 몰다비아 병합은 1940년 — 1939년 9월에는 아직 소련이 아니다.
+    RSF: { name: "Russian SFSR", color: "#a03c28", aliases: ["러시아 SFSR", "Russian Soviet Federative Socialist Republic", "RSFSR", "Russia", "Soviet Union", "소련"] },
+    UKS: { name: "Ukrainian SSR", color: "#b9603a", aliases: ["우크라이나 SSR", "우크라이나", "Ukraine"] },
+    BYE: { name: "Byelorussian SSR", color: "#8d5236", aliases: ["벨로루시 SSR", "백러시아", "Byelorussia", "Belarus"] },
+    GEO: { name: "Georgian SSR", color: "#c07a4a", aliases: ["그루지야 SSR", "조지아", "Georgia"] },
+    ARM: { name: "Armenian SSR", color: "#b06a4a", aliases: ["아르메니아 SSR", "아르메니아", "Armenia"] },
+    AZE: { name: "Azerbaijan SSR", color: "#c08a5a", aliases: ["아제르바이잔 SSR", "아제르바이잔", "Azerbaijan"] },
+    UZB: { name: "Uzbek SSR", color: "#c99a52", aliases: ["우즈베크 SSR", "우즈베키스탄", "Uzbekistan"] },
+    TKM: { name: "Turkmen SSR", color: "#b08a4a", aliases: ["투르크멘 SSR", "투르크메니스탄", "Turkmenistan"] },
+    TJK: { name: "Tajik SSR", color: "#a87c46", aliases: ["타지크 SSR", "타지키스탄", "Tajikistan"] },
+    KAZ: { name: "Kazakh SSR", color: "#8f6b3c", aliases: ["카자흐 SSR", "카자흐스탄", "Kazakhstan"] },
+    KGZ: { name: "Kirghiz SSR", color: "#9c7a44", aliases: ["키르기스 SSR", "키르기스스탄", "Kyrgyzstan"] },
+    // ── 중국: 난징의 영은 하류 양쯔를 넘지 못한다 ─────────────────────────────
+    SHX: { name: "Shanxi Clique", color: "#7d8f5a", aliases: ["산시 군벌", "옌시산", "Yan Xishan", "Shanxi"] },
+    XIN: { name: "Xinjiang Clique", color: "#6f8f7a", aliases: ["신장 군벌", "성스차이", "Sheng Shicai", "Xinjiang"] },
+    GXC: { name: "New Guangxi Clique", color: "#8a9a4a", aliases: ["신계계", "광시 군벌", "Li Zongren", "Guangxi"] },
+    YUN: { name: "Yunnan Clique", color: "#6a9a6a", aliases: ["윈난 군벌", "룽윈", "Long Yun", "Yunnan"] },
+    SZC: { name: "Sichuan Cliques", color: "#8a8a6a", aliases: ["쓰촨 군벌", "류샹", "Liu Xiang", "Sichuan"] },
+    MAC: { name: "Ma Clique", color: "#a89a6a", aliases: ["마가군벌", "마부팡", "Ma Bufang", "Qinghai"] },
+    CSR: { name: "Chinese Soviet Republic", color: "#c03030", aliases: ["중화소비에트공화국", "중국공산당", "Chinese Communist Party", "Mao Zedong", "Yan'an"] },
+    TIB: { name: "Tibet", color: "#c8c0a0", aliases: ["티베트", "Tibet", "Ganden Phodrang"] },
+    MGL: { name: "Mengjiang", color: "#b0a070", aliases: ["몽강", "몽강연합자치정부", "Inner Mongolia", "De Wang"] },
+    // ── 제국은 색이 아니라 행정부다 ───────────────────────────────────────────
+    RAJ: { name: "British Raj", color: "#c07a8a", aliases: ["영국령 인도", "인도 제국", "British India", "India"] },
+    AOF: { name: "French West Africa", color: "#5a7fc0", aliases: ["프랑스령 서아프리카", "Afrique-Occidentale française", "AOF"] },
+    AEF: { name: "French Equatorial Africa", color: "#4a6fb0", aliases: ["프랑스령 적도아프리카", "Afrique-Équatoriale française", "AEF"] },
+    FIC: { name: "French Indochina", color: "#6a8fd0", aliases: ["프랑스령 인도차이나", "Indochine française", "Indochina"] },
+    DEI: { name: "Dutch East Indies", color: "#d08a4a", aliases: ["네덜란드령 동인도", "Nederlands-Indië", "Dutch East Indies", "Indonesia"] },
+    BCO: { name: "Belgian Congo", color: "#8a9a3a", aliases: ["벨기에령 콩고", "Congo belge", "Belgian Congo"] },
     GER: { name: "Germany", color: "#3a3a3a", aliases: ["독일", "나치 독일", "Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },
     // Was a countryNameOverrides label (THA -> "Siam"). A label could only rename
     // what the map already showed; a polity is a country the game and the model can
@@ -148,31 +190,41 @@ export default {
     // — Empire of Japan: Korea, Taiwan, and the South Seas (Pacific) Mandate.
     JAP: ["JPN", "KOR", "TWN", "MNP", "PLW", "MHL", "FSM"],
     // — Soviet Union (1939 republics; Baltics & Bessarabia NOT yet annexed).
-    SOV: ["RUS", "UKR", "BLR", "KAZ", "GEO", "ARM", "AZE", "UZB", "TKM", "TJK", "KGZ"],
+    RSF: ["RUS"],
+    UKS: ["UKR"],
+    BYE: ["BLR"],
+    GEO: ["GEO"],
+    ARM: ["ARM"],
+    AZE: ["AZE"],
+    UZB: ["UZB"],
+    TKM: ["TKM"],
+    TJK: ["TJK"],
+    KAZ: ["KAZ"],
+    KGZ: ["KGZ"],
     // — British Empire: dominions + colonies + mandates + Gulf protectorates
     //   (Éire is neutral, left out; Egypt, Iraq and Nepal are treaty-bound but
     //   independent and keep their own governments).
-    GBR: [
-      "GBR", "IND", "PAK", "BGD", "MMR", "LKA",
-      "CAN", "AUS", "NZL", "ZAF", "NAM",
-      "NGA", "GHA", "KEN", "UGA", "TZA", "ZMB", "ZWE", "MWI", "BWA", "LSO", "SWZ", "SDN", "SLE", "GMB",
-      "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA",
-      "CYP", "MLT", "MYS", "SGP", "BRN", "JOR", "ISR", "PSE",
-      "BHR", "QAT", "ARE", "KWT",
-      "FJI", "SLB", "PNG", "MUS", "SYC",
-    ],
+    GBR: ["GBR", "LKA", "SDN", "GUY", "BLZ", "JAM", "TTO", "BHS", "BRB", "ATG", "DMA", "GRD", "KNA", "LCA", "CYM", "VGB", "TCA", "CYP", "MLT", "MYS", "SGP", "BRN", "JOR", "ISR", "PSE", "BHR", "QAT", "ARE", "KWT", "FJI", "SLB", "MUS", "SYC"],
+    CAN: ["CAN"],
+    AUS: ["AUS", "PNG"],
+    NZL: ["NZL", "WSM"],
+    SAF: ["ZAF", "NAM", "LSO", "SWZ"],
+    BWA: ["NGA", "GHA", "SLE", "GMB"],
+    BEA: ["KEN", "UGA", "TZA"],
+    BCA: ["ZMB", "ZWE", "MWI", "BWA"],
+    // 버마는 1937년 4월 인도에서 분리됐다 — 1939년에는 별개의 식민지다.
+    RAJ: ["IND", "PAK", "BGD", "MMR"],
     // — French Empire: North Africa, Levant mandates, Indochina, West/Equatorial Africa, islands.
-    FRA: [
-      "FRA", "DZA", "TUN", "MAR", "SYR", "LBN",
-      "VNM", "LAO", "KHM",
-      "SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "TCD", "CAF", "COG", "GAB", "CMR", "MRT", "TGO",
-      "MDG", "DJI", "COM",
-      "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF",
-    ],
+    FRA: ["FRA", "DZA", "TUN", "MAR", "SYR", "LBN", "CMR", "TGO", "MDG", "DJI", "COM", "GUF", "NCL", "PYF", "MYT", "REU", "GLP", "MTQ", "SPM", "WLF", "ATF"],
+    AOF: ["SEN", "MLI", "CIV", "GIN", "BFA", "BEN", "NER", "MRT"],
+    AEF: ["TCD", "CAF", "COG", "GAB"],
+    FIC: ["VNM", "LAO", "KHM"],
     // — Dutch Empire.
-    NLD: ["NLD", "IDN", "SUR"],
+    NLD: ["NLD", "SUR"],
+    DEI: ["IDN"],
     // — Belgian Empire.
-    BEL: ["BEL", "COD", "RWA", "BDI"],
+    BEL: ["BEL"],
+    BCO: ["COD", "RWA", "BDI"],
     // — Portuguese Empire.
     POR: ["PRT", "AGO", "MOZ", "GNB", "CPV", "STP", "TLS"],
     // — Spanish State.
@@ -195,6 +247,17 @@ export default {
 
   // Region-level exceptions (applied after, so they win).
   regionAssignments: {
+    // ── 중국: 항전 3년차, 국민정부는 충칭으로 옮겨 갔다 ───────────────────────
+    "CHN.25_1": "SHX",  // 산시 — 옌시산은 여전히 자기 성의 주인
+    "CHN.28_1": "XIN",  // 신장 — 성스차이, 소련 후원
+    "CHN.7_1": "GXC",   // 광시 — 신계계
+    "CHN.30_1": "YUN",  // 윈난 — 룽윈, 버마 루트의 관문
+    "CHN.26_1": "SZC",  // 쓰촨 — 전시 수도의 배후지
+    "CHN.21_1": "MAC",  // 칭하이
+    "CHN.20_1": "MAC",  // 닝샤
+    "CHN.22_1": "CSR",  // 산시(섬서) — 옌안
+    "CHN.29_1": "TIB",  // 시짱
+    "CHN.19_1": "MGL",  // 내몽골 — 1939년 9월 몽강연합자치정부 성립
     "RUS.21_1": "GER",  // Kaliningrad = Königsberg: East Prussia is GERMAN until 1945
     "LTU.3_1": "GER",   // Memelland (Klaipeda), annexed March 1939
     "CHN.HKG": "GBR",   // Hong Kong, British colony
