@@ -17,7 +17,7 @@ export default {
     name: "Millennium Dawn — 2000",
     heroTitle: "A New Millennium",
     heroSubtitle: "The century turns and history restarts, 1 January 2000",
-    eyebrow: "Historical Preset",
+    eyebrow: "Turn of the Century",
     subtitle: "1 January 2000",
     accentColor: "#2e6f9e",
     coverImage: "public/loading_screen_2.jpg",
@@ -147,7 +147,46 @@ export default {
     "national government (Somaliland de facto separate); Taliban Afghanistan is recognized " +
     "by only three states while Massoud's Northern Alliance holds the Panjshir and the " +
     "northeast. Occupation or secession mid-game creates its own polity rather than " +
-    "recoloring a neighbor, per the engine's standing rules.",
+    "recoloring a neighbor, per the engine's standing rules. " +
+
+    "ELECTIONS ARE SIMULATED, NOT ANNOUNCED. Every democracy on this board goes to the " +
+    "polls on its own real schedule, and the RESULT is computed from the state of that " +
+    "country in the game — the economy the player and the world actually produced, the " +
+    "wars it is in and how they are going, scandals that have surfaced, and how long the " +
+    "incumbents have been there. Do not simply reproduce who really won. Name the winner, " +
+    "the margin, and the one thing that decided it, and let the new government's " +
+    "priorities differ from the old one's. A country whose government changes hands must " +
+    "then ACT differently — its flag and name do not change, but its treaties, deployments " +
+    "and budget arguments do. " +
+
+    "CORRUPTION IS A TRACKED CONDITION, not an adjective. Each country carries a level of " +
+    "it, and it does concrete work every turn: it takes a cut of what is spent, so " +
+    "projects cost more and finish late; it decides how much of an aid package or an arms " +
+    "purchase actually arrives; it sets the odds that a scandal surfaces and takes a " +
+    "minister with it; and it is what makes a government that looks strong on paper lose " +
+    "an election or a province. Raise it when money moves fast with no oversight — war " +
+    "procurement, resource booms, reconstruction — and lower it only through something " +
+    "that costs the government politically. " +
+
+    "THE WARS ALREADY RUNNING MUST END, EACH IN ITS OWN WAY. Nine are burning at the start " +
+    "— the second Chechen war, Afghanistan's Taliban against the Northern Alliance, the " +
+    "second Congo war, Eritrea against Ethiopia, Sierra Leone, Angola, Sudan's north " +
+    "against its south, Colombia's insurgency, and the Israeli-Palestinian process about " +
+    "to collapse. None may simply fade out of the narration: each reaches a decision, and " +
+    "WHO WINS DETERMINES WHAT THE COUNTRY IS THEN CALLED. If the Northern Alliance takes " +
+    "Kabul the polity becomes the Islamic Republic of Afghanistan; if the Taliban hold, it " +
+    "stays the Islamic Emirate. Apply the same rule everywhere a war is over the identity " +
+    "of the state rather than a border. " +
+
+    "EVENTS READ AS PRESS, AND THE PRESS DOES NOT KNOW EVERYTHING. Write turns in the " +
+    "register of a newspaper of the year. An action taken in secret is not reported as " +
+    "fact — at most it surfaces as rumour, a denial, or a leak weeks later, and the " +
+    "player's own covert operations are subject to this too. Never label an event " +
+    "'historical' or 'alternate'; the distinction is ours and printing it breaks the year. " +
+    "And do NOT have anyone name al-Qaeda, or treat transnational jihadism as the " +
+    "organising threat of the era, before the world has a reason to — in January 2000 it " +
+    "is one item in a counter-terrorism annexe, and writing it as the main story is " +
+    "hindsight wearing a press badge.",
 
   startingTimelineText:
     "The twentieth century closed at midnight. The Cold War has been over for a decade and " +

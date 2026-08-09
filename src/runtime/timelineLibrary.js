@@ -17,6 +17,7 @@
 // Replacing is safe TODAY because nothing but this file writes periodTimeline. If
 // a scenario editor ever lets a designer edit the schedule in-game, this becomes a
 // merge and the stamp is what makes that merge possible.
+import millennium2000 from "../../data/timelines/millennium-2000.json" with { type: "json" };
 import modern2016 from "../../data/timelines/modern-2016.json" with { type: "json" };
 import realWorld2026 from "../../data/timelines/real-world-2026.json" with { type: "json" };
 import { normalizeTimeline } from "./periodTimeline.js";
@@ -45,7 +46,7 @@ const buildLibraryEntry = (source) => {
   };
 };
 
-export const TIMELINE_LIBRARY = [modern2016, realWorld2026]
+export const TIMELINE_LIBRARY = [millennium2000, modern2016, realWorld2026]
   .map(buildLibraryEntry).filter(Boolean).filter((entry) => entry.id);
 
 export const timelineById = (id) => {

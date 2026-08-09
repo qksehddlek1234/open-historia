@@ -108,6 +108,21 @@ test("a forward-looking calendar still serves the campaign it was written for", 
   assert.ok(rw.entries.every((entry) => entry.date >= "2026-02-01"), "every entry is still ahead of the later board");
 });
 
+test("the calendar carries only what a calendar can carry", () => {
+  // The split this library now enforces: a timeline entry goes on the end-of-turn
+  // card, so it may only hold things that were ALREADY on somebody's calendar —
+  // elections, currency changeovers, treaty deadlines, scheduled withdrawals.
+  // Wars, attacks and collapses are anchors for the model and live in the
+  // scenario's rules instead. A card that prints "September 11 attacks: in 20
+  // months" ends the board it was meant to serve.
+  const md = TIMELINE_LIBRARY.find((entry) => entry.id === "millennium-2000");
+  assert.ok(md, "millennium-2000 is in the library");
+  const forbidden = /attack|invasion|war begins|bombing|9\/11|September 11|collapse/i;
+  for (const entry of md.entries) {
+    assert.doesNotMatch(entry.title, forbidden, `${entry.date} "${entry.title}" is not a scheduled thing`);
+  }
+});
+
 test("declaring a window did not widen it into other eras", () => {
   // The guard the range check exists for: an 1848 campaign must not be handed
   // the 2016 schedule.

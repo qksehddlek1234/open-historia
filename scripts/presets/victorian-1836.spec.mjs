@@ -19,7 +19,7 @@ export default {
     name: "Victorian Era — 1836",
     heroTitle: "The Age of Steam",
     heroSubtitle: "The old order runs on new rails, 1 January 1836",
-    eyebrow: "Historical Preset",
+    eyebrow: "The Industrial Age",
     subtitle: "1 January 1836",
     accentColor: "#8a6d3b",
     coverImage: "public/loading_screen_2.jpg",
@@ -211,11 +211,36 @@ export default {
     "(Zollverein, launched 1834) — unification requires a crisis that discredits Austria " +
     "AND a Prussia willing to lead; Italy requires Austria beaten in Lombardy — absent " +
     "those conditions the aggregates hold, and the engine narrates failed 1848-style " +
-    "revolutions rather than gifting borders. FIXED-CALENDAR ANCHORS: William IV dies June " +
+    "revolutions rather than gifting borders. AND THE CONDITION IS COUNTABLE, which is " +
+    "what stops it being a mood: before any German state may be proclaimed, COUNT the " +
+    "German polities on the map that one power holds or has bound into its league — the " +
+    "Bund's thirty-odd members plus Prussia's own lands. Below about two thirds of them " +
+    "there is no empire to proclaim, only a stronger Prussia. At two thirds or more " +
+    "WITHOUT Austria, what forms is a NORTH GERMAN state that Bavaria, Baden and " +
+    "Württemberg may or may not join and that Vienna certainly does not. Only a count " +
+    "that INCLUDES the Austrian German lands produces a Greater Germany, and that " +
+    "requires Austria beaten or willing rather than merely excluded. Say the count in the " +
+    "event that proclaims it. Italy runs the same way over its own list — Sardinia, the " +
+    "duchies, the Legations, Naples, and the Patrimony LAST rather than first. A " +
+    "unification narrated before its count is reached is a gifted border and must not " +
+    "happen. FIXED-CALENDAR ANCHORS: William IV dies June " +
     "1837 and VICTORIA accedes at eighteen (Hanover splits off under Salic law); Boyer's " +
     "Haiti loses Santo Domingo to Dominican revolt in 1844; the Opium crisis at Canton " +
     "breaks into war in 1839; Ranjit Singh dies in 1839 and the Sikh state begins eating " +
-    "itself. ERA CONSTRAINTS: railways exist only as short lines in Britain, Belgium and " +
+    "itself. THE LONGER CHRONOLOGY, WHICH IS THE MODEL'S ANCHOR AND NOT THE PLAYER'S " +
+    "CALENDAR — never print these as a schedule and never let a character foresee one; " +
+    "they are what the real century did, and this board departs from them the moment " +
+    "anyone acts differently: the Texan revolt and San Jacinto (1836); the Carlist war in " +
+    "Spain and the dissolution of the Central American federation (later 1830s); the " +
+    "Anglo-Chinese war and the treaty that opens the ports (1839-42); the year of " +
+    "revolutions and the parliament at Frankfurt that fails (1848-49); the Great " +
+    "Exhibition (1851) and the second French Empire (1852); the Crimean war, in which " +
+    "RAILWAY CONSTRUCTION is the decisive variable and either side can win it (1853-56); " +
+    "the rebellion that ends Company rule in India (1857); the Italian war and the " +
+    "kingdom proclaimed from it (1859-61); the emancipation of the Russian serfs (1861); " +
+    "the American civil war (1861-65); the Polish January rising (1863); the Danish, " +
+    "Austrian and French wars in succession (1864, 1866, 1870); the Russian conquest of " +
+    "the Central Asian khanates (1864-85). ERA CONSTRAINTS: railways exist only as short lines in Britain, Belgium and " +
     "the American seaboard — strategic movement is still sail, horse and canal; the " +
     "telegraph is a laboratory toy until the 1840s; news crosses oceans in weeks; " +
     "cholera recurs without warning or cure. MAP APPROXIMATIONS the rules carry: the " +
