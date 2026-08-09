@@ -16,16 +16,15 @@ export default {
 
   meta: {
     name: "World War II — 1939",
-    heroTitle: "World War II",
-    heroSubtitle: "Europe on the eve of war, 1 September 1939",
-    eyebrow: "Historical Preset",
+    heroTitle: "The Storm Breaks",
+    heroSubtitle: "German columns cross into Poland and the world follows them in",
+    eyebrow: "The Second World War",
     subtitle: "1 September 1939",
     accentColor: "#8a1f1f",
     coverImage: "public/loading_screen_2.jpg",
     description:
-      "The world as the Wehrmacht crosses into Poland. The Axis is ascendant, the " +
-      "colonial empires span the globe, and the United States stands neutral. Lead any " +
-      "power through the deadliest conflict in human history.",
+      "At dawn the Wehrmacht crossed the Polish frontier, and the two days it takes Britain and France to declare war are the last quiet ones. The Pact signed a week ago has already divided eastern Europe on paper; the Red Army will collect its half on the seventeenth. Italy waits to see who wins before choosing, Japan is three years into a war in China with no end drawn on any map, and the United States means to sell to everyone and fight nobody. The empires that will fund the Allied war effort still cover a third of the planet and will not survive winning. Take any power into the deadliest six years in human history.",
+
   },
 
   // Keep modern names: in 1939 most of them still fit, and relabelling every whole
@@ -46,6 +45,65 @@ export default {
   // Player starts as Germany. game.country MUST be a polity code declared below —
   // the build resolves it to that polity's name, which is what the map's owners say.
   game: { country: "GER", startDate: "1939-09-01", gameDate: "1939-09-01" },
+
+  // Plan F-3: where the assembler closed a 1939 outline from OpenHistoricalMap
+  // (CC0), that outline is the authority and the modern provinces get clipped
+  // to it — the Polish Corridor and East Prussia cut straight through modern
+  // GADM provinces, and no assignment of WHOLE provinces can draw them.
+  // Polities without a face keep the composition below (source ladder, rung 2)
+  // and the build prints exactly which is which. The dump is made on the user's
+  // PC — OHM fetches never run from an agent session:
+  //   node scripts/ohm/extract-era-borders.mjs 1939-09-01 --zoom 4 --bbox <window>
+  //   node scripts/ohm/fetch-era-polities.mjs 1939-09-01
+  //   node scripts/ohm/assemble-era-borders.mjs <lines> --polities <polities>
+  // Absent the dump the preset builds exactly as it did before, and says so.
+  // faceOwners resolves the faces whose NAME cannot answer the ownership
+  // question — a colony's era name says where it is, never who holds it, and
+  // the coverage census found the 1939 map is largely a colonial one. Right
+  // side is a polity code (or a literal owner name for countries that keep
+  // their modern sovereign, like independent Iraq).
+  eraGeometry: {
+    date: "1939-09-01",
+    // The Europe window's frame-bounded residue — everything east and south of
+    // where the dump ran out. Measured on the 1939 z4 run: 1,191 deg² spanning
+    // 41x45 degrees, six times the next-largest face and reaching from the
+    // Balkans to Central Asia, carrying Iran's label because Iran's is the one
+    // that happens to sit in it. Not a country; excluded by name.
+    excludeFaces: ["ایران"],
+    // Borders this dump fused across where the other side has no label to mark
+    // the fusion. Measured: the German face covers Midtjylland 97.8%,
+    // Syddanmark 67.8% and Nordjylland 35.2% — Jutland leaked into the Reich
+    // because the German-Danish border never closed, and there is no 1939
+    // Denmark relation in the dump to flag it as a merge. Denmark was neutral
+    // and whole on 1 September 1939; the face may not enter it.
+    faceKeepOut: { "Deutsches Reich": ["DNK"] },
+    faceOwners: {
+      "Algérie française": "FRA",
+      "Protectorat français de Tunisie": "FRA",
+      "République Libanaise": "FRA", // French mandate for Syria and the Lebanon
+      "Tangier International Zone": "FRA", // jointly administered; France ran the day-to-day
+      Libia: "ITA",
+      "Protettorato Italiano del Regno d'Albania": "ITA", // annexed April 1939 — Italy, not a separate Albania
+      "British Cyprus": "GBR",
+      "Colony of Malta": "GBR",
+      Gibraltar: "GBR",
+      "Protectorate of Bahrain": "GBR",
+      "Protectorate of Kuwait": "GBR",
+      "Protectorate of Qatar": "GBR",
+      "Trucial States": "GBR",
+      "Sultanate of Muscat and Oman": "GBR", // treaty state inside the British system
+      // A Crown dependency, not a sovereign state — the dump gives it a face of
+      // its own and it re-owned all 21 of GADM's Manx parishes back to "Isle of
+      // Man" after the era-sovereignty table had already folded them into the
+      // empire. The face is right about the outline and silent about the holder.
+      "Isle of Man": "GBR",
+      "Colonia del Rio de Oro": "ESP",
+      "Saguía el Hamra": "ESP",
+      "Territorio de Ifni": "ESP",
+      // Independent since 1932 and not a polity in this spec: keeps its own name.
+      "المملكة العراقية الهاشمية": "Iraq",
+    },
+  },
 
   polities: {
     GER: { name: "Germany", color: "#3a3a3a", aliases: ["독일", "나치 독일", "Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },

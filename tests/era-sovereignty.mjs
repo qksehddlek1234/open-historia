@@ -1,0 +1,114 @@
+// GADM's map is 2020's, and "keep the modern owner" took it literally: the
+// player's 1935 board carried North Korea (founded 1948), South Sudan (2011),
+// Pakistan and the Kashmir Z0x pseudo-countries (1947), Northern Cyprus (1983),
+// a GADM junk row called "NA", and every British/French/Dutch/US/NZ dependency
+// drawn as its own sovereign state — which is also why "colonies aren't
+// implemented" was a fair verdict.
+//
+// These pins hold both directions. Over-correcting is the opposite failure and
+// just as wrong: North Korea genuinely exists in 2000 and must stay on that
+// board.
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+let pass = 0;
+const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
+
+const { heldBy, existedAsState, eraOwnerName, UNCLAIMED, JUNK_GID0 } =
+  await import("../scripts/presets/lib/eraSovereignty.mjs");
+
+const scenarioOwners = (id) => {
+  const path = new URL(`../server/data/scenarios/${id}/regions.geojson`, import.meta.url);
+  if (!fs.existsSync(path)) return null; // preset folders are build products
+  const geo = JSON.parse(fs.readFileSync(path, "utf8"));
+  const counts = new Map();
+  for (const feature of geo.features ?? []) {
+    const owner = feature.properties?.owner || "(unclaimed)";
+    counts.set(owner, (counts.get(owner) ?? 0) + 1);
+  }
+  return counts;
+};
+
+test("the table answers in three distinguishable ways", () => {
+  // Held by someone else.
+  assert.equal(heldBy("PRK", "1935-12-01"), "JPN");
+  assert.equal(heldBy("SSD", "1935-12-01"), "GBR");
+  // Its own sovereign — the right answer for the ~180 countries not listed.
+  assert.equal(heldBy("MEX", "1935-12-01"), "");
+  assert.equal(heldBy("TUR", "1935-12-01"), "");
+  // Held by NOBODY. Distinct from "" or the modern name would quietly win.
+  assert.equal(heldBy("SJM", "1914-07-28"), null);
+  assert.equal(eraOwnerName("SJM", "1914-07-28"), UNCLAIMED);
+  assert.equal(heldBy("SJM", "1939-09-01"), "NOR");
+});
+
+test("windows open and close on the real dates", () => {
+  assert.equal(heldBy("PRK", "1947-01-01"), "SUN");
+  assert.equal(heldBy("PRK", "1949-01-01"), "", "North Korea is sovereign from 1948");
+  assert.equal(heldBy("PAK", "1946-01-01"), "GBR");
+  assert.equal(heldBy("PAK", "1948-01-01"), "");
+  assert.equal(heldBy("SSD", "1960-01-01"), "SDN");
+  assert.equal(heldBy("SSD", "2012-01-01"), "");
+  assert.equal(heldBy("HKG", "1990-01-01"), "GBR");
+  assert.equal(heldBy("HKG", "1998-01-01"), "");
+  assert.ok(existedAsState("MEX", "1935-12-01"));
+  assert.ok(!existedAsState("PRK", "1935-12-01"));
+});
+
+test("the answer speaks the preset's own vocabulary for a power", () => {
+  // "GBR" is "British Empire" on a 1935 board and "United Kingdom" where the
+  // preset never names it.
+  assert.equal(
+    eraOwnerName("AIA", "1935-12-01", { gid0ToPolityName: { GBR: "British Empire" }, countryNames: { GBR: "United Kingdom" } }),
+    "British Empire",
+  );
+  assert.equal(
+    eraOwnerName("AIA", "1935-12-01", { countryNames: { GBR: "United Kingdom" } }),
+    "United Kingdom",
+  );
+});
+
+test("the Kashmir pseudo-countries stop being modern states in 1935", () => {
+  // GADM splits the contested Himalaya into Z01..Z09, each tagged with a modern
+  // claimant — which is how an "India", a "Pakistan" and a "China" appeared
+  // inside British Raj territory on the 1935 map.
+  for (const code of ["Z01", "Z04", "Z05", "Z06", "Z07", "Z09"]) {
+    assert.equal(heldBy(code, "1935-12-01"), "GBR", `${code} was British India in 1935`);
+  }
+  for (const code of ["Z02", "Z03", "Z08"]) {
+    assert.equal(heldBy(code, "1935-12-01"), "CHN", `${code} sits on the Chinese side`);
+  }
+});
+
+test("GADM's non-place row is named as junk", () => {
+  assert.ok(JUNK_GID0.has("NA"), "GID_0 \"NA\" (NAME_1 \"NA\") is not a country");
+});
+
+test("no near-modern board carries a state that did not exist yet", () => {
+  const ANACHRONISMS = [
+    "North Korea", "South Korea", "South Sudan", "Pakistan", "Bangladesh",
+    "Northern Cyprus", "NA", "Isle of Man", "Jersey", "Guernsey", "Anguilla",
+    "Bermuda", "Montserrat", "Cayman Islands", "Nauru", "Vanuatu", "Tonga",
+    "Samoa", "Cook Islands", "Tokelau", "Tuvalu", "American Samoa",
+    "Svalbard and Jan Mayen", "Aland Islands",
+    "United States Minor Outlying Islands", "Saint Barthelemy",
+  ];
+  for (const id of ["ww1-1914", "wwii-1935", "wwii-1939", "coldwar-1946", "napoleonic-1804", "victorian-1836"]) {
+    const owners = scenarioOwners(id);
+    if (!owners) continue;
+    const found = ANACHRONISMS.filter((name) => owners.has(name));
+    assert.deepEqual(found, [], `${id} still draws: ${found.join(", ")}`);
+  }
+});
+
+test("and 2000 keeps the states that DO exist by then — no over-correction", () => {
+  const owners = scenarioOwners("millennium-2000");
+  if (!owners) return;
+  // Each of these is a real sovereign state on 1 January 2000. A filter that
+  // swept them off the board would be the opposite mistake.
+  for (const name of ["North Korea", "Pakistan", "Nauru", "Vanuatu", "Tonga", "Samoa", "Tuvalu"]) {
+    assert.ok(owners.has(name), `${name} existed in 2000 and must stay on the board`);
+  }
+});
+
+console.log(`\n${pass} passed\n`);

@@ -9,12 +9,16 @@
 // createScenario + updateScenario would produce, and additionally writes
 // colors.json (which the runtime needs for map fill but which the API can't set).
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { loadRegionCatalog, buildCountryRegionIndex } from "./lib/regionCatalog.mjs";
 import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
+import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
+import {
+  graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
+} from "./lib/eraGeometry.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
@@ -251,12 +255,18 @@ const gid0Owner = {};
 for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {
   for (const gid0 of gid0List) gid0Owner[gid0] = polityName(owner);
 }
+// gid0 -> era owner, for the build report: no silent re-owning.
+const eraSovereigntyMoves = new Map();
+let junkRowsDropped = 0;
 const regionFeatures = [];
 for (const feature of seedFc.features ?? []) {
   const props = feature.properties ?? {};
   const gid1 = props.id != null ? String(props.id) : "";
   if (!gid1 || !feature.geometry) continue;
   const gid0 = props.gid0 ? String(props.gid0) : "";
+  // GADM ships one row that is not a place (GID_0 "NA", NAME_1 "NA"). It used
+  // to render as a country called "NA" on every near-modern board.
+  if (JUNK_GID0.has(gid0)) { junkRowsDropped += 1; continue; }
   // Ownership of regions the spec does NOT assign depends on the era: ancient/
   // medieval presets leave them UNCLAIMED (many countries simply did not exist),
   // while near-modern presets (spec.unassignedKeepModernOwner) keep the modern
@@ -265,10 +275,31 @@ for (const feature of seedFc.features ?? []) {
   //
   // The guard still tests gid0 — "is this Antarctica?" is a question about the
   // land, not about who owns it — but the owner it produces is the country's NAME.
-  const fallbackOwner =
-    spec.unassignedKeepModernOwner && gid0 && gid0 !== "ATA"
-      ? COUNTRY_NAMES[gid0] || gid0
-      : "";
+  //
+  // AND THE MODERN SOVEREIGN IS NOT ALWAYS THE ERA'S SOVEREIGN. GADM's map is
+  // 2020's, so "keep the modern owner" put North Korea (1948), South Sudan
+  // (2011), Pakistan (1947) and Northern Cyprus (1983) on the 1935 board, along
+  // with every British, French, Dutch, American and New Zealand dependency
+  // drawn as its own sovereign state. eraSovereignty answers who actually held
+  // the ground on this date and speaks the preset's own vocabulary for it.
+  let fallbackOwner = "";
+  if (spec.unassignedKeepModernOwner && gid0 && gid0 !== "ATA" && !JUNK_GID0.has(gid0)) {
+    const eraOwner = eraOwnerName(gid0, startDateForLeaders, {
+      gid0ToPolityName: gid0Owner,
+      countryNames: COUNTRY_NAMES,
+    });
+    if (eraOwner === UNCLAIMED) {
+      // Terra nullius on this date — no state held it, and the modern name is
+      // not a lesser evil (Svalbard before the 1920 treaty).
+      fallbackOwner = "";
+      eraSovereigntyMoves.set(gid0, "(무주지)");
+    } else if (eraOwner) {
+      fallbackOwner = eraOwner;
+      eraSovereigntyMoves.set(gid0, eraOwner);
+    } else {
+      fallbackOwner = COUNTRY_NAMES[gid0] || gid0;
+    }
+  }
   regionFeatures.push({
     type: "Feature",
     geometry: feature.geometry,
@@ -284,10 +315,104 @@ for (const feature of seedFc.features ?? []) {
   });
 }
 
+// ── era geometry graft (plan F-3) ────────────────────────────────────────────
+// Opt-in per spec: `eraGeometry: "1939-09-01"` (or { date, file }). The province
+// layer above is modern GADM; where the assembler could close a polity's era
+// outline, that outline is the authority and the provinces get clipped to it.
+// Absent the field — or absent a dump for that date — the preset builds exactly
+// as before and says so.
+const eraSpec = typeof spec.eraGeometry === "string" ? { date: spec.eraGeometry } : (spec.eraGeometry ?? null);
+let eraReport = null;
+let regionFeaturesFinal = regionFeatures;
+if (eraSpec) {
+  const OHM_OUT = path.join(PROJECT_ROOT, "scripts", "ohm", "out");
+  const explicit = eraSpec.file ? path.resolve(PROJECT_ROOT, eraSpec.file) : null;
+  // Default discovery: whatever the assembler wrote for this date. Several zooms
+  // can coexist; the newest wins and the choice is printed, never assumed.
+  const discovered = explicit ? [] : (existsSync(OHM_OUT)
+    ? readdirSync(OHM_OUT)
+      .filter((f) => f.startsWith(`era-borders-${eraSpec.date}`) && f.endsWith(".geojson"))
+      .map((f) => path.join(OHM_OUT, f))
+      .sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)
+    : []);
+  const facesPath = explicit ?? discovered[0] ?? null;
+  if (!facesPath || !existsSync(facesPath)) {
+    console.log(`\n[era] ${eraSpec.date} 시대 지오메트리 요청됨 — 조립 산출물 없음, 현대 프로빈스 조합으로 진행(사다리 2단).`);
+    console.log(`[era]   만들려면: node scripts/ohm/extract-era-borders.mjs ${eraSpec.date} --zoom 4 --bbox <창>`);
+    console.log("[era]              node scripts/ohm/fetch-era-polities.mjs " + eraSpec.date);
+    console.log("[era]              node scripts/ohm/assemble-era-borders.mjs <lines> --polities <polities>");
+  } else {
+    const faceFc = JSON.parse(readFileSync(facesPath, "utf8"));
+    // Owners on a built preset come from two families and BOTH must be
+    // reachable by name: the spec's era polities, and — where unassigned
+    // regions keep their modern sovereign — the modern country names.
+    const modernNames = spec.unassignedKeepModernOwner ? Object.values(COUNTRY_NAMES) : [];
+    const nameIndex = buildFaceNameIndex(spec.polities, modernNames);
+    const specFaceOwners = Object.fromEntries(
+      Object.entries(eraSpec.faceOwners ?? {}).map(([faceName, code]) => [faceName, polityName(code)]),
+    );
+    const faces = [];
+    const unmatchedFaces = [];
+    const styleMatched = [];
+    const excluded = new Set(eraSpec.excludeFaces ?? []);
+    const excludedFaces = [];
+    // A windowed dump leaves ONE face that is not a country: the frame-bounded
+    // residue where the window ran past the data. It carries whichever label
+    // sits in it and can span half a continent. There is no constant that
+    // separates it from a large country, so it is named in the spec, and the
+    // build prints every face's area and span for the human doing the naming.
+    const faceSizes = [];
+    for (const face of faceFc.features ?? []) {
+      const mp = toMultiPolygon(face.geometry);
+      if (!mp) continue;
+      const fname = face.properties?.name ?? "";
+      const fb = bboxOf(mp);
+      faceSizes.push({ name: fname, span: `${(fb[2] - fb[0]).toFixed(1)}x${(fb[3] - fb[1]).toFixed(1)}` });
+      if (excluded.has(fname)) { excludedFaces.push(fname); continue; }
+      const hit = matchFace(face, nameIndex, specFaceOwners);
+      if (!hit) { unmatchedFaces.push(face.properties?.name ?? "(무명)"); continue; }
+      if (hit.via === "style") styleMatched.push(`${face.properties?.name} → ${hit.owner}`);
+      faces.push({
+        owner: hit.owner,
+        name: face.properties?.name ?? hit.owner,
+        via: hit.via,
+        // Names this face fused with, resolved to OWNERS: the graft refuses its
+        // authority over exactly those.
+        mergedWith: (face.properties?.mergedWith ?? [])
+          .map((m) => (typeof m === "string" ? { name: m } : m))
+          .map((m) => matchFace({ properties: m }, nameIndex, specFaceOwners)?.owner)
+          .filter(Boolean),
+        keepOut: eraSpec.faceKeepOut?.[fname] ?? [],
+        mp,
+        bbox: bboxOf(mp),
+      });
+    }
+    const grafted = graftEraGeometry(regionFeatures, faces);
+    regionFeaturesFinal = grafted.features;
+    // world.regionOwnershipOverrides is the GAME's ownership table; the geojson
+    // is the MAP's. Nations.jsx treats a disagreement between the two as land
+    // that changed hands mid-campaign and draws a conquest border around it, so
+    // leaving the table stale would ring every era correction as a conquest on
+    // turn one — and the offcut regions would exist on the map with no entry in
+    // the game at all. Restate every grafted feature's owner into the table.
+    let syncedOverrides = 0;
+    for (const feature of regionFeaturesFinal) {
+      const { id, owner } = feature.properties;
+      if (!id || !owner) continue;
+      if (overrides[id] === owner) continue;
+      if (feature.properties.edited || String(id).startsWith("era_") || overrides[id] !== undefined) {
+        overrides[id] = owner;
+        syncedOverrides += 1;
+      }
+    }
+    eraReport = { ...grafted.report, syncedOverrides, facesPath, facesTotal: (faceFc.features ?? []).length, facesMatched: faces.length, unmatchedFaces, styleMatched, excludedFaces, faceSizes };
+  }
+}
+
 // The playable factions in this scenario (drives the start-country picker):
 // every distinct owner actually present on the finished map — era polities plus,
 // on near-modern presets, the independent countries that kept their modern owner.
-world.ownerCodes = [...new Set(regionFeatures.map((f) => f.properties.owner).filter(Boolean))].sort();
+world.ownerCodes = [...new Set(regionFeaturesFinal.map((f) => f.properties.owner).filter(Boolean))].sort();
 // Built name-keyed, so mark it migrated: otherwise the store runs the migrator
 // over a freshly-generated preset on first read.
 world.ownerSchema = OWNER_SCHEMA;
@@ -301,14 +426,14 @@ writeJson(path.join(scenarioDir, "world.json"), world);
 // every such country's colour against what it was when the owner was a code.
 // Hashing gid0 keeps them all exactly where they were. Era polities never reach
 // here — they took their curated colour from the spec above.
-for (const feature of regionFeatures) {
+for (const feature of regionFeaturesFinal) {
   const { owner, gid0 } = feature.properties;
   if (owner && !colors[owner]) colors[owner] = codeToColor(gid0 || owner);
 }
 writeJson(path.join(scenarioDir, "colors.json"), colors);
 writeFileSync(
   path.join(scenarioDir, "regions.geojson"),
-  JSON.stringify({ type: "FeatureCollection", features: regionFeatures }),
+  JSON.stringify({ type: "FeatureCollection", features: regionFeaturesFinal }),
   "utf8",
 );
 
@@ -376,14 +501,61 @@ for (const owner of Object.values(overrides)) perPolity[owner] = (perPolity[owne
 const assigned = Object.keys(overrides).length;
 console.log(`\n[build-preset] "${spec.id}" written to ${path.relative(PROJECT_ROOT, scenarioDir)}`);
 console.log(`  regions assigned: ${assigned}/${catalog.length} (${catalog.length - assigned} keep modern owner)`);
-console.log(`  regions.geojson: ${regionFeatures.length} features (customRegions=true, tier-2 render)`);
+console.log(`  regions.geojson: ${regionFeaturesFinal.length} features (customRegions=true, tier-2 render)`);
 if (cityCollection) {
   console.log(`  cities.geojson: ${cityCollection.features.length} era cities (customCities=true)`);
 }
 console.log(`  polities: ${Object.keys(polityOverrides).length}`);
+if (eraSovereigntyMoves.size > 0) {
+  const moves = [...eraSovereigntyMoves.entries()].map(([code, owner]) => `${code}→${owner}`);
+  console.log(`  era sovereignty: ${moves.length} modern code(s) held by someone else on this date`);
+  console.log(`    ${moves.join(", ")}`);
+}
+if (junkRowsDropped > 0) console.log(`  dropped ${junkRowsDropped} non-place GADM row(s)`);
 console.log(`  era leaders seeded: ${leaderReport.hits.length}/${Object.keys(polityOverrides).length}${leaderReport.misses.length ? ` — 미기록: ${leaderReport.misses.join(", ")}` : ""}`);
 console.log("  per-polity region counts:");
 for (const [code, n] of Object.entries(perPolity).sort((a, b) => b[1] - a[1])) {
   console.log(`    ${String(code).padEnd(7)} ${n}`);
+}
+if (eraReport) {
+  // Every region lands in exactly one bucket and every drop is named — a graft
+  // that quietly covered less than it claims is worse than no graft.
+  const r = eraReport;
+  console.log(`  시대 지오메트리(F-3): ${path.relative(PROJECT_ROOT, r.facesPath)}`);
+  console.log(`    면 ${r.facesMatched}/${r.facesTotal} 매칭${r.unmatchedFaces.length ? ` — 미매칭: ${r.unmatchedFaces.join(", ")}` : ""}`);
+  if (r.excludedFaces.length) console.log(`    스펙이 배제한 면 ${r.excludedFaces.length}건(창 잔여 면 등): ${r.excludedFaces.join(", ")}`);
+  if (r.styleMatched.length) console.log(`    양식 정규화 매칭(사람 눈 확인 권장) ${r.styleMatched.length}건: ${r.styleMatched.join(", ")}`);
+  console.log(`    지역 ${r.regionsIn} → ${regionFeaturesFinal.length}: 무접촉 ${r.untouched} · 확인 ${r.confirmed} · 재배정 ${r.reowned.length} · 절단 ${r.cut.length}(조각 +${r.offcuts})`);
+  if (r.reowned.length) {
+    const sample = r.reowned.slice(0, 6).map((x) => `${x.id} ${x.from || "(무주)"}→${x.to}`).join(", ");
+    console.log(`    재배정 상세: ${sample}${r.reowned.length > 6 ? ` … 외 ${r.reowned.length - 6}건` : ""}`);
+  }
+  if (r.cut.length) {
+    const sample = r.cut.slice(0, 6).map((c) => `${c.id}(${c.pieces.map((p) => p.owner || "무주").join("/")})`).join(", ");
+    console.log(`    절단 상세: ${sample}${r.cut.length > 6 ? ` … 외 ${r.cut.length - 6}건` : ""}`);
+  }
+  if (r.droppedSlivers.length) {
+    const worst = r.droppedSlivers.slice().sort((a, b) => (b.fraction ?? 0) - (a.fraction ?? 0))[0];
+    const byWhy = r.droppedSlivers.reduce((acc, x) => ({ ...acc, [x.why ?? "fraction"]: (acc[x.why ?? "fraction"] ?? 0) + 1 }), {});
+    console.log(`    슬리버 접기 ${r.droppedSlivers.length}건(지분 미달 ${byWhy.fraction ?? 0} · 폭 미달 ${byWhy.width ?? 0} · 최대 지분 ${((worst.fraction ?? 0) * 100).toFixed(2)}% — ${worst.id}/${worst.owner ?? worst.face}): 다수 소유주로 흡수, 지도에서 사라지지 않음`);
+  }
+  if (r.cutFractions.length) {
+    const f = r.cutFractions.slice().sort((a, b) => a - b);
+    const q = (p) => f[Math.min(f.length - 1, Math.floor(p * f.length))];
+    const w = r.cutWidths.slice().sort((a, b) => a - b);
+    console.log(`    절단 소수측 지분 분포: 최소 ${(q(0) * 100).toFixed(1)}% · 중앙 ${(q(0.5) * 100).toFixed(1)}% · 최대 ${(f[f.length - 1] * 100).toFixed(1)}% (하한 2%)`);
+    console.log(`    절단 소수측 유효폭 분포: 최소 ${w[0]?.toFixed(3)}° · 중앙 ${w[Math.floor(w.length / 2)]?.toFixed(3)}° · 최대 ${w[w.length - 1]?.toFixed(3)}° (하한 0.06° = 용접 거리)`);
+  }
+  if (r.clipFailures.length) console.log(`    ⚠ 클립 실패 ${r.clipFailures.length}건 — 해당 지역은 현대 모양·스펙 소유주 유지: ${r.clipFailures.slice(0, 4).map((f) => `${f.id}/${f.face}`).join(", ")}`);
+  if (r.nonAreaGeometry) console.log(`    면 아닌 지오메트리 ${r.nonAreaGeometry}건 통과`);
+  if (r.keepOutRefusals.length) {
+    const faceNames = [...new Set(r.keepOutRefusals.map((x) => x.face))];
+    console.log(`    스펙 차단 구역 ${r.keepOutRefusals.length}건 — ${faceNames.join(", ")} 면은 해당 GADM 국가에 들어가지 않음`);
+  }
+  if (r.mergedRefusals.length) {
+    const owners = [...new Set(r.mergedRefusals.map((x) => x.owner))];
+    console.log(`    융합 면 권위 거부 ${r.mergedRefusals.length}건 — 삼켜진 소유주(${owners.join(", ")})의 지역엔 그 면을 적용하지 않음`);
+  }
+  console.log(`    소유권 테이블 동기화 ${r.syncedOverrides}건 — 지도와 게임이 같은 소유주를 말한다(1턴째 가짜 정복선 방지)`);
 }
 console.log(`  manifest order: [${manifest.order.join(", ")}]\n`);
