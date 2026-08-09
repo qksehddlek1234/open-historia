@@ -377,6 +377,17 @@ test("THE START ROUND ACTUALLY GATES IT — that is the new behaviour", () => {
   assert.match(GAMEPLAY, /const shouldCompactEvents = startedConsolidating && \(/);
 });
 
+// The original states the cadence as "startsOnRound, startsOnRound + chunkSize,
+// …" and its own WWII++ ships 10 and 7 — so it fires on 10, 17, 24. Ours read
+// `round % intervalRounds === 0`, which is anchored to round ZERO, not to the
+// start round: the same 10/7 would have fired on 14, 21, 28. The shipped
+// defaults (15, 5) hid it because 15 is a multiple of 5.
+test("…and the chunks are counted FROM the start round, not from round zero", () => {
+  assert.match(GAMEPLAY, /\(round - tuning\.startRound\) % tuning\.intervalRounds === 0/);
+  assert.ok(!/\bround % tuning\.intervalRounds === 0/.test(GAMEPLAY),
+    "round % interval is anchored to round zero and drifts off the start round");
+});
+
 test("…and the tuning is read per turn, not frozen at import", () => {
   assert.match(GAMEPLAY, /const tuning = getConsolidationSettings\(\);/);
   assert.ok(!GAMEPLAY.includes("const CONSOLIDATION_INTERVAL_ROUNDS ="), "the constants are gone");

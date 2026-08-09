@@ -1884,9 +1884,19 @@ const compactHistoryIfNeeded = async (bundle) => {
   // off until round 15 for that reason; the size threshold below still fires
   // early if a short campaign somehow buries itself in events anyway.
   const startedConsolidating = round >= tuning.startRound;
+  // THE CHUNKS ARE COUNTED FROM THE START ROUND, NOT FROM ROUND ZERO.
+  //
+  // The original states this cadence outright in its own settings dialog —
+  // "startsOnRound, startsOnRound + chunkSize, …" — and mapSettings.js has said
+  // the same in prose since these became settings. The code did not: `round %
+  // intervalRounds === 0` anchors to round zero, so the start round only gated
+  // the FIRST run and then the rhythm drifted off it. Our shipped defaults hid
+  // it (15 is a multiple of 5); the original's own WWII++ numbers expose it —
+  // 10 and 7 should fire on 10, 17, 24 and fired on 14, 21, 28 instead.
+  const onAChunkBoundary = (round - tuning.startRound) % tuning.intervalRounds === 0;
   const shouldCompactEvents = startedConsolidating && (
     unconsolidatedEvents.length > tuning.sizeThreshold ||
-    (round % tuning.intervalRounds === 0 && unconsolidatedEvents.length > tuning.retainEvents)
+    (onAChunkBoundary && unconsolidatedEvents.length > tuning.retainEvents)
   );
   const priorChatIds = new Set(world.consolidatedHistory.flatMap((entry) => entry.chatIds));
   const closedChats = normalizeChats(bundle.chats)

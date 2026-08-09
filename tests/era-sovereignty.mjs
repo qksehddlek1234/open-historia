@@ -111,4 +111,23 @@ test("and 2000 keeps the states that DO exist by then — no over-correction", (
   }
 });
 
+// ICELAND — the one the table and the OHM face disagreed about, settled by the
+// preset we compare to. World War II++ has no Iceland polity: its Denmark owns
+// all eight Icelandic regions in 1935 and it scripts independence on 17 June
+// 1944. Three places have to keep saying the same thing or the face graft takes
+// the island back, which is what happened once already.
+test("ICELAND IS DANISH GROUND UNTIL 1944 — table, both specs, and the face", () => {
+  assert.equal(heldBy("ISL", 1935), "DNK");
+  assert.equal(heldBy("ISL", 1939), "DNK");
+  assert.equal(heldBy("ISL", 1946), "", "the union ends in 1944 and Iceland is its own again");
+
+  const spec = (id) => fs.readFileSync(new URL(`../scripts/presets/${id}.spec.mjs`, import.meta.url), "utf8");
+  for (const id of ["wwii-1935", "wwii-1939"]) {
+    assert.match(spec(id), /DAN: \["DNK", "GRL", "FRO", "ISL"\]/, `${id} must hand Iceland to Denmark`);
+  }
+  // The dump's face is right about the state and silent about who holds it —
+  // same reason "Isle of Man" is in this list.
+  assert.match(spec("wwii-1939"), /"Konungsríkið Ísland": "DAN"/);
+});
+
 console.log(`\n${pass} passed\n`);

@@ -97,6 +97,19 @@ export default {
       // Man" after the era-sovereignty table had already folded them into the
       // empire. The face is right about the outline and silent about the holder.
       "Isle of Man": "GBR",
+      // ICELAND: THE FACE IS RIGHT ABOUT THE STATE AND WRONG ABOUT THE BOARD.
+      // The dump's face is "Konungsríkið Ísland" (admin_level 2, 1918–1944-06-16)
+      // and it is not wrong: the 1918 Act of Union made Iceland a sovereign
+      // kingdom in personal union, with Denmark conducting only its foreign
+      // affairs. But the era-sovereignty table folds ISL into DNK until 1944,
+      // the face re-took five regions from it, and the two have to agree.
+      // Checked against the preset we compare to: World War II++ has NO Iceland
+      // polity at all — its Denmark owns seventeen regions and EIGHT of them are
+      // Icelandic (Höfuðborgarsvæðið, Suðurnes, Vesturland, Vestfirðir,
+      // Norðurland vestra/eystra, Austurland, Suðurland) — and it scripts
+      // "17 June 1944: Iceland gains independence" instead. The table matches
+      // the original; the face yields.
+      "Konungsríkið Ísland": "DAN",
       "Colonia del Rio de Oro": "ESP",
       "Saguía el Hamra": "ESP",
       "Territorio de Ifni": "ESP",
@@ -240,9 +253,12 @@ export default {
     // — Mongolian People's Republic: a Soviet satellite (Khalkhin Gol is being
     //   fought on its border this very month).
     MON: ["MNG"],
-    // — Kingdom of Denmark: Greenland and the Faroes (Iceland is a sovereign
-    //   kingdom in personal union and keeps its own government).
-    DAN: ["DNK", "GRL", "FRO"],
+    // — Kingdom of Denmark: Greenland, the Faroes and Iceland. Iceland is a
+    //   sovereign kingdom in personal union on paper (1918 Act of Union), but
+    //   Copenhagen runs its foreign affairs and the preset we compare to draws
+    //   it as Danish ground until 17 June 1944 — see the Iceland note in
+    //   eraGeometry.faceOwners above, and eraSovereignty's ISL row.
+    DAN: ["DNK", "GRL", "FRO", "ISL"],
   },
 
   // Region-level exceptions (applied after, so they win).

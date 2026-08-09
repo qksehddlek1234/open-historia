@@ -173,7 +173,10 @@ export default {
     ROU: ["ROU", "MDA"],
     CHI: ["CHN"],
     MON: ["MNG"],
-    DAN: ["DNK", "GRL", "FRO"],
+    // Iceland rides with Denmark until 1944 — sovereign in personal union on
+    // paper, Danish ground on the board (eraSovereignty ISL, and the original
+    // preset's own Denmark owns all eight Icelandic regions in 1935).
+    DAN: ["DNK", "GRL", "FRO", "ISL"],
   },
 
   regionAssignments: {
