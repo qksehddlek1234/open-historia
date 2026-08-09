@@ -15,6 +15,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 import { loadRegionCatalog, buildCountryRegionIndex } from "./lib/regionCatalog.mjs";
 import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
 import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
+import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
@@ -290,7 +291,16 @@ const world = {
   ...(cityCollection ? { customCities: true } : {}),
   // Era-appropriate deployable troop types (e.g. no Air Force in 1200).
   ...(Array.isArray(spec.allowedUnitTypes) ? { allowedUnitTypes: spec.allowedUnitTypes } : {}),
-  simulationRules: spec.simulationRules ?? "",
+  // The preset's own rules, then the contract every preset needs: what a region
+  // MEANS when regions are modern administrative divisions of wildly different
+  // size (see lib/regionContract.mjs — eight polities on the 1935 board own
+  // exactly one region each). A spec can opt out with regionContract: false if
+  // it ever needs to say something incompatible.
+  simulationRules: [
+    spec.simulationRules ?? "",
+    spec.regionContract === false ? "" : REGION_CONTRACT,
+    spec.historicalPrior === false ? "" : HISTORICAL_PRIOR,
+  ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
 };
 
