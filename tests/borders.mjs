@@ -102,7 +102,10 @@ test("country width beats province width at every zoom both draw", () => {
 });
 
 test("the country line is opaque where the province line is a whisper", () => {
-  const province = blockAfter("const regionsOutlinePaint", 2400);
+  // 2700, not 2400: the fade-range note (the zoom ends are the player's now,
+  // the shape is not) sits above the opacity block and pushed it out of the
+  // old window. The invariant being pinned is unchanged — three capped stops.
+  const province = blockAfter("const regionsOutlinePaint", 2700);
   const opacity = province.slice(province.indexOf('"line-opacity"'));
   assert.ok(opacity.length > 0, "the province opacity block must be in range");
   const caps = [...opacity.matchAll(/Math\.min\(([\d.]+),/g)].map(([, n]) => Number(n));

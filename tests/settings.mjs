@@ -335,8 +335,10 @@ test("NOTHING PROMOTED COSTS NOTHING", () => {
 });
 
 test("both city layers take the filter, and both kinds of map", () => {
-  assert.match(CITIES, /const StockCities = \(\{ label, filter \}\) => \(/);
-  assert.match(CITIES, /const CustomCities = \(\{ data, label, filter \}\) => \(/);
+  // Both take fontStack too now (the original's map-text-font setting), but the
+  // invariant here is the FILTER reaching both layers on both kinds of map.
+  assert.match(CITIES, /const StockCities = \(\{ label, filter, fontStack \}\) => \(/);
+  assert.match(CITIES, /const CustomCities = \(\{ data, label, filter, fontStack \}\) => \(/);
   assert.match(CITIES, /const stockFilter = React\.useMemo\(/);
   assert.match(CITIES, /const customFilter = React\.useMemo\(/);
   assert.equal((CITIES.match(/filter=\{filter\}/g) || []).length, 4, "shapes and labels, stock and custom");
@@ -553,9 +555,12 @@ test("WIDTH ALONE IS NOT THICKER: province lines move opacity too", () => {
   // Raised from 0.14/0.4/0.55 once a national border existed to be judged
   // against — at the old values a province edge read as barely there.
   assert.match(NATIONS, /WIDTH ALONE IS NOT WHAT "THICKER" MEANS HERE\./);
-  assert.match(NATIONS, /9, Math\.min\(0\.85, 0\.35 \* borderScale\)/);
-  assert.match(NATIONS, /12, Math\.min\(0\.85, 0\.65 \* borderScale\)/);
-  assert.match(NATIONS, /14, Math\.min\(0\.85, 0\.8 \* borderScale\)/);
+  // The zooms these sit at are the player's now (the original's "Border Fade
+  // Range"), so they are named stops; the OPACITY values this pin guards are
+  // untouched, and the default range resolves them back to 9/12/14.
+  assert.match(NATIONS, /fadeStops\[1\], Math\.min\(0\.85, 0\.35 \* borderScale\)/);
+  assert.match(NATIONS, /fadeStops\[2\], Math\.min\(0\.85, 0\.65 \* borderScale\)/);
+  assert.match(NATIONS, /fadeStops\[3\], Math\.min\(0\.85, 0\.8 \* borderScale\)/);
 });
 
 test("…capped, so they never read as hard borders however far it is pushed", () => {
@@ -567,7 +572,7 @@ test("…capped, so they never read as hard borders however far it is pushed", (
 
 test("…while the z7.5 anchor stays at zero, because that one is the design", () => {
   // "Not while you are looking at a continent" is a decision, not a value.
-  assert.match(NATIONS, /7\.5, 0,\n/);
+  assert.match(NATIONS, /fadeStops\[0\], 0,\n/);
   assert.match(NATIONS, /the z7\.5 anchor stays at zero/);
 });
 

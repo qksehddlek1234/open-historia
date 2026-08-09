@@ -9,6 +9,7 @@ import {
 } from "../../runtime/assets.js";
 import { useWorldState } from "./useWorldState.js";
 import { hidePromotedCitiesFilter } from "../../runtime/cityFeatures.js";
+import { useFeatureLabelStack } from "../../runtime/mapSettings.js";
 
 ensurePmtilesProtocol();
 
@@ -168,7 +169,7 @@ const labelPaint = {
     "text-halo-width": 2,
 };
 
-const StockCities = ({ label, filter }) => (
+const StockCities = ({ label, filter, fontStack }) => (
     <>
         <Source id="cities-source" type="vector" url={PMTILES_PROTOCOL_URLS.cities}>
             <Layer
@@ -193,7 +194,7 @@ const StockCities = ({ label, filter }) => (
                 layout={{
                     "symbol-sort-key": stockSortKey,
                     "text-field": label,
-                    "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                    "text-font": fontStack,
                     "text-padding": 5,
                     "text-radial-offset": 0.7,
                     "text-size": [
@@ -213,7 +214,7 @@ const StockCities = ({ label, filter }) => (
 // fed from the scenario's cities.geojson and gated by the authored tier. Split
 // across two sources for the same reason as the stock layer — same `data` object,
 // so the second source costs a collision group and nothing else.
-const CustomCities = ({ data, label, filter }) => (
+const CustomCities = ({ data, label, filter, fontStack }) => (
     <>
         <Source id="cities-source" type="geojson" data={data}>
             <Layer
@@ -250,7 +251,7 @@ const CustomCities = ({ data, label, filter }) => (
                 layout={{
                     "symbol-sort-key": customSortKey,
                     "text-field": label,
-                    "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                    "text-font": fontStack,
                     "text-padding": 5,
                     "text-radial-offset": 0.7,
                     "text-size": [
@@ -271,6 +272,9 @@ const Cities = () => {
     // city set (presets, editor maps). Consumed from the shared world-state hook
     // so the map doesn't fire its own independent 5s poll.
     const { customCities: customFlag, cityRenames, markers } = useWorldState();
+    // The player's map-label font, passed down because both branches render
+    // their own Source/Layer pair (the original's "Map Text Font").
+    const fontStack = useFeatureLabelStack();
     const [customData, setCustomData] = useState(null);
     const citiesGeojsonUrl = JSON_URLS.citiesGeojson;
     const label = React.useMemo(() => cityLabelExpr(cityRenames), [cityRenames]);
@@ -315,9 +319,9 @@ const Cities = () => {
     // the custom set is still loading, show nothing rather than flash modern names.
     if (customFlag) {
         if (!customData || !customData.features.length) return null;
-        return <CustomCities data={customData} label={label} filter={customFilter} />;
+        return <CustomCities data={customData} label={label} filter={customFilter} fontStack={fontStack} />;
     }
-    return <StockCities label={label} filter={stockFilter} />;
+    return <StockCities label={label} filter={stockFilter} fontStack={fontStack} />;
 };
 
 export default Cities;

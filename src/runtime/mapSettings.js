@@ -4,7 +4,7 @@
 // useMapSetting() below instead of receiving these as props threaded through
 // GameUI/main.jsx, mirroring how useCountryDisplayName (polityNames.js) sits
 // beside the data it subscribes to.
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export const MAP_SETTING_KEYS = {
     hideCountryLabels: "map_hide_country_labels",
@@ -25,7 +25,164 @@ export const MAP_SETTING_KEYS = {
     // needs — the fallback is only reachable through a real error, never a
     // slow model (Cancel still works either way).
     limitAiGeneration: "ai_limit_generation",
+    // ── The original's "Map Rendering Options" page, ported ──────────────────
+    // Two of its seven dials are booleans. See MAP_RENDER_* below for the rest
+    // and for what the seventh (label line extension) has nothing to scale.
+    //
+    // hideParallelWorlds: draw ONE copy of the world. MapLibre's
+    // renderWorldCopies repeats the map east and west forever, which is right
+    // for a globe you spin and wrong for a board you are reading — pan past the
+    // dateline and the same war is happening in two places on screen.
+    hideParallelWorlds: "map_hide_parallel_worlds",
+    // limitWorldBounds: pen the camera inside MAP_RENDER worldBounds* instead of
+    // the whole planet. A scenario about one theatre does not need the Pacific.
+    limitWorldBounds: "map_limit_world_bounds",
+    // Which font the FEATURE labels draw in (cities, battalions, markers). The
+    // country labels already take theirs from the scenario (world.labelFont);
+    // this is the other half, and it is the player's rather than the author's.
+    featureLabelFont: "map_feature_label_font",
 };
+
+// The original offers exactly these nine and defaults to Serif. They are CSS
+// families, not glyph-server fonts, which is why this works at all: the style
+// has no glyphs endpoint, so MapLibre v5 rasterises every glyph locally with
+// the stack as a CSS font-family (see the note in Game/Map/Nations.jsx).
+export const FEATURE_LABEL_FONTS = [
+    { label: "Default (Open Sans)", value: "" },
+    { label: "Serif", value: "serif" },
+    { label: "Sans-serif", value: "sans-serif" },
+    { label: "Georgia", value: "Georgia" },
+    { label: "Palatino", value: "Palatino" },
+    { label: "Times New Roman", value: "Times New Roman" },
+    { label: "Arial", value: "Arial" },
+    { label: "Trebuchet MS", value: "Trebuchet MS" },
+    { label: "Poppins", value: "Poppins" },
+    { label: "Courier New", value: "Courier New" },
+];
+
+// What every feature layer shipped with, and what "" still means.
+export const DEFAULT_FEATURE_LABEL_STACK = ["Open Sans Semibold", "Arial Unicode MS Bold"];
+
+// The chosen family first, then the shipped stack as fallback, so a player who
+// picks a font their machine does not have gets the old labels rather than
+// blank ones.
+export function getFeatureLabelStack() {
+    const chosen = getMapChoice(MAP_SETTING_KEYS.featureLabelFont);
+    return chosen ? [chosen, ...DEFAULT_FEATURE_LABEL_STACK] : DEFAULT_FEATURE_LABEL_STACK;
+}
+
+// Units draw their glyphs in Bold rather than Semibold on purpose, so the
+// fallback differs by layer. Passing the layer's own shipped stack keeps
+// "no font chosen" pixel-identical to what it always was.
+export const DEFAULT_UNIT_LABEL_STACK = ["Open Sans Bold", "Arial Unicode MS Bold"];
+
+export function useFeatureLabelStack(base = DEFAULT_FEATURE_LABEL_STACK) {
+    const chosen = useMapChoice(MAP_SETTING_KEYS.featureLabelFont);
+    const baseKey = base.join("|");
+    return useMemo(
+        () => (chosen ? [chosen, ...baseKey.split("|")] : baseKey.split("|")),
+        [chosen, baseKey],
+    );
+}
+
+// ── The numeric half of the rendering page ───────────────────────────────────
+//
+// borderFadeStart/End are the zoom range over which region borders come up from
+// invisible to full. The original states it exactly that way ("hidden at or
+// below the start zoom, full opacity at the end zoom") and ships 2.4 → 7.
+// OURS ARE DIFFERENT NUMBERS ON PURPOSE: our province hairlines are tuned to
+// stay out of the way until you are inside a country (7.5 → 14, with measured
+// stops at 9 and 12 — see Game/Map/Nations.jsx). What the setting moves is the
+// RANGE; the curve's shape between the ends is kept and remapped onto it, the
+// same way the display multipliers scale tuned curves instead of replacing them.
+//
+// worldBounds* are the rectangle the camera is penned into when
+// limitWorldBounds is on. Defaults are the whole world MapLibre already allows,
+// so turning the flag on without touching them changes nothing visible.
+export const MAP_RENDER_DEFAULTS = {
+    borderFadeStart: 7.5,
+    borderFadeEnd: 14,
+    worldBoundsWest: -180,
+    worldBoundsEast: 180,
+    worldBoundsSouth: -80,
+    worldBoundsNorth: 85,
+};
+
+export const MAP_RENDER_KEYS = {
+    borderFadeStart: "map_border_fade_start",
+    borderFadeEnd: "map_border_fade_end",
+    worldBoundsWest: "map_world_bounds_west",
+    worldBoundsEast: "map_world_bounds_east",
+    worldBoundsSouth: "map_world_bounds_south",
+    worldBoundsNorth: "map_world_bounds_north",
+};
+
+// Bounds, not preferences. The zoom ends live inside the map's own 2.25-16
+// range; the rectangle lives inside what MapLibre will accept as latitudes.
+export const MAP_RENDER_BOUNDS = {
+    borderFadeStart: [2.25, 15],
+    borderFadeEnd: [2.25, 16],
+    worldBoundsWest: [-180, 180],
+    worldBoundsEast: [-180, 180],
+    worldBoundsSouth: [-85, 85],
+    worldBoundsNorth: [-85, 85],
+};
+
+export function getMapRenderValue(name) {
+    const fallback = MAP_RENDER_DEFAULTS[name];
+    if (fallback === undefined) return undefined;
+    const [min, max] = MAP_RENDER_BOUNDS[name];
+    let raw = NaN;
+    try {
+        raw = Number(localStorage.getItem(MAP_RENDER_KEYS[name]));
+    } catch {
+        return fallback;
+    }
+    if (!Number.isFinite(raw)) return fallback;
+    return Math.max(min, Math.min(max, raw));
+}
+
+export function setMapRenderValue(name, value) {
+    const key = MAP_RENDER_KEYS[name];
+    if (!key) return;
+    const next = Number(value);
+    if (!Number.isFinite(next) || next === MAP_RENDER_DEFAULTS[name]) localStorage.removeItem(key);
+    else localStorage.setItem(key, String(next));
+    window.dispatchEvent(new Event("mapSettings:updated"));
+}
+
+export function useMapRenderValue(name) {
+    const [value, setValue] = useState(() => getMapRenderValue(name));
+
+    useEffect(() => {
+        setValue(getMapRenderValue(name));
+        const onUpdated = () => setValue(getMapRenderValue(name));
+        window.addEventListener("mapSettings:updated", onUpdated);
+        return () => window.removeEventListener("mapSettings:updated", onUpdated);
+    }, [name]);
+
+    return value;
+}
+
+// THE CURVE IS KEPT AND REMAPPED, NEVER REPLACED.
+//
+// The shipped ramp is 7.5 → 9 → 12 → 14 and those inner stops were measured, not
+// guessed: 9 is "a whisper", 12 is where a province is actually the subject.
+// Holding their POSITION IN THE SPAN (9 sits 23% of the way, 12 sits 69%) keeps
+// that shape at any range the player picks. An inverted or degenerate range
+// falls back to the defaults rather than producing a ramp that never rises.
+export function borderFadeStops(start = getMapRenderValue("borderFadeStart"), end = getMapRenderValue("borderFadeEnd")) {
+    const from = Number.isFinite(start) ? start : MAP_RENDER_DEFAULTS.borderFadeStart;
+    const to = Number.isFinite(end) ? end : MAP_RENDER_DEFAULTS.borderFadeEnd;
+    const safe = to > from
+        ? [from, to]
+        : [MAP_RENDER_DEFAULTS.borderFadeStart, MAP_RENDER_DEFAULTS.borderFadeEnd];
+    const span = safe[1] - safe[0];
+    const at = (fraction) => safe[0] + (span * fraction);
+    const SHIPPED = [7.5, 9, 12, 14];
+    const shippedSpan = SHIPPED[3] - SHIPPED[0];
+    return SHIPPED.map((stop) => at((stop - SHIPPED[0]) / shippedSpan));
+}
 
 // THE THREE DISPLAY DIALS THE ORIGINAL HAS AND THIS DID NOT.
 //

@@ -166,8 +166,13 @@ test("they are heavier than they were", () => {
   // Second raise: 0.3/25% still drowned in the fill palette on the live map.
   const width = NATIONS.slice(NATIONS.indexOf("const regionsOutlinePaint"));
   assert.match(width, /7\.5, 0\.45 \* borderScale, 12, 1\.0 \* borderScale, 14, 1\.3 \* borderScale/);
-  assert.match(width, /9, Math\.min\(0\.85, 0\.35 \* borderScale\)/);
-  assert.match(width, /14, Math\.min\(0\.85, 0\.8 \* borderScale\)/);
+  // The OPACITY values are what this pin was protecting — 0.35 and 0.8 of the
+  // player's scale, capped at 0.85 so they never read as a hard border. The
+  // ZOOMS they sit at became a setting (the original's "Border Fade Range"), so
+  // they are named stops now; borderFadeStops keeps them where they were by
+  // default and tests/map-rendering.mjs pins that remapping.
+  assert.match(width, /fadeStops\[1\], Math\.min\(0\.85, 0\.35 \* borderScale\)/);
+  assert.match(width, /fadeStops\[3\], Math\.min\(0\.85, 0\.8 \* borderScale\)/);
 });
 
 test("…and still lose to a national border at every zoom", () => {

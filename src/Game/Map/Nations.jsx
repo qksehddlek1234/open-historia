@@ -25,7 +25,9 @@ import { toCountryName } from "../../runtime/ownerNames.js";
 import { loadSeaRegionFeatures } from "../../runtime/seaRegions.js";
 import { loadCountryLabelCollections } from "../../runtime/countryLabels.js";
 import { translateLabel } from "../../runtime/translator.js";
-import { MAP_SETTING_KEYS, useDisplayScale, useMapSetting } from "../../runtime/mapSettings.js";
+import {
+  MAP_SETTING_KEYS, borderFadeStops, useDisplayScale, useMapRenderValue, useMapSetting,
+} from "../../runtime/mapSettings.js";
 import { useWorldState } from "./useWorldState.js";
 
 ensurePmtilesProtocol();
@@ -477,6 +479,11 @@ const WorldMap = ({ isGlobe = false }) => {
   // Multiplies the tuned curves rather than replacing them, so every border keeps
   // its zoom behaviour and the player only scales it. 1 is exactly as shipped.
   const borderScale = useDisplayScale("borderWidth");
+  // Where the region hairlines start coming up and where they reach full — the
+  // original's "Border Fade Range". Four stops, shape preserved (mapSettings.js).
+  const fadeStart = useMapRenderValue("borderFadeStart");
+  const fadeEnd = useMapRenderValue("borderFadeEnd");
+  const fadeStops = useMemo(() => borderFadeStops(fadeStart, fadeEnd), [fadeStart, fadeEnd]);
   const [pointLabelData, setPointLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [curvedLabelData, setCurvedLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [customRegionData, setCustomRegionData] = useState(EMPTY_FEATURE_COLLECTION);
@@ -1276,12 +1283,17 @@ const WorldMap = ({ isGlobe = false }) => {
     // moves both. Capped at 0.85 so they never read as hard borders however far
     // it is pushed, and the z7.5 anchor stays at zero because "not while you are
     // looking at a continent" is the design, not a value to scale.
+    //
+    // The zoom ends are the player's now (the original exposes exactly this as
+    // "Border Fade Range"), but the SHAPE is not: borderFadeStops keeps the
+    // measured 9 and 12 at their proportional place inside whatever range is
+    // chosen. Defaults reproduce 7.5/9/12/14 exactly.
     "line-opacity": worldKnown
       ? ["interpolate", ["linear"], ["zoom"],
-        7.5, 0,
-        9, Math.min(0.85, 0.35 * borderScale),
-        12, Math.min(0.85, 0.65 * borderScale),
-        14, Math.min(0.85, 0.8 * borderScale)]
+        fadeStops[0], 0,
+        fadeStops[1], Math.min(0.85, 0.35 * borderScale),
+        fadeStops[2], Math.min(0.85, 0.65 * borderScale),
+        fadeStops[3], Math.min(0.85, 0.8 * borderScale)]
       : 0,
   };
 

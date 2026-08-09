@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Source, Layer } from "react-map-gl/maplibre";
 import { getNationColors } from "../../runtime/assets.js";
 import { subscribeUnits, getUnits, startUnitsSync } from "./unitsController.js";
+import { DEFAULT_UNIT_LABEL_STACK, useFeatureLabelStack } from "../../runtime/mapSettings.js";
 
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
 
@@ -30,6 +31,9 @@ const ownerColorString = (colorMap, code) => {
 };
 
 const Units = () => {
+    // Unit glyphs shipped in Bold; the label under them in Semibold.
+    const glyphStack = useFeatureLabelStack(DEFAULT_UNIT_LABEL_STACK);
+    const fontStack = useFeatureLabelStack();
   const [units, setUnits] = useState(getUnits());
   const [colorMap, setColorMap] = useState({});
 
@@ -101,7 +105,7 @@ const Units = () => {
         layout={{
           "symbol-sort-key": ["-", ["get", "strength"]],
           "text-field": ["get", "glyph"],
-          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-font": glyphStack,
           "text-allow-overlap": true,
           "text-ignore-placement": true,
           "text-size": ["interpolate", ["linear"], ["zoom"], 2, 10, 6, 13, 12, 18],
@@ -120,7 +124,7 @@ const Units = () => {
         layout={{
           "symbol-sort-key": ["-", ["get", "strength"]],
           "text-field": ["to-string", ["get", "strength"]],
-          "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+          "text-font": glyphStack,
           "text-allow-overlap": true,
           "text-ignore-placement": true,
           "text-offset": [0, 1.35],
@@ -155,7 +159,7 @@ const Units = () => {
           layout={{
             "symbol-sort-key": ["-", ["get", "strength"]],
             "text-field": ["get", "name"],
-            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-font": fontStack,
             // Thinned, unlike the glyph and the strength: those two ARE the unit
             // and must always draw, but a dozen division names stacked on one
             // front is unreadable, so the names give way to each other.

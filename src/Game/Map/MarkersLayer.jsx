@@ -5,7 +5,7 @@ import { getNationColors } from "../../runtime/assets.js";
 import { useWorldState } from "./useWorldState.js";
 import { glyphForFeatureKind } from "../../runtime/featureKinds.js";
 import { isUnderConstruction } from "../../runtime/construction.js";
-import { MAP_SETTING_KEYS, useDisplayScale, useMapSetting } from "../../runtime/mapSettings.js";
+import { MAP_SETTING_KEYS, useDisplayScale, useFeatureLabelStack, useMapSetting } from "../../runtime/mapSettings.js";
 
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
 
@@ -27,6 +27,7 @@ const ownerColorString = (colorMap, code) => {
 // city layer (glyph + haloed label) but colored by owner so a forward base
 // reads as belonging to someone.
 const MarkersLayer = () => {
+    const fontStack = useFeatureLabelStack();
   const { markers } = useWorldState();
   const [colorMap, setColorMap] = useState({});
 
@@ -155,7 +156,7 @@ const MarkersLayer = () => {
             // Carries the completion date while a site is being built, so the
             // player can read the pipeline off the map without clicking.
             "text-field": ["get", "label"],
-            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-font": fontStack,
             "text-padding": 5,
             "text-radial-offset": 0.7,
             // Labels scale with zoom, gently boosted by importance — same

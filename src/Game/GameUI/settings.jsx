@@ -35,6 +35,11 @@ import {
     CONSOLIDATION_DEFAULTS,
     getConsolidationSettings,
     setConsolidationSetting,
+    FEATURE_LABEL_FONTS,
+    MAP_RENDER_BOUNDS,
+    MAP_RENDER_DEFAULTS,
+    getMapRenderValue,
+    setMapRenderValue,
 } from "../../runtime/mapSettings.js";
 import { ESRI_BASEMAPS, OHM_BASEMAP_ID, JSON_URLS, readJson, writeJson } from "../../runtime/assets.js";
 import { readGameData } from "../../runtime/gameState.js";
@@ -1100,6 +1105,123 @@ const DisplayScalePanel = () => {
     );
 };
 
+// THE ORIGINAL'S "MAP RENDERING OPTIONS", PORTED.
+//
+// Six of its seven dials. The seventh — "label line extension", how far a
+// country label's leader line runs past the polygon edge — has nothing to scale
+// here: our labels sit ON the shape (straight or curved along it) and no leader
+// lines are drawn at all. Adding them is a Plan G job, not a setting.
+const MAP_RENDER_FIELDS = [
+    { name: "borderFadeStart", label: "Region borders hidden at or below zoom", step: 0.1,
+      hint: "Below this the province hairlines are invisible. Default 7.5 — not while you are looking at a continent." },
+    { name: "borderFadeEnd", label: "…and fully drawn by zoom", step: 0.1,
+      hint: "The measured stops between the two ends keep their place in the range." },
+];
+
+const WORLD_BOUNDS_FIELDS = [
+    { name: "worldBoundsWest", label: "West", step: 1 },
+    { name: "worldBoundsEast", label: "East", step: 1 },
+    { name: "worldBoundsSouth", label: "South", step: 1 },
+    { name: "worldBoundsNorth", label: "North", step: 1 },
+];
+
+const RenderNumberRow = ({ field, value, onChange }) => {
+    const [min, max] = MAP_RENDER_BOUNDS[field.name];
+    return (
+        <div style={{ marginBottom: "0.7rem" }}>
+        <div style={{ alignItems: "baseline", display: "flex", justifyContent: "space-between", marginBottom: "0.2rem" }}>
+        <span style={{ fontSize: "0.82rem", fontWeight: 600 }}>{field.label}</span>
+        <button
+        type="button"
+        onClick={() => onChange(MAP_RENDER_DEFAULTS[field.name])}
+        style={{ background: "none", border: "none", color: "rgba(147,197,253,0.85)", cursor: "pointer", fontSize: "0.72rem", padding: 0 }}
+        >
+        {value} · reset
+        </button>
+        </div>
+        <input
+        type="number"
+        min={min}
+        max={max}
+        step={field.step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", color: "white", fontSize: "0.8rem", padding: "0.35rem 0.5rem", width: "100%", boxSizing: "border-box" }}
+        />
+        {field.hint && <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35 }}>{field.hint}</div>}
+        </div>
+    );
+};
+
+const MapRenderingPanel = () => {
+    const [values, setValues] = useState(() => Object.fromEntries(
+        Object.keys(MAP_RENDER_DEFAULTS).map((name) => [name, getMapRenderValue(name)]),
+    ));
+    const font = useMapChoice(MAP_SETTING_KEYS.featureLabelFont);
+    const hideParallel = useMapSetting(MAP_SETTING_KEYS.hideParallelWorlds);
+    const limitBounds = useMapSetting(MAP_SETTING_KEYS.limitWorldBounds);
+    const change = (name, next) => {
+        setValues((current) => ({ ...current, [name]: next }));
+        setMapRenderValue(name, next);
+    };
+
+    return (
+        <div style={{ margin: "0.9rem 0 0", paddingTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+        <div style={{ fontSize: "0.84rem", fontWeight: 700, marginBottom: "0.6rem" }}>Map Rendering</div>
+
+        <div style={{ marginBottom: "0.85rem" }}>
+        <div style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "0.2rem" }}>Map text font</div>
+        <select
+        value={font}
+        onChange={(event) => setMapChoice(MAP_SETTING_KEYS.featureLabelFont, event.target.value)}
+        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "8px", color: "white", fontSize: "0.8rem", padding: "0.35rem 0.5rem", width: "100%" }}
+        >
+        {FEATURE_LABEL_FONTS.map((option) => (
+            <option key={option.value} value={option.value} style={{ color: "black" }}>{option.label}</option>
+        ))}
+        </select>
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35 }}>
+        The font map FEATURES draw in — cities, battalions, markers. Country labels take
+        theirs from the scenario instead. A font your machine does not have falls back to
+        the shipped one.
+        </div>
+        </div>
+
+        {MAP_RENDER_FIELDS.map((field) => (
+            <RenderNumberRow key={field.name} field={field} value={values[field.name]} onChange={(next) => change(field.name, next)} />
+        ))}
+
+        <Toggle
+        label="Hide parallel worlds"
+        enabled={hideParallel}
+        onToggle={() => setMapSetting(MAP_SETTING_KEYS.hideParallelWorlds, !hideParallel)}
+        />
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "-0.7rem", marginBottom: "0.6rem" }}>
+        Draw one copy of the world instead of repeating it east and west. Stops the same
+        war appearing twice on screen when you pan across the dateline — at the cost of
+        making a Pacific theatre harder to read in one view.
+        </div>
+
+        <Toggle
+        label="Limit the world to a rectangle"
+        enabled={limitBounds}
+        onToggle={() => setMapSetting(MAP_SETTING_KEYS.limitWorldBounds, !limitBounds)}
+        />
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "-0.7rem", marginBottom: "0.6rem" }}>
+        Pens the camera inside the box below. The defaults are the whole world, so turning
+        this on without moving the edges changes nothing.
+        </div>
+        {limitBounds && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 0.6rem" }}>
+            {WORLD_BOUNDS_FIELDS.map((field) => (
+                <RenderNumberRow key={field.name} field={field} value={values[field.name]} onChange={(next) => change(field.name, next)} />
+            ))}
+            </div>
+        )}
+        </div>
+    );
+};
+
 // CONSOLIDATION, WHICH THE ORIGINAL EXPOSES AND THIS DID NOT.
 //
 // Every few rounds the campaign's older events are compressed into a summary so
@@ -1193,10 +1315,51 @@ const promptSaveStyle = {
     padding: "0.35rem 0.9rem",
 };
 
+// WHAT THE RULES COST BEFORE THE CAMPAIGN HAS SAID A WORD.
+//
+// The original's advanced settings carry a "Document Size" page with three
+// gauges. Two of them measure a Firestore 1 MB document limit we do not have.
+// The third is the one that matters MORE here than there: the character count
+// of the simulation rules plus the starting timeline — the text that rides in
+// EVERY prompt, on every task, before any events exist. The original notes that
+// most lightweight models top out around 800k characters; ours is a 12B running
+// locally, so the ceiling is the context window the player configured.
+//
+// Reference points measured 2026-08-09: World War II++ (the preset this fork is
+// compared against) sits at 32.4k characters. Our own wwii-1935 is 13.1k.
+const RulesBudgetGauge = ({ rules, timeline, custom }) => {
+    const total = (rules?.length ?? 0) + (timeline?.length ?? 0) + (custom?.length ?? 0);
+    // ~4 characters per token is the usual rough conversion, and the context
+    // setting is in tokens. Deliberately pessimistic rather than precise: this
+    // is a "you are getting close" gauge, not an accountant.
+    const budgetChars = Math.max(1, getContextTokens() * 4);
+    const share = Math.min(1, total / budgetChars);
+    const tone = share > 0.5 ? "#f87171" : share > 0.25 ? "#fbbf24" : "#4ade80";
+    return (
+        <div style={{ margin: "0 0 0.9rem" }}>
+        <div style={{ alignItems: "baseline", display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+        <span style={{ fontSize: "0.78rem", fontWeight: 600 }}>Rules + timeline weight</span>
+        <span style={{ color: tone, fontSize: "0.74rem", fontWeight: 700 }}>
+        {(total / 1000).toFixed(1)}k chars · {(share * 100).toFixed(0)}% of context
+        </span>
+        </div>
+        <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "999px", height: "5px", overflow: "hidden" }}>
+        <div style={{ background: tone, height: "100%", width: `${share * 100}%` }} />
+        </div>
+        <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.72rem", lineHeight: 1.35, marginTop: "0.25rem" }}>
+        This text rides in every prompt before a single event exists, so it is spent
+        on every task of every turn. For scale: the original World War II++ preset
+        carries 32.4k characters here.
+        </div>
+        </div>
+    );
+};
+
 const PromptsRulesPanel = () => {
     const [rules, setRules] = useState("");
     const [pack, setPack] = useState(null);
     const [openTask, setOpenTask] = useState("");
+    const [scenarioText, setScenarioText] = useState({ rules: "", timeline: "" });
     const [drafts, setDrafts] = useState({});
     const [status, setStatus] = useState("");
 
@@ -1205,6 +1368,10 @@ const PromptsRulesPanel = () => {
         (async () => {
             const world = await readJson(JSON_URLS.world, { defaultValue: {}, force: true }).catch(() => ({}));
             if (!cancelled) setRules(typeof world?.customRules === "string" ? world.customRules : "");
+            if (!cancelled) setScenarioText({
+                rules: typeof world?.simulationRules === "string" ? world.simulationRules : "",
+                timeline: typeof world?.startingTimelineText === "string" ? world.startingTimelineText : "",
+            });
             const rawPack = await readJson(JSON_URLS.prompts, { defaultValue: {}, force: true }).catch(() => ({}));
             if (!cancelled) setPack(normalizePromptPack(rawPack));
         })();
@@ -1238,6 +1405,7 @@ const PromptsRulesPanel = () => {
 
     return (
         <div>
+        <RulesBudgetGauge rules={scenarioText.rules} timeline={scenarioText.timeline} custom={rules} />
         <div style={{ fontSize: "0.8rem", fontWeight: 700, marginBottom: "0.2rem" }}>Simulation rules</div>
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", lineHeight: 1.45, marginBottom: "0.4rem" }}>
         Constraints and directives for the AI: allowed behavior, restrictions,
@@ -1470,6 +1638,8 @@ const SettingsMenu = ({
         <EraAtlasLinks />
         <div style={{ height: "0.9rem" }} />
         <DisplayScalePanel />
+        <MapRenderingPanel />
+        <div style={{ height: "0.4rem" }} />
         <Toggle
         label="Hide country labels"
         enabled={mapSettings.hideCountryLabels}

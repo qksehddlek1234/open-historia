@@ -12,7 +12,9 @@ import Units from "./Units";
 import UnitPopup from "../Selection/Units";
 import MarkersLayer from "./MarkersLayer.jsx";
 import FeaturePopup from "../Selection/Features.jsx";
-import { MAP_SETTING_KEYS, useDisplayScale, useMapChoice } from "../../runtime/mapSettings.js";
+import {
+  MAP_SETTING_KEYS, useDisplayScale, useMapChoice, useMapRenderValue, useMapSetting,
+} from "../../runtime/mapSettings.js";
 import {
   DEFAULT_BASEMAP_ID,
   OHM_BASEMAP_ID,
@@ -267,6 +269,30 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
   // HOW FAR ONE WHEEL CLICK GOES. MapLibre has no zoom-rate prop, so this is
   // applied to the live handler after the map exists — see the effect below.
   const zoomSensitivity = useDisplayScale("zoomSensitivity");
+  // THE TWO CAMERA DIALS FROM THE ORIGINAL'S RENDERING PAGE.
+  //
+  // renderWorldCopies repeats the planet east and west without end. That is
+  // right for a globe you spin and wrong for a board you are reading: pan past
+  // the dateline and the same war is drawn twice on one screen. Off by default,
+  // because the endless map is also what makes a Pacific campaign legible.
+  //
+  // maxBounds pens the camera. The shipped rectangle is the whole world minus
+  // the poles (Mercator cannot draw them), so a player who turns the limit on
+  // without moving the edges sees no change — the same "1.0 is as shipped"
+  // rule the display multipliers follow.
+  const hideParallelWorlds = useMapSetting(MAP_SETTING_KEYS.hideParallelWorlds);
+  const limitWorldBounds = useMapSetting(MAP_SETTING_KEYS.limitWorldBounds);
+  const boundsWest = useMapRenderValue("worldBoundsWest");
+  const boundsEast = useMapRenderValue("worldBoundsEast");
+  const boundsSouth = useMapRenderValue("worldBoundsSouth");
+  const boundsNorth = useMapRenderValue("worldBoundsNorth");
+  const cameraBounds = useMemo(() => {
+    // An inverted or zero-area rectangle would lock the camera to a point, so
+    // it falls back to the unlimited default rather than trapping the player.
+    const usable = limitWorldBounds && boundsEast > boundsWest && boundsNorth > boundsSouth;
+    if (!usable) return [[-Infinity, -80], [Infinity, 85]];
+    return [[boundsWest, boundsSouth], [boundsEast, boundsNorth]];
+  }, [limitWorldBounds, boundsWest, boundsEast, boundsSouth, boundsNorth]);
   const isGlobe = projection === "globe";
   const mapProjection = useMemo(() => ({ type: projection }), [projection]);
   const styleUsesGlobeCoords = customBg?.kind === "image" && isGlobe;
@@ -465,10 +491,7 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
         minZoom={2.25}
         maxZoom={16}
         doubleClickZoom={false}
-        maxBounds={[
-          [-Infinity, -80],
-          [Infinity, 85],
-        ]}
+        maxBounds={cameraBounds}
         cursor="default"
         attributionControl={false}
         dragRotate={false}
@@ -478,7 +501,7 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
         fadeDuration={0}
         collectResourceTiming={false}
         crossSourceCollisions={false}
-        renderWorldCopies
+        renderWorldCopies={!hideParallelWorlds}
         // Cap MapLibre's per-source out-of-view tile-retention cache. Left unset it
         // sizes dynamically to ~(ceil(w/tileSize)+1)*(ceil(h/tileSize)+1)*5 tiles PER
         // source — ~270 at 1080p but ~800 at a 3840x2160 desktop viewport, and
