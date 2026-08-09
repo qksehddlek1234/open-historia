@@ -20,10 +20,12 @@ const { buildLevel2Index, expandLegacyLevel1 } =
 const BUILD = fs.readFileSync(new URL("../scripts/presets/build-preset.mjs", import.meta.url), "utf8");
 
 const feature = (id) => ({ properties: { id } });
+// Real GADM 4.1 ids: a level-2 GID ends "_1" exactly like its parent, and it is
+// the extra SEGMENT that makes it level-2. Taken from gadm41_CHN_2.json.
 const SEED = [
-  feature("CHN.25.1_2"), feature("CHN.25.2_2"), feature("CHN.25.11_2"),
-  feature("CHN.28.1_2"),
-  feature("IND.32.4_2"),
+  feature("CHN.25.1_1"), feature("CHN.25.2_1"), feature("CHN.25.11_1"),
+  feature("CHN.28.1_1"),
+  feature("IND.32.4_1"),
   feature("FRA.1_1"),          // never subdivided
   feature("GBR.TLM_1"),        // ONS, not GADM
   feature("GBR.S12000033"),    // ONS council area
@@ -32,9 +34,9 @@ const SEED = [
 test("A LEVEL-1 KEY MEANS ALL ITS LEVEL-2 CHILDREN", () => {
   const index = buildLevel2Index(SEED);
   assert.deepEqual(expandLegacyLevel1("CHN.25_1", index),
-    ["CHN.25.1_2", "CHN.25.2_2", "CHN.25.11_2"]);
-  assert.deepEqual(expandLegacyLevel1("CHN.28_1", index), ["CHN.28.1_2"]);
-  assert.deepEqual(expandLegacyLevel1("IND.32_1", index), ["IND.32.4_2"]);
+    ["CHN.25.1_1", "CHN.25.2_1", "CHN.25.11_1"]);
+  assert.deepEqual(expandLegacyLevel1("CHN.28_1", index), ["CHN.28.1_1"]);
+  assert.deepEqual(expandLegacyLevel1("IND.32_1", index), ["IND.32.4_1"]);
 });
 
 test("…and a country that was never subdivided is left exactly alone", () => {
@@ -47,7 +49,7 @@ test("…and a country that was never subdivided is left exactly alone", () => {
 
 test("…nor does it touch anything that is not a GADM level-1 id", () => {
   const index = buildLevel2Index(SEED);
-  for (const key of ["GBR.TLM_1", "GBR.S12000033", "CHN.25.1_2", "sea_baltic", "", null]) {
+  for (const key of ["GBR.TLM_1", "GBR.S12000033", "CHN.25.1_1", "sea_baltic", "", null]) {
     assert.deepEqual(expandLegacyLevel1(key, index), [key], String(key));
   }
 });

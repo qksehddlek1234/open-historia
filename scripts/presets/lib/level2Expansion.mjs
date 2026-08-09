@@ -14,15 +14,22 @@
 // this would blank most of Asia on four presets at once.
 //
 // GADM's own id scheme is what makes the general fix possible: a level-2 id is
-// its level-1 parent with one more segment. "CHN.25_1" (Shanxi) becomes
-// "CHN.25.1_2" … "CHN.25.11_2", so the parent is recoverable from the child by
-// string alone, with no table to maintain.
+// its level-1 parent with one more segment. Shanxi is "CHN.25_1" and its
+// prefectures are "CHN.25.1_1" … "CHN.25.11_1", so the parent is recoverable
+// from the child by string alone, with no table to maintain.
+//
+// MIND THE SUFFIX. GADM 4.1's GeoJSON build ends a level-2 GID with "_1" too,
+// not "_2" — verified on gadm41_CHN_2.json, whose first row is GID_2
+// "CHN.1.1_1" under GID_1 "CHN.1_1". Matching on "_2" looked obviously right
+// and would have quietly indexed nothing at all, which is the same silent
+// unassignment this file exists to prevent. What distinguishes a level-2 id is
+// the extra numeric SEGMENT, never the suffix.
 //
 // The UK is the exception and stays one, because ONS codes are not GADM ids
 // ("GBR.TLM_1", "GBR.S12000033") and carry no parent segment — build-preset.mjs
 // keeps its own mapping for those.
 
-const LEVEL2_ID = /^([A-Z]{3}\.\d+)\.\d+_2$/;
+const LEVEL2_ID = /^([A-Z]{3}\.\d+)\.\d+_\d+$/;
 
 // seed features → Map("CHN.25" → ["CHN.25.1_2", …]), in seed order.
 export function buildLevel2Index(features) {

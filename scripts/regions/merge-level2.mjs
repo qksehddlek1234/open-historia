@@ -43,6 +43,17 @@ const sourcePath = argv.find((arg) => !arg.startsWith("--"));
 const WRITE = argv.includes("--write");
 const replaceAt = argv.indexOf("--replace");
 const replaceCountry = replaceAt >= 0 ? String(argv[replaceAt + 1] ?? "").toUpperCase() : "";
+// --only CHN keeps just the rows whose OWN id starts with that prefix.
+//
+// A GADM country file is not only that country. gadm41_CHN_2.json carries 344
+// Chinese prefectures AND Hong Kong's 18 districts, Macau's 2, and four rows of
+// disputed ground (Z02/Z03/Z08) — all stamped GID_0 "CHN". gadm41_IND_2.json
+// carries 634 Indian districts plus 42 rows of Z01/Z04/Z05/Z07/Z09, which is
+// Kashmir, Arunachal and the rest. Taking those wholesale subdivides a colony
+// that is one city and doubles up on disputed ground the seed already models as
+// single curated rows. The prefix is the surgical instrument.
+const onlyAt = argv.indexOf("--only");
+const onlyPrefix = onlyAt >= 0 ? String(argv[onlyAt + 1] ?? "").toUpperCase() : "";
 
 if (!sourcePath) {
   console.error("usage: node scripts/regions/merge-level2.mjs <gadm-level2.json> [--replace GID_0] [--write]");
@@ -73,13 +84,42 @@ const refused = [];
 // GADM's GeoJSON build leaves 45% of England blank — names them CTYUA23CD /
 // CTYUA23NM and carries no country column at all, since every row is British.
 // The ONS code's first letter IS the constituent nation (E/W/S/N).
+// GADM 4.1's GeoJSON BUILD SHIPS NAMES WITH THE SPACES STRIPPED.
+//
+// Measured: 46 of China's 368 prefectures and 87 of India's 676 districts come
+// through as "NicobarIslands", "NorthandMiddleAndaman", "QiandongnanMiaoandDong",
+// "ShamShuiPo". The geometry is fine and the names are not — and on a map whose
+// whole point is how the board LOOKS, 133 run-together labels is not a detail.
+//
+// Un-glue on the camel boundary, but split the connectives FIRST: "MiaoandDong"
+// only has a boundary at "dD", so a plain camel split yields "Miaoand Dong".
+// Doing "and/of/the" first turns it into "Miao and Dong" and the camel pass then
+// has nothing left to get wrong.
+// Unicode-aware, because GADM is full of diacritics: "GarzêTibetan" has its
+// boundary at "êT", and an ASCII [a-z][A-Z] never sees it. Measured — that one
+// name and its kind were the only ones a plain ASCII pass left glued.
+const CONNECTIVES = /(\p{Ll})(and|of|the|de|del|da)(\p{Lu})/gu;
+const CAMEL = /(\p{Ll})(\p{Lu})/gu;
+// And one row of gadm41_CHN_2.json is simply corrupt: "Neijiang]]" sits beside
+// a clean "Neijiang". Stray brackets are not a name.
+const JUNK = /[[\]{}]+/g;
+export const prettifyGadmName = (raw) => {
+  const text = String(raw ?? "").replace(JUNK, "").trim();
+  if (!text) return "";
+  return text
+    .replace(CONNECTIVES, (_, before, word, after) => `${before} ${word} ${after}`)
+    .replace(CAMEL, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 const readRow = (props) => {
   const gadmId = String(props.GID_2 ?? props.gid2 ?? props.GID_1 ?? "").trim();
   if (gadmId) {
     return {
       id: gadmId,
       gid0: String(props.GID_0 ?? props.gid0 ?? "").trim(),
-      name: String(props.NAME_2 ?? props.name_2 ?? props.NAME_1 ?? "").trim(),
+      name: prettifyGadmName(props.NAME_2 ?? props.name_2 ?? props.NAME_1),
       country: String(props.COUNTRY ?? props.country ?? "").trim(),
     };
   }
@@ -106,6 +146,10 @@ for (const feature of incoming) {
   const { id, gid0, name } = row;
   if (!id || !gid0 || !feature.geometry) {
     refused.push(`${id || "(no id)"}: missing id, country or geometry`);
+    continue;
+  }
+  if (onlyPrefix && !id.startsWith(`${onlyPrefix}.`)) {
+    refused.push(`${id}: outside --only ${onlyPrefix}`);
     continue;
   }
   if (existingIds.has(id)) {
@@ -146,6 +190,20 @@ if (namelessShare > 0.1 && !argv.includes("--force")) {
   process.exit(2);
 }
 
+// A SUBDIVIDED PARENT MUST GO, OR BOTH LAYERS DRAW.
+//
+// The UK taught this once: 218 ONS counties merged over four provinces left the
+// provinces underneath, and the map rendered both. --replace GID_0 handled that
+// by country, which is too blunt here — dropping every CHN row would take Hong
+// Kong and Macau with it, and they have no level-2 children in this file. So the
+// parent of each row actually TAKEN is what gets dropped, and a level-1 row that
+// was not subdivided survives untouched.
+const subdividedParents = new Set();
+for (const row of taken) {
+  const match = /^([A-Z0-9]{3}\.\d+)\.\d+_\d+$/.exec(row.properties.id);
+  if (match) subdividedParents.add(`${match[1]}_1`);
+}
+
 let dropped = 0;
 let features = seed.features;
 if (replaceCountry) {
@@ -161,11 +219,17 @@ if (replaceCountry) {
   dropped = before - features.length;
 }
 
+const beforeParents = features.length;
+features = features.filter((f) => !subdividedParents.has(String(f.properties?.id ?? "")));
+const parentsDropped = beforeParents - features.length;
+
 const merged = { ...seed, features: [...features, ...taken] };
 
 console.log(`source:   ${path.relative(ROOT, resolved)}`);
 console.log(`taken:    ${taken.length} level-2 row(s)`);
 if (replaceCountry) console.log(`replaced: ${dropped} level-1 row(s) of ${replaceCountry}`);
+if (parentsDropped > 0) console.log(`parents:  ${parentsDropped} subdivided level-1 row(s) removed`);
+if (onlyPrefix) console.log(`only:     ${onlyPrefix}`);
 if (refused.length > 0) {
   console.log(`refused:  ${refused.length}`);
   for (const line of refused.slice(0, 10)) console.log(`  - ${line}`);

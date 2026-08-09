@@ -145,14 +145,19 @@ test("FIVE PRINCELY STATES ARE OFF THE RAJ, on both WWII boards", () => {
   for (const id of ["wwii-1935", "wwii-1939"]) {
     const owners = scenarioOwners(id);
     if (!owners) continue;
-    // Jammu and Kashmir is three modern fragments (GADM split it as disputed
-    // ground) and one Dogra state in 1935 — so it is the only multi-region one.
+    // Counts moved when India went to district level (35 states → 634
+    // districts), which is the point: a princely state is a real shape now
+    // rather than one modern state standing in for it. Kashmir stays three,
+    // because the seed keeps it as three curated disputed-ground rows rather
+    // than GADM's 22 districts. What this pin holds is that each state EXISTS
+    // and the Raj still holds the presidencies.
     assert.equal(owners.get("Jammu and Kashmir"), 3, `${id} Kashmir`);
     for (const name of ["Rajputana", "Hyderabad", "Mysore", "Travancore and Cochin"]) {
-      assert.equal(owners.get(name), 1, `${id} ${name}`);
+      assert.ok((owners.get(name) ?? 0) > 0, `${id} lost ${name}`);
     }
     // And the Raj keeps the presidencies rather than losing India entirely.
-    assert.ok(owners.get("British Raj") >= 50, `${id} Raj kept ${owners.get("British Raj")}`);
+    assert.ok(owners.get("British Raj") > 400,
+      `${id} Raj kept ${owners.get("British Raj")} — the presidencies are most of India`);
   }
 });
 

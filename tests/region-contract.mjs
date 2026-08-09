@@ -56,17 +56,41 @@ test("every built preset carries both clauses", () => {
 });
 
 test("the boards this protects really do have single-region polities", () => {
-  const path = new URL("../server/data/scenarios/wwii-1935/regions.geojson", import.meta.url);
-  if (!fs.existsSync(path)) return;
-  const counts = new Map();
-  for (const feature of JSON.parse(fs.readFileSync(path, "utf8")).features ?? []) {
-    const owner = feature.properties?.owner;
-    if (owner) counts.set(owner, (counts.get(owner) ?? 0) + 1);
+  // THIS USED TO READ THE 1935 BOARD AND FIND EIGHT. It finds none there now:
+  // China and India were subdivided to prefecture and district level, and the
+  // cliques that held one province each hold ten to twenty-seven prefectures.
+  // The contract is not stale — the CASE simply moved to the older boards,
+  // where a one-region polity is a small kingdom rather than a warlord. Measured
+  // 2026-08-09: magna-1444 6, colonial-1650 3, mongol-1300 3, napoleonic-1804 3,
+  // victorian-1836 2, medieval-1200 1, bronze-1200bc 1.
+  const boards = new Map();
+  for (const id of fs.readdirSync(new URL("../server/data/scenarios/", import.meta.url))) {
+    const path = new URL(`../server/data/scenarios/${id}/regions.geojson`, import.meta.url);
+    if (!fs.existsSync(path)) continue;
+    const counts = new Map();
+    for (const feature of JSON.parse(fs.readFileSync(path, "utf8")).features ?? []) {
+      const owner = feature.properties?.owner;
+      if (owner) counts.set(owner, (counts.get(owner) ?? 0) + 1);
+    }
+    boards.set(id, counts);
   }
-  const singles = [...counts.entries()].filter(([, n]) => n === 1).map(([owner]) => owner);
-  assert.ok(singles.length >= 5, `expected several one-region polities, found ${singles.length}`);
-  // And the spread the contract exists for.
-  assert.ok(Math.max(...counts.values()) > 100, "and polities with hundreds of regions alongside them");
+  if (boards.size === 0) return; // preset folders are build products
+
+  const withSingles = [...boards].filter(([, counts]) =>
+    [...counts.values()].some((n) => n === 1));
+  assert.ok(withSingles.length >= 3,
+    `a one-region polity should still exist somewhere; found on ${withSingles.length} board(s)`);
+
+  // And the spread the contract actually exists for, which subdividing made
+  // WIDER rather than narrower: the 1935 board runs from Tibet's handful to the
+  // Raj's hundreds.
+  for (const id of ["wwii-1935", "wwii-1939"]) {
+    const counts = boards.get(id);
+    if (!counts) continue;
+    const values = [...counts.values()];
+    assert.ok(Math.max(...values) > 100, `${id} should have polities with hundreds of regions`);
+    assert.ok(Math.min(...values) < 10, `${id} should still have polities with a handful`);
+  }
 });
 
 test("a spec can opt out, so the contract is never a straitjacket", () => {
