@@ -17,6 +17,7 @@ import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
 import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
+import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
@@ -240,6 +241,18 @@ for (const [code, p] of Object.entries(spec.polities ?? {})) {
   colors[name] = hexToRgb(p.color ?? "#888888");
 }
 
+// The territory-less voices (lib/internalVoices.mjs). Stamped AFTER the spec's
+// own polities and BEFORE leadership seeding: they hold no ground, so no colour
+// of theirs can reach the map, and they must not be handed an officeholder —
+// "Internal: Head of Military" IS the officeholder.
+if (spec.internalVoices !== false) {
+  const voices = voicePolities();
+  Object.assign(polityOverrides, voices);
+  // colors.json REPLACES the palette rather than merging with it, so a name the
+  // chat list can ask about must be in it — even one that never paints ground.
+  for (const [name, voice] of Object.entries(voices)) colors[name] = hexToRgb(voice.color);
+}
+
 // ── 3.5 Seed era leadership from the collected officeholder record ────────────
 // The reference (src/runtime/leaderReference.js + leaderEras/ packs) was
 // collected precisely so presets could draw on it. At build time each polity
@@ -302,6 +315,7 @@ const world = {
     spec.regionContract === false ? "" : REGION_CONTRACT,
     spec.historicalPrior === false ? "" : HISTORICAL_PRIOR,
     spec.playerSovereignty === false ? "" : PLAYER_SOVEREIGNTY,
+    spec.internalVoices === false ? "" : INTERNAL_VOICE_CONTRACT,
   ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
 };

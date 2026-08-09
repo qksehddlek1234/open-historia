@@ -23,6 +23,7 @@ import {
   readJson,
   writeJson,
 } from "../../runtime/assets.js";
+import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
 import {
   acceptStanding,
   applyEventImpactsToWorld,
@@ -2043,7 +2044,17 @@ const resolveInvitees = async (names, world, additionalCountries = []) => {
         .map((candidate) => lookup.get(normalizeString(candidate).toUpperCase()) || null)
         .find(Boolean) || null;
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    // A TERRITORY-LESS VOICE IS NEVER A DIPLOMATIC COUNTERPART.
+    //
+    // Every caller of this is a chat the WORLD opens on the player: an event's
+    // createdChats, a jump's diplomaticOutreach, an idle note. The player's own
+    // "Internal: Head of Military" cannot send them a diplomatic feeler, and a
+    // model that names one here has confused an advisor with a power. The
+    // contract in the rules says so too, but rule #2 is that the engine checks
+    // rather than asks. The player's own side of this — inviting an advisor
+    // into a conversation from the chat panel — does not come through here.
+    .filter((entry) => !isTerritorylessVoiceName(entry.name));
   const unique = new Map(resolved.map((entry) => [entry.code || entry.name, entry]));
   return Array.from(unique.values()).map((entry) => ({
       code: entry.code || "",

@@ -12,7 +12,8 @@ import {
     readJson,
 } from "../../runtime/assets.js";
 import { flagEmojiFromGid } from "../../runtime/countryFlags.js";
-import { readChatsState, writeChatsState } from "../../runtime/gameState.js";
+import { readChatsState, writeChatsState, readWorldState } from "../../runtime/gameState.js";
+import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
 
 // ── Storage ───────────────────────────────────────────────────────────────────
 
@@ -29,9 +30,32 @@ const loadAllChats = async ({ force = false } = {}) => {
 };
 
 // ── PMTiles country loader ────────────────────────────────────────────────────
+//
+// The tile layer only knows polities that own GROUND, which used to be the same
+// set as "polities you can talk to". It is not anymore: a preset now carries
+// territory-less voices ("Internal: Head of Military", "Domestic: Newspaper" —
+// see scripts/presets/lib/internalVoices.mjs), and the AI side already sees them
+// because mergePolityCatalog folds polityOverrides into its catalog. Only this
+// picker was still reading the tiles alone, so the player had no way to open the
+// conversation the preset had built for them.
+
+const isVoicePolity = (country) => isTerritorylessVoiceName(country?.name);
 
 const loadCountryNames = async () => {
-    return loadCachedCountryNames();
+    const fromTiles = await loadCachedCountryNames();
+    let overrides = {};
+    try {
+        overrides = (await readWorldState())?.polityOverrides ?? {};
+    } catch { return fromTiles; }
+
+    const seen = new Set(fromTiles.map(country => String(country?.name ?? "").toLowerCase()));
+    const extra = Object.values(overrides)
+        .filter(polity => polity?.name && !seen.has(polity.name.toLowerCase()))
+        // Everything the tiles missed is worth listing, but the voices are the
+        // reason this merge exists, so they are what the note below documents.
+        .map(polity => ({ name: polity.name, code: polity.code ?? "", note: polity.note ?? "" }));
+
+    return [...fromTiles, ...extra];
 };
 
 const countryMatchesIdentity = (country, identity) => {
@@ -360,10 +384,25 @@ const CountryTile = ({ country, code, flag, isSelected, onToggle }) => {
     );
 };
 
+// Each group is its OWN grid rather than a full-width cell inside one grid:
+// gridAutoRows is 5.5rem for the tiles, and a heading placed in that grid would
+// be handed a 5.5rem row too.
+const TILE_GRID = { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "5.5rem", gap: "0.5rem", alignContent: "start" };
+
+const GroupHeading = ({ text }) => (
+    <div style={{ padding: "0.55rem 0.15rem 0.35rem", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.38)" }}>{text}</div>
+);
+
 const CountrySelectorModal = ({ countries, loading, onStart, onCancel }) => {
     const [search, setSearch]     = React.useState("");
     const [selected, setSelected] = React.useState([]);
     const filtered      = useMemo(() => countries.filter(c => c.name.toLowerCase().includes(search.toLowerCase())), [countries, search]);
+    // The voices come FIRST and under their own heading. They are a handful of
+    // rows inside a list of two hundred countries, and the whole point of them
+    // is that the player reaches for them instead of the brainstorming board —
+    // buried alphabetically between Indonesia and Iraq, nobody ever would.
+    const voices = useMemo(() => filtered.filter(isVoicePolity), [filtered]);
+    const powers = useMemo(() => filtered.filter(c => !isVoicePolity(c)), [filtered]);
     const filteredFlags = useCountryFlags(filtered);
     const selectedFlags = useCountryFlags(selected);
     const isSelectedName = (name) => selected.some(s => s.name === name);
@@ -395,11 +434,22 @@ const CountrySelectorModal = ({ countries, loading, onStart, onCancel }) => {
         onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.12)"} />
         </div>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "0.5rem 1rem", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gridAutoRows: "5.5rem", gap: "0.5rem", alignContent: "start" }}>
-        {loading && <p style={{ gridColumn: "1/-1", color: "rgba(255,255,255,0.35)", fontSize: "0.82rem", fontStyle: "italic", textAlign: "center" }}>Loading countries…</p>}
-        {filtered.map(c => (
+        <div style={{ flex: 1, overflowY: "auto", scrollbarWidth: "none", padding: "0.5rem 1rem" }}>
+        {loading && <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.82rem", fontStyle: "italic", textAlign: "center" }}>Loading countries…</p>}
+        {voices.length > 0 && <GroupHeading text="Your own government" />}
+        {voices.length > 0 && (
+            <div style={TILE_GRID}>
+            {voices.map(c => (
+                <CountryTile key={c.name} country={c.name} code={c.code} flag={filteredFlags[c.name] ?? "🏳"} isSelected={isSelectedName(c.name)} onToggle={() => toggle(c)} />
+            ))}
+            </div>
+        )}
+        {voices.length > 0 && powers.length > 0 && <GroupHeading text="Other polities" />}
+        <div style={TILE_GRID}>
+        {powers.map(c => (
             <CountryTile key={c.name} country={c.name} code={c.code} flag={filteredFlags[c.name] ?? "🏳"} isSelected={isSelectedName(c.name)} onToggle={() => toggle(c)} />
         ))}
+        </div>
         </div>
         <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid rgba(255,255,255,0.07)", display: "flex", gap: "0.5rem", flexShrink: 0 }}>
         <button onClick={onCancel} style={{ flex: 1, padding: "0.65rem", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.8)", fontSize: "0.85rem", fontWeight: 500, cursor: "pointer", fontFamily: "sans-serif" }}
