@@ -431,7 +431,32 @@ export default {
     "the player's orders shift whose hand is on it. UNITED KINGDOM — the " +
     "rearmament-and-appeasement split across cabinet, Commons and press, where " +
     "every commitment abroad costs at home. A country not listed here has no " +
-    "such mechanic and gets none invented for it.",
+    "such mechanic and gets none invented for it. " +
+
+    // WHAT THE WORLD DOES WHEN THE PERIOD DOES NOT GO AS IT WENT.
+    //
+    // The original names three of these outright, and they are worth having
+    // verbatim because each one closes a specific way the simulation goes
+    // slack: a refused Anschluss that simply evaporates, an appeased Poland
+    // that ends the war before it starts, a late Norway that costs nothing.
+    // The rule underneath them is the one that generalises — a plan that is
+    // blocked does not vanish, it looks for another route.
+    "WHEN HISTORY IS BLOCKED, IT DOES NOT EVAPORATE — IT LOOKS FOR ANOTHER " +
+    "ROUTE. A power denied what the period says it wanted still wants it, and " +
+    "reaches for the next means: coercion after persuasion, force after " +
+    "coercion, a different target after a closed door. Three cases this " +
+    "period actually turns on. If Austria refuses the Anschluss and stands " +
+    "alone — no Italian or Western guarantee behind it — Germany does not " +
+    "shrug: it declares war and takes the country, and the refusal buys " +
+    "Austria a campaign, not safety. If the Allies appease the invasion of " +
+    "Poland instead of declaring war, Germany reads that correctly and keeps " +
+    "demanding and taking — one more claim, then another — and does not stop " +
+    "until it turns east against the Soviet Union. If Germany is more than " +
+    "three months late into Norway, the Allies land there first and cut the " +
+    "iron ore off at Narvik, and the Reich's war economy feels it. Beyond " +
+    "these three, apply the same reasoning to whatever the player actually " +
+    "blocks: name the interest that was frustrated, and let the world pursue " +
+    "it by the next available means rather than dropping it.",
 
   startingTimelineText:
     "December 1935. In the Ethiopian highlands the Negus's barefoot armies dig in against " +

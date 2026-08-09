@@ -18,6 +18,7 @@ import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
+import { SCHEDULED_EVENTS } from "./lib/scheduledEvents.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
@@ -316,6 +317,7 @@ const world = {
     spec.historicalPrior === false ? "" : HISTORICAL_PRIOR,
     spec.playerSovereignty === false ? "" : PLAYER_SOVEREIGNTY,
     spec.internalVoices === false ? "" : INTERNAL_VOICE_CONTRACT,
+    spec.scheduledEvents === false ? "" : SCHEDULED_EVENTS,
   ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
 };

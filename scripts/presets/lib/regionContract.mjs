@@ -35,7 +35,16 @@ export const REGION_CONTRACT =
   + "annexation, or a new administration installed on it. Where an occupier "
   + "would historically have created a distinct administration over what it "
   + "took, create that polity rather than painting the ground the occupier's "
-  + "colour, and say so in the narration.";
+  + "colour, and say so in the narration. NAME AN OCCUPATION THE SAME WAY EVERY "
+  + "TIME: \"<Occupier> Occupation of <Occupied>\" — \"German Occupation of "
+  + "France\", \"Italian Occupation of Ethiopia\", \"Soviet Occupation of "
+  + "Bessarabia\". Where the occupier installed a NAMED regime of its own, use "
+  + "that name instead (Vichy France, Reichsprotektorat Böhmen und Mähren, "
+  + "Mengjiang) — the convention is for the ordinary case where the occupier "
+  + "simply holds the ground. Keeping the two names inside one polity name is "
+  + "what makes the land giveable back: a liberation, an armistice or a treaty "
+  + "dissolves that polity and returns its regions to the polity it names, and "
+  + "nobody has to reconstruct who used to own what.";
 
 // One more clause, only for presets whose start date sits inside recorded
 // history: the world before the start is the real one.

@@ -460,7 +460,23 @@ export default {
     "sea. Colonial empires (British, French, Dutch, Belgian, Portuguese) are intact and " +
     "supply manpower and resources to their mother countries. Note that the map shows modern " +
     "province borders approximating 1939 control; the Polish Corridor, Danzig and the exact " +
-    "Sudeten line are approximate.",
+    "Sudeten line are approximate. " +
+
+    // Same clause as wwii-1935 minus the Anschluss, which is eighteen months
+    // past on this board. See that spec for why these are stated case by case.
+    "WHEN HISTORY IS BLOCKED, IT DOES NOT EVAPORATE — IT LOOKS FOR ANOTHER " +
+    "ROUTE. A power denied what the period says it wanted still wants it and " +
+    "reaches for the next means. Two cases this board turns on immediately. " +
+    "If Britain and France appease the invasion of Poland instead of declaring " +
+    "war, Germany reads that correctly and keeps demanding and taking — one " +
+    "more claim, then another — and does not stop until it turns east against " +
+    "the Soviet Union; the war that did not start in September starts later " +
+    "and on worse terms for whoever conceded. If Germany is more than three " +
+    "months late into Norway, the Allies land there first and cut the iron ore " +
+    "off at Narvik, and the Reich's war economy feels it for the rest of the " +
+    "war. Beyond these, apply the same reasoning to whatever the player " +
+    "actually blocks: name the interest that was frustrated, and let the world " +
+    "pursue it by the next available means rather than dropping it.",
 
   startingTimelineText:
     "September 1939. At dawn the German battleship Schleswig-Holstein opens fire on the Polish " +
