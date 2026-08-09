@@ -85,12 +85,16 @@ export const REFERENCE = {
   "Shanxi Clique": {
     leader: [
       { name: "산시성 주석 옌시산", from: "1911-10-29", until: "1949-04-24" },
+      // 축이 이긴 세계에서는 1949년에 끝나지 않는다 — 공영권 아래 성 군벌로
+      // 남는다(tno-1962). 행을 잇는 것이지 새 키를 만드는 것이 아니다.
+      { name: "산시 군벌 사령관 (공영권 예하)", from: "1949-04-24" },
     ],
   },
   "Xinjiang Clique": {
     leader: [
       { name: "신장 변방독판 진수런", from: "1928-07-07", until: "1933-04-12" },
       { name: "신장 변방독판 성스차이", from: "1933-04-12", until: "1944-09-11" },
+      { name: "신장 성주석 (우루무치)", from: "1944-09-11" },
     ],
   },
   "New Guangxi Clique": {
@@ -105,6 +109,7 @@ export const REFERENCE = {
   "Guangdong Clique": {
     leader: [
       { name: "제1집단군 총사령 천지탕", from: "1929-03-01", until: "1936-07-18" },
+      { name: "광둥 군벌 사령관 (공영권 예하)", from: "1945-08-15" },
     ],
   },
   "Yunnan Clique": {
@@ -127,6 +132,7 @@ export const REFERENCE = {
     // 마가군벌은 한 사람이 아니라 집안이다 — 칭하이·닝샤·간쑤에 각각 앉아 있다.
     leader: [
       { name: "닝샤성 주석 마훙쿠이", from: "1933-03-01", until: "1949-09-01" },
+      { name: "마가군벌 사령관 (칭하이·닝샤·간쑤)", from: "1949-09-01" },
     ],
     deputy: [
       { name: "칭하이성 주석 마린", from: "1931-01-01", until: "1936-09-01" },
@@ -146,6 +152,7 @@ export const REFERENCE = {
     leader: [
       { name: "몽골지방자치정무위원회 위원장 더왕", from: "1934-04-23", until: "1936-05-12" },
       { name: "몽골군정부 총재 더왕", from: "1936-05-12", until: "1945-08-19" },
+      { name: "몽강연합자치정부 주석", from: "1945-08-19" },
     ],
   },
 
@@ -2735,6 +2742,98 @@ export const REFERENCE = {
       { name: "부통령 사이먼 무젠다", from: "1987-12-31", until: "2003-09-20" },
     ],
   },
+
+  // ── The New Order 1962 — 실존하지 않는 정부들 ────────────────────────────
+  // 카이저라이히와 같은 원칙: 대체역사 정치체에는 **사람을 지어내지 않는다.**
+  // 직책과 제도를 적고, 이름은 원본이 스스로 지목한 실존 인물에 한해 쓴다
+  // (고리키의 체르냐홉스키가 그 경우다 — 원본 페이지의 서술이다).
+  // 그리고 **실존 정치체와 이름을 공유하지 않는다** — "Republic of China"로
+  // 남경 정부를 적으면 장제스 항목을 덮어써 역사 보드가 깨진다.
+  "Großgermanische Reich": {
+    leader: [
+      { name: "총통 (재위 중이나 통치하지 않음)", from: "1945-01-01" },
+    ],
+    deputy: [
+      { name: "제국 후계 경쟁자 4인 (기술관료·당·공군·친위대)", from: "1958-01-01" },
+    ],
+  },
+  "Dai-Nippon Teikoku": {
+    leader: [
+      { name: "내각총리대신 (대정익찬 체제)", from: "1945-01-01" },
+    ],
+    headOfState: [
+      { name: "천황", from: "1926-12-25" },
+    ],
+  },
+  "Reichskommissariat Ostland": { leader: [{ name: "국가판무관 (리가)", from: "1941-07-25" }] },
+  "Reichskommissariat Ukraine": { leader: [{ name: "국가판무관 (리브네)", from: "1941-09-01" }] },
+  "Reichskommissariat Moskowien": { leader: [{ name: "국가판무관 (A-A선 서쪽 군정)", from: "1944-01-01" }] },
+  "Reichskommissariat Kaukasien": { leader: [{ name: "국가판무관 (티플리스)", from: "1943-01-01" }] },
+  "Reichskommissariat Turkestan": { leader: [{ name: "국가판무관 (중앙아시아 군정)", from: "1943-01-01" }] },
+  "Reichskommissariat Norwegen": { leader: [{ name: "국가판무관 (오슬로)", from: "1940-04-24" }] },
+  "Reichskommissariat Niederlande": { leader: [{ name: "국가판무관 (암스테르담)", from: "1940-05-29" }] },
+  "Reichskommissariat Zentralafrika": { leader: [{ name: "국가판무관 (레오폴드빌)", from: "1943-01-01" }] },
+  "Reichskommissariat Ostafrika": { leader: [{ name: "국가판무관 (나이로비)", from: "1943-01-01" }] },
+  "Reichskommissariat Südwestafrika": { leader: [{ name: "국가판무관 (빈트후크)", from: "1943-01-01" }] },
+  "Burgundian System": { leader: [{ name: "친위대 전국지도자 겸 부르군트 통치자", from: "1945-01-01" }] },
+  "French State": { leader: [{ name: "국가원수 (비시 계승 정부)", from: "1940-07-10" }] },
+  "Iberian Union": { leader: [{ name: "이베리아 연합 집정관 (마드리드-리스본 공동정부)", from: "1948-01-01" }] },
+  "Regno d'Italia": {
+    leader: [{ name: "총리 (파시스트 잔존 체제)", from: "1945-01-01" }],
+    headOfState: [{ name: "국왕", from: "1946-01-01" }],
+  },
+  "Republic of Türkiye": { leader: [{ name: "대통령 (케말주의 공화국)", from: "1938-11-11" }] },
+  "Nanjing Government": { leader: [{ name: "국민정부 주석 (남경 개조정부)", from: "1940-03-30" }] },
+  "Military Governate of Shonan Marai": { leader: [{ name: "쇼난 군정장관", from: "1942-02-15" }] },
+  "United Malayan Anti-Japanese Front": { leader: [{ name: "항일전선 총사령 (게릴라 지도부)", from: "1957-01-01" }] },
+  "Bharatiya Commune": { leader: [{ name: "인민평의회 의장", from: "1948-01-01" }] },
+  "Bengal": { leader: [{ name: "벵골 정부 수반 (다카)", from: "1947-01-01" }] },
+  "United States of Brazil": { leader: [{ name: "브라질 합중국 대통령", from: "1946-01-01" }] },
+  // 중국 군벌들(산시·마가·신장·광둥·몽강)은 여기에 직접 키를 두지 않는다.
+  // 이미 별칭 사슬로 실제 인물에 닿아 있고, 직접 키를 만들면 그 사슬을 가려
+  // 1935·1939 보드가 통째로 빈손이 된다 — tests/leaders.mjs가 잡아냈다.
+  // 빌드 로그의 "미기록"은 시드 표 이야기지 런타임 조회 이야기가 아니다.
+  // 유고슬라비아가 재건되지 않은 세계. 여기서 키를 그냥 "Serbia"로 두면
+  // 1914년 페타르 1세를 가리는 별칭 그림자가 생긴다 — tests/leaders.mjs가
+  // 잡아낸, 카이저라이히의 "Republic of China"와 정확히 같은 함정이다.
+  // 두 정권의 실제 이름을 쓰면 충돌이 사라지고 표기도 더 정확해진다.
+  "Independent State of Croatia": { leader: [{ name: "국가원수 (독립국 체제)", from: "1941-04-10" }] },
+  "Government of National Salvation": { leader: [{ name: "국가원수 (구국정부 계승)", from: "1941-08-29" }] },
+
+  // 러시아 아나키 — 서른한 개 군대. 전부 직책만 적는다. 이들이 누구인지는
+  // 이 보드가 정할 일이지 레퍼런스가 정할 일이 아니다.
+  "West Russian Revolutionary Front": { leader: [{ name: "전선 군사평의회 의장", from: "1949-01-01" }] },
+  "Komi Republic": { leader: [{ name: "공화국 대통령 (불안정한 자유민주정)", from: "1953-01-01" }] },
+  "Military Control Commission in Gorky": { leader: [{ name: "군사통제위원장 이반 체르냐홉스키", from: "1953-01-01" }] },
+  "Neutral State of Vologda": { leader: [{ name: "중립국 집정관", from: "1953-01-01" }] },
+  "Aryan Brotherhood": { leader: [{ name: "형제단 지도자", from: "1955-01-01" }] },
+  "Principality of Vyatka": { leader: [{ name: "공작 (뱌트카 공국)", from: "1953-01-01" }] },
+  "Committee for the Liberation of the Peoples of Russia": { leader: [{ name: "해방위원회 의장", from: "1945-01-01" }] },
+  "Order of Saint George": { leader: [{ name: "기사단 총장", from: "1953-01-01" }] },
+  "Republic of Bashkortostan": { leader: [{ name: "공화국 대통령 (우파)", from: "1953-01-01" }] },
+  "Tatar Republic": { leader: [{ name: "공화국 대통령 (카잔)", from: "1953-01-01" }] },
+  "Ural Military District": { leader: [{ name: "군관구 사령관", from: "1949-01-01" }] },
+  "Zlatoust Republic": { leader: [{ name: "공화국 집정관", from: "1953-01-01" }] },
+  "Thief Territory of Yugra": { leader: [{ name: "도적 두목 (보르 브 자코네)", from: "1953-01-01" }] },
+  "Free Aviators": { leader: [{ name: "비행단장", from: "1953-01-01" }] },
+  "West Siberian Peoples Republic": { leader: [{ name: "인민공화국 서기장", from: "1953-01-01" }] },
+  "Provisional Authority of Omsk": { leader: [{ name: "임시정청 총재", from: "1953-01-01" }] },
+  "Vorkuta Corrective Labour Camp": { leader: [{ name: "수용소 관리위원회", from: "1953-01-01" }] },
+  "Central Siberian Republic": { leader: [{ name: "공화국 대통령 (톰스크)", from: "1953-01-01" }] },
+  "Federation of Novosibirsk and Altay": { leader: [{ name: "연방 의장", from: "1953-01-01" }] },
+  "Principality of Kemerovo": { leader: [{ name: "공작 (케메로보 공국)", from: "1953-01-01" }] },
+  "Provisional Government of Krasnoyarsk": { leader: [{ name: "임시정부 수반", from: "1953-01-01" }] },
+  "Karakorum Government of Oyrotia": { leader: [{ name: "카라코룸 정부 수반", from: "1953-01-01" }] },
+  "Siberian Black League": { leader: [{ name: "흑색동맹 평의회 (아나키스트)", from: "1953-01-01" }] },
+  "Siberian Black Army": { leader: [{ name: "흑군 사령관 (아나키스트)", from: "1953-01-01" }] },
+  "Presidium of the Supreme Soviet": { leader: [{ name: "최고소비에트 간부회 의장", from: "1946-01-01" }] },
+  "Buryat Autonomous Soviet Socialist Republic": { leader: [{ name: "부랴트 당 제1서기", from: "1946-01-01" }] },
+  "Transbaikal Principality": { leader: [{ name: "공작 (자바이칼 공국)", from: "1953-01-01" }] },
+  "All-Russian Government of Amur": { leader: [{ name: "전러시아 정부 대통령 (블라고베셴스크)", from: "1953-01-01" }] },
+  "Free State of Magadan": { leader: [{ name: "자유국 총재", from: "1953-01-01" }] },
+  "Sakha Republic": { leader: [{ name: "공화국 대통령 (야쿠츠크)", from: "1953-01-01" }] },
+  "People's Revolutionary Council": { leader: [{ name: "혁명평의회 의장", from: "1953-01-01" }] },
+  "Soviet Pacific Fleet": { leader: [{ name: "함대 사령관 (페트로파블롭스크)", from: "1946-01-01" }] },
 };
 
 export const POLITICAL_FIGURES = {
