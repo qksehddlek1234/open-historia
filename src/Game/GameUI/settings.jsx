@@ -1107,11 +1107,15 @@ const DisplayScalePanel = () => {
 
 // THE ORIGINAL'S "MAP RENDERING OPTIONS", PORTED.
 //
-// Six of its seven dials. The seventh — "label line extension", how far a
-// country label's leader line runs past the polygon edge — has nothing to scale
-// here: our labels sit ON the shape (straight or curved along it) and no leader
-// lines are drawn at all. Adding them is a Plan G job, not a setting.
+// All seven dials. The seventh — "label line extension" — had nothing to scale
+// when this panel was first written, because our labels sat ON the shape and no
+// leader lines existed. They do now (runtime/countryLabels.js): a country whose
+// own areaScale falls under the floor draws its name OUTSIDE at a legible size
+// with a hairline back to the shape, which is the only way Danzig, Memel,
+// Luxembourg and the rest are on the 1935 map at all at a readable zoom.
 const MAP_RENDER_FIELDS = [
+    { name: "labelLineExtension", label: "Label line length (degrees)", step: 0.05,
+      hint: "A country too small to hold its own name draws it outside, on a line. This is how far past its edge. 0 pins the name to the border; the default 0.5° clears a Luxembourg." },
     { name: "borderFadeStart", label: "Region borders hidden at or below zoom", step: 0.1,
       hint: "Below this the province hairlines are invisible. Default 7.5 — not while you are looking at a continent." },
     { name: "borderFadeEnd", label: "…and fully drawn by zoom", step: 0.1,

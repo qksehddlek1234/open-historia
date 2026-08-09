@@ -26,8 +26,7 @@ export const MAP_SETTING_KEYS = {
     // slow model (Cancel still works either way).
     limitAiGeneration: "ai_limit_generation",
     // ── The original's "Map Rendering Options" page, ported ──────────────────
-    // Two of its seven dials are booleans. See MAP_RENDER_* below for the rest
-    // and for what the seventh (label line extension) has nothing to scale.
+    // Two of its seven dials are booleans; the rest are MAP_RENDER_* below.
     //
     // hideParallelWorlds: draw ONE copy of the world. MapLibre's
     // renderWorldCopies repeats the map east and west forever, which is right
@@ -100,6 +99,12 @@ export function useFeatureLabelStack(base = DEFAULT_FEATURE_LABEL_STACK) {
 // limitWorldBounds is on. Defaults are the whole world MapLibre already allows,
 // so turning the flag on without touching them changes nothing visible.
 export const MAP_RENDER_DEFAULTS = {
+    // How far past its own edge a country's label sits when the shape is too
+    // small to hold it — the original's "label line extension". Ours is in
+    // DEGREES (theirs is 0.015 in its own units): 0.5° clears a Luxembourg
+    // without landing in the next country's name. See runtime/countryLabels.js
+    // for which countries get a line at all and why.
+    labelLineExtension: 0.5,
     borderFadeStart: 7.5,
     borderFadeEnd: 14,
     worldBoundsWest: -180,
@@ -109,6 +114,7 @@ export const MAP_RENDER_DEFAULTS = {
 };
 
 export const MAP_RENDER_KEYS = {
+    labelLineExtension: "map_label_line_extension",
     borderFadeStart: "map_border_fade_start",
     borderFadeEnd: "map_border_fade_end",
     worldBoundsWest: "map_world_bounds_west",
@@ -120,6 +126,10 @@ export const MAP_RENDER_KEYS = {
 // Bounds, not preferences. The zoom ends live inside the map's own 2.25-16
 // range; the rectangle lives inside what MapLibre will accept as latitudes.
 export const MAP_RENDER_BOUNDS = {
+    // 0 pins the label to its own edge (still legible, still on a stub of a
+    // line); 4° is a label most of a country away, which is a choice a player
+    // may want on a crowded board and never an accident.
+    labelLineExtension: [0, 4],
     borderFadeStart: [2.25, 15],
     borderFadeEnd: [2.25, 16],
     worldBoundsWest: [-180, 180],

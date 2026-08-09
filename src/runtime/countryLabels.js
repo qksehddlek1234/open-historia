@@ -9,15 +9,25 @@ import {
 } from "./assets.js";
 import { getStoredLanguage } from "./i18n.js";
 import { translateLabel } from "./translator.js";
+import {
+  LEADER_AREA_SCALE_FLOOR,
+  LEADER_EXTENSION_DEFAULT,
+  LEADER_LABEL_AREA_SCALE,
+  buildLeaderPlacement,
+} from "./labelLeaders.js";
 
 // v3: label features now carry `lat` (globe text-size correction, issue #6) —
 // bumped so returning users' persisted v2 cache (no `lat`) doesn't silently
 // serve pre-fix data forever.
-const COUNTRY_LABELS_CACHE_KEY = "country-labels-v3";
+// v4: label features carry `leader`, and the payload carries a third
+// collection (leaderLineData) — a persisted v3 cache has neither, so a
+// returning player would keep getting a map with no small states on it.
+const COUNTRY_LABELS_CACHE_KEY = "country-labels-v4";
 const EMPTY_FEATURE_COLLECTION = { type: "FeatureCollection", features: [] };
 const EMPTY_COUNTRY_LABELS = {
   curvedLabelData: EMPTY_FEATURE_COLLECTION,
   pointLabelData: EMPTY_FEATURE_COLLECTION,
+  leaderLineData: EMPTY_FEATURE_COLLECTION,
 };
 
 let countryLabelsPromise = null;
@@ -472,7 +482,7 @@ const computeCountryLabelCacheKey = (buffer, archiveUrl) => {
   return `${COUNTRY_LABELS_CACHE_KEY}-${bytes.byteLength}-${(hash >>> 0).toString(36)}-${encodeURIComponent(archiveUrl)}-${getStoredLanguage()}`;
 };
 
-const buildCountryLabelCollections = async (tileData, ownedCodes = null) => {
+const buildCountryLabelCollections = async (tileData, ownedCodes = null, leaderExtension = LEADER_EXTENSION_DEFAULT) => {
   if (!tileData?.data) {
     return EMPTY_COUNTRY_LABELS;
   }
@@ -536,6 +546,14 @@ const buildCountryLabelCollections = async (tileData, ownedCodes = null) => {
       index,
     );
 
+    // TOO SMALL TO HOLD ITS OWN NAME → the label goes outside on a leader line.
+    // Only ever the point branch: a shape this small never passes the curved
+    // path's span gate, so nothing here can steal a label from that path.
+    const needsLeader = !curvedGlyphFeatures && areaScale < LEADER_AREA_SCALE_FLOOR;
+    const leader = needsLeader
+      ? buildLeaderPlacement(bestRingLngLat, [lng, lat], rotation, leaderExtension)
+      : null;
+
     registry.set(name, {
       areaLngLat,
       curvedGlyphFeatures,
@@ -544,20 +562,40 @@ const buildCountryLabelCollections = async (tileData, ownedCodes = null) => {
         : {
             type: "Feature",
             id: `${index}-point`,
-            geometry: { type: "Point", coordinates: [lng, lat] },
+            geometry: {
+              type: "Point",
+              coordinates: leader ? leader.anchor : [lng, lat],
+            },
             properties: {
-              areaScale,
+              // Out on a line the label is no longer describing an area it sits
+              // in, so it stops being sized by one and draws to be read.
+              areaScale: leader ? LEADER_LABEL_AREA_SCALE : areaScale,
               name: name.toUpperCase(),
-              rotation,
+              // A leader label is horizontal. Rotating it to the principal axis
+              // of a shape it is no longer standing on reads as a mistake.
+              rotation: leader ? 0 : rotation,
+              leader: leader ? 1 : 0,
               // See the glyph-feature branch above — same globe text-size fix.
-              lat,
+              lat: leader ? leader.anchor[1] : lat,
             },
           },
+      // The line itself: from the shape's own edge out to the label. Starting
+      // at the edge rather than the centroid keeps the stroke off a 2px country
+      // instead of covering it.
+      leaderFeature: leader
+        ? {
+            type: "Feature",
+            id: `${index}-leader`,
+            geometry: { type: "LineString", coordinates: [leader.edge, leader.anchor] },
+            properties: { name: name.toUpperCase() },
+          }
+        : null,
     });
   }
 
   const pointFeatures = [];
   const curvedFeatures = [];
+  const leaderFeatures = [];
 
   for (const entry of registry.values()) {
     if (entry.curvedGlyphFeatures) {
@@ -565,6 +603,7 @@ const buildCountryLabelCollections = async (tileData, ownedCodes = null) => {
     } else if (entry.pointFeature) {
       pointFeatures.push(entry.pointFeature);
     }
+    if (entry.leaderFeature) leaderFeatures.push(entry.leaderFeature);
   }
 
   return {
@@ -576,6 +615,10 @@ const buildCountryLabelCollections = async (tileData, ownedCodes = null) => {
       type: "FeatureCollection",
       features: pointFeatures,
     },
+    leaderLineData: {
+      type: "FeatureCollection",
+      features: leaderFeatures,
+    },
   };
 };
 
@@ -584,9 +627,20 @@ const isCountryLabelPayload = (value) =>
   value.pointLabelData?.type === "FeatureCollection" &&
   Array.isArray(value.pointLabelData.features) &&
   value.curvedLabelData?.type === "FeatureCollection" &&
-  Array.isArray(value.curvedLabelData.features);
+  Array.isArray(value.curvedLabelData.features) &&
+  // v4. A cached payload without it is pre-leader-line and must be rebuilt.
+  value.leaderLineData?.type === "FeatureCollection" &&
+  Array.isArray(value.leaderLineData.features);
 
-export const loadCountryLabelCollections = async ({ force = false, ownedCodes = null } = {}) => {
+// leaderExtension is baked into the geometry rather than applied at draw time:
+// the anchor needs the country's own ring to know where its edge is, and a
+// MapLibre expression cannot move a point. So the setting rides the CACHE KEY —
+// change it and the collections rebuild, exactly like a change of owner set.
+export const loadCountryLabelCollections = async ({
+  force = false,
+  ownedCodes = null,
+  leaderExtension = LEADER_EXTENSION_DEFAULT,
+} = {}) => {
   const tileData = await getCountriesTileData();
   const baseKey = tileData?.data
     ? computeCountryLabelCacheKey(tileData.data, PMTILES_ARCHIVES.countries)
@@ -603,7 +657,11 @@ export const loadCountryLabelCollections = async ({ force = false, ownedCodes = 
     }
     ownersSuffix = `-own${ownedCodes.size}-${(hash >>> 0).toString(36)}`;
   }
-  const cacheKey = `${baseKey}${ownersSuffix}`;
+  const extension = Number.isFinite(leaderExtension) && leaderExtension >= 0
+    ? Number(leaderExtension)
+    : LEADER_EXTENSION_DEFAULT;
+  const extensionSuffix = extension === LEADER_EXTENSION_DEFAULT ? "" : `-lx${extension}`;
+  const cacheKey = `${baseKey}${ownersSuffix}${extensionSuffix}`;
 
   if (!force && countryLabelsValue && countryLabelsValueKey === cacheKey) {
     return countryLabelsValue;
@@ -631,7 +689,7 @@ export const loadCountryLabelCollections = async ({ force = false, ownedCodes = 
       }
     }
 
-    const built = await buildCountryLabelCollections(tileData, ownedCodes);
+    const built = await buildCountryLabelCollections(tileData, ownedCodes, extension);
 
     // An empty result is almost always a degraded z0 read (a missing or garbled
     // tile resolves to undefined rather than throwing), not a genuinely

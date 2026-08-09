@@ -366,7 +366,14 @@ test("THE FOUR CONSTANTS ARE SETTINGS NOW, with the original's own defaults", ()
 });
 
 test("…every one is bounded, because below the floor it stops meaning anything", () => {
-  const bounds = [...MAPSET.matchAll(/^\s{4}(\w+): \[(\d+), (\d+)\],$/gm)]
+  // Scoped to CONSOLIDATION_BOUNDS rather than the whole file: the map-rendering
+  // dials landed in the same file with the same `name: [min, max],` shape, and a
+  // file-wide scan quietly started counting those too.
+  const block = MAPSET.slice(
+    MAPSET.indexOf("export const CONSOLIDATION_BOUNDS"),
+    MAPSET.indexOf("export function getConsolidationSetting"),
+  );
+  const bounds = [...block.matchAll(/^\s{4}(\w+): \[(\d+), (\d+)\],$/gm)]
     .map(([, name, min, max]) => [name, Number(min), Number(max)]);
   assert.equal(bounds.length, 4);
   for (const [name, min, max] of bounds) assert.ok(min >= 1 && max > min, `${name} ${min}-${max}`);

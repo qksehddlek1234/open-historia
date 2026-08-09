@@ -1,10 +1,9 @@
 // THE ORIGINAL'S "MAP RENDERING OPTIONS" AND "DOCUMENT SIZE" PAGES, PORTED.
 //
 // Measured off the WWII++ copy on 2026-08-09 (docs/analysis/wwii-plus-plus-audit.md
-// §5). Six of the seven rendering dials land here; the seventh — label line
-// extension — has nothing to scale, because our country labels sit on the shape
-// and no leader lines are drawn at all. That absence is pinned too, so the next
-// person does not go looking for a bug.
+// §5). Six of the seven rendering dials land here. The seventh — label line
+// extension — had nothing to scale when this suite was written and now does:
+// see tests/label-leaders.mjs for the leader lines it moves.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
@@ -95,11 +94,11 @@ test("…every feature layer draws with it, and no hard-coded stack survives", (
 
 // ---- the panel and the gauge ------------------------------------------------------------
 
-test("the settings panel exists and says why the seventh dial is absent", () => {
+test("the settings panel exists and carries all seven dials", () => {
   assert.match(SETTINGS, /const MapRenderingPanel = \(\) => \{/);
   assert.match(SETTINGS, /<MapRenderingPanel \/>/);
   assert.match(SETTINGS, /label line extension/);
-  assert.match(SETTINGS, /no leader\s*\n?\s*\/\/ lines are drawn at all/);
+  assert.match(SETTINGS, /All seven dials/);
 });
 
 test("THE ONE DOCUMENT-SIZE GAUGE THAT APPLIES TO US IS THERE", () => {

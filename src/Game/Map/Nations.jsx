@@ -481,11 +481,16 @@ const WorldMap = ({ isGlobe = false }) => {
   const borderScale = useDisplayScale("borderWidth");
   // Where the region hairlines start coming up and where they reach full — the
   // original's "Border Fade Range". Four stops, shape preserved (mapSettings.js).
+  // How far a too-small country's label sits past its own edge. Baked into the
+  // label geometry at build time (runtime/countryLabels.js explains why), so a
+  // change here rebuilds the label collections rather than moving a layer.
+  const labelLineExtension = useMapRenderValue("labelLineExtension");
   const fadeStart = useMapRenderValue("borderFadeStart");
   const fadeEnd = useMapRenderValue("borderFadeEnd");
   const fadeStops = useMemo(() => borderFadeStops(fadeStart, fadeEnd), [fadeStart, fadeEnd]);
   const [pointLabelData, setPointLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [curvedLabelData, setCurvedLabelData] = useState(EMPTY_FEATURE_COLLECTION);
+  const [leaderLineData, setLeaderLineData] = useState(EMPTY_FEATURE_COLLECTION);
   const [customRegionData, setCustomRegionData] = useState(EMPTY_FEATURE_COLLECTION);
   const countriesUrl = PMTILES_PROTOCOL_URLS.countries;
   const regionsUrl = PMTILES_PROTOCOL_URLS.regions;
@@ -622,6 +627,11 @@ const WorldMap = ({ isGlobe = false }) => {
       ? ownerLabelData
       : pointLabelData;
   const activeCurvedLabelData = worldKnown && !customFlag ? curvedLabelData : EMPTY_FEATURE_COLLECTION;
+  // Leader lines belong to the stock label set, so they follow the curved
+  // labels: a custom world draws owner labels instead and has none of them.
+  const activeLeaderLineData = worldKnown && !customFlag && !mapDisplaySettings.hideCountryLabels
+    ? leaderLineData
+    : EMPTY_FEATURE_COLLECTION;
 
   const handleRegionClick = useCallback((event) => {
     // Everything on this map is a point a few pixels across, and every query below
@@ -930,11 +940,13 @@ const WorldMap = ({ isGlobe = false }) => {
     loadCountryLabelCollections({
       force: labelEpoch > 0,
       ownedCodes: ownedCountryCodes.size ? ownedCountryCodes : null,
+      leaderExtension: labelLineExtension,
     })
-      .then(({ pointLabelData: pointLabels, curvedLabelData: curvedLabels }) => {
+      .then(({ pointLabelData: pointLabels, curvedLabelData: curvedLabels, leaderLineData: leaders }) => {
         if (cancelled) return;
         setPointLabelData(pointLabels);
         setCurvedLabelData(curvedLabels);
+        setLeaderLineData(leaders ?? EMPTY_FEATURE_COLLECTION);
       })
       .catch((error) => console.error("Failed to load country labels:", error));
 
@@ -942,7 +954,7 @@ const WorldMap = ({ isGlobe = false }) => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ownedCodesKey, labelEpoch]);
+  }, [ownedCodesKey, labelEpoch, labelLineExtension]);
 
   // DEAD as it stands, and deliberately left alone rather than half-fixed. It is
   // the only expression in the game that matches a country CODE — ["get", "GID_0"]
@@ -1313,7 +1325,14 @@ const WorldMap = ({ isGlobe = false }) => {
     "text-size": buildCountryTextSize(1, isGlobe),
     "text-rotate": ["get", "rotation"],
     "text-anchor": "center",
-    "text-allow-overlap": true,
+    // A country's own label always draws — it is standing on its own ground and
+    // nothing else has a better claim to that spot. A LEADER label is different:
+    // it has been moved off its country into shared space, and 71 of them are
+    // eligible world-wide, most of them islands packed into the Caribbean and
+    // the Pacific. With overlap allowed they would stack into an unreadable
+    // smear there, so leader labels alone submit to collision culling and the
+    // ones that lose simply are not drawn at that zoom.
+    "text-allow-overlap": ["case", ["==", ["get", "leader"], 1], false, true],
     "text-pitch-alignment": "map",
     "text-rotation-alignment": "map",
     "text-keep-upright": false,
@@ -1332,6 +1351,18 @@ const WorldMap = ({ isGlobe = false }) => {
     "text-keep-upright": false,
     visibility: mapDisplaySettings.hideCountryLabels ? "none" : "visible",
   }), [isGlobe, labelFontStack, mapDisplaySettings.hideCountryLabels]);
+
+  // The line is the label's own colour at half strength — it is punctuation for
+  // the text, not a border, and it must never compete with a real one.
+  const leaderLinePaint = useMemo(() => ({
+    "line-color": labelTextColor || "#FFFFFF",
+    "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.5, 6, 0.9, 8, 1.2],
+    "line-opacity": [
+      "interpolate", ["linear"], ["zoom"],
+      5, 0.38,
+      8, 0,
+    ],
+  }), [labelTextColor]);
 
   const labelLayerPaint = useMemo(() => ({
     "text-color": labelTextColor || "#FFFFFF",
@@ -1527,6 +1558,19 @@ const WorldMap = ({ isGlobe = false }) => {
           />
         </Source>
       )}
+
+      {/* Under the labels, above the fills: a hairline from a country too small
+          to hold its name out to where the name actually is. Same opacity ramp
+          as the labels themselves, so the line never outlives the text it
+          points at. */}
+      <Source id="country-leader-line-source" type="geojson" data={activeLeaderLineData}>
+        <Layer
+          id="country-leader-lines"
+          type="line"
+          layout={{ "line-cap": "round" }}
+          paint={leaderLinePaint}
+        />
+      </Source>
 
       <Source id="country-curved-label-source" type="geojson" data={activeCurvedLabelData}>
         <Layer
