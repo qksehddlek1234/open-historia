@@ -113,7 +113,62 @@ export const prettifyGadmName = (raw) => {
     .trim();
 };
 
+// ── EUROSTAT GISCO NUTS ─────────────────────────────────────────────────────
+//
+// The third vocabulary, and the one that answers Germany. GADM gives Germany a
+// choice between 16 Bundesländer and ~403 Kreise, and the original's own number
+// is 89 — so both are wrong and there is no middle tier IN GADM. There is one in
+// NUTS: level 2 sits exactly between them, and it is the same layer we already
+// adopted for Britain (ITL2 is the post-Brexit rename of UK NUTS-2, which is why
+// the seed's British ids read "GBR.TLC3"). Poland, the Netherlands, Austria and
+// Sweden were rejected for the same reason and come back with the same file.
+//
+// GISCO ships NUTS as GeoJSON with these properties, and none of them look like
+// GADM or ONS: NUTS_ID ("DE11"), LEVL_CODE (0-3), CNTR_CODE ("DE"), NAME_LATN,
+// NUTS_NAME. CNTR_CODE is ISO 3166-1 alpha-2 and our ids are alpha-3, so the map
+// below is the whole translation — only the countries whose subdivisions we
+// would actually take, because a wrong guess is worse than a refusal.
+const NUTS_ISO3 = {
+  AT: "AUT", BE: "BEL", BG: "BGR", CH: "CHE", CY: "CYP", CZ: "CZE", DE: "DEU",
+  DK: "DNK", EE: "EST", EL: "GRC", ES: "ESP", FI: "FIN", FR: "FRA", HR: "HRV",
+  HU: "HUN", IE: "IRL", IS: "ISL", IT: "ITA", LI: "LIE", LT: "LTU", LU: "LUX",
+  LV: "LVA", ME: "MNE", MK: "MKD", MT: "MLT", NL: "NLD", NO: "NOR", PL: "POL",
+  PT: "PRT", RO: "ROU", RS: "SRB", SE: "SWE", SI: "SVN", SK: "SVK", TR: "TUR",
+  UK: "GBR",
+};
+
+// Which NUTS level to take. 2 is the default because that is the tier this
+// exists for; --nuts-level 3 is there for a country where 2 is still too coarse.
+const nutsLevelAt = argv.indexOf("--nuts-level");
+const NUTS_LEVEL = nutsLevelAt >= 0 ? Number(argv[nutsLevelAt + 1]) : 2;
+
+const readNutsRow = (props) => {
+  const nutsId = String(props.NUTS_ID ?? props.nuts_id ?? "").trim();
+  if (!nutsId) return null;
+  const level = props.LEVL_CODE ?? props.levl_code;
+  // A GISCO download can hold every level at once. Take one, and say why the
+  // others were refused rather than silently mixing tiers on the map.
+  if (level != null && Number(level) !== NUTS_LEVEL) {
+    return { skip: `${nutsId}: NUTS level ${level}, wanted ${NUTS_LEVEL}` };
+  }
+  // GISCO ships ISO3_CODE on the row itself, which beats any table we keep —
+  // the map below is the fallback for an older edition that omits it.
+  const gid0 = String(props.ISO3_CODE ?? props.iso3_code ?? "").trim().toUpperCase()
+    || NUTS_ISO3[String(props.CNTR_CODE ?? props.cntr_code ?? "").trim().toUpperCase()];
+  if (!gid0) return { skip: `${nutsId}: no ISO-3 for country code "${props.CNTR_CODE}"` };
+  return {
+    id: `${gid0}.${nutsId}`,
+    gid0,
+    // NAME_LATN is the Latin transliteration; NUTS_NAME can be Cyrillic or
+    // Greek, and a map label the player cannot read is not a label.
+    name: String(props.NAME_LATN ?? props.NUTS_NAME ?? props.nuts_name ?? "").trim(),
+    country: "",
+  };
+};
+
 const readRow = (props) => {
+  const nuts = readNutsRow(props);
+  if (nuts) return nuts;
   const gadmId = String(props.GID_2 ?? props.gid2 ?? props.GID_1 ?? "").trim();
   if (gadmId) {
     return {
@@ -140,7 +195,11 @@ for (const feature of incoming) {
   const props = feature.properties ?? {};
   const row = readRow(props);
   if (!row) {
-    refused.push("(unrecognised property shape — neither GADM nor ONS)");
+    refused.push("(unrecognised property shape — not GADM, ONS or GISCO NUTS)");
+    continue;
+  }
+  if (row.skip) {
+    refused.push(row.skip);
     continue;
   }
   const { id, gid0, name } = row;

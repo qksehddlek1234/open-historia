@@ -300,7 +300,25 @@ export const REGION_KO = {
   Belluno: "벨루노", Padua: "파도바", Rovigo: "로비고", Treviso: "트레비소",
   Venezia: "베네치아", Verona: "베로나", Vicenza: "비첸차",
 
-  // ── 독일 (16) ─────────────────────────────────────────────────────────────
+  // ── 독일 NUTS-2 행정관구 (38) ──────────────────────────────────────────────
+  // 16개 주로는 1939년 보드에서 프랑스 96 옆에 16이라 너무 굵었고, GADM level-2
+  // (Kreis 403)는 원본 89의 4.5배라 과했다. Eurostat GISCO의 NUTS-2가 그 사이
+  // 층이고, 독일에서는 그게 통계 구역이 아니라 진짜 행정관구(Regierungsbezirk)다.
+  // 아래는 주 이름과 겹치지 않는 것만 — 겹치는 아홉(베를린·함부르크·브레멘·
+  // 브란덴부르크·자를란트·튀링겐·작센안할트·슐레스비히홀슈타인·
+  // 메클렌부르크포어포메른)은 이미 주 목록에 있다.
+  Oberbayern: "오버바이에른", Niederbayern: "니더바이에른", Oberpfalz: "오버팔츠",
+  Oberfranken: "오버프랑켄", Mittelfranken: "미텔프랑켄", Unterfranken: "운터프랑켄",
+  Schwaben: "슈바벤", Stuttgart: "슈투트가르트", Karlsruhe: "카를스루에",
+  Freiburg: "프라이부르크", "Tübingen": "튀빙겐", Darmstadt: "다름슈타트",
+  "Gießen": "기센", Kassel: "카셀", Braunschweig: "브라운슈바이크",
+  Hannover: "하노버", "Lüneburg": "뤼네부르크", "Weser-Ems": "베저엠스",
+  "Düsseldorf": "뒤셀도르프", "Köln": "쾰른", "Münster": "뮌스터",
+  Detmold: "데트몰트", Arnsberg: "아른스베르크", Koblenz: "코블렌츠",
+  Trier: "트리어", "Rheinhessen-Pfalz": "라인헤센팔츠", Dresden: "드레스덴",
+  Chemnitz: "켐니츠", Leipzig: "라이프치히",
+
+  // ── 독일 주 (16) ──────────────────────────────────────────────────────────
   "Schleswig-Holstein": "슐레스비히홀슈타인", Bremen: "브레멘", Niedersachsen: "니더작센",
   Hamburg: "함부르크", "Nordrhein-Westfalen": "노르트라인베스트팔렌", Saarland: "자를란트",
   "Rheinland-Pfalz": "라인란트팔츠", "Thüringen": "튀링겐", Hessen: "헤센",

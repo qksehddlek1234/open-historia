@@ -110,4 +110,15 @@ test("THE ONE DOCUMENT-SIZE GAUGE THAT APPLIES TO US IS THERE", () => {
   assert.match(SETTINGS, /getContextTokens\(\) \* 4/);
 });
 
+test("THE MAP CREDITS ITS DATA — two of those credits are licence conditions", () => {
+  // EuroGeographics (NUTS, which is how Germany's 38 Regierungsbezirke arrived)
+  // and the ONS Open Geography Portal (OGL, Britain's 46) both require
+  // attribution as a condition of use. The control was switched off entirely.
+  assert.match(WORLD, /attributionControl=\{\{ compact: true, customAttribution: MAP_DATA_CREDIT \}\}/);
+  assert.match(WORLD, /EuroGeographics \(NUTS\)/);
+  assert.match(WORLD, /ONS\/OGL/);
+  assert.match(WORLD, /GADM/);
+  assert.ok(!/attributionControl=\{false\}/.test(WORLD), "the switch-off is gone");
+});
+
 console.log(`\n${pass} passed\n`);

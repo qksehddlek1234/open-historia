@@ -68,6 +68,17 @@ const OWN_MAP_SOURCES = new Set([
 //     fonts exactly as it does on every other basemap this game runs.
 // If the fetch fails, the raw URL is the fallback and the styledata scrub
 // below still hides the labels the old way.
+// Who each border belongs to. Two of these are licence conditions rather than
+// courtesies: EuroGeographics (NUTS) and the ONS Open Geography Portal (OGL).
+// OpenHistoricalMap is CC0 and needs none, and is credited anyway because the
+// era outlines are the most distinctive thing on the map.
+const MAP_DATA_CREDIT = [
+  "Boundaries: GADM",
+  "© EuroGeographics (NUTS)",
+  "ONS/OGL",
+  "OpenHistoricalMap (CC0)",
+].join(" · ");
+
 const transformOhmStyle = (style) => {
   const sources = {};
   const rasterSources = new Set();
@@ -493,7 +504,16 @@ function World({ mapRef, projection, terrainEnabled, onInitialIdle }) {
         doubleClickZoom={false}
         maxBounds={cameraBounds}
         cursor="default"
-        attributionControl={false}
+        // DATA CREDIT, WHICH WAS SWITCHED OFF AND SHOULD NOT HAVE BEEN.
+        //
+        // Every border on this map comes from somebody, and two of those
+        // somebodies require attribution as a condition of use: EuroGeographics
+        // for the NUTS administrative boundaries (Germany's 38 Regierungsbezirke
+        // came in that way) and the ONS Open Geography Portal under the Open
+        // Government Licence (Britain's 46). GADM asks for citation too. The
+        // control ships compact — a small (i) that expands — so it credits
+        // without taking a corner of the board.
+        attributionControl={{ compact: true, customAttribution: MAP_DATA_CREDIT }}
         dragRotate={false}
         touchPitch={false}
         pitchWithRotate={false}

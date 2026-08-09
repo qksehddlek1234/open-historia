@@ -20,7 +20,10 @@ import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
 import { SCHEDULED_EVENTS } from "./lib/scheduledEvents.mjs";
 import { REPORTING_CONTRACT } from "./lib/reportingContract.mjs";
-import { buildLevel2Index, expandLegacyLevel1 } from "./lib/level2Expansion.mjs";
+import {
+  NUTS_PREFIX_OF_LEGACY_ID,
+  buildLevel2Index, buildNutsIndex, expandLegacyLevel1, expandLegacyNuts,
+} from "./lib/level2Expansion.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
@@ -156,7 +159,8 @@ const seedIds = new Set(
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
   // The four legacy UK level-1 keys stay valid: the builder expands them into
   // the ONS counties that replaced them (see step 2).
-  if (!validGid1.has(gid1) && !seedIds.has(gid1) && !UK_LEGACY_KEYS.has(gid1)) errors.push(`regionAssignments references unknown GID_1 "${gid1}"`);
+  if (!validGid1.has(gid1) && !seedIds.has(gid1) && !UK_LEGACY_KEYS.has(gid1)
+    && !NUTS_PREFIX_OF_LEGACY_ID[gid1]) errors.push(`regionAssignments references unknown GID_1 "${gid1}"`);
   if (!polityCodes.has(owner)) errors.push(`regionAssignments[${gid1}] owner "${owner}" missing from polities`);
 }
 if (errors.length) die(`spec validation failed:\n  - ${errors.join("\n  - ")}`);
@@ -210,6 +214,9 @@ for (const feature of seedFeatures) {
 // This is what lets China become prefectures and India districts without
 // rewriting every "CHN.25_1" in four WWII specs — the same trap Britain sprang.
 const level2Index = buildLevel2Index(seedFeatures);
+// And the NUTS case, which needs a table because a NUTS id has no parent
+// segment to walk back through (lib/level2Expansion.mjs explains).
+const nutsIndex = buildNutsIndex(seedFeatures);
 
 // Expand one spec key into the ids it means. A legacy UK level-1 key becomes
 // that nation's counties, a GADM level-1 key becomes its level-2 children where
@@ -220,6 +227,8 @@ const expandRegionKey = (key) => {
     const expanded = ukNationRegions.get(nation) ?? [];
     if (expanded.length > 0) return expanded;
   }
+  const byNuts = expandLegacyNuts(key, nutsIndex);
+  if (byNuts.length > 1 || byNuts[0] !== key) return byNuts;
   return expandLegacyLevel1(key, level2Index);
 };
 

@@ -18,6 +18,7 @@ const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
 const { buildLevel2Index, expandLegacyLevel1 } =
   await import("../scripts/presets/lib/level2Expansion.mjs");
 const BUILD = fs.readFileSync(new URL("../scripts/presets/build-preset.mjs", import.meta.url), "utf8");
+const NUTS = await import("../scripts/presets/lib/level2Expansion.mjs");
 
 const feature = (id) => ({ properties: { id } });
 // Real GADM 4.1 ids: a level-2 GID ends "_1" exactly like its parent, and it is
@@ -69,13 +70,35 @@ test("an empty or absent seed degrades to identity, never to a crash", () => {
 
 // ---- the builder actually uses it ----------------------------------------------------
 
-test("THE BUILDER EXPANDS BOTH WAYS, UK table first then the general rule", () => {
-  assert.match(BUILD, /import \{ buildLevel2Index, expandLegacyLevel1 \}/);
+test("THE BUILDER EXPANDS THREE WAYS, most specific first", () => {
+  assert.match(BUILD, /buildLevel2Index, buildNutsIndex, expandLegacyLevel1, expandLegacyNuts,/);
   assert.match(BUILD, /const level2Index = buildLevel2Index\(seedFeatures\);/);
+  assert.match(BUILD, /const nutsIndex = buildNutsIndex\(seedFeatures\);/);
   assert.match(BUILD, /return expandLegacyLevel1\(key, level2Index\);/);
-  // The UK's ONS codes are not GADM ids, so their own mapping has to win first.
+  // Order matters: the UK's ONS table, then the NUTS table (Germany), then the
+  // general GADM parent-segment rule. The tables are exact and the rule is a
+  // pattern, so an exact answer must never be overtaken by a pattern.
   const fn = BUILD.slice(BUILD.indexOf("const expandRegionKey"), BUILD.indexOf("const overrides = {}"));
-  assert.ok(fn.indexOf("UK_NATION_OF_LEGACY_ID") < fn.indexOf("expandLegacyLevel1"));
+  assert.ok(fn.indexOf("UK_NATION_OF_LEGACY_ID") < fn.indexOf("expandLegacyNuts"));
+  assert.ok(fn.indexOf("expandLegacyNuts") < fn.indexOf("expandLegacyLevel1"));
+});
+
+test("A NUTS KEY EXPANDS THROUGH THE TABLE, because the id has no parent", () => {
+  const { buildNutsIndex, expandLegacyNuts, NUTS_PREFIX_OF_LEGACY_ID } = NUTS;
+  const seed = ["DEU.DE11", "DEU.DE12", "DEU.DE21", "DEU.DE30", "FRA.11"]
+    .map((id) => ({ properties: { id } }));
+  const index = buildNutsIndex(seed);
+  assert.deepEqual(expandLegacyNuts("DEU.1_1", index), ["DEU.DE11", "DEU.DE12"]);
+  assert.deepEqual(expandLegacyNuts("DEU.2_1", index), ["DEU.DE21"]);
+  assert.deepEqual(expandLegacyNuts("DEU.3_1", index), ["DEU.DE30"]);
+  // A prefix must not reach across a border, and an unmapped key is untouched.
+  assert.deepEqual(expandLegacyNuts("FRA.1_1", index), ["FRA.1_1"]);
+  assert.deepEqual(expandLegacyNuts("CHN.25_1", index), ["CHN.25_1"]);
+  // All sixteen German Länder are mapped, and only Germany is in the table —
+  // Poland's NUTS-3 is statistical, not administrative, and was reverted.
+  const keys = Object.keys(NUTS_PREFIX_OF_LEGACY_ID);
+  assert.equal(keys.length, 16, keys.join(", "));
+  assert.ok(keys.every((k) => k.startsWith("DEU.")), "only Germany belongs here");
 });
 
 test("…and a spec may name an id the SEED has, even before the tiles catch up", () => {
