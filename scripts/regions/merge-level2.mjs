@@ -152,11 +152,12 @@ if (replaceCountry) {
   const before = features.length;
   // Only level-1 rows of that country go: its level-2 rows (if any) and every
   // other country are untouched.
-  features = features.filter((f) => {
-    const gid0 = String(f.properties?.gid0 ?? "");
-    const id = String(f.properties?.id ?? "");
-    return !(gid0 === replaceCountry && /_1$/.test(id));
-  });
+  // EVERY existing row of that country, not just its level-1 ones. The first
+  // cut only dropped ids ending "_1", which was right when replacing GADM
+  // provinces and wrong the moment we replaced one subdivision set with a
+  // coarser one (218 ONS counties → 46 ITL2 regions): the counties do not end
+  // in "_1", so they survived and both layers rendered on top of each other.
+  features = features.filter((f) => String(f.properties?.gid0 ?? "") !== replaceCountry);
   dropped = before - features.length;
 }
 

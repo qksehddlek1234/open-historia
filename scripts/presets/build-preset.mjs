@@ -163,13 +163,27 @@ const UK_NATION_OF_LEGACY_ID = { "GBR.1_1": "E", "GBR.2_1": "N", "GBR.3_1": "S",
 // Britain until someone regenerates the tiles, while the seed is what the map
 // actually draws from. Looking in the catalog found nothing and the expansion
 // silently did not happen — the exact failure this block exists to prevent.
+// The constituent nation is read from whichever UK code system the seed
+// currently holds. ONS ships two and they say it differently:
+//   ITL2  — TLC..TLK England, TLL Wales, TLM Scotland, TLN Northern Ireland
+//   CTYUA — E… / W… / S… / N… as the first letter
+// Both are supported so swapping one subdivision set for another (218 counties
+// → 46 ITL2 regions, which is what the density balance wanted) does not
+// silently unassign Britain again.
+const ITL2_NATION = { C: "E", D: "E", E: "E", F: "E", G: "E", H: "E", I: "E", J: "E", K: "E", L: "W", M: "S", N: "N" };
+const ukNationOf = (id) => {
+  const itl2 = /^GBR\.TL([C-N])\d?/.exec(id);
+  if (itl2) return ITL2_NATION[itl2[1]] ?? "";
+  const ctyua = /^GBR\.([EWSN])\d+/.exec(id);
+  return ctyua ? ctyua[1] : "";
+};
 const ukNationRegions = new Map(); // "E" -> [ids]
 for (const feature of JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? []) {
   const id = String(feature?.properties?.id ?? "");
-  const match = /^GBR\.([EWSN])\d+/.exec(id);
-  if (match) {
-    if (!ukNationRegions.has(match[1])) ukNationRegions.set(match[1], []);
-    ukNationRegions.get(match[1]).push(id);
+  const nation = id.startsWith("GBR.") ? ukNationOf(id) : "";
+  if (nation) {
+    if (!ukNationRegions.has(nation)) ukNationRegions.set(nation, []);
+    ukNationRegions.get(nation).push(id);
   }
 }
 // Expand one spec key into the ids it means. A legacy UK level-1 key becomes
