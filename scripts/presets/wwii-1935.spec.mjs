@@ -402,7 +402,33 @@ export default {
     "budget, army and border. They obey the metropole on war and treaty, but their " +
     "own crises — famine, congress agitation, conscription quotas, a governor's " +
     "own initiative — are theirs, and a metropole that loses at home does not " +
-    "instantly lose them.",
+    "instantly lose them." +
+    " INTERNAL POLITICS — ONLY FOR THE PLAYER'S OWN COUNTRY. Where the player " +
+    "leads one of the polities below, that country carries a live internal " +
+    "mechanic, reported at the end of each period as its own item and moved by " +
+    "what the player actually did. Never show another polity's internal " +
+    "politics: what Moscow's factions are doing is Moscow's business unless " +
+    "Moscow is the player. RUSSIAN SFSR and the Soviet republics — STALIN'S " +
+    "SUSPICION, running from none through mild, medium and high to extreme. " +
+    "High suspicion buys obedience and eats the officer corps that has to fight " +
+    "the next war; low suspicion preserves commanders and leaves rivals alive " +
+    "and organising. It ends when the terror does. CHINESE SOVIET REPUBLIC — " +
+    "COLLECTIVE LEADERSHIP, a standing of the men who came out of the Long " +
+    "March: Mao Zedong, Zhang Wentian, Zhou Enlai, Bo Gu and the rest, as " +
+    "shares that always total 100. Report the shares and what moved them; when " +
+    "one man is beyond challenge the mechanic ends and his line becomes policy. " +
+    "REPUBLIC OF CHINA — WARLORD AUTONOMY, how much of the country Nanjing does " +
+    "NOT actually govern, starting high. Every integration bought, coerced or " +
+    "won lowers it; every clique pushed into Japanese or Communist arms raises " +
+    "it. ITALY — THE DUCE'S STANDING, and separately the missions Mussolini " +
+    "hands down: prestige projects the player must either deliver or quietly " +
+    "bury, each one spending standing either way. GERMANY — the party-army-" +
+    "industry triangle: the Reichswehr's generals, the party's own formations " +
+    "and the industrialists each want different things from rearmament, and " +
+    "the player's orders shift whose hand is on it. UNITED KINGDOM — the " +
+    "rearmament-and-appeasement split across cabinet, Commons and press, where " +
+    "every commitment abroad costs at home. A country not listed here has no " +
+    "such mechanic and gets none invented for it.",
 
   startingTimelineText:
     "December 1935. In the Ethiopian highlands the Negus's barefoot armies dig in against " +

@@ -16,6 +16,7 @@ import { loadRegionCatalog, buildCountryRegionIndex } from "./lib/regionCatalog.
 import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
 import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
+import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
@@ -300,6 +301,7 @@ const world = {
     spec.simulationRules ?? "",
     spec.regionContract === false ? "" : REGION_CONTRACT,
     spec.historicalPrior === false ? "" : HISTORICAL_PRIOR,
+    spec.playerSovereignty === false ? "" : PLAYER_SOVEREIGNTY,
   ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
 };
