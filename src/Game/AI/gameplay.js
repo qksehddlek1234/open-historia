@@ -810,6 +810,31 @@ const runJsonTask = async (taskKey, {
   // something already there — they were not new places, they were the same places
   // again.
   //
+  // MEASURED, NOT ASSUMED: these three used to ride in simulationRules, appended
+  // to EVERY task's rules by build-preset. A/B on gemma4-oh:12b (wwii-1939,
+  // seven runs per arm — docs/analysis/contract-ab-2026-08-09.md) found:
+  //   • battle figures: 0.00 of combat events carried numbers with the clause
+  //     absent, 0.36 inside the full contract block, and 0.48 when the clause
+  //     was the ONLY contract present. It works, and the block was burying it.
+  //   • the scheduled-events card: emitted 0 times out of 7 with the clause
+  //     present, and 0 out of 2 when it was the only clause in the prompt — so
+  //     not crowding-out. Prose in the rules is the wrong place for it; the end
+  //     of the jump prompt, next to the output instruction, is a better one.
+  // They move here, where they apply — only a jump narrates combat or ends a
+  // war — instead of sitting in the rules the chat and advisor tasks carry.
+  if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
+    systemPrompt = `${systemPrompt}
+
+[Battles Are Reported With Numbers]
+Any event that narrates fighting — an assault, a siege, a landing, an air raid, a naval action, a border clash — states what each side committed and what each side lost, in figures, at whatever precision the period can actually know: divisions and thousands of men in an industrial war, hundreds in a colonial skirmish, ships and aircraft where those are the currency. Keep the arithmetic consistent from turn to turn — an army that lost half its strength last month does not attack at full strength this month — and where a figure is contested or propagandised, say whose figure it is. Without numbers a war is twenty turns of adjectives and the player cannot tell a victory from a defeat.
+
+[Named Treaties]
+When fighting stops by agreement, record the settlement as "Treaty of <place>" — the town where it was signed, in the period's own naming habit — and state its actual terms: what changed hands, what was paid, what was forbidden, who guaranteed it. A named treaty is something later turns can invoke, revise, evade or resent; an unnamed settlement is forgotten by the next consolidation and the grievance it should have created never exists. An armistice that settles nothing is not a treaty.
+
+[Scheduled Events Card]
+After every other event, emit ONE final event titled exactly "Scheduled Events" listing every future occurrence whose date is already determined — elections, treaty and ultimatum deadlines, scheduled withdrawals, conference dates, terms expiring, announced offensives. One per line: "<Name> (<whose>): <date>: in <time remaining>". Everything goes in that one card, it carries no impacts of any kind, and if genuinely nothing is scheduled, omit it.`;
+  }
+
   // Naming the existing one is enough to fix it, because applyMarkerOps replaces a
   // build that matches an existing name rather than stacking a second marker.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {

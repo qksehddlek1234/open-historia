@@ -16,8 +16,15 @@ const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
 
 const read = (rel) => fs.readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
 const { REGION_CONTRACT } = await import("../scripts/presets/lib/regionContract.mjs");
-const { SCHEDULED_EVENTS } = await import("../scripts/presets/lib/scheduledEvents.mjs");
 const BUILD = read("scripts/presets/build-preset.mjs");
+// The calendar card and the battle/treaty clauses moved OUT of simulationRules
+// and into a call-time injection for the jump tasks — see the A/B in
+// docs/analysis/contract-ab-2026-08-09.md and the comment at the injection.
+const GAMEPLAY = read("src/Game/AI/gameplay.js");
+const SCHEDULED_EVENTS = GAMEPLAY.slice(
+  GAMEPLAY.indexOf("[Scheduled Events Card]"),
+  GAMEPLAY.indexOf("[Scheduled Events Card]") + 900,
+);
 
 // ---- 1. occupation naming -----------------------------------------------------------
 
@@ -40,21 +47,23 @@ test("…but a named puppet regime keeps its own name", () => {
 test("EVERY TURN ENDS WITH WHAT IS ALREADY ON THE CALENDAR", () => {
   assert.match(SCHEDULED_EVENTS, /titled exactly "Scheduled Events"/);
   assert.match(SCHEDULED_EVENTS, /<Name> \(<whose>\): <date>: in <time remaining>/);
-  assert.match(SCHEDULED_EVENTS, /EVERYTHING GOES IN THE ONE CARD/);
+  assert.match(SCHEDULED_EVENTS, /Everything goes in that one card/);
+  assert.match(SCHEDULED_EVENTS, /carries no impacts of any kind/);
+  assert.match(SCHEDULED_EVENTS, /if genuinely nothing is scheduled, omit it/);
 });
 
-test("…it is a notice board, so it may not move the map", () => {
-  assert.match(SCHEDULED_EVENTS, /no map changes, no transfers/);
-});
-
-test("…an empty calendar prints nothing, and dates may still move", () => {
-  assert.match(SCHEDULED_EVENTS, /omit the card entirely rather than printing an empty one/);
-  assert.match(SCHEDULED_EVENTS, /FORECASTS, not promises/);
-});
-
-test("the builder attaches it, and a preset can opt out", () => {
-  assert.match(BUILD, /import \{ SCHEDULED_EVENTS \} from "\.\/lib\/scheduledEvents\.mjs"/);
-  assert.match(BUILD, /spec\.scheduledEvents === false \? "" : SCHEDULED_EVENTS/);
+test("…and it is injected for the jump tasks, not carried by every task's rules", () => {
+  // Measured: the card was emitted 0 times out of 7 while it sat in
+  // simulationRules, and 0 out of 2 when it was the only contract there. A chat
+  // or advisor task can never produce one, so it stopped paying for the space.
+  assert.match(GAMEPLAY, /\[Battles Are Reported With Numbers\]/);
+  assert.match(GAMEPLAY, /\[Named Treaties\]/);
+  assert.match(GAMEPLAY, /\[Scheduled Events Card\]/);
+  // The builder still NAMES them in the comment explaining where they went;
+  // what must be gone is the import and the append.
+  assert.ok(!/import \{ SCHEDULED_EVENTS \}/.test(BUILD), "the builder no longer imports it");
+  assert.ok(!/import \{ REPORTING_CONTRACT \}/.test(BUILD), "nor the reporting contract");
+  assert.ok(!/: SCHEDULED_EVENTS,/.test(BUILD), "and no longer appends it to the rules");
 });
 
 // ---- 3. blocked history ---------------------------------------------------------------

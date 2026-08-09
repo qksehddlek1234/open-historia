@@ -18,8 +18,6 @@ import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
-import { SCHEDULED_EVENTS } from "./lib/scheduledEvents.mjs";
-import { REPORTING_CONTRACT } from "./lib/reportingContract.mjs";
 import {
   NUTS_PREFIX_OF_LEGACY_ID,
   buildLevel2Index, buildNutsIndex, expandLegacyLevel1, expandLegacyNuts,
@@ -350,8 +348,12 @@ const world = {
     spec.historicalPrior === false ? "" : HISTORICAL_PRIOR,
     spec.playerSovereignty === false ? "" : PLAYER_SOVEREIGNTY,
     spec.internalVoices === false ? "" : INTERNAL_VOICE_CONTRACT,
-    spec.scheduledEvents === false ? "" : SCHEDULED_EVENTS,
-    spec.reportingContract === false ? "" : REPORTING_CONTRACT,
+    // SCHEDULED_EVENTS and REPORTING_CONTRACT used to be appended here and are
+    // not any more — they are injected at call time for the jump tasks only.
+    // The A/B is in docs/analysis/contract-ab-2026-08-09.md: the battle clause
+    // scored 0.48 alone against 0.36 inside this block, and the calendar card
+    // was emitted zero times either way. Rules that only a jump can obey do not
+    // belong in the rules every task carries.
   ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
 };
