@@ -19,6 +19,7 @@ import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
 import { SCHEDULED_EVENTS } from "./lib/scheduledEvents.mjs";
+import { buildLevel2Index, expandLegacyLevel1 } from "./lib/level2Expansion.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
@@ -139,10 +140,22 @@ for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {
   }
 }
 const UK_LEGACY_KEYS = new Set(["GBR.1_1", "GBR.2_1", "GBR.3_1", "GBR.4_1"]);
+// THE SEED IS ALSO AN AUTHORITY ON WHAT A REGION IS.
+//
+// validGid1 comes from regions.pmtiles, which is the validation catalog and
+// lags the seed: the seed is what the map actually draws from, and it gains
+// rows the moment a level-2 merge lands (Britain's ONS counties did exactly
+// this). Rejecting an id the seed holds would mean no spec could name a Chinese
+// prefecture or an Indian district until the tiles were regenerated — which is
+// a separate, heavy job. An id in EITHER is a real region.
+const seedIds = new Set(
+  (JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? [])
+    .map((feature) => String(feature?.properties?.id ?? "")),
+);
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
   // The four legacy UK level-1 keys stay valid: the builder expands them into
   // the ONS counties that replaced them (see step 2).
-  if (!validGid1.has(gid1) && !UK_LEGACY_KEYS.has(gid1)) errors.push(`regionAssignments references unknown GID_1 "${gid1}"`);
+  if (!validGid1.has(gid1) && !seedIds.has(gid1) && !UK_LEGACY_KEYS.has(gid1)) errors.push(`regionAssignments references unknown GID_1 "${gid1}"`);
   if (!polityCodes.has(owner)) errors.push(`regionAssignments[${gid1}] owner "${owner}" missing from polities`);
 }
 if (errors.length) die(`spec validation failed:\n  - ${errors.join("\n  - ")}`);
@@ -181,8 +194,9 @@ const ukNationOf = (id) => {
   const ctyua = /^GBR\.([EWSN])\d+/.exec(id);
   return ctyua ? ctyua[1] : "";
 };
+const seedFeatures = [...seedIds].map((id) => ({ properties: { id } }));
 const ukNationRegions = new Map(); // "E" -> [ids]
-for (const feature of JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? []) {
+for (const feature of seedFeatures) {
   const id = String(feature?.properties?.id ?? "");
   const nation = id.startsWith("GBR.") ? ukNationOf(id) : "";
   if (nation) {
@@ -190,13 +204,22 @@ for (const feature of JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).featur
     ukNationRegions.get(nation).push(id);
   }
 }
+// And the general case (lib/level2Expansion.mjs): wherever the seed now holds
+// GADM level-2 rows, a spec key naming their level-1 parent means all of them.
+// This is what lets China become prefectures and India districts without
+// rewriting every "CHN.25_1" in four WWII specs — the same trap Britain sprang.
+const level2Index = buildLevel2Index(seedFeatures);
+
 // Expand one spec key into the ids it means. A legacy UK level-1 key becomes
-// that nation's counties; everything else is itself.
+// that nation's counties, a GADM level-1 key becomes its level-2 children where
+// the seed has them, and everything else is itself.
 const expandRegionKey = (key) => {
   const nation = UK_NATION_OF_LEGACY_ID[key];
-  if (!nation) return [key];
-  const expanded = ukNationRegions.get(nation) ?? [];
-  return expanded.length > 0 ? expanded : [key];
+  if (nation) {
+    const expanded = ukNationRegions.get(nation) ?? [];
+    if (expanded.length > 0) return expanded;
+  }
+  return expandLegacyLevel1(key, level2Index);
 };
 
 const overrides = {};
@@ -205,10 +228,10 @@ for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {
     for (const gid1 of index.get(gid0) ?? []) overrides[gid1] = polityName(owner);
   }
 }
-let ukLegacyExpanded = 0;
+let legacyExpanded = 0;
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
   const targets = expandRegionKey(gid1);
-  if (targets.length > 1 || targets[0] !== gid1) ukLegacyExpanded += targets.length;
+  if (targets.length > 1 || targets[0] !== gid1) legacyExpanded += targets.length;
   for (const target of targets) overrides[target] = polityName(owner); // region-level wins
 }
 
@@ -586,7 +609,7 @@ if (cityCollection) {
   console.log(`  cities.geojson: ${cityCollection.features.length} era cities (customCities=true)`);
 }
 console.log(`  polities: ${Object.keys(polityOverrides).length}`);
-if (ukLegacyExpanded > 0) console.log(`  UK legacy key(s) expanded to ${ukLegacyExpanded} ONS region(s)`);
+if (legacyExpanded > 0) console.log(`  legacy level-1 key(s) expanded to ${legacyExpanded} subdivided region(s)`);
 if (eraSovereigntyMoves.size > 0) {
   const moves = [...eraSovereigntyMoves.entries()].map(([code, owner]) => `${code}→${owner}`);
   console.log(`  era sovereignty: ${moves.length} modern code(s) held by someone else on this date`);
