@@ -17,14 +17,10 @@ const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
 const read = (rel) => fs.readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
 const { REGION_CONTRACT } = await import("../scripts/presets/lib/regionContract.mjs");
 const BUILD = read("scripts/presets/build-preset.mjs");
-// The calendar card and the battle/treaty clauses moved OUT of simulationRules
-// and into a call-time injection for the jump tasks — see the A/B in
-// docs/analysis/contract-ab-2026-08-09.md and the comment at the injection.
+// The battle and treaty clauses moved OUT of simulationRules into a call-time
+// injection for the jump tasks, and the calendar card became a pass of its own —
+// see docs/analysis/contract-ab-2026-08-09.md.
 const GAMEPLAY = read("src/Game/AI/gameplay.js");
-const SCHEDULED_EVENTS = GAMEPLAY.slice(
-  GAMEPLAY.indexOf("[Scheduled Events Card]"),
-  GAMEPLAY.indexOf("[Scheduled Events Card]") + 900,
-);
 
 // ---- 1. occupation naming -----------------------------------------------------------
 
@@ -42,28 +38,20 @@ test("…but a named puppet regime keeps its own name", () => {
   assert.match(REGION_CONTRACT, /the convention is for the ordinary case/);
 });
 
-// ---- 2. the scheduled events card ---------------------------------------------------
+// ---- 2. the calendar card moved out ---------------------------------------------------
+//
+// It used to be pinned here as prose in the rules. It is a pass of its own now
+// (runtime/scheduledCard.js + the scheduledEvents task) because prose never got
+// the 12B to emit it — see tests/scheduled-card.mjs and the A/B write-up.
 
-test("EVERY TURN ENDS WITH WHAT IS ALREADY ON THE CALENDAR", () => {
-  assert.match(SCHEDULED_EVENTS, /titled exactly "Scheduled Events"/);
-  assert.match(SCHEDULED_EVENTS, /<Name> \(<whose>\): <date>: in <time remaining>/);
-  assert.match(SCHEDULED_EVENTS, /Everything goes in that one card/);
-  assert.match(SCHEDULED_EVENTS, /carries no impacts of any kind/);
-  assert.match(SCHEDULED_EVENTS, /if genuinely nothing is scheduled, omit it/);
-});
-
-test("…and it is injected for the jump tasks, not carried by every task's rules", () => {
-  // Measured: the card was emitted 0 times out of 7 while it sat in
-  // simulationRules, and 0 out of 2 when it was the only contract there. A chat
-  // or advisor task can never produce one, so it stopped paying for the space.
+test("THE CARD IS NO LONGER PROSE IN THE RULES", () => {
+  assert.ok(!/import \{ SCHEDULED_EVENTS \}/.test(BUILD), "the builder no longer imports it");
+  assert.ok(!/: SCHEDULED_EVENTS,/.test(BUILD), "nor appends it to every task's rules");
+  assert.match(GAMEPLAY, /runJsonTask\("scheduledEvents"/, "it is a pass now");
+  // The battle and treaty clauses stayed as prose but moved to the jump tasks,
+  // where they measured better than they did inside the contract block.
   assert.match(GAMEPLAY, /\[Battles Are Reported With Numbers\]/);
   assert.match(GAMEPLAY, /\[Named Treaties\]/);
-  assert.match(GAMEPLAY, /\[Scheduled Events Card\]/);
-  // The builder still NAMES them in the comment explaining where they went;
-  // what must be gone is the import and the append.
-  assert.ok(!/import \{ SCHEDULED_EVENTS \}/.test(BUILD), "the builder no longer imports it");
-  assert.ok(!/import \{ REPORTING_CONTRACT \}/.test(BUILD), "nor the reporting contract");
-  assert.ok(!/: SCHEDULED_EVENTS,/.test(BUILD), "and no longer appends it to the rules");
 });
 
 // ---- 3. blocked history ---------------------------------------------------------------

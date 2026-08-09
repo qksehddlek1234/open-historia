@@ -1102,6 +1102,35 @@ export const GAMEPLAY_SCHEMAS = Object.freeze({
   countryStatSheet: COUNTRY_STAT_SHEET_SCHEMA,
   idleDiplomacy: IDLE_DIPLOMACY_SCHEMA,
   pregameHistory: PREGAME_HISTORY_SCHEMA,
+  // WHAT IS ALREADY ON THE CALENDAR, asked on its own.
+  //
+  // A jump prompt could not reliably produce this card (0 of 7 with the clause
+  // in the rules, 1 of 3 with it at the end of the prompt — see
+  // docs/analysis/contract-ab-2026-08-09.md), so it became a small pass of its
+  // own. Dates only: the engine computes every interval and formats the card,
+  // because the arithmetic was the part the model got wrong most.
+  scheduledEvents: {
+    type: 'object',
+    description: 'Future occurrences whose date is already determined.',
+    properties: {
+      entries: {
+        type: 'array',
+        description: 'One per scheduled occurrence. Empty when nothing is scheduled.',
+        items: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', description: 'What is scheduled (e.g. "Next presidential election").', minLength: 1 },
+            whose: { type: 'string', description: "Whose it is (a polity name), or empty for something nobody owns." },
+            date: { type: 'string', description: 'YYYY-MM-DD. Must be AFTER the current date.' },
+            note: { type: 'string', description: 'At most one short clause. Optional.' },
+          },
+          required: ['name', 'date'],
+        },
+      },
+    },
+    required: ['entries'],
+  },
+
   actionCoverage: ACTION_COVERAGE_SCHEMA,
 });
 

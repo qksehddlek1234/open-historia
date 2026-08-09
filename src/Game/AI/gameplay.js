@@ -24,6 +24,7 @@ import {
   writeJson,
 } from "../../runtime/assets.js";
 import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
+import { buildScheduledCard } from "../../runtime/scheduledCard.js";
 import {
   acceptStanding,
   applyEventImpactsToWorld,
@@ -816,12 +817,11 @@ const runJsonTask = async (taskKey, {
   //   • battle figures: 0.00 of combat events carried numbers with the clause
   //     absent, 0.36 inside the full contract block, and 0.48 when the clause
   //     was the ONLY contract present. It works, and the block was burying it.
-  //   • the scheduled-events card: emitted 0 times out of 7 with the clause
-  //     present, and 0 out of 2 when it was the only clause in the prompt — so
-  //     not crowding-out. Prose in the rules is the wrong place for it; the end
-  //     of the jump prompt, next to the output instruction, is a better one.
-  // They move here, where they apply — only a jump narrates combat or ends a
-  // war — instead of sitting in the rules the chat and advisor tasks carry.
+  //   • the scheduled-events card never survived any prompt position (0 of 7 in
+  //     the rules, 1 of 3 at the end of the prompt), so it is not here at all —
+  //     it became its own pass with the engine formatting the card. Rule #2.
+  // These two move here, where they apply — only a jump narrates combat or ends
+  // a war — instead of sitting in the rules the chat and advisor tasks carry.
   if (["jumpForward", "autoJumpForward"].includes(taskKey)) {
     systemPrompt = `${systemPrompt}
 
@@ -829,10 +829,7 @@ const runJsonTask = async (taskKey, {
 Any event that narrates fighting — an assault, a siege, a landing, an air raid, a naval action, a border clash — states what each side committed and what each side lost, in figures, at whatever precision the period can actually know: divisions and thousands of men in an industrial war, hundreds in a colonial skirmish, ships and aircraft where those are the currency. Keep the arithmetic consistent from turn to turn — an army that lost half its strength last month does not attack at full strength this month — and where a figure is contested or propagandised, say whose figure it is. Without numbers a war is twenty turns of adjectives and the player cannot tell a victory from a defeat.
 
 [Named Treaties]
-When fighting stops by agreement, record the settlement as "Treaty of <place>" — the town where it was signed, in the period's own naming habit — and state its actual terms: what changed hands, what was paid, what was forbidden, who guaranteed it. A named treaty is something later turns can invoke, revise, evade or resent; an unnamed settlement is forgotten by the next consolidation and the grievance it should have created never exists. An armistice that settles nothing is not a treaty.
-
-[Scheduled Events Card]
-After every other event, emit ONE final event titled exactly "Scheduled Events" listing every future occurrence whose date is already determined — elections, treaty and ultimatum deadlines, scheduled withdrawals, conference dates, terms expiring, announced offensives. One per line: "<Name> (<whose>): <date>: in <time remaining>". Everything goes in that one card, it carries no impacts of any kind, and if genuinely nothing is scheduled, omit it.`;
+When fighting stops by agreement, record the settlement as "Treaty of <place>" — the town where it was signed, in the period's own naming habit — and state its actual terms: what changed hands, what was paid, what was forbidden, who guaranteed it. A named treaty is something later turns can invoke, revise, evade or resent; an unnamed settlement is forgotten by the next consolidation and the grievance it should have created never exists. An armistice that settles nothing is not a treaty.`;
   }
 
   // Naming the existing one is enough to fix it, because applyMarkerOps replaces a
@@ -7312,6 +7309,81 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
   if (leftUncovered > 0) {
     console.warn(`[actions] ${leftUncovered} queued action(s) were not played out — they stay queued for the next turn.`);
   }
+  // THE CALENDAR CARD, BUILT BY THE ENGINE.
+  //
+  // Asked as part of the jump it appeared 0 times in 7 (clause in the rules) and
+  // 1 in 3 (clause at the end of the prompt) — docs/analysis/contract-ab-2026-08-09.md.
+  // So the model is asked ONE small question on its own, exactly like the action
+  // coverage pass above, and runtime/scheduledCard.js does the formatting and
+  // every interval. The arithmetic was the part it got wrong most, and
+  // arithmetic is not something to ask a language model for.
+  //
+  // Bounded and optional in the same way: if it fails or answers with nothing,
+  // the turn is unaffected and simply carries no card.
+  //
+  // AND THE AUTHORED TIMELINE GOES IN FIRST. A scenario that ships a period
+  // timeline (data/timelines/*.json) already KNOWS a set of dated things — that
+  // is what those files are. Asking a 12B to recall them is asking it to guess
+  // at data we hold, so the deterministic rows lead and the model only fills
+  // what the timeline does not cover. Measured on gemma4-oh:12b: asked cold it
+  // returns one entry, sometimes none, and the one it returns is usually the
+  // next American election.
+  const authored = normalizeTimeline(bundle.world?.periodTimeline)
+    .filter((entry) => normalizeString(entry?.date) > stopDate)
+    .slice(0, 10)
+    .map((entry) => ({
+      name: normalizeString(entry?.title),
+      whose: normalizeArray(entry?.actors)[0] ?? "",
+      date: normalizeString(entry?.date),
+      note: "",
+    }));
+
+  try {
+    const { payload: schedulePayload } = await runJsonTask("scheduledEvents", {
+      signal,
+      timeoutMs: 120000,
+      userMessage: [
+        `The campaign has just advanced to ${stopDate}. Events of the period just simulated:`,
+        ...mergedEvents.slice(0, 24)
+          .map((event) => `- ${normalizeString(event?.date)} ${normalizeString(event?.title)}`),
+        "",
+        "List what is already on the calendar AFTER this date. Return JSON only.",
+      ].join("\n"),
+      variables: {
+        ...variables,
+        originRoundDate: stopDate,
+      },
+    });
+    const card = buildScheduledCard([...authored, ...normalizeArray(schedulePayload?.entries)], stopDate);
+    if (card) {
+      mergedEvents = [...mergedEvents, {
+        date: stopDate,
+        description: card,
+        impacts: {},
+        importance: "minor",
+        kind: "scheduled",
+        notable: false,
+        playerRelated: false,
+        title: "Scheduled Events",
+      }];
+    }
+  } catch (error) {
+    console.warn("[schedule] the model pass failed; falling back to the authored timeline alone.", error);
+    const card = buildScheduledCard(authored, stopDate);
+    if (card) {
+      mergedEvents = [...mergedEvents, {
+        date: stopDate,
+        description: card,
+        impacts: {},
+        importance: "minor",
+        kind: "scheduled",
+        notable: false,
+        playerRelated: false,
+        title: "Scheduled Events",
+      }];
+    }
+  }
+
   // The pin itself. Dated at the stop date so it always sorts last, marked as
   // its own kind so the chronicle, the dedupe passes and the prompts can all
   // tell it apart from a real event (buildEventHistoryText skips it — it is a

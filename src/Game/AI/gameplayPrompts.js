@@ -221,6 +221,18 @@ export const PROMPT_SECTION_DEFINITIONS = [
     type: "task",
   },
   {
+    description:
+      "Bookkeeping pass after a time skip: lists what is already on the calendar, so the engine can print one dated card at the end of the turn.",
+    helpers: [
+      "PLAYER_POLITY",
+      "ORIGIN_ROUND_DATE",
+      "HISTORICAL_PRESET_SIMULATION_RULES",
+    ],
+    key: "scheduledEvents",
+    label: "Scheduled Events",
+    type: "task",
+  },
+  {
     description: "Direct game-master map and state interventions.",
     helpers: [
       "PLAYER_POLITY",
