@@ -130,4 +130,30 @@ test("ICELAND IS DANISH GROUND UNTIL 1944 — table, both specs, and the face", 
   assert.match(spec("wwii-1939"), /"Konungsríkið Ísland": "DAN"/);
 });
 
+// THE PRINCELY STATES — the other judgement the WWII++ audit overturned.
+//
+// The first pass looked at the OFFICIAL "World War II" preset, saw one flat
+// British Raj, and concluded the original models no princely states. It models
+// about sixty of them, plus a "Princely States" catch-all and the Federated
+// Shan States, and its own 1937 event names all three side by side. Two fifths
+// of the subcontinent was not British-administered ground.
+//
+// We take five, not sixty: the ones where a WHOLE modern region was princely.
+// The rest of India really was presidency ground (Bombay, Madras, Bengal, the
+// United Provinces) and belongs to the Raj.
+test("FIVE PRINCELY STATES ARE OFF THE RAJ, on both WWII boards", () => {
+  for (const id of ["wwii-1935", "wwii-1939"]) {
+    const owners = scenarioOwners(id);
+    if (!owners) continue;
+    // Jammu and Kashmir is three modern fragments (GADM split it as disputed
+    // ground) and one Dogra state in 1935 — so it is the only multi-region one.
+    assert.equal(owners.get("Jammu and Kashmir"), 3, `${id} Kashmir`);
+    for (const name of ["Rajputana", "Hyderabad", "Mysore", "Travancore and Cochin"]) {
+      assert.equal(owners.get(name), 1, `${id} ${name}`);
+    }
+    // And the Raj keeps the presidencies rather than losing India entirely.
+    assert.ok(owners.get("British Raj") >= 50, `${id} Raj kept ${owners.get("British Raj")}`);
+  }
+});
+
 console.log(`\n${pass} passed\n`);

@@ -94,6 +94,23 @@ export default {
     // one flat "British Empire" over a fifth of the planet is why the map read
     // as if colonies were not implemented at all.
     RAJ: { name: "British Raj", color: "#c07a8a", aliases: ["영국령 인도", "인도 제국", "British India", "India"] },
+    // ── 번왕국: 라지는 한 덩어리가 아니었다 ────────────────────────────────
+    // 원본 대조에서 뒤집힌 판단이다(docs/analysis/wwii-plus-plus-audit.md §1-2).
+    // World War II++는 British Raj 위에 번왕국 60여 개를 개별 폴리티로 둔다 —
+    // 1935년 인도 아대륙의 40%가 영국이 직접 통치하지 않는 땅이었고, 1937년
+    // 이벤트가 "British India, Princely States, Federated Shan States" 셋을
+    // 나란히 부르는 것이 그 구조다.
+    //
+    // 우리는 60개를 다 두지 않는다. 대부분이 1지역짜리가 될 텐데 우리 지역
+    // 계약상 "1지역 = 나라 전체"라 서사 부담만 늘고, 애초에 우리 지역은 현대
+    // level-1이라 그만한 해상도가 없다. 대신 **현대 지역 하나가 통째로 번왕국
+    // 땅이었던 다섯**만 꺼낸다 — 나머지는 관구(봄베이·마드라스·벵골·연합주)라
+    // 정말로 영국 직할이었으므로 RAJ에 남는 게 맞다.
+    JKS: { name: "Jammu and Kashmir", color: "#9f8fb5", aliases: ["잠무 카슈미르", "카슈미르", "Kashmir", "Dogra"] },
+    RJP: { name: "Rajputana", color: "#c9a05a", aliases: ["라지푸타나", "라자스탄", "Rajasthan", "Jaipur", "Jodhpur", "Udaipur", "Bikaner"] },
+    HYD: { name: "Hyderabad", color: "#8fae7a", aliases: ["하이데라바드", "니잠", "Nizam", "Deccan"] },
+    MYS: { name: "Mysore", color: "#7fa89a", aliases: ["마이소르", "Mysuru", "Wadiyar"] },
+    TRV: { name: "Travancore and Cochin", color: "#b0937f", aliases: ["트라방코르", "코친", "Travancore", "Cochin"] },
     AOF: { name: "French West Africa", color: "#5a7fc0", aliases: ["프랑스령 서아프리카", "Afrique-Occidentale française", "AOF"] },
     AEF: { name: "French Equatorial Africa", color: "#4a6fb0", aliases: ["프랑스령 적도아프리카", "Afrique-Équatoriale française", "AEF"] },
     FIC: { name: "French Indochina", color: "#6a8fd0", aliases: ["프랑스령 인도차이나", "Indochine française", "Indochina"] },
@@ -180,6 +197,21 @@ export default {
   },
 
   regionAssignments: {
+    // ── 번왕국 (위 polities 주석 참조) ────────────────────────────────────
+    // 잠무카슈미르는 셋을 합쳐야 번왕국 하나가 된다 — GADM이 분쟁지로 쪼개
+    // 놓은 조각들이고, 1935년에는 도그라 왕조 한 사람의 땅이었다.
+    "Z01.14_1": "JKS",  // 잠무 카슈미르
+    "Z06.1_1": "JKS",   // 아자드 카슈미르 (1947년 이후 구분)
+    "Z06.6_1": "JKS",   // 길기트-발티스탄
+    // 라지푸타나는 거의 전부가 번왕국이었다 — 영국 직할지가 사실상 없다.
+    "IND.29_1": "RJP",  // 라자스탄 = 라지푸타나 연합청
+    // 하이데라바드 번왕국의 핵심. 니잠의 수도가 여기다.
+    "IND.32_1": "HYD",  // 텔랑가나 = 하이데라바드
+    // 아래 둘은 근사다. 마이소르 번왕국은 카르나타카 남부였고 북부는 봄베이
+    // 관구였다. 트라방코르·코친은 케랄라 남부였고 북부 말라바르는 마드라스
+    // 관구였다. 어느 쪽도 딱 맞지 않지만, "전부 영국 직할"보다는 훨씬 가깝다.
+    "IND.16_1": "MYS",  // 카르나타카 ≈ 마이소르
+    "IND.17_1": "TRV",  // 케랄라 ≈ 트라방코르 + 코친
     // ── 중국: 난징의 영은 하류 양쯔를 넘지 못한다 (1935년 12월) ──────────────
     // 아래는 전부 자기 군대·세금·대외 교섭을 가진 세력이다. 국민정부는
     // 강남 8개 성을 실효 지배하고 나머지는 명목상 복속이다.
