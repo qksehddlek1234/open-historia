@@ -19,6 +19,7 @@ import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
 import { SCHEDULED_EVENTS } from "./lib/scheduledEvents.mjs";
+import { REPORTING_CONTRACT } from "./lib/reportingContract.mjs";
 import { buildLevel2Index, expandLegacyLevel1 } from "./lib/level2Expansion.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
@@ -341,6 +342,7 @@ const world = {
     spec.playerSovereignty === false ? "" : PLAYER_SOVEREIGNTY,
     spec.internalVoices === false ? "" : INTERNAL_VOICE_CONTRACT,
     spec.scheduledEvents === false ? "" : SCHEDULED_EVENTS,
+    spec.reportingContract === false ? "" : REPORTING_CONTRACT,
   ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
 };
