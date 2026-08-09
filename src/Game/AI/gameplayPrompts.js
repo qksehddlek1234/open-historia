@@ -224,6 +224,9 @@ export const PROMPT_SECTION_DEFINITIONS = [
     description: "Direct game-master map and state interventions.",
     helpers: [
       "PLAYER_POLITY",
+      // Used by the prompt since it was written and never declared, so the
+      // Settings helper list showed one fewer than the task actually reads.
+      "ORIGIN_ROUND_DATE",
       "WORLD_BEFORE_ROUND_ONE_TEXT",
       "HISTORICAL_PRESET_SIMULATION_RULES",
       "GAME_MASTER_PLAYER_REQUEST",
