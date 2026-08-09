@@ -1,9 +1,73 @@
 # Pax Historia 원본 프리셋 수집 — 300k+ 라운드 전수 (23종)
 
-수집일: 2026-07-28 · 방법: paxhistoria.co/presets 상세 페이지 추출 (읽기 전용, 게임 미접촉)
+수집일: 2026-07-28 (재조사 2026-08-09, 위 절 참조) · 방법: paxhistoria.co/presets 상세 페이지 추출
 계획서 Phase 1-ⓐ/프리셋 이식 파이프라인의 원료. 각 항목: 시작일 · 라운드 수 · 소개(about) · 시작 이전 세계(before) · **시뮬레이션 규칙(rules)**.
 
 > 규칙이 매우 긴 프리셋(1만자 이상)은 앞부분 위주로 수집했고 전체 길이를 명기했다. 전문이 필요해지면 해당 URL을 재방문하거나 Pax-Automata 브라우저 덤프로 회수한다.
+
+## 재조사 2026-08-09 — 기준치 통과 25종, 우리 공백 12종
+
+7/28 수집(23종) 이후 날짜가 지나 기준치를 넘긴 프리셋이 있을 것이라는 플레이어
+지적으로 `paxhistoria.co/presets/browse`를 라운드순으로 다시 훑었다(1,000종 스캔,
+30만 라운드 이상 25종). 원자료: 세션 스크래치패드 `preset-survey-2026-08-09.tsv`.
+
+**새로 기준치를 넘은 것 2종**: `World war II total overhaul`(303K),
+`Zombie Virus Apocalypse`(300K).
+**크게 오른 것**: 2026 Detailed 10.3M→11M, TNO 828K→857K, 2026 Citizen 672K→772K,
+Fallout 519K→558K, Star Wars 515K→528K, WWII++ 375K→408K.
+
+### 우리 시나리오와의 대조
+
+| 원본 (라운드) | 우리 대응 |
+|---|---|
+| Modern Day 18M | `default` — **플레이어 지시로 제외** |
+| World War II 13M · WWII++ 408K · WWII more provinces 589K · WWII total overhaul 303K | `wwii-1935` · `wwii-1939` |
+| Victorian Era 1836 4.3M | `victorian-1836` |
+| World War I 3.9M | `ww1-1914` |
+| Magna Europa 1444 2.3M · Better 1444 1.1M | `magna-1444` |
+| 1946: Dawn of Cold War 1.9M | `coldwar-1946` |
+| Millennium Dawn 1.5M | `millennium-2000` |
+| Napoleonic Wars 685K | `napoleonic-1804` |
+| Accurate Modern Day 364K | `default` 계열 |
+| **2026 Detailed and More Provinces 11M** | **없음** |
+| **The New Order: Last Days of Europe 857K** | **없음** |
+| **2026 but you're a Citizen 772K** | **없음** |
+| **1950: MASSIVE UPDATE 636K** | **없음** |
+| **Real World 2026 594K** | **없음** |
+| **Fallout: New World Blues 558K** | **없음** |
+| **Kaiserreich 551K** | **없음** |
+| **1989 - Changing World 550K** | **없음** |
+| **Star Wars: Clone Wars 528K** | **없음** |
+| **The Fire Rises 507K** | **없음** |
+| **Unstable 2020s 343K** | **없음** |
+| **Zombie Virus Apocalypse 300K** | **없음** |
+
+우리에게만 있는 것(원본 기준치 밖): `bronze-1200bc` · `roman-117` ·
+`medieval-1200` · `mongol-1300` · `colonial-1650`.
+
+### 작성 순서 — 우리 연표의 구멍부터
+
+우리 시대 배열은 1200BC · 117 · 1200 · 1300 · 1444 · 1650 · 1804 · 1836 ·
+1914 · 1935 · 1939 · 1946 · 2000이다. **1946에서 2000까지 54년이 비어 있고**,
+2000 이후도 비어 있다. 원본의 고라운드 공백이 정확히 거기에 걸린다.
+
+1. **1950** (636K) — 한국전쟁 개전. `coldwar-1946`과 4년 차라 지오메트리·
+   정치체를 상당 부분 물려받는다. 우리 연표에서 가장 값싼 추가.
+2. **1989** (550K) — 냉전의 끝. 1946 → 2000의 한가운데.
+3. **2026** (11M + Real World 2026 594K + Unstable 2020s 343K) — 현재. 원본
+   최다 플레이 축이고, 세 프리셋이 같은 시대를 서로 다른 결로 다룬다.
+4. **Kaiserreich** (551K) · **TNO** (857K) — 대체역사. 우리 스펙 구조는 그대로
+   쓸 수 있지만 "역사 선행" 계약을 끄고 각자의 분기 규칙을 써야 한다.
+5. **The Fire Rises** (507K) — 2020년 붕괴물. 위와 같은 결.
+6. **Fallout** (558K) · **Star Wars** (528K) · **Zombie** (300K) — 픽션.
+   지오메트리부터 우리 GADM 시드와 무관해 별도 설계가 필요하다.
+7. **2026 but you're a Citizen** (772K) — 국가가 아니라 개인으로 플레이.
+   시나리오가 아니라 **모드**에 가깝다(수집 패턴 9번 참조).
+
+부족한 프리셋·프롬프트·레퍼런스는 플레이어 허가로 사본을 만들어 훑는다
+(WWII++에서 이미 검증된 절차 — `wwii-plus-plus-audit.md`).
+
+---
 
 ## 수집 요약
 
