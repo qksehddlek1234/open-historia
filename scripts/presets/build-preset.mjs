@@ -134,8 +134,11 @@ for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {
     if (!validGid0.has(gid0)) errors.push(`countryAssignments[${owner}] references unknown GID_0 "${gid0}"`);
   }
 }
+const UK_LEGACY_KEYS = new Set(["GBR.1_1", "GBR.2_1", "GBR.3_1", "GBR.4_1"]);
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
-  if (!validGid1.has(gid1)) errors.push(`regionAssignments references unknown GID_1 "${gid1}"`);
+  // The four legacy UK level-1 keys stay valid: the builder expands them into
+  // the ONS counties that replaced them (see step 2).
+  if (!validGid1.has(gid1) && !UK_LEGACY_KEYS.has(gid1)) errors.push(`regionAssignments references unknown GID_1 "${gid1}"`);
   if (!polityCodes.has(owner)) errors.push(`regionAssignments[${gid1}] owner "${owner}" missing from polities`);
 }
 if (errors.length) die(`spec validation failed:\n  - ${errors.join("\n  - ")}`);
@@ -146,14 +149,49 @@ if (errors.length) die(`spec validation failed:\n  - ${errors.join("\n  - ")}`);
 const polityName = (code) => String(spec.polities?.[code]?.name ?? code);
 
 // ── 2. Compose regionOwnershipOverrides (country-level, then region-level) ─────
+//
+// SUBDIVIDING A COUNTRY MUST NOT SILENTLY UNASSIGN IT. Britain's four GADM
+// level-1 provinces were replaced with the ONS Open Geography Portal's 218
+// counties and unitary authorities (ids like "GBR.E06000001"), and every spec
+// that had written "GBR.3_1" for Scotland — magna-1444, medieval-1200,
+// mongol-1300, roman-117 — suddenly matched nothing: the 1444 build came out
+// with Britain unowned. Rewriting four specs would fix those four and leave the
+// trap armed for the next one, so the BUILDER translates instead. The ONS code's
+// first letter is the constituent nation, which is the whole mapping.
+const UK_NATION_OF_LEGACY_ID = { "GBR.1_1": "E", "GBR.2_1": "N", "GBR.3_1": "S", "GBR.4_1": "W" };
+// Read the SEED, not the pmtiles catalog: the catalog is the old four-province
+// Britain until someone regenerates the tiles, while the seed is what the map
+// actually draws from. Looking in the catalog found nothing and the expansion
+// silently did not happen — the exact failure this block exists to prevent.
+const ukNationRegions = new Map(); // "E" -> [ids]
+for (const feature of JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? []) {
+  const id = String(feature?.properties?.id ?? "");
+  const match = /^GBR\.([EWSN])\d+/.exec(id);
+  if (match) {
+    if (!ukNationRegions.has(match[1])) ukNationRegions.set(match[1], []);
+    ukNationRegions.get(match[1]).push(id);
+  }
+}
+// Expand one spec key into the ids it means. A legacy UK level-1 key becomes
+// that nation's counties; everything else is itself.
+const expandRegionKey = (key) => {
+  const nation = UK_NATION_OF_LEGACY_ID[key];
+  if (!nation) return [key];
+  const expanded = ukNationRegions.get(nation) ?? [];
+  return expanded.length > 0 ? expanded : [key];
+};
+
 const overrides = {};
 for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {
   for (const gid0 of gid0List) {
     for (const gid1 of index.get(gid0) ?? []) overrides[gid1] = polityName(owner);
   }
 }
+let ukLegacyExpanded = 0;
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
-  overrides[gid1] = polityName(owner); // region-level wins
+  const targets = expandRegionKey(gid1);
+  if (targets.length > 1 || targets[0] !== gid1) ukLegacyExpanded += targets.length;
+  for (const target of targets) overrides[target] = polityName(owner); // region-level wins
 }
 
 // countryNameOverrides is GONE, and could not survive this rename: it mapped a
@@ -506,6 +544,7 @@ if (cityCollection) {
   console.log(`  cities.geojson: ${cityCollection.features.length} era cities (customCities=true)`);
 }
 console.log(`  polities: ${Object.keys(polityOverrides).length}`);
+if (ukLegacyExpanded > 0) console.log(`  UK legacy key(s) expanded to ${ukLegacyExpanded} ONS region(s)`);
 if (eraSovereigntyMoves.size > 0) {
   const moves = [...eraSovereigntyMoves.entries()].map(([code, owner]) => `${code}→${owner}`);
   console.log(`  era sovereignty: ${moves.length} modern code(s) held by someone else on this date`);

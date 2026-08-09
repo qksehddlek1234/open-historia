@@ -67,11 +67,43 @@ const existingIds = new Set(seed.features.map((f) => String(f.properties?.id ?? 
 const taken = [];
 const refused = [];
 
+// TWO SOURCE VOCABULARIES, BECAUSE THE BETTER SOURCE SPEAKS THE OTHER ONE.
+// GADM names its fields GID_2/NAME_2/GID_0. The ONS Open Geography Portal
+// (OGL) — which is the source that actually has complete UK names, where
+// GADM's GeoJSON build leaves 45% of England blank — names them CTYUA23CD /
+// CTYUA23NM and carries no country column at all, since every row is British.
+// The ONS code's first letter IS the constituent nation (E/W/S/N).
+const readRow = (props) => {
+  const gadmId = String(props.GID_2 ?? props.gid2 ?? props.GID_1 ?? "").trim();
+  if (gadmId) {
+    return {
+      id: gadmId,
+      gid0: String(props.GID_0 ?? props.gid0 ?? "").trim(),
+      name: String(props.NAME_2 ?? props.name_2 ?? props.NAME_1 ?? "").trim(),
+      country: String(props.COUNTRY ?? props.country ?? "").trim(),
+    };
+  }
+  // ONS: any *CD/*NM pair (CTYUA23CD/NM, LAD23CD/NM, RGN22CD/NM…).
+  const codeKey = Object.keys(props).find((key) => /CD$/.test(key) && typeof props[key] === "string");
+  const nameKey = Object.keys(props).find((key) => /(?<!NMW)NM$/.test(key) && typeof props[key] === "string");
+  if (!codeKey || !nameKey) return null;
+  const code = String(props[codeKey]).trim();
+  return {
+    id: code ? `GBR.${code}` : "",
+    gid0: "GBR",
+    name: String(props[nameKey]).trim(),
+    country: "United Kingdom",
+  };
+};
+
 for (const feature of incoming) {
   const props = feature.properties ?? {};
-  const id = String(props.GID_2 ?? props.gid2 ?? props.GID_1 ?? "").trim();
-  const gid0 = String(props.GID_0 ?? props.gid0 ?? "").trim();
-  const name = String(props.NAME_2 ?? props.name_2 ?? props.NAME_1 ?? "").trim();
+  const row = readRow(props);
+  if (!row) {
+    refused.push("(unrecognised property shape — neither GADM nor ONS)");
+    continue;
+  }
+  const { id, gid0, name } = row;
   if (!id || !gid0 || !feature.geometry) {
     refused.push(`${id || "(no id)"}: missing id, country or geometry`);
     continue;
@@ -83,7 +115,7 @@ for (const feature of incoming) {
   taken.push({
     type: "Feature",
     geometry: feature.geometry,
-    properties: { id, gid0, name, country: String(props.COUNTRY ?? props.country ?? "").trim() },
+    properties: { id, gid0, name, country: row.country },
   });
   existingIds.add(id);
 }
