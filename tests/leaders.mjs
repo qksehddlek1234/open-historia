@@ -102,7 +102,13 @@ test("the palette rides in the sheet prompt as a palette, never an instruction",
 console.log("\nThe sheet task actually consults it");
 
 test("wired into prompt, backfill, and the validator's correction pass", () => {
-  assert.match(GAMEPLAY, /referenceLeadership\(toCountryName\(statCode\) \|\| normalizeString\(target\), sheetDate\)/);
+  // 갱신(2026-08-09): 호출부가 resolveLeadership으로 바뀌었다 — 핀이 지키는 불변식
+  // (시트 태스크가 기록을 실제로 조회한다)은 그대로다. 여기에 두 가지를 더 고정한다:
+  // 폴리티 별칭 사슬을 넘길 것, 그리고 프리셋 시딩을 폴백으로 넘길 것 — 이 둘이
+  // 빠졌을 때 12B가 없는 사람을 지어냈다.
+  assert.match(GAMEPLAY, /resolveLeadership\(referenceName, sheetDate, \{/);
+  assert.match(GAMEPLAY, /aliases: polityRecord\?\.aliases \?\? \[\]/);
+  assert.match(GAMEPLAY, /seed: polityRecord\?\.leadership \?\? null/);
   assert.match(GAMEPLAY, /OFFICEHOLDERS ON RECORD for \$\{target\}/);
   // Campaign record → era record → honest unknown, in that order.
   assert.match(GAMEPLAY, /\|\| normalizeString\(reference\[field\]\) \|\| "\(미확인\)"/);
@@ -205,5 +211,95 @@ test("the backfilled decade answers like the verified one", () => {
   assert.equal(referenceLeadership("United States", "2009-06-01").leader, "대통령 버락 오바마");
   assert.equal(referenceLeadership("North Korea", "2010-01-01").leader, "국방위원장 김정일");
 });
+
+console.log("\n별칭 사슬 — 프리셋 폴리티 이름이 기록에 닿는다");
+
+await (async () => {
+  // 실측 사고: 폴리티 이름만으로 조회하면 British Empire / French Republic /
+  // Republic of China / Mongolian People's Republic 이 전부 빈손을 받았고, 12B가
+  // 그 네 시트를 없는 사람으로 채웠다 — "총리 스탠리 메이너드 맥도널드",
+  // "국왕 조지 6세"(1936 즉위, 시대착오), "총리 알베르토 바리니",
+  // "대통령 알퐁스 페리시에", "국무원 주석 펑펑". 빌드가 이미 쓰던 별칭 사슬을
+  // 런타임도 쓰게 한 것이 수리다.
+  const { resolveLeadership } = await import("../src/runtime/leaderReference.js");
+  await ensureReferenceEra("1935-12-01");
+  const gbr = resolveLeadership("British Empire", "1935-12-01", { aliases: ["United Kingdom"] });
+  assert.equal(gbr.leader, "총리 스탠리 볼드윈");
+  // 조지 5세는 1936-01-20에 죽는다 — 1935-12 시트의 조지 6세는 시대착오다.
+  assert.equal(gbr.headOfState, "국왕 조지 5세");
+  assert.equal(gbr.__via, "United Kingdom");
+  assert.equal(gbr.__source, "reference");
+  assert.equal(resolveLeadership("French Republic", "1935-12-01", { aliases: ["France"] }).headOfState, "대통령 알베르 르브룅");
+  assert.equal(resolveLeadership("Republic of China", "1935-12-01", { aliases: ["China"] }).leader, "총통 장제스");
+  assert.equal(resolveLeadership("Mongolian People's Republic", "1935-12-01", { aliases: ["Mongolia"] }).leader, "총리 펠지딘 겐덴");
+  pass += 1;
+  console.log("  ok  the alias chain answers for the polity names presets actually use");
+})();
+
+await (async () => {
+  const { resolveLeadership } = await import("../src/runtime/leaderReference.js");
+  await ensureReferenceEra("1935-12-01");
+  const seeded = resolveLeadership("Nowhereland", "1935-12-01", {
+    seed: { asOf: "1935-12-01", via: "Nowhereland", leader: "총리 아무개" },
+  });
+  assert.equal(seeded.leader, "총리 아무개");
+  assert.equal(seeded.__source, "seed");
+  assert.equal(seeded.__asOf, "1935-12-01");
+  // 레퍼런스가 답하면 시드는 지지 않는다 — 날짜 창을 아는 쪽이 이긴다.
+  const beaten = resolveLeadership("British Empire", "1935-12-01", {
+    aliases: ["United Kingdom"],
+    seed: { asOf: "1935-12-01", leader: "총리 엉뚱한사람" },
+  });
+  assert.equal(beaten.leader, "총리 스탠리 볼드윈");
+  assert.equal(beaten.__source, "reference");
+  pass += 1;
+  console.log("  ok  the build's start-date seed is the fallback, and says so");
+})();
+
+await (async () => {
+  // 프리셋 전수 — 1444년 이후 폴리티가 하나라도 빈손이면 그 자리는 12B의 창작 영역이다.
+  const { resolveLeadership } = await import("../src/runtime/leaderReference.js");
+  const fs = await import("node:fs");
+  const dir = new URL("../scripts/presets/", import.meta.url);
+  const specs = fs.readdirSync(dir).filter((f) => f.endsWith(".spec.mjs"));
+  const failures = [];
+  for (const file of specs) {
+    const spec = (await import(new URL(file, dir))).default;
+    const date = spec.game?.startDate ?? "";
+    // 기록은 1444년부터가 설계 범위다 — 그 이전 프리셋은 정직한 공백.
+    if (!/^\d{4}-/.test(date) || Number(date.slice(0, 4)) < 1444) continue;
+    await ensureReferenceEra(date);
+    for (const polity of Object.values(spec.polities ?? {})) {
+      if (!resolveLeadership(polity.name, date, { aliases: polity.aliases })) {
+        failures.push(`${spec.id}: ${polity.name}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, [], "every post-1444 preset polity must resolve");
+  pass += 1;
+  console.log("  ok  every polity of every preset from 1444 on resolves");
+})();
+
+await (async () => {
+  // 세이브가 시딩을 버리면 위의 전부가 무의미하다 — 실제로 21/21이 0이 됐었다.
+  const { normalizeWorldState } = await import("../src/runtime/gameState.js");
+  const world = normalizeWorldState({
+    polityOverrides: {
+      "British Empire": {
+        code: "GBR",
+        name: "British Empire",
+        aliases: ["United Kingdom"],
+        leadership: { asOf: "1935-12-01", via: "United Kingdom", leader: "총리 스탠리 볼드윈", headOfState: "국왕 조지 5세" },
+      },
+      Empty: { code: "EMP", name: "Empty", leadership: { asOf: "1935-12-01" } },
+    },
+  });
+  assert.equal(world.polityOverrides["British Empire"].leadership.leader, "총리 스탠리 볼드윈");
+  assert.equal(world.polityOverrides["British Empire"].leadership.via, "United Kingdom");
+  // 사람이 하나도 없는 시드는 시드가 아니다.
+  assert.equal(world.polityOverrides.Empty.leadership, undefined);
+  pass += 1;
+  console.log("  ok  normalizeWorldState keeps the polity leadership seeding");
+})();
 
 console.log(`\n${pass} passed\n`);

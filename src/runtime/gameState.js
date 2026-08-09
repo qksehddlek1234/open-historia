@@ -1339,6 +1339,34 @@ export const normalizeEvents = (events) => {
   return [];
 };
 
+// The officeholders a preset build resolved for this polity at its START DATE
+// (build-preset.mjs step 3.5, resolved through the polity's own alias chain so
+// "British Empire" answers via "United Kingdom").
+//
+// THE NEW-WORLD-FIELD TRAP, CAUGHT IN THE FIELD. This normalizer used to return
+// a fixed five-field object, so `leadership` — present and CORRECT in every
+// built scenario.json — was dropped the instant a game was created from it.
+// Measured on the player's own 1935 save: the scenario carried 21/21 seeded
+// leaderships (총리 스탠리 볼드윈, 국왕 조지 5세, 총리 펠지딘 겐덴), the live
+// world carried ZERO, and the sheet task — arriving empty-handed — invented
+// people instead: "총리 스탠리 메이너드 맥도널드", "국왕 조지 6세" (crowned in
+// 1936), "총리 알베르토 바리니", "대통령 알퐁스 페리시에", "국무원 주석 펑펑".
+// Not one of them existed. The record was in the save all along.
+const normalizeLeadershipSeed = (value) => {
+  if (!value || typeof value !== "object") return null;
+  const seed = {
+    asOf: normalizeOptionalString(value.asOf),
+    via: normalizeOptionalString(value.via),
+    leader: normalizeOptionalString(value.leader),
+    headOfState: normalizeOptionalString(value.headOfState),
+    deputy: normalizeOptionalString(value.deputy),
+    government: normalizeOptionalString(value.government),
+  };
+  // A seed with no person in it is not a seed.
+  if (!seed.leader && !seed.headOfState && !seed.deputy) return null;
+  return Object.fromEntries(Object.entries(seed).filter(([, v]) => v));
+};
+
 const normalizePolityOverride = (key, value) => {
   if (!value || typeof value !== "object") {
     return null;
@@ -1349,10 +1377,12 @@ const normalizePolityOverride = (key, value) => {
     return null;
   }
 
+  const leadership = normalizeLeadershipSeed(value.leadership);
   return {
     aliases: normalizeActionParticipants(value.aliases || value.additionalNames),
     code,
     color: normalizeOptionalString(value.color),
+    ...(leadership ? { leadership } : {}),
     name: normalizeOptionalString(value.name || value.label),
     note: normalizeOptionalString(value.note),
   };

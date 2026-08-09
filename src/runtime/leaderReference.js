@@ -3818,3 +3818,46 @@ export const referenceCoverageSpan = (dateISO, { floor = 15 } = {}) => {
   while (until + 1 <= new Date().getUTCFullYear() + 1 && covered(until + 1)) until += 1;
   return { from, until, years: until - from + 1 };
 };
+
+// ONE RESOLUTION RULE FOR THE BUILD AND THE RUNTIME.
+//
+// The preset build resolves a polity through its own alias chain — name first,
+// then each alias — which is why "British Empire" answers via "United Kingdom"
+// and 21/21 polities seeded correctly for 1935. The runtime sheet task called
+// referenceLeadership with the polity NAME ALONE, got {} for British Empire,
+// French Republic, Republic of China and Mongolian People's Republic, and let a
+// 12B invent officeholders for exactly those four. Across all presets the name-
+// only lookup misses 200 of 393 polities; the alias chain closes most of them.
+//
+// Order of trust: the reference (dated windows — it knows who held the office
+// on THIS date, which a start-date seed cannot after the campaign moves on),
+// then the build's seed as the fallback for whatever the record does not cover.
+// The seed carries its own asOf so a caller can tell how stale it is.
+export const resolveLeadership = (country, dateISO, { aliases = [], seed = null } = {}) => {
+  const keys = [country, ...(Array.isArray(aliases) ? aliases : [])]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+  for (const key of keys) {
+    const hit = referenceLeadership(key, dateISO);
+    if (hit && (hit.leader || hit.headOfState || hit.deputy)) {
+      return { ...hit, __via: key, __source: "reference" };
+    }
+  }
+  if (seed && (seed.leader || seed.headOfState || seed.deputy)) {
+    const { asOf, via, ...people } = seed;
+    return { ...people, __via: via || country, __source: "seed", __asOf: asOf || "" };
+  }
+  return null;
+};
+
+// The same alias chain for the contender palette.
+export const resolvePoliticalFigures = (country, dateISO, { aliases = [] } = {}) => {
+  const keys = [country, ...(Array.isArray(aliases) ? aliases : [])]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+  for (const key of keys) {
+    const hit = referencePoliticalFigures(key, dateISO);
+    if (Array.isArray(hit) ? hit.length > 0 : hit && Object.keys(hit).length > 0) return hit;
+  }
+  return referencePoliticalFigures(country, dateISO);
+};

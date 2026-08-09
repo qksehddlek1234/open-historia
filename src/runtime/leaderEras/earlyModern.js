@@ -6,6 +6,120 @@
 export const ERA = { key: "early-modern", from: "1444-01-01", until: "1749-12-31" };
 
 export const REFERENCE = {
+  // ---- colonial-1650 보강: 비유럽·원주민 정치체 -------------------------------
+  // 원칙은 이 파일 전체와 같다: 확실한 인물만 이름으로 적고, 재위가 불확실하거나
+  // 애초에 단일 수반이 없는 정치체는 개인을 지어내지 않고 제도를 적는다.
+  // (선례: Republic of Ragusa "렉토르 (월례 윤번제)", Maya Kingdoms "제후 왕국들")
+  "Ganden Phodrang": {
+    // 1642년 구시 칸이 세운 달라이 라마 정부. 종교 수반과 세속 행정 수반(데시)이
+    // 나뉘므로 데시를 2인자로 적는다.
+    leader: [
+      { name: "달라이 라마 5세 응아왕 롭상 갸초", from: "1642-04-01", until: "1682-04-02" },
+      { name: "달라이 라마 6세 창양 갸초", from: "1697-12-08", until: "1706-11-15" },
+    ],
+    deputy: [
+      { name: "데시 소남 랍텐", from: "1642-04-01", until: "1658-01-01" },
+      { name: "데시 상계 갸초", from: "1679-01-01", until: "1705-01-01" },
+    ],
+  },
+  "Khanate of Khiva": {
+    leader: [
+      { name: "칸 아불 가지 바하두르", from: "1643-01-01", until: "1663-01-01" },
+      { name: "칸 아누샤", from: "1663-01-01", until: "1685-01-01" },
+    ],
+  },
+  "Dzungar Khanate": {
+    leader: [
+      { name: "홍타이지 에르데니 바투르", from: "1634-01-01", until: "1653-01-01" },
+      { name: "홍타이지 셍게", from: "1653-01-01", until: "1670-01-01" },
+      { name: "훙타이지 갈단 보슉투 칸", from: "1671-01-01", until: "1697-04-01" },
+    ],
+  },
+  "Kingdom of Kandy": {
+    leader: [
+      { name: "국왕 라자싱하 2세", from: "1635-01-01", until: "1687-11-25" },
+      { name: "국왕 위말라다르마수리야 2세", from: "1687-11-25", until: "1707-01-01" },
+    ],
+  },
+  "Kingdom of Cambodia": {
+    leader: [
+      { name: "국왕 라마디파티 1세", from: "1642-01-01", until: "1658-01-01" },
+      { name: "국왕 바롬 레아체아 5세", from: "1658-01-01", until: "1672-01-01" },
+    ],
+  },
+  "Funj Sultanate": {
+    leader: [
+      { name: "술탄 바디 2세 아부 다칸", from: "1645-01-01", until: "1681-01-01" },
+      { name: "술탄 운사 2세", from: "1681-01-01", until: "1692-01-01" },
+    ],
+  },
+  "Kanem-Bornu": {
+    leader: [
+      { name: "마이 알리 이븐 우마르", from: "1645-01-01", until: "1684-01-01" },
+      { name: "마이 이드리스 이븐 알리", from: "1684-01-01", until: "1696-01-01" },
+    ],
+  },
+  "Itza Maya": {
+    // 칸엑은 노흐페텐(타야살) 통치자의 세습 칭호다 — 개인명이 아니라 직위로 적는다.
+    leader: [
+      { name: "아하우 칸엑 (노흐페텐 세습 칭호)", from: "1600-01-01", until: "1697-03-13" },
+    ],
+  },
+  "Ajuran Sultanate": {
+    // 1650년의 아주란은 쇠퇴·분열기이며 실효 수반이 사료로 특정되지 않는다.
+    leader: [
+      { name: "이맘 (쇠퇴기 — 실효 수반 미상)" },
+    ],
+  },
+  "Kingdom of Mutapa": {
+    // 17세기 중반 무타파 왕위는 포르투갈 개입 속에 자주 바뀌고 연대가 사료마다
+    // 갈린다. 특정 연도를 인물로 단정하지 않는다.
+    leader: [
+      { name: "무네무타파 (재위 연대 불확실)" },
+    ],
+  },
+  "Mapuche": {
+    // 톡키는 전시에만 뽑히는 지휘자이며 평시의 상설 수반이 아니다.
+    leader: [
+      { name: "로프 수장들 (전시에만 톡키 선출)" },
+    ],
+  },
+  "Haudenosaunee": {
+    leader: [
+      { name: "대평의회 (50인 사쳄 합의체)" },
+    ],
+  },
+  "Cherokee": {
+    leader: [
+      { name: "마을 평의회 (통합 수반 없음)" },
+    ],
+  },
+  "Muscogee": {
+    leader: [
+      { name: "탈와 미코 회의 (통합 수반 없음)" },
+    ],
+  },
+  "Choctaw and Chickasaw": {
+    leader: [
+      { name: "각 부족 미코 (통합 수반 없음)" },
+    ],
+  },
+  "Oceti Sakowin": {
+    leader: [
+      { name: "일곱 화덕 협의회 (통합 수반 없음)" },
+    ],
+  },
+  "Apacheria": {
+    leader: [
+      { name: "밴드별 수장 (통합 수반 없음)" },
+    ],
+  },
+  "Dine (Navajo)": {
+    leader: [
+      { name: "나아타아니 (지역별 지도자, 통합 수반 없음)" },
+    ],
+  },
+
   // ---- magna-1444 프리셋 시딩 보강 (바르나 다음날의 세계) ----
   "Empire of Trebizond": {
     leader: [
@@ -1419,6 +1533,14 @@ export const POLITICAL_FIGURES = {
 };
 
 export const ALIASES = {
+  "Navajo": "Dine (Navajo)",
+  "Iroquois Confederacy": "Haudenosaunee",
+  "Sioux": "Oceti Sakowin",
+  "Creek": "Muscogee",
+  "Khiva": "Khanate of Khiva",
+  "Sennar": "Funj Sultanate",
+  "Bornu": "Kanem-Bornu",
+  "Kandy": "Kingdom of Kandy",
   "Kingdom of Poland": "Poland",
   "Kingdom of Bohemia": "Bohemia",
   "Abyssinia": "Ethiopia",

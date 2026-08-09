@@ -109,7 +109,7 @@ import {
   SHEET_FORMAT,
   tidyStatSheetMoney,
 } from "../../runtime/countryStatLedger.js";
-import { ensureReferenceEra, referenceLeadership, referencePoliticalFigures } from "../../runtime/leaderReference.js";
+import { ensureReferenceEra, resolveLeadership, resolvePoliticalFigures } from "../../runtime/leaderReference.js";
 import {
   beginConstruction,
   buildPipelineText,
@@ -4553,10 +4553,34 @@ export const generateCountryStatSheet = async ({ code, name } = {}) => {
   // loads here, once, before the sync lookups. The campaign's own recorded
   // person always outranks this; the record outranks a fresh guess.
   await ensureReferenceEra(sheetDate);
-  const reference = referenceLeadership(toCountryName(statCode) || normalizeString(target), sheetDate);
+  // THE ALIAS CHAIN, THE SAME ONE THE BUILD USES. A name-only lookup answered
+  // {} for British Empire, French Republic, Republic of China and Mongolian
+  // People's Republic — and the 12B filled those four sheets with people who
+  // never existed. The polity's own alias list is the bridge ("British Empire"
+  // → "United Kingdom" → 총리 스탠리 볼드윈), and the preset's start-date seed
+  // is the fallback for whatever the record still does not cover. Measured
+  // across all presets: name-only hit 193/393 polities, this hits 293/393, and
+  // every preset from 1444 on is now 100%.
+  const referenceName = toCountryName(statCode) || normalizeString(target);
+  const polityRecord = (() => {
+    const overrides = priorWorld.polityOverrides ?? {};
+    const wanted = canonKey(referenceName);
+    for (const [key, entry] of Object.entries(overrides)) {
+      if (!entry) continue;
+      if (canonKey(key) === wanted || canonKey(entry.name) === wanted || canonKey(entry.code) === wanted) return entry;
+    }
+    return null;
+  })();
+  const reference = resolveLeadership(referenceName, sheetDate, {
+    aliases: polityRecord?.aliases ?? [],
+    seed: polityRecord?.leadership ?? null,
+  });
+  if (reference?.__source === "seed") {
+    console.info(`[stats] ${referenceName}: the record does not cover this date — using the preset's start-date seeding (${reference.__asOf || "?"}).`);
+  }
   // The era's real contenders — the palette a DIVERGED campaign names its
   // successors from, instead of inventing someone.
-  const politicalFigures = referencePoliticalFigures(toCountryName(statCode) || normalizeString(target), sheetDate);
+  const politicalFigures = resolvePoliticalFigures(referenceName, sheetDate, { aliases: polityRecord?.aliases ?? [] });
   // The DISPLAY name is a second identity for the same country — a caller may
   // pass a code the canon tables miss while the name says who it is.
   const canonicalDisplayTarget = canonKey(target);
