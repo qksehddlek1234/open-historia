@@ -126,3 +126,64 @@ export function expandLegacyNuts(key, index) {
   const hits = ids.filter((id) => prefixes.some((prefix) => id.startsWith(prefix)));
   return hits.length > 0 ? hits : [key];
 }
+
+// ── ONE EXPANDER, FOR EVERY BUILDER THAT HAS TO RESOLVE A LEGACY KEY ─────────
+//
+// The three rules above (UK table, NUTS table, GADM parent) were assembled
+// inline inside build-preset and nowhere else, which was fine while only specs
+// named legacy keys. They do not: `default/world.json` holds 168 ownership
+// facts on level-1 ids that a subdivision pass replaced, and build-default-map
+// needs the same resolution to keep them.
+//
+// It is one function rather than two copies for the reason this repo has
+// already paid for once — build-preset and build-default-map each carried their
+// own idea of what a real region was, only one of them learned about the second
+// phantom, and all 22 shared maps un-shared themselves in a single rebuild
+// (lib/regionRef.mjs tells that story). A resolution rule that two builders
+// disagree about produces exactly the same class of damage, quietly.
+const UK_NATION_OF_LEGACY_ID = { "GBR.1_1": "E", "GBR.2_1": "N", "GBR.3_1": "S", "GBR.4_1": "W" };
+// ONS ships two UK code systems and they say the nation differently:
+//   ITL2  — TLC..TLK England, TLL Wales, TLM Scotland, TLN Northern Ireland
+//   CTYUA — E… / W… / S… / N… as the first letter
+const ITL2_NATION = { C: "E", D: "E", E: "E", F: "E", G: "E", H: "E", I: "E", J: "E", K: "E", L: "W", M: "S", N: "N" };
+
+export const ukNationOf = (id) => {
+  const itl2 = /^GBR\.TL([C-N])\d?/.exec(id);
+  if (itl2) return ITL2_NATION[itl2[1]] ?? "";
+  const ctyua = /^GBR\.([EWSN])\d+/.exec(id);
+  return ctyua ? ctyua[1] : "";
+};
+
+/**
+ * Build the resolver from the ids the SEED currently holds — not the pmtiles
+ * catalog, which lags it. Pass an iterable of region id strings.
+ *
+ * Returns `expand(key)`: the ids that key means. A legacy UK level-1 key becomes
+ * that nation's counties, a German level-1 key becomes its NUTS-2 rows, a GADM
+ * level-1 key becomes its level-2 children where the seed has them, and
+ * anything else is itself.
+ */
+export function buildRegionKeyExpander(regionIds) {
+  const features = [...regionIds].map((id) => ({ properties: { id: String(id) } }));
+  const ukNationRegions = new Map();
+  for (const feature of features) {
+    const id = feature.properties.id;
+    const nation = id.startsWith("GBR.") ? ukNationOf(id) : "";
+    if (!nation) continue;
+    if (!ukNationRegions.has(nation)) ukNationRegions.set(nation, []);
+    ukNationRegions.get(nation).push(id);
+  }
+  const level2Index = buildLevel2Index(features);
+  const nutsIndex = buildNutsIndex(features);
+
+  return (key) => {
+    const nation = UK_NATION_OF_LEGACY_ID[key];
+    if (nation) {
+      const expanded = ukNationRegions.get(nation) ?? [];
+      if (expanded.length > 0) return expanded;
+    }
+    const byNuts = expandLegacyNuts(key, nutsIndex);
+    if (byNuts.length > 1 || byNuts[0] !== key) return byNuts;
+    return expandLegacyLevel1(key, level2Index);
+  };
+}

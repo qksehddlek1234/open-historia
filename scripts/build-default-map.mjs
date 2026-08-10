@@ -15,6 +15,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import COUNTRY_NAMES from "../src/runtime/generated/countryNames.js";
 import { OWNER_SCHEMA } from "../server/ownerMigration.js";
+import { isRegionReference, regionRefReason } from "./presets/lib/regionRef.mjs";
+import { buildRegionKeyExpander } from "./presets/lib/level2Expansion.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..");
@@ -43,11 +45,37 @@ const baseColors = existsSync(BASE_COLORS_PATH) ? JSON.parse(readFileSync(BASE_C
 const colors = { ...baseColors };
 
 const features = [];
+// Ids this build refused, so the ownership table can be cleaned of exactly them
+// (and nothing else) once the features are written.
+const skippedIds = new Set();
 for (const feature of seed.features ?? []) {
   const props = feature.properties ?? {};
   const gid1 = props.id != null ? String(props.id) : "";
   if (!gid1 || !feature.geometry) continue;
   const gid0 = props.gid0 ? String(props.gid0) : "";
+  // A COUNTRY CODE IS THREE CHARACTERS. Anything else in this field is a missing
+  // value that survived import, not a country nobody has heard of.
+  //
+  // Found by the shared-base-map pass, which rebuilds each scenario from this
+  // map plus an overlay and compares the result: every preset came out exactly
+  // one feature short, and the extra was {id:"NA", gid0:"NA", name:"NA"} — R's
+  // NA stringified upstream of the seed, carrying a real 31-part geometry from
+  // northern England to Shetland. The fallback below then read it as an unknown
+  // country and named a polity after it, so the built-in Modern Day campaign
+  // shipped a magenta nation called "NA" holding part of Britain — in the
+  // start-country picker, in colors.json, in ownerCodes. Only `default` had it;
+  // build-preset's id validation already dropped it, which is why every preset
+  // has 4,941 features and this map had 4,942.
+  //
+  // Both halves live in lib/regionRef.mjs, shared with build-preset. They were
+  // separate rules in two files until one was widened alone and the fleet's 22
+  // shared maps collapsed in a single rebuild — every preset had a feature the
+  // base no longer did. The predicate is one thing now so it cannot drift again.
+  if (!isRegionReference(gid1, gid0)) {
+    console.warn(`[build-default-map] skipped ${gid1}: ${regionRefReason(gid1, gid0)}`);
+    skippedIds.add(gid1);
+    continue;
+  }
   // The owner is the country's NAME, resolved through the registry rather than
   // taken from the seed's own `country` field: the seed says "México" where
   // everything else says "Mexico", and truncates "United States Minor Outlying
@@ -101,6 +129,62 @@ if (world.polityOverrides && typeof world.polityOverrides === "object") {
     if (/^Z\d\d$/.test(key)) delete world.polityOverrides[key];
   }
 }
+// Same shape of cleanup for ownership, but scoped to what THIS build rejected.
+// Dropping the "NA" feature above would otherwise leave {"NA": "NA"} behind, and
+// anything that walks the table would resurrect the polity the feature created.
+//
+// Deliberately NOT "every override with no matching feature" — the block below
+// does something better with those than deleting them.
+for (const key of skippedIds) {
+  if (world.regionOwnershipOverrides && key in world.regionOwnershipOverrides) {
+    console.warn(`[build-default-map] dropped override for skipped region ${key}`);
+    delete world.regionOwnershipOverrides[key];
+  }
+  if (world.polityOverrides && key in world.polityOverrides) delete world.polityOverrides[key];
+}
+// ── THE COARSE IDS THE SUBDIVISION PASSES SUPERSEDED ─────────────────────────
+//
+// 168 of this campaign's ownership facts are recorded on level-1 ids that are no
+// longer features: "CHN.11_1" became prefectures, "IND.16_1" became districts,
+// "DEU.4_1" became NUTS-2 rows. The note above used to say a build script is the
+// wrong place to quietly RETIRE them, which was right — but deleting was never
+// the only option. Every one of them EXPANDS: the key still names exactly the
+// ground it always named, and that ground just has finer ids now.
+//
+// So they are expanded, through the same resolver the preset builder uses
+// (lib/level2Expansion.mjs) rather than a second copy of the rule — two builders
+// disagreeing about how to resolve an id is the same class of damage as two
+// builders disagreeing about what a region is, and this repo has already paid
+// for that one. Measured on the current seed: 168 keys in, 1,448 regions out,
+// nothing unresolved.
+//
+// A finer fact already in the table always wins: if the player took one
+// prefecture, that prefecture keeps its owner and the rest of the province takes
+// the coarse key's.
+const featureIds = new Set(features.map((feature) => String(feature?.properties?.id ?? "")));
+const expandRegionKey = buildRegionKeyExpander(featureIds);
+let expandedKeys = 0;
+let expandedInto = 0;
+let unresolved = 0;
+if (world.regionOwnershipOverrides) {
+  for (const [key, owner] of Object.entries(world.regionOwnershipOverrides)) {
+    if (featureIds.has(key)) continue;
+    const targets = expandRegionKey(key).filter((id) => featureIds.has(id));
+    if (targets.length === 0) { unresolved += 1; continue; }
+    for (const target of targets) {
+      if (target in world.regionOwnershipOverrides) continue;
+      world.regionOwnershipOverrides[target] = owner;
+      expandedInto += 1;
+    }
+    delete world.regionOwnershipOverrides[key];
+    expandedKeys += 1;
+  }
+}
+if (expandedKeys > 0 || unresolved > 0) {
+  console.log(`[build-default-map] expanded ${expandedKeys} superseded override(s) into ${expandedInto} region(s)`
+    + (unresolved > 0 ? ` — ${unresolved} left unresolved` : ""));
+}
+
 writeFileSync(worldPath, `${JSON.stringify(world, null, 2)}\n`, "utf8");
 
 // Cover image: the modern-era loading artwork fits the Modern Day scenario.

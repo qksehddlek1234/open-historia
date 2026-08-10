@@ -19,8 +19,7 @@ import { isRegionReference } from "./lib/regionRef.mjs";
 import { CONTRACTS } from "../../src/runtime/simulationContracts.js";
 import { voicePolities } from "./lib/internalVoices.mjs";
 import {
-  NUTS_PREFIX_OF_LEGACY_ID,
-  buildLevel2Index, buildNutsIndex, expandLegacyLevel1, expandLegacyNuts,
+  NUTS_PREFIX_OF_LEGACY_ID, buildRegionKeyExpander,
 } from "./lib/level2Expansion.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
@@ -178,57 +177,21 @@ const polityName = (code) => String(spec.polities?.[code]?.name ?? code);
 // with Britain unowned. Rewriting four specs would fix those four and leave the
 // trap armed for the next one, so the BUILDER translates instead. The ONS code's
 // first letter is the constituent nation, which is the whole mapping.
-const UK_NATION_OF_LEGACY_ID = { "GBR.1_1": "E", "GBR.2_1": "N", "GBR.3_1": "S", "GBR.4_1": "W" };
-// Read the SEED, not the pmtiles catalog: the catalog is the old four-province
-// Britain until someone regenerates the tiles, while the seed is what the map
-// actually draws from. Looking in the catalog found nothing and the expansion
-// silently did not happen — the exact failure this block exists to prevent.
-// The constituent nation is read from whichever UK code system the seed
-// currently holds. ONS ships two and they say it differently:
-//   ITL2  — TLC..TLK England, TLL Wales, TLM Scotland, TLN Northern Ireland
-//   CTYUA — E… / W… / S… / N… as the first letter
-// Both are supported so swapping one subdivision set for another (218 counties
-// → 46 ITL2 regions, which is what the density balance wanted) does not
-// silently unassign Britain again.
-const ITL2_NATION = { C: "E", D: "E", E: "E", F: "E", G: "E", H: "E", I: "E", J: "E", K: "E", L: "W", M: "S", N: "N" };
-const ukNationOf = (id) => {
-  const itl2 = /^GBR\.TL([C-N])\d?/.exec(id);
-  if (itl2) return ITL2_NATION[itl2[1]] ?? "";
-  const ctyua = /^GBR\.([EWSN])\d+/.exec(id);
-  return ctyua ? ctyua[1] : "";
-};
-const seedFeatures = [...seedIds].map((id) => ({ properties: { id } }));
-const ukNationRegions = new Map(); // "E" -> [ids]
-for (const feature of seedFeatures) {
-  const id = String(feature?.properties?.id ?? "");
-  const nation = id.startsWith("GBR.") ? ukNationOf(id) : "";
-  if (nation) {
-    if (!ukNationRegions.has(nation)) ukNationRegions.set(nation, []);
-    ukNationRegions.get(nation).push(id);
-  }
-}
-// And the general case (lib/level2Expansion.mjs): wherever the seed now holds
-// GADM level-2 rows, a spec key naming their level-1 parent means all of them.
-// This is what lets China become prefectures and India districts without
-// rewriting every "CHN.25_1" in four WWII specs — the same trap Britain sprang.
-const level2Index = buildLevel2Index(seedFeatures);
-// And the NUTS case, which needs a table because a NUTS id has no parent
-// segment to walk back through (lib/level2Expansion.mjs explains).
-const nutsIndex = buildNutsIndex(seedFeatures);
-
-// Expand one spec key into the ids it means. A legacy UK level-1 key becomes
-// that nation's counties, a GADM level-1 key becomes its level-2 children where
-// the seed has them, and everything else is itself.
-const expandRegionKey = (key) => {
-  const nation = UK_NATION_OF_LEGACY_ID[key];
-  if (nation) {
-    const expanded = ukNationRegions.get(nation) ?? [];
-    if (expanded.length > 0) return expanded;
-  }
-  const byNuts = expandLegacyNuts(key, nutsIndex);
-  if (byNuts.length > 1 || byNuts[0] !== key) return byNuts;
-  return expandLegacyLevel1(key, level2Index);
-};
+// ONE RESOLVER, SHARED WITH build-default-map (lib/level2Expansion.mjs).
+//
+// This used to be assembled here — the UK nation table, the NUTS table and the
+// GADM parent rule, wired together inline. It moved because build-default-map
+// needs the identical resolution to expand the 168 ownership facts the Modern
+// Day campaign records on ids the subdivision passes replaced, and two builders
+// holding their own copy of a rule is precisely how the fleet's 22 shared maps
+// un-shared themselves once already (see lib/regionRef.mjs).
+//
+// It reads the SEED, not the pmtiles catalog: the catalog is the old
+// four-province Britain until someone regenerates the tiles, while the seed is
+// what the map actually draws from. Looking in the catalog found nothing and
+// the expansion silently did not happen — the exact failure this exists to
+// prevent.
+const expandRegionKey = buildRegionKeyExpander(seedIds);
 
 const overrides = {};
 for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {

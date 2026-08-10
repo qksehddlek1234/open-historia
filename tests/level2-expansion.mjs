@@ -70,17 +70,21 @@ test("an empty or absent seed degrades to identity, never to a crash", () => {
 
 // ---- the builder actually uses it ----------------------------------------------------
 
-test("THE BUILDER EXPANDS THREE WAYS, most specific first", () => {
-  assert.match(BUILD, /buildLevel2Index, buildNutsIndex, expandLegacyLevel1, expandLegacyNuts,/);
-  assert.match(BUILD, /const level2Index = buildLevel2Index\(seedFeatures\);/);
-  assert.match(BUILD, /const nutsIndex = buildNutsIndex\(seedFeatures\);/);
-  assert.match(BUILD, /return expandLegacyLevel1\(key, level2Index\);/);
-  // Order matters: the UK's ONS table, then the NUTS table (Germany), then the
-  // general GADM parent-segment rule. The tables are exact and the rule is a
-  // pattern, so an exact answer must never be overtaken by a pattern.
-  const fn = BUILD.slice(BUILD.indexOf("const expandRegionKey"), BUILD.indexOf("const overrides = {}"));
-  assert.ok(fn.indexOf("UK_NATION_OF_LEGACY_ID") < fn.indexOf("expandLegacyNuts"));
-  assert.ok(fn.indexOf("expandLegacyNuts") < fn.indexOf("expandLegacyLevel1"));
+test("THE RESOLVER EXPANDS THREE WAYS, most specific first", () => {
+  // This used to read build-preset's inline assembly. The assembly moved into
+  // lib/level2Expansion.mjs when build-default-map needed the same resolution,
+  // so the pin follows it — what it protects is the ORDER, not which file holds
+  // the lines. The UK's ONS table, then the NUTS table (Germany), then the
+  // general GADM parent-segment rule: the tables are exact and the rule is a
+  // pattern, and an exact answer must never be overtaken by a pattern.
+  const LIB = fs.readFileSync(new URL("../scripts/presets/lib/level2Expansion.mjs", import.meta.url), "utf8");
+  const fn = LIB.slice(LIB.indexOf("export function buildRegionKeyExpander"));
+  assert.ok(fn.indexOf("UK_NATION_OF_LEGACY_ID") < fn.indexOf("expandLegacyNuts"),
+    "the UK table is consulted before the NUTS table");
+  assert.ok(fn.indexOf("expandLegacyNuts") < fn.indexOf("expandLegacyLevel1"),
+    "and the NUTS table before the general GADM rule");
+  assert.match(LIB, /const level2Index = buildLevel2Index\(features\);/);
+  assert.match(LIB, /const nutsIndex = buildNutsIndex\(features\);/);
 });
 
 test("A NUTS KEY EXPANDS THROUGH THE TABLE, because the id has no parent", () => {
@@ -107,6 +111,56 @@ test("…and a spec may name an id the SEED has, even before the tiles catch up"
   // prefecture until that job was done.
   assert.match(BUILD, /const seedIds = new Set\(/);
   assert.match(BUILD, /!validGid1\.has\(gid1\) && !seedIds\.has\(gid1\) && !UK_LEGACY_KEYS\.has\(gid1\)/);
+});
+
+console.log("\nOne resolver, and the 168 facts it rescues");
+
+test("BOTH BUILDERS USE THE SHARED EXPANDER — no second copy of the rule", () => {
+  // build-preset assembled this inline (UK table + NUTS table + GADM parent)
+  // and build-default-map had none, which was survivable only while specs were
+  // the sole thing naming legacy keys. Two builders holding their own copy of a
+  // resolution rule is the same class of damage as two holding their own idea of
+  // what a region is — that one un-shared all 22 maps in a single rebuild.
+  const DEFAULT_MAP = fs.readFileSync(new URL("../scripts/build-default-map.mjs", import.meta.url), "utf8");
+  assert.match(BUILD, /buildRegionKeyExpander/, "build-preset must call the shared resolver");
+  assert.match(DEFAULT_MAP, /buildRegionKeyExpander/, "build-default-map must call the same one");
+  // And build-preset must NOT have grown its own copy back.
+  assert.doesNotMatch(BUILD, /const UK_NATION_OF_LEGACY_ID = \{/,
+    "the UK table lives in level2Expansion now — a copy here is the bug this pin exists for");
+});
+
+test("…and the resolver still answers for all three tiers", () => {
+  const seed = new URL("../public/assets/regions-seed.geojson", import.meta.url);
+  if (!fs.existsSync(seed)) return; // gitignored; only measurable where it exists
+  const ids = JSON.parse(fs.readFileSync(seed, "utf8")).features.map((f) => String(f.properties?.id ?? ""));
+  const expand = NUTS.buildRegionKeyExpander(ids);
+  assert.ok(expand("GBR.1_1").length > 1, "the UK table: England becomes its counties");
+  assert.ok(expand("CHN.11_1").length > 1, "the GADM rule: a province becomes its prefectures");
+  // Baden-Württemberg, not Brandenburg: a NUTS expansion is a CHANGE OF ID, and
+  // it does not have to be a change of COUNT. Brandenburg is exactly one NUTS-2
+  // region, so a `> 1` check here fails on a resolver that is working correctly.
+  assert.deepEqual(expand("DEU.1_1").length > 1, true, "Baden-Württemberg has four");
+  assert.deepEqual(expand("DEU.4_1"), ["DEU.DE40"], "and Brandenburg's single row still resolves");
+  assert.deepEqual(expand("FRA.1_1"), expand("FRA.1_1"), "and it is stable");
+});
+
+test("THE 168 SUPERSEDED FACTS ARE EXPANDED, NOT DELETED", () => {
+  // The Modern Day campaign records ownership on coarse ids that the
+  // subdivision passes replaced. Deleting them would retire 168 facts about the
+  // board the app opens on; every one of them resolves, so none is retired.
+  const DEFAULT_MAP = fs.readFileSync(new URL("../scripts/build-default-map.mjs", import.meta.url), "utf8");
+  assert.match(DEFAULT_MAP, /expanded \$\{expandedKeys\} superseded override\(s\)/,
+    "the build has to say what it moved");
+  assert.match(DEFAULT_MAP, /if \(target in world\.regionOwnershipOverrides\) continue;/,
+    "a finer fact the campaign already has must win over the coarse key");
+
+  const map = new URL("../server/data/scenarios/default/regions.geojson", import.meta.url);
+  const world = new URL("../server/data/scenarios/default/world.json", import.meta.url);
+  if (!fs.existsSync(map) || !fs.existsSync(world)) return;
+  const featureIds = new Set(JSON.parse(fs.readFileSync(map, "utf8")).features.map((f) => String(f.properties?.id ?? "")));
+  const overrides = JSON.parse(fs.readFileSync(world, "utf8")).regionOwnershipOverrides ?? {};
+  const stale = Object.keys(overrides).filter((key) => !featureIds.has(key));
+  assert.deepEqual(stale, [], `${stale.length} override(s) still point at nothing`);
 });
 
 console.log(`\n${pass} passed\n`);
