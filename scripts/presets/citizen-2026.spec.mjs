@@ -26,12 +26,20 @@
 //     government". A citizen has no government of their own. The advisors would
 //     be nonsense, so the roster is off.
 //
-// WHAT I DID NOT COPY. The original defines a "CREATOR" command whose only
-// function is to print its author's name into an event — their watermark
-// against people lifting the preset. Reproducing someone's attribution device
-// inside our own file would be both pointless and rude, so it is not here. The
-// achievements are ours rather than theirs for the same reason: the mechanic
-// is worth having, their specific list is their writing.
+// TWO THINGS LEFT OUT, and one of the two reasons has since been withdrawn.
+//
+// The "CREATOR" command, whose only function is to print its author's name into
+// an event, is not here. That still holds on its own terms — it watermarks
+// THEIR preset and does nothing in ours — but it is a utility argument, not the
+// propriety one this comment used to make.
+//
+// The achievements are ours rather than the original's, and THAT reason does
+// not survive. I wrote "their specific list is their writing", which assumed a
+// no-copying rule this project does not have: LOCAL-PAX-HISTORIA-PLAN.md plans
+// a path for bringing preset rules over and draws its line at REDISTRIBUTION,
+// not at reference. So the original's achievement list is portable and this
+// board is under-ported by exactly that much. Left as it stands for now, and
+// recorded in the WORKLOG as re-port work rather than quietly rewritten.
 
 import modern2026 from "./modern-2026.spec.mjs";
 
