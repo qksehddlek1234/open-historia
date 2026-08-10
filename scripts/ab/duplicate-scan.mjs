@@ -82,6 +82,27 @@ for (const consumer of RULES_CONSUMERS) {
   console.log(consumer.padEnd(22), row.join(""));
 }
 
+// WHAT MATCHED, NOT JUST HOW MANY. A count is not evidence: 1/4 can be one word
+// landing by accident or the same rule said in different words, and those lead
+// to opposite actions. The first pass at this dismissed every partial hit as
+// coincidence on the strength of the number alone — the same shortcut that had
+// already been wrong three times in this file.
+console.log("\nWhat actually matched, for every non-zero cell:\n");
+for (const consumer of RULES_CONSUMERS) {
+  const text = promptFor(consumer);
+  if (!text) continue;
+  for (const contract of CONTRACTS) {
+    for (const probe of IDEAS[contract.key] ?? []) {
+      const found = text.match(probe);
+      if (!found) continue;
+      const at = text.indexOf(found[0]);
+      const context = text.slice(Math.max(0, at - 60), at + found[0].length + 90).replace(/\s+/g, " ");
+      console.log(`  ${consumer}/${contract.key}  «${found[0]}»`);
+      console.log(`      …${context}…`);
+    }
+  }
+}
+
 console.log("\nWhere the consumer's prompt already carries the rule, an A/B on that cell");
 console.log("is measuring a difference it has already given to both arms. Screen first,");
 console.log("measure second — and a duplicate is a removal ground on its own, of the");
