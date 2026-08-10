@@ -106,8 +106,23 @@ export const RULES_CONSUMERS = [
 //
 // `voices` stays on the stat sheet too: a sheet can be compiled for any target,
 // including a voice.
-// `prior` stays everywhere and always will — it governs which world this is, a
-// FACT rather than an act, and that reaches every consumer's content.
+//
+// `prior` IS PINNED ON FOR ALL TWELVE AND WILL NOT BE MEASURED. This is a
+// decision reached ON MEASUREMENT GROUNDS, not an unexamined default, and the
+// distinction matters because everything else in this file is "not measured
+// yet". Two reasons:
+//
+//   COST. It is 212 characters. Turning off all twelve cells would save 2,544 —
+//   3.9% of the 65,424-character toll — and the twelve A/B runs needed to earn
+//   that permission cost more local model time than the saving is worth.
+//
+//   AND IT IS THE ONE CONTRACT THAT IS NOT ABOUT NARRATION. The other three
+//   constrain what a consumer may SAY (narrate an act, mention a voice, move a
+//   region). `prior` states WHICH WORLD THIS IS — everything before the start
+//   date really happened, or on Kaiserreich and TNO it did not. That is a fact
+//   the content of every consumer depends on, including the ones that only
+//   emit a table. Cheap and plausibly load-bearing everywhere is the profile of
+//   a clause you keep.
 const STRUCTURALLY_CLEARED = {
   region: ["countryStatSheet"],
   sovereignty: ["countryStatSheet"],
