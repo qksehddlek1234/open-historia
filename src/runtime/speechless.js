@@ -40,3 +40,29 @@ export const isSpeechlessName = (name) => {
 
 export const isSpeechlessPolity = (polity) =>
   isSpeechlessName(polity?.name) || polity?.speechless === true;
+
+// EVERY NAME THIS BOARD'S SPEECHLESS POLITIES ANSWER TO.
+//
+// The registry above is a floor, not the answer, and on a Korean campaign it is
+// a floor with a hole in it: `isSpeechlessName("죽은 자")` is false, and 죽은 자
+// is what the model writes. The board already knows better — the zombie spec
+// ships `aliases: ["죽은 자", "The Dead", "Zombies", …]` and the builder carries
+// them into polityOverrides. Nothing was reading them.
+//
+// So the set is derived from the WORLD: for every polity the registry or its
+// own `speechless` flag marks, take its canonical name AND all of its aliases.
+// A scenario that invents "The Northern Blight" and flags it gets the same
+// protection in whatever languages it lists, without anyone editing this file.
+export const buildSpeechlessNames = (world) => {
+  const names = new Set(SPEECHLESS_NAMES);
+  const overrides = world?.polityOverrides;
+  if (!overrides || typeof overrides !== "object") return names;
+  for (const polity of Object.values(overrides)) {
+    if (!isSpeechlessPolity(polity)) continue;
+    for (const value of [polity?.name, ...(Array.isArray(polity?.aliases) ? polity.aliases : [])]) {
+      const text = normalize(value);
+      if (text) names.add(text);
+    }
+  }
+  return names;
+};

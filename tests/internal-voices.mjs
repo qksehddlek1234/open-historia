@@ -10,7 +10,7 @@
 // the roster, the contract in the rules, and the engine guards.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { isSpeechlessName, isSpeechlessPolity } from "../src/runtime/speechless.js";
+import { buildSpeechlessNames, isSpeechlessName, isSpeechlessPolity } from "../src/runtime/speechless.js";
 import fs from "node:fs";
 
 let pass = 0;
@@ -139,23 +139,63 @@ test("a scenario can mark a name the registry has never heard of", () => {
   assert.equal(isSpeechlessPolity({ name: "The Northern Blight" }), false);
 });
 
+test("THE KOREAN HOLE — the registry alone could never have closed it", () => {
+  // This campaign runs in Korean and the model writes Korean. `죽은 자` is what
+  // arrives at resolveInvitees, and no English registry can be expected to hold
+  // it. The board already knew: the zombie spec has shipped that alias since it
+  // was written and nothing read it.
+  assert.equal(isSpeechlessName("죽은 자"), false, "the floor genuinely does not cover it");
+  const world = JSON.parse(readFileSync(new URL("../server/data/scenarios/zombie-2019/world.json", import.meta.url), "utf8"));
+  const names = buildSpeechlessNames(world);
+  for (const alias of ["죽은 자", "감염체", "The Dead", "Zombies"]) {
+    assert.ok(names.has(alias.toLowerCase()), `${alias} must be unaddressable`);
+  }
+  assert.equal(names.has("germany"), false, "and a government is still addressable");
+});
+
+test("…and it generalises: a flag alone protects a name nobody registered", () => {
+  // The point of deriving from the world rather than editing a list: a future
+  // scenario can invent its own horde, in its own languages, and get the same
+  // treatment without touching speechless.js.
+  const names = buildSpeechlessNames({
+    polityOverrides: { X: { name: "The Northern Blight", speechless: true, aliases: ["북방 역병"] } },
+  });
+  assert.ok(names.has("the northern blight"));
+  assert.ok(names.has("북방 역병"));
+});
+
+test("the builder carries the flag now, and only for the polity that set it", () => {
+  // It used to be dropped, which is why the registry was the only guard.
+  const world = JSON.parse(readFileSync(new URL("../server/data/scenarios/zombie-2019/world.json", import.meta.url), "utf8"));
+  const rows = Object.values(world.polityOverrides ?? {});
+  const flagged = rows.filter((row) => row?.speechless === true);
+  assert.equal(flagged.length, 1, "exactly one polity on this board is speechless");
+  assert.equal(flagged[0].name, "The Dead");
+  assert.ok(flagged[0].aliases.includes("죽은 자"), "and it carries its aliases with it");
+});
+
 test("resolveInvitees drops them, and the chat picker never lists them", () => {
   // Both paths must agree, the same way they do for territory-less voices —
   // one filter without the other leaves a door open.
   const gameplay = readFileSync(new URL("../src/Game/AI/gameplay.js", import.meta.url), "utf8");
-  assert.match(gameplay, /isSpeechlessName\(entry\.name\)/, "resolveInvitees filters the dead");
+  assert.match(gameplay, /buildSpeechlessNames\(normalizeWorldState\(world\)\)/, "the set comes from the board");
+  assert.match(gameplay, /speechless\.has\(String\(entry\.name/, "resolveInvitees filters against it");
   const chat = readFileSync(new URL("../src/Game/GameUI/chat.jsx", import.meta.url), "utf8");
   assert.match(chat, /filter\(c => !isUnaddressable\(c\)\)/, "the picker filters them out entirely");
 });
 
-test("the zombie board ships a polity this actually catches", () => {
-  // The builder keeps name/aliases/color and drops unknown spec fields, so the
-  // `speechless: true` flag does NOT survive into world.json. The name is what
-  // carries it — which is the whole reason the name path is primary.
+test("the registry still stands alone as the floor", () => {
+  // This used to assert the OPPOSITE — that the flag does not survive the build
+  // and the name is therefore the only carrier. It does survive now, which is
+  // the better arrangement, but the floor still has to hold on its own: a save
+  // written before the flag existed, or a polity the model renamed, reaches the
+  // guard with nothing but a name.
   const world = JSON.parse(readFileSync(new URL("../server/data/scenarios/zombie-2019/world.json", import.meta.url), "utf8"));
   const dead = Object.values(world.polityOverrides ?? {}).find((row) => isSpeechlessName(row?.name));
-  assert.ok(dead, "zombie-2019 ships a polity the registry recognises");
-  assert.equal(dead.speechless, undefined, "and it does NOT rely on the flag surviving the build");
+  assert.ok(dead, "zombie-2019 ships a polity the registry recognises by name alone");
+  // Same row, reached without the world: flag stripped, aliases stripped.
+  assert.equal(isSpeechlessPolity({ name: dead.name }), true, "the name alone is enough");
+  assert.equal(buildSpeechlessNames(null).size > 0, true, "and an absent world still yields the floor");
 });
 
 

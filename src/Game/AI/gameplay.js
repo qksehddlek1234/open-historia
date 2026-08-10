@@ -24,7 +24,7 @@ import {
   writeJson,
 } from "../../runtime/assets.js";
 import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
-import { isSpeechlessName } from "../../runtime/speechless.js";
+import { buildSpeechlessNames } from "../../runtime/speechless.js";
 import { buildScheduledCard } from "../../runtime/scheduledCard.js";
 import {
   acceptStanding,
@@ -2042,6 +2042,8 @@ const endSimulation = () => { activeSimulations = Math.max(0, activeSimulations 
 export const isSimulationBusy = () => activeSimulations > 0;
 
 const resolveInvitees = async (names, world, additionalCountries = []) => {
+  // Built once per call from this board's own polities — see the filter below.
+  const speechless = buildSpeechlessNames(normalizeWorldState(world));
   const countryCatalog = [
     ...mergePolityCatalog(await loadCountryNames(), world),
     ...normalizeArray(additionalCountries).map((entry) => ({
@@ -2086,7 +2088,14 @@ const resolveInvitees = async (names, world, additionalCountries = []) => {
     // its three non-negotiables — nobody opens a channel to the dead, demands
     // its surrender, or waits for a reply — so the engine enforces it here
     // rather than trusting the prompt. See runtime/speechless.js.
-    .filter((entry) => !isSpeechlessName(entry.name));
+    //
+    // MATCHED AGAINST THE BOARD, NOT A FIXED LIST. What arrives here is a name
+    // the MODEL wrote, and this campaign runs in Korean: it writes "죽은 자",
+    // which no English registry can be expected to hold. The zombie spec has
+    // always shipped that alias and nothing was reading it, so the set is built
+    // from the world's own polities — canonical name plus every alias — with
+    // the registry as a floor underneath.
+    .filter((entry) => !speechless.has(String(entry.name ?? "").trim().toLowerCase()));
   const unique = new Map(resolved.map((entry) => [entry.code || entry.name, entry]));
   return Array.from(unique.values()).map((entry) => ({
       code: entry.code || "",

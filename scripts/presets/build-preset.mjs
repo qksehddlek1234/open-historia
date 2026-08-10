@@ -16,6 +16,7 @@ import { loadRegionCatalog, buildCountryRegionIndex } from "./lib/regionCatalog.
 import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
 import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
+import { isRegionReference } from "./lib/regionRef.mjs";
 import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
 import {
@@ -269,6 +270,12 @@ for (const [code, p] of Object.entries(spec.polities ?? {})) {
     aliases: Array.isArray(p.aliases) ? p.aliases : [],
     color: p.color ?? "#888888",
     note: p.note ?? "",
+    // A polity that holds ground and cannot be addressed (see
+    // src/runtime/speechless.js). Carried through only when set, so no other
+    // polity's row gains a key. Without this the flag dies at the builder and
+    // the runtime falls back to a name registry that cannot know what a future
+    // scenario decides to call its horde.
+    ...(p.speechless === true ? { speechless: true } : {}),
   };
   colors[name] = hexToRgb(p.color ?? "#888888");
 }
@@ -358,13 +365,16 @@ const world = {
   startingTimelineText: spec.startingTimelineText ?? "",
   // THE ONE OPT-OUT THAT IS NOT A CONTRACT, and the one that had no reader.
   //
-  // The other four above take effect by leaving text OUT of the rules, so a
+  // The four contracts above take effect by leaving text OUT of the rules, so a
   // spec that opts out can be checked by reading its own build output. This one
   // gates a runtime pass instead, and for a while it gated nothing at all:
   // three specs said `scheduledEvents: false`, nothing anywhere read the field,
   // and all three shipped printing the calendar card they had refused. Carrying
   // it into world.json is what gives it a reader (gameplay.js, the calendar
   // card block). Written only when it is false, so no existing save changes.
+  //
+  // RESTORED after a whole-file overwrite dropped it — it is pinned by
+  // tests/preset-contracts.mjs, which is how the loss was caught.
   ...(spec.scheduledEvents === false ? { scheduledEvents: false } : {}),
 };
 
@@ -390,9 +400,13 @@ for (const feature of seedFc.features ?? []) {
   const gid1 = props.id != null ? String(props.id) : "";
   if (!gid1 || !feature.geometry) continue;
   const gid0 = props.gid0 ? String(props.gid0) : "";
-  // GADM ships one row that is not a place (GID_0 "NA", NAME_1 "NA"). It used
-  // to render as a country called "NA" on every near-modern board.
-  if (JUNK_GID0.has(gid0)) { junkRowsDropped += 1; continue; }
+  // GADM ships rows that are not places. This used to be a set keyed on gid0,
+  // which caught {gid0:"NA"} and missed {id:"?", gid0:"UKR"} — a hole with a
+  // real country code. Shared with build-default-map now: when only one of the
+  // two builders learned about the second phantom, every preset ended up with a
+  // feature the base map did not have and all 22 shared maps un-shared
+  // themselves on the next rebuild.
+  if (!isRegionReference(gid1, gid0)) { junkRowsDropped += 1; continue; }
   // Ownership of regions the spec does NOT assign depends on the era: ancient/
   // medieval presets leave them UNCLAIMED (many countries simply did not exist),
   // while near-modern presets (spec.unassignedKeepModernOwner) keep the modern
