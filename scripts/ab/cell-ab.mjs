@@ -74,6 +74,24 @@ const ASK = {
     ].join("\n"),
     user: "The player asks the newspaper what the country is reading about this week. Answer in Korean.",
   },
+  // THE CALIBRATION CONSUMER. This is where the player's country genuinely acts,
+  // so if the scorer cannot see a violation HERE the scorer is broken and no
+  // result from the cheaper consumers means anything. Run it first.
+  jumpForward: {
+    system: (rules) => [
+      "You simulate a turn-based grand strategy game.",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: [
+      "Simulate 1 September 1939 to 1 November 1939 for this world.",
+      "The player is Germany. Their ONLY order this turn: reinforce the Westwall. Nothing else.",
+      "",
+      'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":""}]}',
+      "Cover the period. Decide for yourself how many events that takes.",
+    ].join("\n"),
+  },
   scheduledEvents: {
     system: (rules) => [
       "You list what is already on the calendar for a grand-strategy campaign. This is bookkeeping, not storytelling.",
@@ -150,10 +168,47 @@ const SCORE = {
     const casual = /(습격|국경 충돌|전투에서 이기|한 차례 승리)[^.]{0,40}(점령|병합|넘어갔|빼앗)/.test(text);
     return { violated: casual, why: casual ? "region transferred on a raid or a won battle" : "" };
   },
-  // The player's country acting without an order.
+  // THE PLAYER'S COUNTRY ACTING WITHOUT AN ORDER, and this one is scoreable in a
+  // way `voices` was not — the violation is an EVENT, not an absence.
+  //
+  // Every sovereignty probe below gives the player exactly one narrow order and
+  // sets it in a month where history screams for something else. On 1 September
+  // 1939 the player is Germany and has ordered ONLY that the Westwall be
+  // reinforced. Any German offensive, pact or annexation in the reply is the
+  // model doing the period's bidding instead of the player's — which is the
+  // whole thing the contract forbids.
+  //
+  // Matched on the ACTOR being Germany, so "Poland mobilises" and "Britain
+  // declares war" are correctly not violations: the world may do as it likes.
+  // GERMANY AS THE SUBJECT OF A FINITE VERB, and both halves of that matter.
+  //
+  // Bilingual, because the first version was Korean-only and scored 0/2 on a
+  // reply whose opening event was "Invasion of Poland — German forces cross the
+  // Polish border". The model answers in whichever language the prompt pulls it
+  // toward and a one-language scorer reports its own blind eye as a clean board.
+  //
+  // Subject-anchored, because the bilingual version then produced a false
+  // positive on "Great Britain and France declare war on Germany following the
+  // invasion of Poland" — Germany is the OBJECT there and the actor is somebody
+  // else, which the contract has nothing to say about. So the pattern requires
+  // Germany, then at most three words, then a FINITE verb: a noun like
+  // "invasion" sitting nearby is not an act by anyone.
   sovereignty: (text) => {
-    const acted = /(독일|플레이어)[^.]{0,30}(동원령|총동원|조약에 서명|선전포고|숙청|병합을 단행)/.test(text);
-    return { violated: acted, why: acted ? "player's polity acted unbidden" : "" };
+    const SELF = "독일(?:군|국방군)?|제3제국|베를린|국방군|Germany|German(?: and \\w+)? forces|Wehrmacht|the Reich";
+    const VERB = "invades?|invaded|launch(?:es|ed)?|cross(?:es|ed)?|attack(?:s|ed)?"
+      + "|occupies|occupied|advances?|advanced|annexe?s?|annexed|declares? war|declared war"
+      + "|mobilise[sd]?|mobilize[sd]?|침공한|침공했|진격한|진격했|점령한|점령했|병합한|병합했|선전포고";
+    const subject = new RegExp(`(${SELF})\\s+(?:\\w+\\s+){0,3}(${VERB})`, "i");
+    // Korean marks the subject with a PARTICLE, which is a cleaner signal than
+    // adjacency: 독일군이 진격했다 is Germany acting; 독일에 선전포고 is somebody
+    // acting ON Germany. English has no such marker and has to use word order.
+    const koSubject = /(독일군|독일|국방군|제3제국|베를린)(?:이|가|은|는)\s[^.\n]{0,40}(침공|진격|점령|병합|선전포고|공격|동원)/;
+    // The one thing they DID order is not a breach.
+    const ordered = /(베스트발|서부 방벽|Westwall|Siegfried)/i;
+    const found = text.match(subject) ?? text.match(koSubject);
+    if (!found) return { violated: false, why: "" };
+    const why = found[0].replace(/\s+/g, " ").slice(0, 70);
+    return { violated: !ordered.test(why), why };
   },
   prior: () => ({ violated: false, why: "prior is pinned on and is not measured — see simulationContracts.js" }),
 };
@@ -205,7 +260,25 @@ if (off.violations === 0) {
   console.log(`  question where the failure is likelier.`);
 } else if (on.rate < off.rate) {
   console.log(`\n  THE CONTRACT WORKS HERE: ${off.rate.toFixed(2)} → ${on.rate.toFixed(2)}. Keep the cell.`);
+} else if (on.rate >= 0.5) {
+  // NOT THE SAME THING AS "NO EFFECT", and the first real run proved why.
+  //
+  // sovereignty × jumpForward came back OFF 0.75 / ON 1.00 and the old verdict
+  // called it a removal candidate. It is the opposite. A clause the model
+  // violates in most of the ON runs is not an unnecessary clause — it is a
+  // clause that IS NOT BEING OBEYED. Removing it saves the tokens and loses
+  // whatever fraction of compliance it was buying; the finding is a quality
+  // problem, not a budget one.
+  //
+  // The two look identical on a rate table and lead to opposite actions, so the
+  // harness has to tell them apart rather than leave it to whoever reads it.
+  console.log(`\n  THE CLAUSE IS NOT BEING OBEYED: ${off.rate.toFixed(2)} → ${on.rate.toFixed(2)},`);
+  console.log(`  and the ON arm still violates ${on.violations}/${RUNS} times.`);
+  console.log(`  This is NOT a removal candidate. Either the probe does not give the`);
+  console.log(`  model what the real task gives it, or the contract does not work on`);
+  console.log(`  this model. Both are worth knowing; neither says stop paying.`);
 } else {
-  console.log(`\n  NO EFFECT MEASURED: ${off.rate.toFixed(2)} → ${on.rate.toFixed(2)} across ${RUNS} runs.`);
+  console.log(`\n  NO EFFECT MEASURED: ${off.rate.toFixed(2)} → ${on.rate.toFixed(2)} across ${RUNS} runs,`);
+  console.log(`  with the ON arm violating only ${on.violations}/${RUNS} — low in absolute terms.`);
   console.log(`  Candidate for removal — record BOTH numbers beside the cell.`);
 }
