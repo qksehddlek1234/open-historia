@@ -29,14 +29,14 @@ const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
 const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..");
 const SPEC_DIR = path.join(ROOT, "scripts", "presets");
 
-// The four rules contracts, by the phrase each one puts into the built rules.
-const CONTRACT_MARKER = {
-  regionContract: "HOW REGIONS WORK HERE",
-  historicalPrior: "EVERYTHING BEFORE THE START DATE HAPPENED AS IT REALLY DID",
-  playerSovereignty: "DOES NOTHING THE PLAYER DID NOT ORDER",
-  internalVoices: "VOICES WITH NO GROUND",
-};
-const FLAGS = [...Object.keys(CONTRACT_MARKER), "scheduledEvents"];
+// The four rules contracts. They USED to be concatenated into simulationRules
+// and this file matched on a phrase from each; they are declared as a list now
+// and injected per consumer (src/runtime/simulationContracts.js), so the check
+// reads the declaration. Same invariant, one indirection less guessing: the
+// flag a spec sets and the contract the build ships must agree.
+const { CONTRACTS } = await import("../src/runtime/simulationContracts.js");
+const KEY_OF_FLAG = Object.fromEntries(CONTRACTS.map((contract) => [contract.flag, contract.key]));
+const FLAGS = [...Object.keys(KEY_OF_FLAG), "scheduledEvents"];
 
 // id → { flag: reason }. The reason is not decoration: it is what a future
 // rewrite has to argue against before deleting the line.
@@ -88,7 +88,7 @@ test("…and no spec opts out of something the register does not know about", ()
   }
 });
 
-test("…and every OTHER board still carries all four contracts", () => {
+test("…and every OTHER board still declares all four contracts", () => {
   // The register is only half the guard. If a rewrite dropped a contract from
   // the builder rather than from a spec, every board would lose it silently and
   // the two tests above would still pass.
@@ -96,11 +96,17 @@ test("…and every OTHER board still carries all four contracts", () => {
   for (const { spec } of loaded) {
     const built = path.join(ROOT, "server", "data", "scenarios", spec.id, "world.json");
     if (!fs.existsSync(built)) continue;
-    const rules = String(JSON.parse(fs.readFileSync(built, "utf8")).simulationRules ?? "");
-    for (const [flag, marker] of Object.entries(CONTRACT_MARKER)) {
+    const declared = new Set(JSON.parse(fs.readFileSync(built, "utf8")).contracts ?? []);
+    for (const [flag, key] of Object.entries(KEY_OF_FLAG)) {
       const optedOut = spec[flag] === false;
-      assert.equal(rules.includes(marker), !optedOut,
-        `${spec.id}: ${flag} is ${optedOut ? "off" : "on"} but the rules ${rules.includes(marker) ? "carry" : "lack"} its text`);
+      assert.equal(declared.has(key), !optedOut,
+        `${spec.id}: ${flag} is ${optedOut ? "off" : "on"} but the build ${declared.has(key) ? "declares" : "omits"} "${key}"`);
+    }
+    // And the text must NOT be back inline — that is how it gets printed twice.
+    const rules = String(JSON.parse(fs.readFileSync(built, "utf8")).simulationRules ?? "");
+    for (const contract of CONTRACTS) {
+      assert.ok(!rules.includes(contract.text.trim().slice(0, 40)),
+        `${spec.id}: ${contract.key} is inline in the rules AND declared — it would print twice`);
     }
     checked += 1;
   }

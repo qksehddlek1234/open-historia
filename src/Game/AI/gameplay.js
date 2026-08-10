@@ -25,6 +25,7 @@ import {
 } from "../../runtime/assets.js";
 import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
 import { buildSpeechlessNames } from "../../runtime/speechless.js";
+import { assembleRules } from "../../runtime/simulationContracts.js";
 import { buildScheduledCard } from "../../runtime/scheduledCard.js";
 import {
   acceptStanding,
@@ -624,6 +625,17 @@ const buildPlayerStatSummaryText = (bundle) => {
   }
 };
 
+// The rules the prompt is actually built from live in the SAVE, not the
+// scenario (promptContext.js reads bundle.world.simulationRules). Read the same
+// place, so a campaign that has diverged keeps the rules it diverged with.
+const currentWorldForRules = async () => {
+  try {
+    return await readWorldState();
+  } catch {
+    return null;
+  }
+};
+
 const buildTemplateVariables = async (bundle, options = {}) => {
   const variables = await buildPromptContext(bundle, options);
   return {
@@ -681,9 +693,23 @@ const runJsonTask = async (taskKey, {
   const prompts = await loadPromptCatalog();
   let difficultyForTask = "";
   const helperValues = resolveHelperValues(prompts.helpers, variables);
+  // THE CONTRACTS GO IN HERE, not at the end of the prompt.
+  //
+  // build-preset no longer concatenates them into the board's rules; this is
+  // where they rejoin, per task, from src/runtime/simulationContracts.js. The
+  // position matters more than it looks: `${HISTORICAL_PRESET_SIMULATION_RULES}`
+  // sits in the MIDDLE of most templates, and the A/B that started all of this
+  // measured the same clause at 0.36 buried in a block against 0.48 standing
+  // alone. Appending the contracts after the render would move every one of them
+  // to the end of every prompt — a change to the experiment, made silently, in
+  // the exact dimension the experiment is about.
+  //
+  // With the matrix all-on this reproduces the old string byte for byte.
+  const contractRules = assembleRules(await currentWorldForRules(), taskKey);
   let systemPrompt = renderTemplate(prompts.tasks[taskKey], {
     ...variables,
     ...helperValues,
+    ...(contractRules ? { HISTORICAL_PRESET_SIMULATION_RULES: contractRules } : {}),
   });
 
   // The chosen difficulty steers every simulation task (see runtime/difficulty.js).

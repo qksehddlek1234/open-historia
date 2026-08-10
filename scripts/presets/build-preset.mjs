@@ -15,10 +15,9 @@ import { fileURLToPath, pathToFileURL } from "url";
 import { loadRegionCatalog, buildCountryRegionIndex } from "./lib/regionCatalog.mjs";
 import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
 import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
-import { REGION_CONTRACT, HISTORICAL_PRIOR } from "./lib/regionContract.mjs";
 import { isRegionReference } from "./lib/regionRef.mjs";
-import { PLAYER_SOVEREIGNTY } from "./lib/playerSovereignty.mjs";
-import { INTERNAL_VOICE_CONTRACT, voicePolities } from "./lib/internalVoices.mjs";
+import { CONTRACTS } from "../../src/runtime/simulationContracts.js";
+import { voicePolities } from "./lib/internalVoices.mjs";
 import {
   NUTS_PREFIX_OF_LEGACY_ID,
   buildLevel2Index, buildNutsIndex, expandLegacyLevel1, expandLegacyNuts,
@@ -270,11 +269,10 @@ for (const [code, p] of Object.entries(spec.polities ?? {})) {
     aliases: Array.isArray(p.aliases) ? p.aliases : [],
     color: p.color ?? "#888888",
     note: p.note ?? "",
-    // A polity that holds ground and cannot be addressed (see
-    // src/runtime/speechless.js). Carried through only when set, so no other
-    // polity's row gains a key. Without this the flag dies at the builder and
-    // the runtime falls back to a name registry that cannot know what a future
-    // scenario decides to call its horde.
+    // A polity that holds ground and cannot be addressed (runtime/speechless.js).
+    // Carried only when set, so no other row gains a key. Without it the flag
+    // dies at the builder and the runtime falls back to a name registry that
+    // cannot know what a future scenario calls its horde.
     ...(p.speechless === true ? { speechless: true } : {}),
   };
   colors[name] = hexToRgb(p.color ?? "#888888");
@@ -349,32 +347,34 @@ const world = {
   // size (see lib/regionContract.mjs — eight polities on the 1935 board own
   // exactly one region each). A spec can opt out with regionContract: false if
   // it ever needs to say something incompatible.
-  simulationRules: [
-    spec.simulationRules ?? "",
-    spec.regionContract === false ? "" : REGION_CONTRACT,
-    spec.historicalPrior === false ? "" : HISTORICAL_PRIOR,
-    spec.playerSovereignty === false ? "" : PLAYER_SOVEREIGNTY,
-    spec.internalVoices === false ? "" : INTERNAL_VOICE_CONTRACT,
-    // SCHEDULED_EVENTS and REPORTING_CONTRACT used to be appended here and are
-    // not any more — they are injected at call time for the jump tasks only.
-    // The A/B is in docs/analysis/contract-ab-2026-08-09.md: the battle clause
-    // scored 0.48 alone against 0.36 inside this block, and the calendar card
-    // was emitted zero times either way. Rules that only a jump can obey do not
-    // belong in the rules every task carries.
-  ].filter(Boolean).join("").trim(),
+  // THE BOARD'S OWN RULES, AND NOTHING ELSE.
+  //
+  // The four shared contracts used to be concatenated here. They are not any
+  // more — the field is loaded into TWELVE prompts, and measured across the
+  // fleet the contracts were 60% of what those twelve carried: 121,674
+  // characters of identical boilerplate against 80,400 of actual board. At the
+  // twelve-task toll that cost more than every board combined.
+  //
+  // Same move SCHEDULED_EVENTS and REPORTING_CONTRACT already made, for the same
+  // reason and with the same evidence (docs/analysis/contract-ab-2026-08-09.md:
+  // the battle clause scored 0.48 standing alone against 0.36 inside this
+  // block). Rules that only some tasks can obey do not belong in the rules every
+  // task carries.
+  //
+  // NOTHING IS DROPPED YET. `contracts` records which ones this board carries,
+  // and src/runtime/simulationContracts.js injects them at render time for every
+  // consumer — so the assembled prompt is byte-identical to what this line used
+  // to produce. The split exists so the A/B can take one out and measure it.
+  simulationRules: (spec.simulationRules ?? "").trim(),
+  contracts: CONTRACTS
+    .filter((contract) => spec[contract.flag] !== false)
+    .map((contract) => contract.key),
   startingTimelineText: spec.startingTimelineText ?? "",
-  // THE ONE OPT-OUT THAT IS NOT A CONTRACT, and the one that had no reader.
-  //
-  // The four contracts above take effect by leaving text OUT of the rules, so a
-  // spec that opts out can be checked by reading its own build output. This one
-  // gates a runtime pass instead, and for a while it gated nothing at all:
-  // three specs said `scheduledEvents: false`, nothing anywhere read the field,
-  // and all three shipped printing the calendar card they had refused. Carrying
-  // it into world.json is what gives it a reader (gameplay.js, the calendar
-  // card block). Written only when it is false, so no existing save changes.
-  //
-  // RESTORED after a whole-file overwrite dropped it — it is pinned by
-  // tests/preset-contracts.mjs, which is how the loss was caught.
+  // THE ONE OPT-OUT THAT IS NOT A CONTRACT. The four contracts are declared
+  // above and injected per consumer; this one gates a runtime pass, and for a
+  // while it gated nothing at all — three specs said `scheduledEvents: false`,
+  // nothing read the field, and all three shipped printing the calendar card
+  // they had refused. Written only when false, so no existing save changes.
   ...(spec.scheduledEvents === false ? { scheduledEvents: false } : {}),
 };
 
