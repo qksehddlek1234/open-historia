@@ -32,7 +32,60 @@ test("INTERVALS ARE WHOLE CALENDAR MONTHS, not 30-day blocks", () => {
   // depending on where in the year you stand, and a card nobody can trust is
   // worse than no card.
   assert.equal(formatInterval("1939-01-31", "1939-03-31"), "2 months");
-  assert.equal(formatInterval("1940-01-31", "1940-02-29"), "29 days");
+  // CHANGED, and deliberately. This used to read "29 days", which was not a
+  // decision anyone made — it fell out of the overflow bug below: 31 Jan plus
+  // one month became 2 March, overshot the target, and the month was dropped.
+  // With the arithmetic clamped, 31 January plus one month is 29 February in a
+  // leap year, which is exactly what this is. The property the old comment was
+  // defending — that a stated interval can be trusted — is now pinned directly
+  // by the round-trip test at the bottom of this section.
+  assert.equal(formatInterval("1940-01-31", "1940-02-29"), "1 month");
+});
+
+test("MONTH-END STARTS DO NOT LOSE DAYS — the overflow Cowork caught", () => {
+  // `Date.UTC(2026, 1, 31)` is 3 March in JavaScript, not an error. That silently
+  // pushed `settled` PAST the target, made the day count negative, and `days > 0`
+  // dropped the day term entirely.
+  assert.equal(formatInterval("2026-01-31", "2026-03-01"), "1 month 1 day", "was '1 month' for a 29-day gap");
+  // The same overflow with a zero remainder rather than a negative one, which a
+  // negative-day guard alone would not have caught: 31 Apr became 1 May exactly.
+  assert.equal(formatInterval("2026-03-31", "2026-05-01"), "1 month 1 day", "was '1 month' for a 31-day gap");
+  assert.equal(formatInterval("2026-01-30", "2026-03-02"), "1 month 2 days", "was '1 month' for a 31-day gap");
+  // Clamping must not invent a remainder where the calendar month lands exactly.
+  assert.equal(formatInterval("2026-01-31", "2026-02-28"), "1 month");
+  assert.equal(formatInterval("2026-05-31", "2026-06-30"), "1 month");
+  assert.equal(formatInterval("2024-01-31", "2024-02-29"), "1 month");
+});
+
+test("…and the interval always adds back up to the date it describes", () => {
+  // The invariant, swept rather than sampled: take the printed years/months/days,
+  // add them to the start date, and land ON the target. Reconstruction here is
+  // written out longhand on purpose — it must not borrow the implementation it
+  // is checking.
+  const clamp = (y, m, d) => {
+    const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    return new Date(Date.UTC(y, m, Math.min(d, last)));
+  };
+  const iso = (date) => date.toISOString().slice(0, 10);
+  let checked = 0;
+  // Every start day of 2024 (a leap year) against a spread of horizons, which
+  // puts every month-end start against every month length.
+  for (let startDay = 0; startDay < 366; startDay += 1) {
+    const from = new Date(Date.UTC(2024, 0, 1 + startDay));
+    for (const horizon of [1, 27, 28, 29, 30, 31, 32, 59, 60, 89, 365, 366, 400]) {
+      const to = new Date(from.getTime() + horizon * 86400000);
+      const text = formatInterval(iso(from), iso(to));
+      assert.doesNotMatch(text, /-\d/, `${iso(from)} → ${iso(to)}: negative term in "${text}"`);
+      const years = Number(/(\d+) years?/.exec(text)?.[1] ?? 0);
+      const months = Number(/(\d+) months?/.exec(text)?.[1] ?? 0);
+      const days = Number(/(\d+) days?/.exec(text)?.[1] ?? 0);
+      const rebuilt = clamp(from.getUTCFullYear(), from.getUTCMonth() + years * 12 + months, from.getUTCDate());
+      const landed = new Date(rebuilt.getTime() + days * 86400000);
+      assert.equal(iso(landed), iso(to), `${iso(from)} → ${iso(to)} printed "${text}", which lands on ${iso(landed)}`);
+      checked += 1;
+    }
+  }
+  assert.ok(checked > 4000, `swept ${checked} pairs`);
 });
 
 test("…and a year is said as a year", () => {

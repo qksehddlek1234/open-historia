@@ -23,10 +23,35 @@ const parseDate = (value) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+// Add whole calendar months, CLAMPING the day to the target month's last day.
+//
+// This is the whole bug Cowork found. `Date.UTC(2026, 1, 31)` is not an error in
+// JavaScript — it is 3 March, silently. So "31 January plus one month" landed
+// PAST the target date, the day count came out negative, and `if (days > 0)`
+// swallowed it: 31 Jan → 1 Mar printed "1 month" for a 29-day gap. The same
+// overflow hid a day in 31 Mar → 1 May ("1 month" for 31 days), which the
+// negative-day check alone would not have caught, because there the overflow
+// landed exactly on the target and the day count was zero rather than negative.
+//
+// Clamping is the fix at the source: 31 January plus one month is 28 February,
+// and every later step is then working with a real date.
+const addMonthsClamped = (date, months) => {
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + months;
+  const lastOfTargetMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const day = Math.min(date.getUTCDate(), lastOfTargetMonth);
+  return new Date(Date.UTC(year, month, day));
+};
+
 // "in 1 month 7 days", the original's own phrasing. Months are counted as whole
 // calendar months rather than 30-day blocks, because "in 2 months" reading as
 // 61 days in one year and 59 in another is exactly the kind of drift that makes
 // a player stop trusting the card.
+//
+// The invariant, which the tests state directly: adding the months back and then
+// the days lands EXACTLY on the target date. Nothing is lost and nothing is
+// invented. `days` can no longer be negative — settled is clamped into a month
+// at or before the target's, so it never overshoots.
 export function formatInterval(fromDate, toDate) {
   const from = parseDate(fromDate);
   const to = parseDate(toDate);
@@ -35,11 +60,10 @@ export function formatInterval(fromDate, toDate) {
 
   let months = ((to.getUTCFullYear() - from.getUTCFullYear()) * 12)
     + (to.getUTCMonth() - from.getUTCMonth());
-  const anchor = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + months, from.getUTCDate()));
-  if (anchor > to) {
+  if (addMonthsClamped(from, months) > to) {
     months -= 1;
   }
-  const settled = new Date(Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + months, from.getUTCDate()));
+  const settled = addMonthsClamped(from, months);
   const days = Math.round((to - settled) / DAY);
 
   const parts = [];
