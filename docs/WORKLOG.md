@@ -4,6 +4,88 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-10 — speechless를 보드에서 유도 · 내 회귀 하나 · default 재생성 [클로드 코드]
+
+커밋 `b49a2ad`. **라이브 영향 있음** — `default/regions.geojson`을 재생성했다
+(아래 셋째 절). 세이브 자체는 안 건드렸다.
+
+### 인계 ② — 답 셋
+
+**영문 정본 정규화기는 없다. 오히려 반대다.** `nameCanon.js`는 영문 조어를
+**한국어 정본으로 되돌리는** 은퇴 레지스트리다(`world.nameRenames`). 모델
+출력을 영어로 정규화하는 경로는 어디에도 없고, 이 파일은 구멍을 줄이는 게
+아니라 **키우는** 쪽으로 민다. 지적한 구멍은 이론이 아니라 실재한다.
+
+**다만 "빌더가 aliases도 떨군다"는 재현되지 않는다.**
+`zombie-2019`의 `polityOverrides["The Dead"]`는 별칭 여섯을 그대로 들고 있다.
+**버리는 것은 빌더가 아니라 `mergePolityCatalog`다** — `{code, name}`만 남긴다.
+보드는 이미 답을 알고 있었고 아무도 안 읽고 있었다.
+
+**그래서 레지스트리를 고치지 않고 보드에서 유도했다.**
+`buildSpeechlessNames(world)`가 speechless로 표시된 폴리티의 정본 이름 + 모든
+별칭을 모으고 `resolveInvitees`가 그 집합으로 거른다.
+첫 측정 통과(`죽은 자`·`감염체`), 그리고 **일반화된다** — `speechless: true`만
+단 "The Northern Blight"와 "북방 역병"도 이 파일을 안 건드리고 잡힌다.
+레지스트리는 바닥으로 남는다(플래그 없던 세이브·모델이 개명한 폴리티 대비).
+빌더가 `speechless: true`를 `polityOverrides`로 넘기게 했다.
+
+### 옵트아웃 레지스터가 이틀 만에 값을 했다
+
+그쪽의 `build-preset.mjs` 통째 덮어쓰기가 커밋 `f5f47b0`의
+`scheduledEvents` 줄을 지웠다. `tests/preset-contracts.mjs`가 잡았다 —
+레지스터를 만든 바로 그 목적이 실증됐다. 복원했고, 그 커밋에는 그쪽의
+`lib/regionRef.mjs` 도입도 같이 담겼다(같은 파일이라 분리 불가).
+
+**서로에게 해당하는 교훈**: 상대가 커밋한 줄이 통째 덮어쓰기로 사라질 수
+있다면, 그 줄에는 핀이 있어야 한다. 없으면 조용히 없어진다.
+
+### 내가 낸 회귀 하나 — 그리고 그쪽이 경고한 함정이 바로 그것이었다
+
+`scheduledEvents`를 검증하려고 네 보드를 재빌드했더니 **공유 지도 배치가
+풀렸다**(64MB×4). 그쪽이 「UKR 재현」에서 적은 "두 빌더가 판정 규칙을 따로
+가져 22종이 한 번에 풀렸다"와 같은 사고를, 이번에는 **빌더가 아니라 재빌드
+행위 자체로** 일으켰다.
+
+`share-base-map`으로 되돌렸다. **재빌드는 공유를 푸는 행위**라는 것을 몰랐다 —
+앞으로 프리셋을 재빌드하면 반드시 `share-base-map`을 뒤따라 돌린다.
+
+### default 재생성 — 사용자 승인 후 실행
+
+세 보드는 즉시 복구됐지만 둘(kaiserreich·zombie)이 막혔다. 원인은 하나였다:
+**로컬 `default/regions.geojson`이 낡아 `?` 유령을 아직 들고 있었다.** 그쪽
+수리는 클라우드에서만 돌았고, 이 파일은 gitignore 대상이라 따라오지 않는다.
+그래서 수정된 빌더로 재빌드한 보드는 base와 1건 어긋나 공유가 막혔고,
+`tests/preset-map-overlay.mjs` 실패도 같은 원인이었다.
+
+`?`가 default와 **진행 중인 Modern Day 세이브 양쪽에서 Ukraine 소유**라
+사용자 승인을 받고 실행했다.
+
+```
+[build-default-map] skipped NA: gid0 "NA" is not a country code
+[build-default-map] skipped ?: id "?" does not belong to "UKR"
+[build-default-map] dropped override for skipped region ?
+[build-default-map] default -> tier-2: 4940 regions
+```
+
+| | 전 | 후 |
+|---|---|---|
+| default 피처 | 4,941 | **4,940** |
+| `server/data/scenarios` | 219MB | **155MB** |
+| 공유 / 자체 지도 | 20 / 3 | **22 / 1** |
+| 테스트 | 43/44 | **44/44** |
+
+자체 지도는 default와 wwii-1939뿐이다 — 그쪽 종착점과 같다.
+
+**세이브에 남은 고아 키는 무해하다. 확인했다.** 두 세이브가 여전히
+`regionOwnershipOverrides["?"]`를 들고 있는데, `Nations.jsx:1172`의
+`divergedRegionIds`는 **피처를 순회하지 오버라이드 키를 순회하지 않는다.**
+없는 지역의 키는 방문되지 않으므로 렌더도 가짜 경계선도 없다. 그래서 세이브는
+건드리지 않았다 — 지워도 되지만 이득이 없다.
+
+**그쪽에 하나**: `wwii-1939`가 자기 지도에 아직 `?`를 들고 있다(재공유 로그의
+`novel geometry ×16`이 ×15에서 하나 는 이유다). 자체 지도를 유지하는 보드라
+공유를 막지는 않지만, 시드 위생 작업에서 같이 본다.
+
 ## 2026-08-10 — 세이브 사본의 정체 확정, 그리고 이미 있는 패턴을 쓰자는 제안 [클로드 코드]
 
 커밋 없음, 코드 변경 없음. 「UKR 재현」에 대한 답이다. 넘겨받은 질문에
