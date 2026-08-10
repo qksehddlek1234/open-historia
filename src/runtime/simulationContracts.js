@@ -89,7 +89,10 @@ export const RULES_CONSUMERS = [
 // Any consumer that emits prose can narrate, so nearly every consumer keeps
 // them — including the ones that own no impact fields at all. What clears is
 // only a consumer whose output is a TABLE: no free text in which a claim about
-// territory or about the player's country could be made.
+// territory or about the player's country could be made — and being a table is
+// the ENTRY requirement, not the verdict. Two consumers qualified on that test
+// and only one survived the next question, which is "so can any of its columns
+// hold the claim anyway?"
 //
 // EXACTLY ONE CONSUMER QUALIFIES, and the one that did not is the useful part.
 //

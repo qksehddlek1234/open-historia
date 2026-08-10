@@ -164,6 +164,12 @@ const score = SCORE[contractKey];
 console.log(`\ncell: ${contractKey} × ${consumer}   board: ${SCENARIO}   runs: ${RUNS} per arm`);
 console.log(`rules: ON ${ON.length} chars · OFF ${OFF.length} chars · contract ${contract.text.length}\n`);
 
+// EVERY REPLY IS KEPT. An inconclusive run is a common outcome and it cannot be
+// diagnosed without the text — the first run of this harness scored 0/6 on both
+// arms and there was no way to tell a blind scorer from a question that could
+// not provoke the failure in the first place. It was the question.
+const transcript = [];
+
 const arm = async (label, rules) => {
   let violations = 0;
   let seconds = 0;
@@ -173,6 +179,7 @@ const arm = async (label, rules) => {
     seconds += took;
     const verdict = score(text);
     if (verdict.violated) { violations += 1; notes.push(verdict.why); }
+    transcript.push(`-- ${label} ${i + 1}/${RUNS} — ${verdict.violated ? `VIOLATED (${verdict.why})` : "ok"}\n${text}\n`);
     process.stdout.write(`  ${label} ${i + 1}/${RUNS} ${verdict.violated ? "VIOLATED" : "ok"} (${took}s)\n`);
   }
   return { violations, rate: violations / RUNS, seconds, notes };
@@ -183,6 +190,13 @@ const on = await arm("ON ", ON);
 
 console.log(`\n  OFF  ${off.violations}/${RUNS} violated (${off.rate.toFixed(2)})  ${off.seconds}s`);
 console.log(`  ON   ${on.violations}/${RUNS} violated (${on.rate.toFixed(2)})  ${on.seconds}s`);
+
+const transcriptPath = path.join(ROOT, "docs", "analysis", `ab-${contractKey}-${consumer}.txt`);
+fs.mkdirSync(path.dirname(transcriptPath), { recursive: true });
+fs.writeFileSync(transcriptPath,
+  `cell: ${contractKey} x ${consumer} | board: ${SCENARIO} | ${RUNS} runs per arm\n`
+  + `OFF ${off.violations}/${RUNS} | ON ${on.violations}/${RUNS}\n\n${transcript.join("\n")}`, "utf8");
+console.log(`  transcript: ${path.relative(ROOT, transcriptPath)}`);
 
 if (off.violations === 0) {
   console.log(`\n  INCONCLUSIVE. The OFF arm never violated, so this run cannot tell`);

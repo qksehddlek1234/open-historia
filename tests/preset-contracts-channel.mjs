@@ -47,8 +47,14 @@ console.log("\nThe split changes nothing");
 // that cannot write a sentence cannot narrate a region changing hands or the
 // player's country acting, so `region` and `sovereignty` are inert there.
 //
-// Everyone else still gets everything, and this pin holds BOTH halves: the two
-// exceptions are exactly the two, and nobody else has quietly drifted.
+// AND ONLY ONE OF THOSE TWO QUALIFIED. Being a table was the ENTRY requirement,
+// not the verdict: `scheduledEvents` is a table too and was refused, because its
+// `name` and `note` columns hold "Handover of Hong Kong — sovereignty transfers"
+// perfectly well. That is the conclusion of the batch, so the map below has one
+// row and not two.
+//
+// Everyone else still gets everything, and this pin holds BOTH halves: the
+// exception is exactly the one, and nobody else has quietly drifted.
 const CLEARED = {
   countryStatSheet: ["region", "sovereignty"],
 };
