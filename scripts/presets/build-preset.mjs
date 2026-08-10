@@ -356,6 +356,16 @@ const world = {
     // belong in the rules every task carries.
   ].filter(Boolean).join("").trim(),
   startingTimelineText: spec.startingTimelineText ?? "",
+  // THE ONE OPT-OUT THAT IS NOT A CONTRACT, and the one that had no reader.
+  //
+  // The other four above take effect by leaving text OUT of the rules, so a
+  // spec that opts out can be checked by reading its own build output. This one
+  // gates a runtime pass instead, and for a while it gated nothing at all:
+  // three specs said `scheduledEvents: false`, nothing anywhere read the field,
+  // and all three shipped printing the calendar card they had refused. Carrying
+  // it into world.json is what gives it a reader (gameplay.js, the calendar
+  // card block). Written only when it is false, so no existing save changes.
+  ...(spec.scheduledEvents === false ? { scheduledEvents: false } : {}),
 };
 
 // ── regions.geojson (tier-2 custom geometry) ─────────────────────────────────

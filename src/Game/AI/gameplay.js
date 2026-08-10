@@ -7338,7 +7338,21 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
   // what the timeline does not cover. Measured on gemma4-oh:12b: asked cold it
   // returns one entry, sometimes none, and the one it returns is usually the
   // next American election.
-  const authored = normalizeTimeline(bundle.world?.periodTimeline)
+  // AND A BOARD CAN REFUSE THE CARD ENTIRELY.
+  //
+  // Three scenarios are built around the player NOT knowing what is coming:
+  // Kaiserreich (its own rules forbid ever giving the player a date), The Fire
+  // Rises (every link in its cascade depends on surprise) and the zombie board
+  // (its whole first year is "nobody knows anything"). On those, a card reading
+  // "Outbreak: in 11 months" does not spoil a turn, it deletes the design.
+  //
+  // Their specs have said `scheduledEvents: false` since they were written and
+  // IT WAS DOING NOTHING — the flag had no reader anywhere in the repo, so all
+  // three shipped printing the card they had opted out of. It reaches the
+  // runtime through world.json now, and tests/preset-contracts.mjs holds every
+  // opt-out in the fleet to the same standard so the next silent one is loud.
+  const wantsSchedule = bundle.world?.scheduledEvents !== false;
+  const authored = (wantsSchedule ? normalizeTimeline(bundle.world?.periodTimeline) : [])
     .filter((entry) => normalizeString(entry?.date) > stopDate)
     .slice(0, 10)
     .map((entry) => ({
@@ -7349,7 +7363,10 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     }));
 
   try {
-    const { payload: schedulePayload } = await runJsonTask("scheduledEvents", {
+    // Opted out: the pass is not run and `authored` is already empty, so
+    // buildScheduledCard returns "" and no card is attached. Skipping here
+    // rather than throwing keeps the catch below meaning what it says.
+    const { payload: schedulePayload } = wantsSchedule ? await runJsonTask("scheduledEvents", {
       signal,
       timeoutMs: 120000,
       userMessage: [
@@ -7363,7 +7380,7 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
         ...variables,
         originRoundDate: stopDate,
       },
-    });
+    }) : { payload: null };
     const card = buildScheduledCard([...authored, ...normalizeArray(schedulePayload?.entries)], stopDate);
     if (card) {
       mergedEvents = [...mergedEvents, {

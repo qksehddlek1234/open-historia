@@ -156,19 +156,26 @@ test("THE AUTHORED TIMELINE LEADS, and the model only fills the gaps", () => {
   // data/timelines/*.json already holds dated entries a scenario knows about.
   // Asking a 12B to recall them is asking it to guess at data we hold — measured
   // cold it returns one entry, sometimes none, usually the next US election.
+  // The window widened from 1400 when the opt-out gate and its explanation went
+  // in between the heading and the code. What is pinned is the ORDER — authored
+  // rows are built before the model is asked — not how much comment sits above
+  // it, so the window may grow again; the two matches below are the invariant.
   const block = GAMEPLAY.slice(GAMEPLAY.indexOf("AND THE AUTHORED TIMELINE GOES IN FIRST"));
-  assert.match(block.slice(0, 1400), /normalizeTimeline\(bundle\.world\?\.periodTimeline\)/);
-  assert.match(block.slice(0, 1400), /entry\?\.date\) > stopDate/);
+  assert.match(block.slice(0, 2400), /normalizeTimeline\(bundle\.world\?\.periodTimeline\)/);
+  assert.match(block.slice(0, 2400), /entry\?\.date\) > stopDate/);
   assert.match(GAMEPLAY, /buildScheduledCard\(\[\.\.\.authored, \.\.\.normalizeArray\(schedulePayload\?\.entries\)\], stopDate\)/);
   // And if the model pass dies the authored rows still print.
   assert.match(GAMEPLAY, /falling back to the authored timeline alone/);
 });
 
 test("…and it can never cost the turn", () => {
+  // Widened with the pin above, for the same reason and with the same caveat:
+  // the invariant is bounded-and-optional (a try, a timeout, no cost on
+  // failure), not the distance from the heading to the call.
   const block = GAMEPLAY.slice(GAMEPLAY.indexOf("THE CALENDAR CARD, BUILT BY THE ENGINE"));
-  assert.match(block.slice(0, 2600), /try \{/);
-  assert.match(block.slice(0, 2600), /the turn is unaffected and simply carries no card/);
-  assert.match(block.slice(0, 2600), /timeoutMs: 120000/);
+  assert.match(block.slice(0, 3600), /try \{/);
+  assert.match(block.slice(0, 3600), /the turn is unaffected and simply carries no card/);
+  assert.match(block.slice(0, 3600), /timeoutMs: 120000/);
 });
 
 console.log(`\n${pass} passed\n`);
