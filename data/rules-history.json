@@ -1,0 +1,236 @@
+{
+  "note": "Every simulationRules text each board has shipped, by sha256 prefix. A save whose board text hashes to one of these is a stale BUILD and may be refreshed; a save that matches nothing was written by a person and is never touched. Union across clones — this file is merged into, never replaced. Regenerate: node scripts/presets/build-rules-history.mjs",
+  "boards": {
+    "bronze-1200bc": [
+      {
+        "hash": "50ba41a0d42fd68b",
+        "chars": 1786,
+        "commit": "f9af1824"
+      },
+      {
+        "hash": "8ed8294283ad47de",
+        "chars": 2145,
+        "commit": "946faf4b"
+      }
+    ],
+    "citizen-2026": [
+      {
+        "hash": "0146e273d6052be0",
+        "chars": 4348,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "coldwar-1946": [
+      {
+        "hash": "a24cc8d292108a5b",
+        "chars": 2203,
+        "commit": "30097aab"
+      }
+    ],
+    "coldwar-1989": [
+      {
+        "hash": "410953ddad2971e4",
+        "chars": 3870,
+        "commit": "a8558d56"
+      }
+    ],
+    "colonial-1650": [
+      {
+        "hash": "49ed1dc81343d7be",
+        "chars": 1829,
+        "commit": "f9af1824"
+      },
+      {
+        "hash": "94a7593ae9388680",
+        "chars": 2451,
+        "commit": "946faf4b"
+      }
+    ],
+    "firerises-2020": [
+      {
+        "hash": "d8b63b0a58d3f960",
+        "chars": 4141,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "kaiserreich-1936": [
+      {
+        "hash": "0b115162b597407a",
+        "chars": 3721,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "korea-1950": [
+      {
+        "hash": "6e7d9e91426680de",
+        "chars": 3015,
+        "commit": "a8558d56"
+      }
+    ],
+    "magna-1444": [
+      {
+        "hash": "37112e55b7a03c02",
+        "chars": 2985,
+        "commit": "946faf4b"
+      }
+    ],
+    "medieval-1200": [
+      {
+        "hash": "8edd4aa28377cde3",
+        "chars": 1287,
+        "commit": "2eb70e26"
+      },
+      {
+        "hash": "ee751691be5ac6af",
+        "chars": 1752,
+        "commit": "f9af1824"
+      },
+      {
+        "hash": "bb6cad9da841adb8",
+        "chars": 2367,
+        "commit": "946faf4b"
+      }
+    ],
+    "millennium-2000": [
+      {
+        "hash": "893a00d5e584ee30",
+        "chars": 2679,
+        "commit": "946faf4b"
+      },
+      {
+        "hash": "6f94005ed64ee966",
+        "chars": 5366,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "modern-2020": [
+      {
+        "hash": "0852d1d060c37774",
+        "chars": 3861,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "modern-2026": [
+      {
+        "hash": "1921c5dc3e96fa83",
+        "chars": 4149,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "mongol-1300": [
+      {
+        "hash": "09a4de18f00c575e",
+        "chars": 1715,
+        "commit": "f9af1824"
+      },
+      {
+        "hash": "9823ce1575ade000",
+        "chars": 2404,
+        "commit": "946faf4b"
+      }
+    ],
+    "napoleonic-1804": [
+      {
+        "hash": "961c966299ed9de7",
+        "chars": 2705,
+        "commit": "946faf4b"
+      }
+    ],
+    "realworld-2026": [
+      {
+        "hash": "900a9eb0edcee615",
+        "chars": 3258,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "roman-117": [
+      {
+        "hash": "7f2cc6b19d0d664f",
+        "chars": 1414,
+        "commit": "f9af1824"
+      },
+      {
+        "hash": "494dbe5e603397f3",
+        "chars": 2005,
+        "commit": "946faf4b"
+      }
+    ],
+    "tno-1962": [
+      {
+        "hash": "a996e1af8d50a1f7",
+        "chars": 5442,
+        "commit": "3d25ac4c"
+      },
+      {
+        "hash": "c09cd0e7414f8653",
+        "chars": 5490,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "victorian-1836": [
+      {
+        "hash": "8f571508050cfcd5",
+        "chars": 2641,
+        "commit": "946faf4b"
+      },
+      {
+        "hash": "ab4543b57a5b5cb4",
+        "chars": 4655,
+        "commit": "2d9d31e1"
+      }
+    ],
+    "ww1-1914": [
+      {
+        "hash": "2c2ed69d76595005",
+        "chars": 1837,
+        "commit": "30097aab"
+      }
+    ],
+    "wwii-1935": [
+      {
+        "hash": "3ca2c0bd387a0a7d",
+        "chars": 1622,
+        "commit": "946faf4b"
+      },
+      {
+        "hash": "df3ce3d729cd63b2",
+        "chars": 3519,
+        "commit": "da2debd5"
+      },
+      {
+        "hash": "52a1479ebd0e0a61",
+        "chars": 5361,
+        "commit": "30097aab"
+      },
+      {
+        "hash": "00d67ad6e218c891",
+        "chars": 6466,
+        "commit": "fde1723d"
+      }
+    ],
+    "wwii-1939": [
+      {
+        "hash": "edc01534aced0e75",
+        "chars": 1051,
+        "commit": "2eb70e26"
+      },
+      {
+        "hash": "551cf4aacaa7825e",
+        "chars": 1385,
+        "commit": "30097aab"
+      },
+      {
+        "hash": "704750a0e9f13841",
+        "chars": 2308,
+        "commit": "fde1723d"
+      }
+    ],
+    "zombie-2019": [
+      {
+        "hash": "5ae3a108bf696868",
+        "chars": 4698,
+        "commit": "2d9d31e1"
+      }
+    ]
+  }
+}
