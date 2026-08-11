@@ -17,31 +17,30 @@
 // would mean more false drops, and a wrongly dropped event costs the player
 // more than a wrongly kept one.
 //
-// THREE EXEMPTIONS, checked in this order, all free:
+// TWO EXEMPTIONS, both free — and deliberately not a third:
 //   · the event lists actionIds — it claims an order, and whether that claim is
 //     honest is actionCoverage's department, not this one's;
-//   · the event's text matches a queued order by bigram containment — the same
-//     machinery actionCoverage matches with, but at NARRATIVE_MATCH_MIN, not
-//     the looser supplemental bar. The two passes carry OPPOSITE risks with the
-//     same instrument: over-matching there wrongly RESOLVES an order, while
-//     over-matching here wrongly AUTHORIZES an invasion. Measured on the case
-//     this pass exists for: "Reinforce the Westwall" scores 0.526 against
-//     "Invasion of Poland" — above the 0.5 supplemental bar, below 0.62. An
-//     order the bigrams under-score (a detailed one, a Korean one against an
-//     English event) just goes to the model pass, whose tie-break keeps;
 //   · nothing advances the player — nothing to audit.
+//
+// A bigram-containment exemption ("the event's text matches a queued order, so
+// it is authorized") was built, measured, and REMOVED. Containment grows with
+// haystack length, so the longer the event text, the more of a short unrelated
+// order it appears to contain: "Reinforce the Westwall" scored 0.526 against a
+// one-line Poland invasion and 0.632 against the same invasion with one more
+// clause — past every threshold actionCoverage uses. actionCoverage can live
+// with that shape because its over-match wrongly RESOLVES an order (annoying,
+// recoverable); here the same over-match wrongly AUTHORIZES an invasion, which
+// is the exact failure this pass exists to stop, silently waved through by its
+// own front door. So every advancing event without actionIds goes to the model
+// pass. One small call per affected jump buys soundness in the direction that
+// matters, and the pass's own tie-break still keeps everything it is unsure of.
 //
 // What survives the exemptions goes to a small flat pass (the 12B pattern) that
 // answers ordered / reaction / unordered per event. Only "unordered" drops, and
 // the drop removes the WHOLE event — text and impacts together, so narration
 // and world state stay in agreement (rule #3) — with its name printed to the
 // console (rule #1).
-import {
-  NARRATIVE_MATCH_MIN,
-  actionNeedle,
-  coverageScore,
-  eventHaystack,
-} from "./actionCoverage.js";
+
 
 const normalizeString = (value) => String(value ?? "").trim();
 const normalizeArray = (value) => (Array.isArray(value) ? value : []);
@@ -76,11 +75,9 @@ export const advancingImpacts = (event, playerKeys) => {
  * array passed in — the caller drops by index, so it must not reorder between
  * calling this and acting on the verdicts.
  */
-export const findUnorderedPlayerActs = ({ events, actions, playerNames }) => {
+export const findUnorderedPlayerActs = ({ events, playerNames }) => {
   const playerKeys = new Set(normalizeArray(playerNames).map(keyOf).filter(Boolean));
   if (playerKeys.size === 0) return [];
-  const planned = normalizeArray(actions)
-    .filter((action) => action && (normalizeString(action.status) === "planned" || !normalizeString(action.status)));
 
   const candidates = [];
   for (let index = 0; index < normalizeArray(events).length; index += 1) {
@@ -88,11 +85,6 @@ export const findUnorderedPlayerActs = ({ events, actions, playerNames }) => {
     const gains = advancingImpacts(event, playerKeys);
     if (gains.length === 0) continue;
     if (normalizeArray(event?.impacts?.actionIds).length > 0) continue;
-    const haystack = eventHaystack(event);
-    const authorized = planned.some(
-      (action) => coverageScore(actionNeedle(action), haystack) >= NARRATIVE_MATCH_MIN,
-    );
-    if (authorized) continue;
     candidates.push({
       index,
       id: normalizeString(event?.id) || `event-${index + 1}`,

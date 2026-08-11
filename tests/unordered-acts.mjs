@@ -4,7 +4,7 @@
 // "is every event that advances the player backed by an order?" The measurement
 // that forced it: with "reinforce the Westwall" as the only order, the model
 // invaded Poland 12/12 with every prompt-side rule in place. These pins hold
-// the selection logic, the three exemptions, and the wiring doctrine (drop the
+// the selection logic, the two exemptions, and the wiring doctrine (drop the
 // whole event, name it in the console, never cost the turn).
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -58,19 +58,20 @@ test("an event that lists actionIds is actionCoverage's department, not this one
   assert.deepEqual(found, []);
 });
 
-test("an event whose text matches a queued order is authorized without saying so", () => {
-  const order = { id: "a7", status: "planned", title: "Invade Poland", text: "Cross the border and take Warsaw." };
-  const found = findUnorderedPlayerActs({ events: [invasion], actions: [order], playerNames: ["GER", "Germany"] });
-  assert.deepEqual(found, [], "bigram containment covers the paraphrase");
-});
-
-test("with only an unrelated order queued, the invasion is a candidate", () => {
-  const order = { id: "a1", status: "planned", title: "Reinforce the Westwall", text: "Strengthen fortifications along the western frontier." };
-  const found = findUnorderedPlayerActs({ events: [invasion], actions: [order], playerNames: ["GER", "Germany"] });
-  assert.equal(found.length, 1);
+test("EVERY advancing event without actionIds is a candidate — even an ordered-looking one", () => {
+  // A bigram exemption used to authorize events whose text matched a queued
+  // order. Removed, and this pin is why it must not come back: containment
+  // grows with haystack length, so "Reinforce the Westwall" scored 0.632
+  // against a two-clause Poland invasion — an unrelated order silently waving
+  // through the exact event this pass exists to stop. Authorization is now the
+  // model pass's call in every case; its tie-break keeps what it is unsure of.
+  const ordered = { id: "a7", status: "planned", title: "Invade Poland", text: "Cross the border and take Warsaw." };
+  const found = findUnorderedPlayerActs({ events: [invasion], playerNames: ["GER", "Germany"] });
+  assert.equal(found.length, 1, "the model pass decides, not a string score");
   assert.equal(found[0].id, "ev-1");
-  assert.equal(found[0].index, 0);
   assert.deepEqual(found[0].gains, ["region → Masovia"]);
+  // The order still matters — in the audit MESSAGE, where the model can see it.
+  assert.match(buildAuditMessage(found, [ordered]), /\[id: a7\] Invade Poland/);
 });
 
 test("the audit message carries the ids the verdicts must echo", () => {
