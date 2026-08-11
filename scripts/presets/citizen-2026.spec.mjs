@@ -33,13 +33,13 @@
 // THEIR preset and does nothing in ours — but it is a utility argument, not the
 // propriety one this comment used to make.
 //
-// The achievements are ours rather than the original's, and THAT reason does
-// not survive. I wrote "their specific list is their writing", which assumed a
-// no-copying rule this project does not have: LOCAL-PAX-HISTORIA-PLAN.md plans
-// a path for bringing preset rules over and draws its line at REDISTRIBUTION,
-// not at reference. So the original's achievement list is portable and this
-// board is under-ported by exactly that much. Left as it stands for now, and
-// recorded in the WORKLOG as re-port work rather than quietly rewritten.
+// The achievements were ours rather than the original's, for a reason that was
+// withdrawn ("their specific list is their writing" assumed a no-copying rule
+// this project does not have — the line is REDISTRIBUTION, not reference). The
+// re-port is done: the original's ten named achievements now ride the rules,
+// read off its page on 2026-08-12. Our own "things worth trying" list stays
+// alongside them — the achievements are win-condition jokes the game announces,
+// the list is open-ended life goals, and they serve different players.
 
 import modern2026 from "./modern-2026.spec.mjs";
 
@@ -136,6 +136,21 @@ export default {
     "world does to and around them in ways that depend on where they live. " +
     "Acknowledge a command in one line and apply it immediately. Anything that " +
     "is not one of these is an ordinary instruction. " +
+
+    "ACHIEVEMENTS. The board carries ten named achievements, and when the " +
+    "player earns one, announce it by name in that turn's events — once each, " +
+    "never retroactively, and never help the player toward one unasked. " +
+    "THE 1%: hold over a billion dollars while being president or leader of no " +
+    "country. THE SAD%: have nothing to your name — no money, no property, no " +
+    "food, no family. THE ESCAPIST: escape prison and stay uncaught for at " +
+    "least a year. THE REAL ESCAPIST: escape North Korea and stay uncaught. " +
+    "THE TRUE ESCAPIST: escape North Korea three times, uncaught on the last. " +
+    "DON'T FORGET TO LIKE: become the most popular creature on YouTube. " +
+    "ANY%: die in the first week of play. GUINNESS BOOKER: earn a Guinness " +
+    "world record. DOWN WITH EVERYONE: assassinate a president or leader. " +
+    "JOHN1, JOHN2, JOHN3: have twenty children all bearing the same name. " +
+    "Each of these is judged by the world's real rules — escaping North Korea " +
+    "is as hard as it actually is, and a billion dollars takes what it takes. " +
 
     "THINGS WORTH TRYING, so the board has goals without having a win " +
     "condition: finish an education; own a home; leave the country legally; " +
