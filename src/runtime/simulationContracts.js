@@ -32,7 +32,9 @@
 // lib/regionRef.mjs, where two builders holding separate rules for the same
 // question un-shared 22 maps in a single rebuild.
 import { REGION_CONTRACT, HISTORICAL_PRIOR } from "../../scripts/presets/lib/regionContract.mjs";
-import { PLAYER_SOVEREIGNTY } from "../../scripts/presets/lib/playerSovereignty.mjs";
+import {
+  PLAYER_SOVEREIGNTY, PLAYER_SOVEREIGNTY_OTHER_STATES,
+} from "../../scripts/presets/lib/playerSovereignty.mjs";
 import { INTERNAL_VOICE_CONTRACT } from "../../scripts/presets/lib/internalVoices.mjs";
 
 // ORDER IS LOAD-BEARING. build-preset concatenated these in exactly this
@@ -138,6 +140,43 @@ export const CONTRACT_CONSUMERS = Object.fromEntries(
   }),
 );
 
+// A THIRD KIND OF CELL: the consumer keeps the contract but receives a TRIMMED
+// text, because part of the full text is already in that consumer's own prompt.
+//
+// The evidence is duplicate-scan.mjs, not judgement: the jump prompts carry a
+// [Player Agency — critical] section that states the own-state half of
+// `sovereignty` clause for clause ("Never execute actions FOR the player… IF
+// AND ONLY IF the player specifically took an action… If the player chooses not
+// to act, assume it was deliberate"). All four probe phrases hit in exactly
+// these two consumers and in no other. An A/B on those cells measured nothing
+// for precisely this reason — both arms already carried the rule
+// (docs/analysis/cell-ab-2026-08-11.md, 3차).
+//
+// So these two receive only the OTHER-STATES half — the clause the base prompt
+// does NOT state anywhere: the player commands nobody else's government, and
+// everything aimed at another polity is an attempt, not a decree. Removing the
+// whole cell would have thrown that away with the duplicate.
+//
+// WHY THE CONTRACT SIDE IS THE ONE TO TRIM, verified independently by both
+// sessions: a save clones prompts.json at creation and never updates it, so an
+// edit to the base prompt reaches only future games — while contracts are
+// injected at call time and reach every campaign, including the ones already
+// running. Trimming here is consistent everywhere; trimming the base prompt
+// would strip the rule entirely from old saves.
+export const CONTRACT_VARIANTS = {
+  sovereignty: {
+    jumpForward: PLAYER_SOVEREIGNTY_OTHER_STATES,
+    autoJumpForward: PLAYER_SOVEREIGNTY_OTHER_STATES,
+  },
+};
+
+/** The exact contract text a given consumer receives — variant-aware. */
+export const contractTextFor = (key, consumer) => {
+  const contract = CONTRACTS.find((row) => row.key === key);
+  if (!contract) return "";
+  return CONTRACT_VARIANTS[key]?.[consumer] ?? contract.text;
+};
+
 const normalize = (value) => (typeof value === "string" ? value : "");
 
 /**
@@ -181,7 +220,7 @@ export const assembleRules = (world, consumer) => {
   for (const contract of CONTRACTS) {
     if (!held.has(contract.key)) continue;
     if (!CONTRACT_CONSUMERS[contract.key]?.includes(consumer)) continue;
-    parts.push(contract.text);
+    parts.push(contractTextFor(contract.key, consumer));
   }
   return parts.filter(Boolean).join("").trim();
 };

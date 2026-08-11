@@ -25,7 +25,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
-import { CONTRACTS, RULES_CONSUMERS, assembleRules } from "../../src/runtime/simulationContracts.js";
+import { CONTRACTS, RULES_CONSUMERS, assembleRules, contractTextFor } from "../../src/runtime/simulationContracts.js";
+import { scoreSovereignty } from "./lib/scorers.mjs";
 
 const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..", "..");
 const ENDPOINT = "http://localhost:11434/v1/chat/completions";
@@ -53,12 +54,15 @@ if (!fs.existsSync(worldPath)) {
 const world = JSON.parse(fs.readFileSync(worldPath, "utf8"));
 
 const ON = assembleRules(world, consumer);
-if (!ON.includes(contract.text)) {
+// Variant-aware: a trimmed cell receives less than the full text, and removing
+// the full text from it would silently strip nothing.
+const received = contractTextFor(contractKey, consumer);
+if (!ON.includes(received)) {
   console.error(`${SCENARIO}/${consumer} does not currently carry "${contractKey}" — nothing to measure`);
   console.error("  (either the board opted out, or the cell is already off in the matrix)");
   process.exit(1);
 }
-const OFF = ON.replace(contract.text, "").trim();
+const OFF = ON.replace(received, "").trim();
 
 // ── the question each consumer is actually asked ─────────────────────────────
 // Kept close to what the real task asks, because a contrived prompt measures the
@@ -180,36 +184,9 @@ const SCORE = {
   //
   // Matched on the ACTOR being Germany, so "Poland mobilises" and "Britain
   // declares war" are correctly not violations: the world may do as it likes.
-  // GERMANY AS THE SUBJECT OF A FINITE VERB, and both halves of that matter.
-  //
-  // Bilingual, because the first version was Korean-only and scored 0/2 on a
-  // reply whose opening event was "Invasion of Poland — German forces cross the
-  // Polish border". The model answers in whichever language the prompt pulls it
-  // toward and a one-language scorer reports its own blind eye as a clean board.
-  //
-  // Subject-anchored, because the bilingual version then produced a false
-  // positive on "Great Britain and France declare war on Germany following the
-  // invasion of Poland" — Germany is the OBJECT there and the actor is somebody
-  // else, which the contract has nothing to say about. So the pattern requires
-  // Germany, then at most three words, then a FINITE verb: a noun like
-  // "invasion" sitting nearby is not an act by anyone.
-  sovereignty: (text) => {
-    const SELF = "독일(?:군|국방군)?|제3제국|베를린|국방군|Germany|German(?: and \\w+)? forces|Wehrmacht|the Reich";
-    const VERB = "invades?|invaded|launch(?:es|ed)?|cross(?:es|ed)?|attack(?:s|ed)?"
-      + "|occupies|occupied|advances?|advanced|annexe?s?|annexed|declares? war|declared war"
-      + "|mobilise[sd]?|mobilize[sd]?|침공한|침공했|진격한|진격했|점령한|점령했|병합한|병합했|선전포고";
-    const subject = new RegExp(`(${SELF})\\s+(?:\\w+\\s+){0,3}(${VERB})`, "i");
-    // Korean marks the subject with a PARTICLE, which is a cleaner signal than
-    // adjacency: 독일군이 진격했다 is Germany acting; 독일에 선전포고 is somebody
-    // acting ON Germany. English has no such marker and has to use word order.
-    const koSubject = /(독일군|독일|국방군|제3제국|베를린)(?:이|가|은|는)\s[^.\n]{0,40}(침공|진격|점령|병합|선전포고|공격|동원)/;
-    // The one thing they DID order is not a breach.
-    const ordered = /(베스트발|서부 방벽|Westwall|Siegfried)/i;
-    const found = text.match(subject) ?? text.match(koSubject);
-    if (!found) return { violated: false, why: "" };
-    const why = found[0].replace(/\s+/g, " ").slice(0, 70);
-    return { violated: !ordered.test(why), why };
-  },
+  // Shared with trim-ab.mjs — the calibration history lives with the scorer
+  // (scripts/ab/lib/scorers.mjs), so it cannot fork.
+  sovereignty: scoreSovereignty,
   prior: () => ({ violated: false, why: "prior is pinned on and is not measured — see simulationContracts.js" }),
 };
 

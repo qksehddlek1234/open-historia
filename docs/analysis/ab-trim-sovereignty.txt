@@ -1,0 +1,413 @@
+trim re-measure | board wwii-1939 | 6 per arm
+FULL 6/6 | TRIMMED 6/6
+
+-- FULL    1/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the border into Poland, initiating the 'Fall Weiß' campaign to seize the Polish Corridor and Danzig."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following Germany's invasion of Poland, Britain and France declare war on the German Reich. The Western Front enters a state of high tension."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland, and a demarcation line is established between German and Soviet spheres of influence."
+    },
+    {
+      "title": "Fall of Polish Resistance",
+      "date": "1939-10-05",
+      "description": "Organized Polish resistance in the west collapses. German forces successfully consolidate their hold on occupied Polish territory."
+    },
+    {
+      "title": "Westwall Reinforcement",
+      "date": "1939-10-20",
+      "description": "Construction and fortification efforts along the western frontier are intensified, bolstering the Westwall's defensive capabilities against potential western incursions."
+    }
+  ]
+}
+```
+
+-- FULL    2/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a coordinated blitzkrieg to seize key infrastructure and eliminate Polish resistance. The campaign begins in earnest as mechanized units push toward Warsaw."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France formally declare war on Germany. The continent enters a state of high alert as mobilization begins across the Western Front."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces cross into eastern Poland. The partition of Polish territory proceeds as planned by both Berlin and Moscow."
+    },
+    {
+      "title": "Collapse of Polish Resistance",
+      "date": "1939-09-28",
+      "description": "The main Polish defenses crumble under the pressure of coordinated strikes. German forces move to consolidate their positions in occupied territories, establishing a firm grip on the Polish Corridor and central districts."
+    },
+    {
+      "title": "Westwall Fortification Program",
+      "date": "1939-10-15",
+      "description": "Construction and reinforcement of the Westwall fortifications along the western frontier are intensified. Engineering units begin deepening trenches, reinforcing bunkers, and upgrading defensive positions to secure the border against potential Western incursions."
+    },
+    {
+      "title": "Stalemate in the West",
+      "date": "1939-11-01",
+      "description": "The front lines in the west remain largely static. While the Polish campaign is concluded, the German military begins preparing for the logistical demands of a long-term standoff with the Allied powers."
+    }
+  ]
+}
+```
+
+-- FULL    3/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, launching a multi-pronged offensive to seize the Polish Corridor and Danzig. The rapid advancement of mechanized units begins to overwhelm Polish defenses."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following Germany's invasion of Poland, Great Britain and France declare war on the German Reich. The Western Front enters a period of uneasy stalemate as mobilization continues."
+    },
+    {
+      "title": "Soviet Invasion of East Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Polish territories. The two powers begin to establish a new demarcation line in the east."
+    },
+    {
+      "title": "Collapse of Polish Resistance",
+      "date": "1939-09-28",
+      "description": "With the fall of major strongholds and the fracturing of organized resistance, German and Soviet forces begin establishing military administrations over their respective zones of occupation."
+    },
+    {
+      "title": "Westwall Fortification Expansion",
+      "date": "1939-10-12",
+      "description": "Construction and reinforcement of the Westwall fortifications along the western frontier are initiated. This defensive program strengthens Germany's border positions against potential Western incursions while the front remains static."
+    }
+  ]
+}
+```
+
+-- FULL    4/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, launching a coordinated offensive to seize the Polish Corridor and Danzig."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the invasion of Poland, Britain and France formally declare war on Germany. The 'Phoney War' begins in the West as both sides establish their positions."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland, pushing to establish a new sphere of influence."
+    },
+    {
+      "title": "Fall of Polish Resistance",
+      "date": "1939-09-25",
+      "description": "Main Polish and Soviet resistance is crushed. German and Soviet forces establish occupation zones across the former Polish territories."
+    },
+    {
+      "title": "Westwall Strengthening",
+      "date": "1939-10-15",
+      "description": "Construction of additional fortifications and defensive works along the western frontier is accelerated as a primary logistical priority to secure the border against potential Western incursions."
+    }
+  ]
+}
+```
+
+-- FULL    5/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the border into the Polish Corridor and Silesia, beginning a full-scale invasion to seize Danzig and secure territory."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following the invasion of Poland, Britain and France declare war on Germany, marking the beginning of the Second World War in Western Europe."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland, seizing territory and establishing a new sphere of influence."
+    },
+    {
+      "title": "Collapse of Polish Resistance",
+      "date": "1939-09-28",
+      "description": "German forces successfully secure the Polish Corridor and the city of Danzig, forcing a retreat of many Polish units toward the south."
+    },
+    {
+      "title": "Fall of Warsaw",
+      "date": "1939-10-15",
+      "description": "The capital of Poland falls to German forces after heavy bombardment, leading to a breakdown in organized resistance and the fracturing of Polish command."
+    },
+    {
+      "title": "Westwall Fortification Progress",
+      "date": "1939-10-25",
+      "description": "Construction and reinforcement projects for the Westwall are accelerated along the western frontier, bolstering Germany's defensive posture against potential Western incursions."
+    }
+  ]
+}
+```
+
+-- FULL    6/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a multi-pronged offensive to seize the Polish Corridor and Danzig. Simultaneously, Soviet forces begin their mobilization toward the eastern Polish border."
+    },
+    {
+      "title": "Outbreak of World War",
+      "date": "1939-09-03",
+      "description": "In response to the invasion of Poland, Great Britain and France declare war on Germany. The Western Front enters a period of static tension known as the 'Phoney War'."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "Following the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland. The Polish state is rapidly partitioned between German and Soviet spheres of influence."
+    },
+    {
+      "title": "Collapse of Polish Resistance",
+      "date": "1939-09-28",
+      "description": "The majority of organized Polish military resistance in the central sectors collapses, leading to the capture of vast amounts of materiel and the effective dismantling of the Polish state's ability to coordinate a defense."
+    },
+    {
+      "title": "Fortification of the Westwall",
+      "date": "1939-10-15",
+      "description": "Construction projects are completed along the western frontier. The Westwall fortifications are reinforced, providing Germany with enhanced defensive capabilities against potential incursions from the French and British forces."
+    },
+    {
+      "title": "Consolidation of Occupied Territories",
+      "date": "1939-11-01",
+      "description": "The Polish campaign reaches a point of stability. German administration is established in the occupied zones, and the front lines against both the Soviet Union and the Western Allies are solidified for the winter."
+    }
+  ]
+}
+```
+
+-- TRIMMED 1/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, launching a multi-pronged offensive to seize Danzig and the Polish Corridor. The blitzkrieg doctrine is put into immediate practice as mechanized units and Luftwaffe support begin dismantling Polish defenses."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the invasion of Poland, Great Britain and France formally declare war on Germany. While a massive mobilization begins in the West, the front remains largely static as both sides prepare for potential maneuvers."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland. The USSR begins partitioning the territory, establishing a new sphere of influence in the east."
+    },
+    {
+      "title": "Westwall Fortification Reinforcement",
+      "date": "1939-10-20",
+      "description": "Work on the Westwall (Siegfried Line) is accelerated and completed along key sectors of the western frontier. Additional bunkers, heavy artillery emplacements, and reinforced infantry positions are established to provide a formidable defense against a potential French offensive."
+    }
+  ]
+}
+```
+
+-- TRIMMED 2/6 — VIOLATED (German forces launch)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a massive, coordinated offensive across the Polish border, beginning the invasion of the Polish Corridor and central territories."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, both Britain and France declare war on Germany, beginning the Second World War."
+    },
+    {
+      "title": "Soviet Invasion of East Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland from the east, beginning the partition of Polish territory."
+    },
+    {
+      "title": "Westwall Fortification",
+      "date": "1939-09-25",
+      "description": "German military engineers and construction units begin reinforcing the Siegfried Line. These efforts strengthen the fortifications along the western frontier, ensuring a more robust defense against potential French or British maneuvers."
+    },
+    {
+      "title": "Polish Resistance Collapses",
+      "date": "1939-10-20",
+      "description": "With both German and Soviet forces closing in on Warsaw, the organized Polish resistance is largely broken, and most of the country's territory falls under occupation."
+    }
+  ]
+}
+```
+
+-- TRIMMED 3/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a massive invasion to seize the Polish Corridor and Danzig. The campaign begins with heavy blitzkrieg tactics."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "In response to the invasion of Poland, Great Britain and France declare war on Germany. The Second World War has officially begun."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland from the east. The partition of Polish territory begins."
+    },
+    {
+      "title": "Collapse of the Polish Resistance",
+      "date": "1939-09-28",
+      "description": "Polish forces are overwhelmed by the dual invasion. The nation is partitioned between German and Soviet spheres of influence, and the Polish state effectively ceases to function."
+    },
+    {
+      "title": "Fortification of the Westwall",
+      "date": "1939-10-22",
+      "description": "The reinforcement program for the Westwall along the western frontier is completed. The defensive line is significantly bolstered, providing a fortified buffer against potential incursions from the west."
+    }
+  ]
+}
+```
+
+-- TRIMMED 4/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a massive coordinated offensive to seize territory and neutralize the Polish military."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following Germany's invasion of Poland, Great Britain and France issue formal declarations of war against Germany."
+    },
+    {
+      "title": "Soviet Invasion of the East",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland, carving out a sphere of influence in the east."
+    },
+    {
+      "title": "Collapse of Polish Resistance",
+      "date": "1939-10-15",
+      "description": "Polish defenses in the west are largely broken; German forces begin consolidating control over captured territories and establishing occupation zones."
+    },
+    {
+      "title": "Westwall Fortification Completion",
+      "date": "1939-11-01",
+      "description": "The reinforcement of the Westwall fortifications along the western frontier is completed, significantly strengthening the defensive line against potential incursions from Western powers."
+    }
+  ]
+}
+```
+
+-- TRIMMED 5/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the border into Poland, initiating a multi-pronged offensive to seize Danzig and the Polish Corridor."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Great Britain and France declare war on Germany. The Western Front enters into a period of mobilization known as the 'Phoney War'."
+    },
+    {
+      "title": "Soviet Intervention",
+      "date": "1939-09-17",
+      "description": "The Soviet Union invades eastern Poland in accordance with the Molotov-Ribbentrop Pact, partitioning the territory between German and Soviet spheres."
+    },
+    {
+      "title": "Westwall Reinforcements",
+      "date": "1939-09-28",
+      "description": "Construction units and military engineers accelerate the fortification of the western frontier. Defensive works along the Westwall are reinforced to secure the border against potential Western incursions."
+    },
+    {
+      "title": "Polish Campaign Progress",
+      "date": "1939-10-15",
+      "description": "The Polish military is increasingly squeezed between German and Soviet forces, with their defensive lines buckling under the pressure of coordinated advances."
+    }
+  ]
+}
+```
+
+-- TRIMMED 6/6 — VIOLATED (German forces cross)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a massive offensive to seize territory and eliminate the Polish state."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following the ultimatum to Poland, Great Britain and France officially declare war on Germany. The Western Front is now active."
+    },
+    {
+      "title": "Soviet Invasion of Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland from the east, creating a two-front squeeze on Polish forces."
+    },
+    {
+      "title": "Fall of the Polish Corridor",
+      "date": "1939-09-25",
+      "description": "German and Soviet forces successfully breach the Polish Corridor. The Danzig area is moved into a state of siege as the Polish defense collapses."
+    },
+    {
+      "title": "Westwall Reinforcement Progress",
+      "date": "1939-10-15",
+      "description": "Construction and fortification works along the western frontier are bolstered. Engineering units successfully bolster key fortifications, ensuring a more robust defensive line against potential French maneuvers."
+    },
+    {
+      "title": "The Polish Campaign Concludes",
+      "date": "1939-10-30",
+      "description": "With the Polish government in exile and organized resistance crumbling, the focus of German military planning begins to shift toward the preparation for a potential invasion of Czechoslovakia or a defensive stance against the Western Allies."
+    }
+  ]
+}
+```

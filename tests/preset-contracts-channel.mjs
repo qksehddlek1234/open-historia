@@ -59,10 +59,19 @@ const CLEARED = {
   countryStatSheet: ["region", "sovereignty"],
 };
 
-test("every consumer but the two cleared ones reassembles identically", () => {
+// AND TWO CELLS ARE TRIMMED RATHER THAN CLEARED — the jump tasks receive
+// sovereignty's other-states half only, because their own [Player Agency]
+// section already states the own-state half clause for clause
+// (duplicate-scan.mjs; docs/analysis/cell-ab-2026-08-11.md, 3차). A trimmed
+// consumer is neither identical to the reference nor absent from it, so the
+// identity sweep below excludes them and a dedicated pin holds their exact
+// difference.
+const TRIMMED = new Set(["jumpForward", "autoJumpForward"]);
+
+test("every consumer but the cleared and trimmed ones reassembles identically", () => {
   if (!fs.existsSync(SCENARIOS)) { console.log("      (not built — skipped)"); return; }
-  const others = RULES_CONSUMERS.filter((consumer) => !(consumer in CLEARED));
-  assert.equal(others.length, 11, "exactly one consumer is cleared");
+  const others = RULES_CONSUMERS.filter((consumer) => !(consumer in CLEARED) && !TRIMMED.has(consumer));
+  assert.equal(others.length, 9, "one cleared, two trimmed, nine identical");
   for (const id of fs.readdirSync(SCENARIOS)) {
     const worldPath = path.join(SCENARIOS, id, "world.json");
     if (!fs.existsSync(worldPath)) continue;
@@ -95,6 +104,28 @@ test("…and the cleared two differ by exactly the contracts named, nothing else
   }
 });
 
+test("…and the trimmed two differ by exactly the own-state half, nothing else", async () => {
+  if (!fs.existsSync(SCENARIOS)) { console.log("      (not built — skipped)"); return; }
+  const { PLAYER_SOVEREIGNTY_OWN_STATE } = await import("../scripts/presets/lib/playerSovereignty.mjs");
+  const reference = RULES_CONSUMERS.find((consumer) => !(consumer in CLEARED) && !TRIMMED.has(consumer));
+  for (const id of fs.readdirSync(SCENARIOS)) {
+    const worldPath = path.join(SCENARIOS, id, "world.json");
+    if (!fs.existsSync(worldPath)) continue;
+    const world = JSON.parse(fs.readFileSync(worldPath, "utf8"));
+    const declared = new Set(world.contracts ?? []);
+    const full = assembleRules(world, reference);
+    for (const consumer of TRIMMED) {
+      let expected = full;
+      if (declared.has("sovereignty")) {
+        assert.ok(expected.includes(PLAYER_SOVEREIGNTY_OWN_STATE), `${id}: the own-state half was in the full assembly`);
+        expected = expected.replace(PLAYER_SOVEREIGNTY_OWN_STATE, "");
+      }
+      assert.equal(assembleRules(world, consumer), expected,
+        `${id}/${consumer}: differs from the full assembly by something other than the own-state half`);
+    }
+  }
+});
+
 test("a built board reassembles to exactly its own rules plus the contracts it declares", () => {
   if (!fs.existsSync(SCENARIOS)) { console.log("      (not built — skipped)"); return; }
   for (const id of fs.readdirSync(SCENARIOS)) {
@@ -105,7 +136,10 @@ test("a built board reassembles to exactly its own rules plus the contracts it d
       String(world.simulationRules ?? "").trim(),
       ...CONTRACTS.filter((c) => (world.contracts ?? []).includes(c.key)).map((c) => c.text),
     ].filter(Boolean).join("").trim();
-    assert.equal(assembleRules(world, "jumpForward"), expected, `${id}`);
+    // Asked of a consumer with no variant — jumpForward was the reference here
+    // until the trimmed cells made it the one consumer this equality is FALSE
+    // for, by design. The full-assembly invariant lives on in the untouched ten.
+    assert.equal(assembleRules(world, "advisor"), expected, `${id}`);
   }
 });
 
