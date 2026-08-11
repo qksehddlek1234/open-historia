@@ -1109,6 +1109,31 @@ export const GAMEPLAY_SCHEMAS = Object.freeze({
   // docs/analysis/contract-ab-2026-08-09.md), so it became a small pass of its
   // own. Dates only: the engine computes every interval and formats the card,
   // because the arithmetic was the part the model got wrong most.
+  // ORDERED, REACTION, OR UNORDERED — one verdict per suspect event.
+  //
+  // The audit for the rule prompts could not enforce: measured 12/12 unordered
+  // invasions with [Player Agency] AND the sovereignty contract in the prompt
+  // (docs/analysis/cell-ab-2026-08-11.md). Flat on purpose — the 12B pattern.
+  unorderedActAudit: {
+    type: 'object',
+    description: "Verdicts on player-polity acts that no queued order visibly covers.",
+    properties: {
+      verdicts: {
+        type: 'array',
+        description: 'Exactly one entry per eventId given.',
+        items: {
+          type: 'object',
+          properties: {
+            eventId: { type: 'string', description: 'The eventId exactly as given.', minLength: 1 },
+            verdict: { type: 'string', enum: ['ordered', 'reaction', 'unordered'] },
+            orderId: { type: 'string', description: "The covering order's id, only with verdict \"ordered\"." },
+          },
+          required: ['eventId', 'verdict'],
+        },
+      },
+    },
+    required: ['verdicts'],
+  },
   scheduledEvents: {
     type: 'object',
     description: 'Future occurrences whose date is already determined.',

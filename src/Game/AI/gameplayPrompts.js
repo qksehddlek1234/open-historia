@@ -233,6 +233,17 @@ export const PROMPT_SECTION_DEFINITIONS = [
     type: "task",
   },
   {
+    description:
+      "Bookkeeping pass after a time skip: audits events in which the player's polity gains ground against the queued orders, so the engine can drop what the player never ordered.",
+    helpers: [
+      "PLAYER_POLITY",
+      "ORIGIN_ROUND_DATE",
+    ],
+    key: "unorderedActAudit",
+    label: "Unordered-Act Audit",
+    type: "task",
+  },
+  {
     description: "Direct game-master map and state interventions.",
     helpers: [
       "PLAYER_POLITY",

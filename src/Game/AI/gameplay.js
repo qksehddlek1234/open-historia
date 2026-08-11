@@ -27,6 +27,7 @@ import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
 import { buildSpeechlessNames } from "../../runtime/speechless.js";
 import { assembleRules } from "../../runtime/simulationContracts.js";
 import { buildScheduledCard } from "../../runtime/scheduledCard.js";
+import { buildAuditMessage, findUnorderedPlayerActs } from "./unorderedActs.js";
 import {
   acceptStanding,
   applyEventImpactsToWorld,
@@ -7353,6 +7354,59 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     .map((entry) => entry.event);
   if (leftUncovered > 0) {
     console.warn(`[actions] ${leftUncovered} queued action(s) were not played out — they stay queued for the next turn.`);
+  }
+  // THE OTHER HALF OF ACTION BOOKKEEPING: acts the player never ordered.
+  //
+  // actionCoverage (above) asks whether every ORDER got an event. Nothing asked
+  // the reverse until the sovereignty A/B measured why it must be asked: with
+  // "reinforce the Westwall" as the only order, this model invaded Poland
+  // twelve times out of twelve — [Player Agency] in the prompt, contract
+  // injected, no difference (docs/analysis/cell-ab-2026-08-11.md). Rule #2:
+  // where the model repeatedly fails, the engine checks rather than asks.
+  //
+  // Placement matters twice over. AFTER the final sort, because the audit drops
+  // by index and nothing may reorder in between; BEFORE the calendar card,
+  // because the card appends an event and would shift nothing but should not
+  // even be in the audited set. Bounded and optional like every pass here: the
+  // fallback keeps everything, and only an explicit "unordered" verdict drops.
+  const playerActNames = [
+    bundle.game?.country,
+    toCountryName(normalizeString(bundle.game?.country)),
+    variables?.playerPolity,
+  ];
+  const unorderedCandidates = findUnorderedPlayerActs({
+    events: mergedEvents,
+    actions: plannedQueue,
+    playerNames: playerActNames,
+  });
+  if (unorderedCandidates.length > 0) {
+    try {
+      const { payload: auditPayload } = await runJsonTask("unorderedActAudit", {
+        signal,
+        timeoutMs: 120000,
+        fallback: () => ({ verdicts: [] }),
+        userMessage: buildAuditMessage(unorderedCandidates, plannedQueue),
+        variables: { ...variables, originRoundDate: stopDate },
+      });
+      const dropIndexes = new Set();
+      for (const row of normalizeArray(auditPayload?.verdicts)) {
+        if (normalizeString(row?.verdict) !== "unordered") continue;
+        const hit = unorderedCandidates.find((candidate) => candidate.id === normalizeString(row?.eventId));
+        if (hit) dropIndexes.add(hit.index);
+      }
+      if (dropIndexes.size > 0) {
+        // The WHOLE event goes — text and impacts together, so narration and
+        // world state stay in agreement (rule #3) — and each one is named
+        // (rule #1: nothing is dropped silently).
+        for (const candidate of unorderedCandidates) {
+          if (!dropIndexes.has(candidate.index)) continue;
+          console.warn(`[sovereignty] dropped unordered act: "${candidate.title}" (${candidate.gains.join(", ")}) — no queued order authorizes it.`);
+        }
+        mergedEvents = mergedEvents.filter((_, index) => !dropIndexes.has(index));
+      }
+    } catch (error) {
+      console.warn("[sovereignty] the audit pass failed — keeping every event.", error);
+    }
   }
   // THE CALENDAR CARD, BUILT BY THE ENGINE.
   //
