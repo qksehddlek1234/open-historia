@@ -43,7 +43,15 @@
 //   Naming it "Rongelap" would mislabel Bikini. Blank renders NOTHING, which is
 //   the honest answer; "NA" renders a place called NA, which is a lie.
 //
-// ── 3. DOTLESS GHANAIAN IDS (16) — NOT TOUCHED, and this is a judgement ──────
+// ── 3. DOTLESS GHANAIAN IDS — RESOLVED by remap-dotless-ids.mjs ──────────────
+// The paragraph below is the judgement as it stood when this script was
+// written, kept because it explains why the fix needed its own migration. That
+// migration exists now (scripts/regions/remap-dotless-ids.mjs): one sweep over
+// the seed, every scenario, and both live saves, verified to zero remaining.
+// The per-run count below now reports 0 and stands guard against a recurrence,
+// alongside the grammar pin in tests/level2-expansion.mjs.
+//
+// ── (historical) DOTLESS GHANAIAN IDS (16) — NOT TOUCHED, and this is a judgement
 // GHA13_2 should be GHA.13_2 in GADM's grammar. Renaming them is a one-line
 // change to the seed and an ID MIGRATION ACROSS THE WHOLE FLEET everywhere else:
 // default/world.json holds 16 ownership facts on the old ids and

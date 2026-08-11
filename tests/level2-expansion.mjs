@@ -163,4 +163,18 @@ test("THE 168 SUPERSEDED FACTS ARE EXPANDED, NOT DELETED", () => {
   assert.deepEqual(stale, [], `${stale.length} override(s) still point at nothing`);
 });
 
+test("REGION ID GRAMMAR: gid0, then a dot — the dotless Ghana rows are gone for good", () => {
+  // Sixteen Ghanaian rows shipped as GHA13_2 and became keys across fifteen
+  // scenarios and two live saves before anyone noticed. remap-dotless-ids.mjs
+  // renamed all of them in one sweep; this pin is what keeps the next level-2
+  // merge from quietly minting more. An id is its gid0, or gid0 followed by a
+  // separator — never gid0 glued straight onto a digit.
+  const map = new URL("../server/data/scenarios/default/regions.geojson", import.meta.url);
+  if (!fs.existsSync(map)) return;
+  const glued = JSON.parse(fs.readFileSync(map, "utf8")).features
+    .map((f) => String(f.properties?.id ?? ""))
+    .filter((id) => /^[A-Z]{3}\d/.test(id));
+  assert.deepEqual(glued, [], "a merge reintroduced dotless ids — run remap-dotless-ids.mjs");
+});
+
 console.log(`\n${pass} passed\n`);
