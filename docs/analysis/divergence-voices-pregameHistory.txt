@@ -1,0 +1,26 @@
+divergence: voices x pregameHistory | 6 pairs x 2 judgments
+accuracy 1/12 (0.08) | order-swap contradictions 1/6
+
+pair 1: miss/miss  (contains empty judgment)
+    1: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities as described in the rule.
+    2: A - The text follows the rule by excluding "Internal" or "Domestic" entities from the narrative summary and event list.
+
+pair 2: miss/miss  (contains empty judgment)
+    1: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities, nor do they feature a newspaper page or speci
+    2: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities as described in the rule.
+
+pair 3: miss/miss  (contains empty judgment)
+    1: B - The text does not contain any mentions of "Internal:" or "Domestic:" entities, which are forbidden from being mentioned in a turn's narration by the rule.
+    2: Neither - Both texts are standard JSON data structures that do not contain any "Internal:" or "Domestic:" entities, nor do they feature a newspaper page or spec
+
+pair 4: miss/miss  (contains empty judgment)
+    1: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities as described in the rule.
+    2: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities as described in the rule.
+
+pair 5: miss/hit  (order-swap contradiction)  (contains empty judgment)
+    1: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities as described in the rule.
+    2: B - The text includes a "Domestic: Newspaper" style summary/narrative that avoids mentioning internal polities, whereas A is just a standard list of events. (Wa
+
+pair 6: miss/miss  (contains empty judgment)
+    1: B - The summary mentions "domestic sentiment" regarding the US, which aligns with the rule's specific handling of internal/domestic entities as part of the play
+    2: Neither - Both texts are standard historical summaries and do not contain any "Internal:" or "Domestic:" entities, nor do they include a newspaper page as descr

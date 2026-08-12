@@ -121,7 +121,16 @@ const ASK = {
       "[Simulation Rules]",
       rules,
     ].join("\n"),
-    user: 'Write the pre-game timeline. Return JSON only: {"events":[{"date":"YYYY-MM-DD","title":"","description":""}],"summary":""}',
+    // The roster line is the bait, and it was added on a measured failure: the
+    // first probe carried no voices in the world context at all, so the OFF arm
+    // could not mention what it had never heard of — a fixed judge answered
+    // "Neither: no such entities appear" on every pair. A rule can only be
+    // measured where it has something to bite; production always shows this
+    // consumer the polity catalog, so the probe showing it is fidelity, not help.
+    user: [
+      "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+      'Write the pre-game timeline. Return JSON only: {"events":[{"date":"YYYY-MM-DD","title":"","description":""}],"summary":""}',
+    ].join("\n"),
   },
 };
 
@@ -132,7 +141,11 @@ if (!question) {
   process.exit(1);
 }
 
-const ask = async (rules) => {
+// Streamed like the rest of the family (trim-ab, gm-voices-ab, divergence-ab):
+// with stream:false Ollama sends no headers until the generation is done, and
+// undici abandons the request at 300s. One slow generation — a long consumer
+// like pregameHistory, or just an Ollama hiccup — kills the whole run at 11/12.
+const askOnce = async (rules) => {
   const started = Date.now();
   const response = await fetch(ENDPOINT, {
     method: "POST",
@@ -144,14 +157,31 @@ const ask = async (rules) => {
         { role: "user", content: question.user },
       ],
       temperature: 0.7,
-      stream: false,
+      stream: true,
     }),
   });
-  const json = await response.json();
-  return {
-    text: json?.choices?.[0]?.message?.content ?? "",
-    seconds: Math.round((Date.now() - started) / 1000),
-  };
+  let text = "";
+  let buffer = "";
+  const decoder = new TextDecoder();
+  for await (const chunk of response.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop();
+    for (const line of lines) {
+      const data = line.replace(/^data:\s*/, "").trim();
+      if (!data || data === "[DONE]") continue;
+      try { text += JSON.parse(data)?.choices?.[0]?.delta?.content ?? ""; } catch { /* keep-alive line */ }
+    }
+  }
+  return { text, seconds: Math.round((Date.now() - started) / 1000) };
+};
+
+const ask = async (rules) => {
+  try { return await askOnce(rules); }
+  catch (error) {
+    process.stdout.write(`  (retrying after: ${error?.cause?.code ?? error?.message})\n`);
+    return askOnce(rules);
+  }
 };
 
 // ── scorers ──────────────────────────────────────────────────────────────────

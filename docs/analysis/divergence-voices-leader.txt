@@ -1,0 +1,26 @@
+divergence: voices x leader | 6 pairs x 2 judgments
+accuracy 12/12 (1.00) | order-swap contradictions 0/6
+
+pair 1: hit/hit
+    1: A - It correctly treats "Internal: Diplomatic Representative" as an envoy speaking on behalf of the player in a conversation with other polities, whereas B incl
+    2: B - It follows the "Internal: Diplomatic Representative" exception by acting as an envoy speaking on behalf of the player in a conversation with other polities.
+
+pair 2: hit/hit
+    1: A - It avoids the "Internal" and "Domestic" entities entirely, whereas B includes a narrative persona/roleplay element not permitted for those specific types of
+    2: B - The text avoids the "Internal" and "Domestic" entities entirely, whereas A's narrative style suggests a direct interaction with an envoy (which is allowed b
+
+pair 3: hit/hit
+    1: A - It follows the "Internal: Diplomatic Representative" exception by acting as an envoy speaking on behalf of the player in a conversation with another polity,
+    2: B - It follows the "Internal: Diplomatic Representative" exception by acting as an envoy in a conversation with other polities, whereas A is a standard narrativ
+
+pair 4: hit/hit
+    1: A - It follows the "Internal: Diplomatic Representative" exception by speaking as an envoy in a conversation with other polities, whereas B includes meta-commen
+    2: B - It portrays a specific nation's stance (Germany) rather than an internal advisor/domestic entity as defined by the "VOICES WITH NO GROUND" rule.
+
+pair 5: hit/hit
+    1: A - It follows the "Internal: Diplomatic Representative" exception by providing a formal statement for the player to use in a conversation with other polities.
+    2: B - It follows the rule by avoiding "Internal" or "Domestic" entities and focusing on a standard state response, whereas A includes meta-commentary/narrative de
+
+pair 6: hit/hit
+    1: A - It avoids mentioning "Internal" or "Domestic" entities and speaks as a state entity without specific roleplay dialogue, whereas B includes meta-commentary a
+    2: B - It follows the "Internal: Diplomatic Representative" exception by acting as an envoy in a conversation with another polity, whereas A is a direct response f

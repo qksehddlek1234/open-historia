@@ -1,0 +1,685 @@
+cell: voices x pregameHistory | board: wwii-1939 | 6 runs per arm
+OFF 0/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1931-09-18",
+      "title": "Japanese Invasion of Manchuria",
+      "description": "The Empire of Japan invades and occupies Manchuria, establishing the puppet state of Manchukuo, signaling a major expansionist move in East Asia."
+    },
+    {
+      "date": "1935-05-02",
+      "title": "Invasion of Abyssinia",
+      "description": "Italy invades Ethiopia (Abyssinia), leading to international condemnation and the imposition of sanctions, while expanding Italian influence in East Africa."
+    },
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the Rhineland, defying the Treaty of Versailles and signaling a shift toward aggressive expansion in Central Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain serves as a testing ground for new military technologies and tactics, with various European powers providing clandestine support."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "Annexation of Austria (Anschluss)",
+      "description": "Germany annexes Austria into the German Reich, significantly expanding its territory and influence in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France, along with Italy, permit Germany to annex the Sudetenland, a move intended to appease Hitler but ultimately failing to prevent conflict."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols for the division of spheres of influence in Eastern Europe."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland, marking the formal beginning of hostilities and the immediate shift toward a global conflict."
+    }
+  ],
+  "summary": "The world stands on the precipice of total war. The League of Nations is failing to contain the expansionist ambitions of the Axis powers. Germany has consolidated its hold on Central Europe; Japan has established a formidable foothold in China and the Pacific. The Soviet Union remains a wary, armed giant in the East, while the British and French Empires maintain vast colonial holdings that provide essential resources but also serve as potential flashpoints for global conflict. On this day, September 1, 1939, the invasion of Poland has just begun, and the gears of the Second World War are set in motion."
+}
+```
+
+-- OFF 2/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1931-07-18",
+      "title": "Japanese Invasion of Manchuria",
+      "description": "The Empire of Japan invades and occupies Manchuria, establishing the puppet state of Manchukuo. This marks a significant expansion of Japanese influence in East Asia."
+    },
+    {
+      "date": "1935-10-04",
+      "title": "Italian Invasion of Ethiopia",
+      "description": "Italy invades and occupies Ethiopia (Abyssinia), signaling the growing defiance of fascist powers against the League of Nations."
+    },
+    {
+      "date": "1936-03-03",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the Rhineland, openly defying the Treaty of Versailles and signaling a shift toward aggressive expansionism in Central Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "Civil war erupts in Spain, serving as a testing ground for new military technologies, aircraft, and motorized tactics."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "The Anschluss",
+      "description": "Germany annexes Austria into the German Reich, consolidating its power in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit Germany to occupy the Sudetenland, a policy of appeasement intended to avoid war but ultimately failing to stop German expansion."
+    },
+    {
+      "date": "1939-05-13",
+      "title": "Occupation of Prague",
+      "description": "German forces occupy the remainder of the Czech lands, establishing the Protectorate of Bohemia and Moravia."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, establishing spheres of influence in Eastern Europe and ensuring Soviet neutrality for the coming conflict."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces launch a full-scale invasion of Poland, initiating the start of World War II."
+    }
+  ],
+  "summary": "The world stands at a turning point. The failure of collective security has allowed the Axis powers to expand their territories through force and intimidation. The Molotov-Ribbentrop Pact has carved up Eastern Europe into zones of influence, while Japan's expansion in China and the Pacific creates a massive theater of conflict in the East. As of September 1, 1939, the continent of Europe is engulfed in flames as Germany strikes Poland, forcing Britain and France to choose between their honor and their safety."
+}
+```
+
+-- OFF 3/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1914-08-28",
+      "title": "Outbreak of World War I",
+      "description": "The assassination of Archduke Franz Ferdinand triggers a chain reaction of alliances, leading to a total war between the Central Powers and the Triple Entente."
+    },
+    {
+      "date": "1918-11-11",
+      "title": "Armistice of 1918",
+      "description": "The fighting of World War I ends, leading to the collapse of the German, Austro-Hungarian, Ottoman, and Russian Empires."
+    },
+    {
+      "date": "1919-06-28",
+      "title": "Treaty of Versailles",
+      "description": "The formal conclusion of WWI establishes the League of Nations and redraws borders in Europe and the Middle East, while imposing heavy reparations on Germany."
+    },
+    {
+      "date": "1922-10-12",
+      "title": "March on Rome",
+      "description": "Benito Mussolini is appointed Prime Minister of Italy, establishing the Fascist regime and initiating a period of expansionism in Africa and the Mediterranean."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Invasion of Manchuria",
+      "description": "The Japanese Kwantung Army invades Manchuria, leading to the establishment of the puppet state of Manchukuo and signaling Japan's intent to dominate East Asia."
+    },
+    {
+      "date": "1935-10-04",
+      "title": "Second Italo-Ethiopian War",
+      "description": "Italy invades and occupies Ethiopia (Abyssinia), leading to international condemnation and the strengthening of the Stresa Front against German expansion."
+    },
+    {
+      "date": "1936-03-03",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling Hitler's intent to challenge the post-war order."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of Spanish Civil War",
+      "description": "A civil war erupts in Spain, becoming a testing ground for new military technologies and ideologies between Republican and Nationalist forces."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland, a move intended to appease Hitler but which ultimately emboldens his ambitions."
+    },
+    {
+      "date": "1939-08-20",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Zhukov decisively defeat the Japanese in Mongolia, halting their eastward expansion and securing Soviet interests on the Siberian frontier."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols to divide Eastern Europe into spheres of influence."
+    }
+  ],
+  "summary": "As of September 1, 1939, the global order established after World War I has collapsed. The League of Nations is powerless against the expansionist ambitions of Nazi Germany and Imperial Japan. The Molotov-Ribbentrop Pact has effectively cleared the path for German expansion into Poland and the Soviet Union's eastward pressure on the Baltic states. In Asia, Japan holds significant territory in China and Manchuria, while the Soviet Union's victory at Khalkhin Gol has shaped its stance toward the east. Colonial empires remain largely intact but are increasingly strained by rising nationalist movements and the looming threat of a total European war."
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1914-08-01",
+      "title": "Outbreak of World War I",
+      "description": "The assassination of Archduke Franz Ferdinand triggers a global conflict that collapses the Austro-Hungarian, Ottoman, German, and Russian Empires."
+    },
+    {
+      "date": "1919-06-28",
+      "title": "Treaty of Versailles",
+      "description": "The formal conclusion of WWI establishes the League of Nations and redraws the borders of Europe, creating several new nations while imposing heavy reparations on Germany."
+    },
+    {
+      "date": "1922-10-10",
+      "title": "March on Rome",
+      "description": "Benito Mussolini is appointed Prime Minister of Italy, establishing the first fascist government and signaling a turn toward expansionist Mediterranean policy."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Mukden Incident",
+      "description": "Japan invades Manchuria, establishing the puppet state of Manchukuo and escalating tensions with the Republic of China."
+    },
+    {
+      "date": "1933-01-30",
+      "title": "Rise of the NSDAP",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, initiating a period of rapid rearmament and the dismantling of democratic institutions."
+    },
+    {
+      "date": "1935-10-03",
+      "title": "Invasion of Ethiopia",
+      "description": "Italy invades and occupies Abyssinia (Ethiopia), leading to international sanctions and pushing Italy toward a closer alliance with Germany."
+    },
+    {
+      "date": "1936-03-03",
+      "title": "Remilitarization of the Rhineland",
+      "description": "Germany moves troops into the demilitarized Rhineland zone, signaling a definitive defiance of the Treaty of Versailles."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit Germany to annex the Sudetenland, an act of appeasement intended to prevent war but perceived as a failure of resolve."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Germany sign a non-aggression pact, including secret protocols to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces cross the Polish border, marking the formal beginning of the Second World War and the collapse of the policy of appeasement."
+    }
+  ],
+  "summary": "The world enters September 1939 in a state of volatile tension. The post-WWI international order has buckled under the pressures of the Great Depression and the rise of aggressive expansionist ideologies. Imperial Japan has secured a massive foothold in East Asia, while Nazi Germany has systematically dismantled its neighbors' sovereignty. The Soviet Union stands as a wary giant behind the Iron Curtain of ideology. On this day, the invasion of Poland serves as the spark that ignites a global conflagration involving colonial empires, industrial giants, and radical movements across every continent."
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1931-09-18",
+      "title": "Mukden Incident",
+      "description": "Japanese forces invade Manchuria following a sabotage incident, leading to the establishment of the puppet state of Manchukuo."
+    },
+    {
+      "date": "1935-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland, openly defying the Treaty of Versailles and signaling a shift toward expansionism."
+    },
+    {
+      "date": "1936-07-16",
+      "title": "Spanish Civil War Begins",
+      "description": "Civil war erupts in Spain, becoming a testing ground for modern military technology and ideologies between the Republicans and Nationalists."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "Anschluss",
+      "description": "Germany annexes Austria into the German Reich, consolidating power in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland in exchange for a promise of peace, a move widely seen as a policy of appeasement."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols to divide Poland and the Baltic states between them."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces invade Poland, triggering an immediate crisis that brings Britain and France to the brink of declaring war."
+    }
+  ],
+  "summary": "The world stands on the precipice of a global conflagration. The League of Nations has failed to maintain peace as revisionist powers—Germany, Italy, and Japan—have aggressively expanded their territories. Japan holds significant portions of China and Manchuria, while Germany has dismantled the post-WWI order in Central Europe. Following the Molotov-Ribbentrop Pact, the Soviet Union remains a non-belligerent but looming threat on the Eastern Front. As of September 1, 1939, the invasion of Poland has begun, and the era of appeasement is over."
+}
+```
+
+-- OFF 6/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1933-01-30",
+      "title": "Rise of the Third Reich",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, leading to the rapid dismantling of the Weimar Republic and the expansion of Nazi ideology."
+    },
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the Rhineland, defying the Treaty of Versailles and signaling a shift toward aggressive expansionism."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for new military technologies and tactics, with Germany and Italy supporting the Nationalists."
+    },
+    {
+      "date": "1938-03-14",
+      "title": "The Anschluss",
+      "description": "Germany annexes Austria, expanding its territory and influence in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland in exchange for a promise of peace, sparking fears of further expansion."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including a secret protocol to divide Eastern Europe and Poland into spheres of influence."
+    },
+    {
+      "date": "1939-08-25",
+      "title": "Japanese Expansion in China",
+      "description": "Japan maintains its hold on Manchuria and large portions of occupied eastern China, currently engaged in a grinding war with the Chinese nationalists."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland. This marks the beginning of the current conflict and the immediate threat to the European balance of power."
+    }
+  ],
+  "summary": "The world stands on the brink of total war. The collapse of the League of Nations' authority, the aggressive expansion of the Axis powers in Europe, and Japan's consolidation of territory in Asia have created a volatile geopolitical landscape. As of September 1, 1939, the invasion of Poland has forced Britain and France to confront their policy of appeasement, while the Soviet Union awaits its turn to move against its eastern neighbors."
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1914-08-28",
+      "title": "Assassination of Archduke Franz Ferdinand",
+      "description": "The assassination in Sarajevo triggers the July Crisis, leading to the outbreak of World War I and the subsequent collapse of the Austro-Hungarian, Ottoman, and Russian Empires."
+    },
+    {
+      "date": "1919-06-28",
+      "title": "Treaty of Versailles",
+      "description": "The formal end of WWI establishes new borders for Poland, Czechoslovakia, and Yugoslavia, while imposing heavy reparations and territorial losses on Germany."
+    },
+    {
+      "date": "1922-10-12",
+      "title": "March on Rome",
+      "description": "Benito Mussolini is appointed Prime Minister of Italy, establishing the first fascist government in Europe and initiating a period of expansionist policy in Africa."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Invasion of Manchuria",
+      "description": "The Japanese Imperial Army invades Manchuria following the Mukden Incident, leading to the creation of the puppet state of Manchukuo."
+    },
+    {
+      "date": "1933-01-30",
+      "title": "Rise of National Socialism",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, beginning a period of rapid rearmament and the dismantling of democratic institutions."
+    },
+    {
+      "date": "1935-10-04",
+      "title": "Invasion of Ethiopia",
+      "description": "Italy invades and occupies Ethiopia (Abyssinia), signaling the failure of the League of Nations to maintain collective security."
+    },
+    {
+      "date": "1936-03-03",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, a direct violation of the Treaty of Versailles and the Locarno Treaties."
+    },
+    {
+      "date": "1938-03-27",
+      "title": "Anschluss",
+      "description": "Austria is formally annexed by Nazi Germany, expanding German territory to the borders of Czechoslovakia."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland in exchange for a pledge of non-aggression, an act widely seen as the height of appeasement."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols to divide parts of Poland, the Baltic States, and Finland between them."
+    }
+  ],
+  "summary": "On September 1, 1939, the world stands on the brink of global conflagration. The policy of appeasement has failed to contain German expansionism in Central Europe, and the Molotov-Ribbentberg Pact has created a volatile buffer between Nazi Germany and the Soviet Union. In the East, Imperial Japan maintains a firm grip on Manchuria and large swaths of China, where it continues its war against Chinese resistance. The British and French empires remain vast but are increasingly concerned by the rapid militarization of their neighbors. The invasion of Poland marks the definitive end of the 'peace' sought in the 1930s, as the major powers prepare for a total war that will reshape every continent."
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1919-06-28",
+      "title": "Treaty of Versailles",
+      "description": "The formal conclusion of World War I establishes the League of Nations and redraws the map of Europe, leaving Germany humiliated and creating a vacuum in Eastern Europe."
+    },
+    {
+      "date": "1922-10-12",
+      "title": "March on Rome",
+      "description": "Benito Mussolini is appointed Prime Minister of Italy, establishing the first fascist government and signaling a shift toward expansionist ideologies in the Mediterranean."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Mukden Incident",
+      "description": "Japan invades Manchuria, beginning its aggressive expansion into China and challenging Western influence in East Asia."
+    },
+    {
+      "date": "1933-01-30",
+      "title": "Hitler Appointed Chancellor",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, leading to the rapid dismantling of the Weimar Republic and the rise of the Nazi Party."
+    },
+    {
+      "date": "1935-10-04",
+      "title": "Invasion of Abyssinia",
+      "description": "Italy invades Ethiopia, leading to widespread international condemnation and demonstrating the impotence of the League of Nations."
+    },
+    {
+      "date": "1936-03-12",
+      "title": "Anschluss",
+      "description": "Germany annexes Austria, expanding its territory and violating the terms of the Treaty of Versailles."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit Germany to annex the Sudetenland in an act of appeasement, which fails to halt Hitler's expansionist ambitions."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols to divide Poland and the Baltic States between them."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces invade Poland, marking the definitive collapse of the peace of the 1930s and the commencement of World War II."
+    }
+  ],
+  "summary": "The world enters September 1st, 1939, in a state of total upheaval. The League of Nations has failed to prevent the rise of aggressive expansionist powers. Germany has consolidated its power in Central Europe through the annexation of Austria and the Sudetenland; Japan has secured a foothold in China; and Italy has asserted dominance in East Africa. The signing of the Molotov-Ribbentrop Pact removed the immediate threat of a two-front war for Germany, allowing them to strike into Poland. As the first shots are fired today, the era of appeasement is over, and the global powers must now confront a conflict of unprecedented scale."
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1914-08-01",
+      "title": "Outbreak of World War I",
+      "description": "The assassination of Archduke Franz Ferdinand triggers a global conflict, leading to the collapse of several empires and the redrawing of world maps."
+    },
+    {
+      "date": "1919-06-28",
+      "title": "Treaty of Versailles",
+      "description": "The formal end of WWI imposes heavy reparations and territorial losses on Germany, creating significant instability in Central Europe."
+    },
+    {
+      "date": "1922-10-12",
+      "title": "March on Rome",
+      "description": "Benito Mussolini establishes the Italian Fascist government, beginning a period of expansionism and radical nationalism."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Mukden Incident",
+      "description": "Japanese forces invade Manchuria, establishing the puppet state of Manchukuo and signaling their intent to dominate East Asia."
+    },
+    {
+      "date": "1933-03-07",
+      "title": "Hitler Appointed Chancellor",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, leading to the rapid expansion of the Nazi Party and the dismantling of democratic institutions."
+    },
+    {
+      "date": "1935-10-04",
+      "title": "Invasion of Ethiopia",
+      "description": "Italy invades Abyssinia (Ethiopia), leading to international condemnation and demonstrating the weakness of the League of Nations."
+    },
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops move into the demilitarized Rhineland zone; the lack of a strong response from France and Britain emboldens the Third Reich."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Spanish Civil War Begins",
+      "description": "A brutal civil war breaks out in Spain, serving as a testing ground for new military technologies and tactics by both Axis and Soviet forces."
+    },
+    {
+      "date": "1938-03-15",
+      "title": "Anschluss",
+      "description": "Germany annexes Austria into the Reich following a plebiscite, expanding German territory toward the East."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit Germany to seize the Sudetenland, a desperate attempt at appeasement to avoid war over Czechoslovakia."
+    },
+    {
+      "date": "1939-03-15",
+      "title": "Occupation of Czechoslovakia",
+      "description": "Germany occupies the remainder of the Czech lands, effectively dismantling the Czechoslovak state after the failure of diplomacy."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "A non-aggression pact is signed between Germany and the USSR, including secret protocols regarding spheres of influence in Poland and the Baltic states."
+    }
+  ],
+  "summary": "The world enters September 1939 in a state of extreme tension. The policy of appeasement has failed to halt German expansion, and the League of Nations is largely paralyzed. Japan has established a firm grip on Manchuria and parts of China, while the Soviet Union and Germany have entered into a calculated pact to divide Eastern Europe. As Germany moves into Poland, the continent stands on the precipice of a total and transformative global conflict."
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1914-08-28",
+      "title": "Assassination of Archduke Franz Ferdinand",
+      "description": "The assassination in Sarajevo triggers the July Crisis, leading to the outbreak of World War I and the collapse of the old empires of Europe."
+    },
+    {
+      "date": "1919-06-28",
+      "title": "Treaty of Versailles",
+      "description": "The Great War ends with a treaty that redraws European borders, establishes the League of Nations, and imposes heavy reparations and territorial losses on Germany."
+    },
+    {
+      "date": "1922-03-05",
+      "title": "Founding of the NSDAP",
+      "description": "Adolf Hitler and the National Socialist German Workers' Party are formed, championing nationalist and anti-marxist ideologies."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Mukden Incident",
+      "description": "A Japanese-engineered explosion on the South Manchurian Railway provides a pretext for Japan to invade and occupy Manchuria, establishing the puppet state of Manchukuo."
+    },
+    {
+      "date": "1933-01-30",
+      "title": "Hitler Appointed Chancellor",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, beginning a period of rapid rearmament and the dismantling of democratic institutions."
+    },
+    {
+      "date": "1935-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops move into the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward aggressive expansionism."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Spanish Civil War Begins",
+      "description": "A civil war breaks out in Spain, serving as a testing ground for new military technologies and tactics by both Nazi Germany and the Soviet Union."
+    },
+    {
+      "date": "1936-09-01",
+      "title": "Invasion of Ethiopia",
+      "description": "Italy invades and occupies Ethiopia (Abyssinia), signaling Italy's ambitions to establish a new colonial empire in East Africa."
+    },
+    {
+      "date": "1938-03-29",
+      "title": "Anschluss",
+      "description": "Germany annexes Austria, expanding its territory and influence toward the east."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France, in an attempt at appeasement, permit Germany to annex the Sudetenland in exchange for a guarantee of peace."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany launches a full-scale invasion of Poland. This action triggers the activation of military alliances and marks the beginning of World War II."
+    }
+  ],
+  "summary": "The world stands on the precipice of total war. The failure of the League of Nations to contain the expansionist ambitions of the Axis powers has led to a fractured Europe. Germany has aggressively expanded its borders, while Italy seeks dominance in Africa and Japan has secured vast territories in China and the Pacific. The Molotov-Ribbentrop Pact has created a tense standoff between the Nazi and Soviet empires on the eastern front. As German forces cross into Poland, the policy of appeasement is failing, and the Great Powers are moving toward a global conflict that will reshape every continent."
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1918-11-11",
+      "title": "Armistice of World War I",
+      "description": "The Great War ends, leading to the Treaty of Versailles which redrew European borders and established the League of Nations."
+    },
+    {
+      "date": "1931-09-18",
+      "title": "Mukden Incident",
+      "description": "Japan invades Manchuria following a sabotage incident, beginning its expansion into Chinese territory."
+    },
+    {
+      "date": "1932-09-15",
+      "title": "Establishment of Manchukuo",
+      "description": "The Japanese puppet state of Manchukuo is officially established in Northeast China."
+    },
+    {
+      "date": "1933-01-30",
+      "title": "Rise of the Third Reich",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, initiating a period of rapid rearmament and territorial expansion."
+    },
+    {
+      "date": "1936-04-18",
+      "title": "Spanish Civil War Begins",
+      "description": "A civil war breaks out in Spain, serving as a testing ground for modern military tactics and weaponry."
+    },
+    {
+      "date": "1936-12-07",
+      "title": "Invasion of Ethiopia",
+      "description": "Italy invades Abyssinia (Ethiopia), causing a crisis within the League of Nations."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit Germany to annex the Sudetenland, a defining moment of the policy of appeasement."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols dividing Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces cross the Polish border, triggering a crisis that leads to the declaration of war by Britain and France."
+    }
+  ],
+  "summary": "The world on September 1, 1939, is defined by the collapse of the post-WWI order. The failure of appeasement in Europe, coupled with Japan's aggressive expansion into China/Manchuria, has created a tinderbox of conflicting empires and radical ideologies. The Molotov-Ribbentrop Pact has effectively partitioned Eastern Europe between two giants, while Britain and France face the realization that their commitments to Poland may lead to a general European war."
+}
+```
+
+-- ON  6/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1931-09-18",
+      "title": "Invasion of Manchuria",
+      "description": "The Japanese Kwantung Army invades Manchuria following the Mukden Incident, establishing the puppet state of Manchukuo and signaling Japan's imperial ambitions in Asia."
+    },
+    {
+      "date": "1932-12-01",
+      "title": "Establishment of the Chinese United Front",
+      "description": "The Kuomintang and the Chinese Communist Party form a first united front to resist Japanese aggression, though internal tensions remain high."
+    },
+    {
+      "date": "1933-01-30",
+      "title": "Hitler Appointed Chancellor",
+      "description": "Adolf Hitler is appointed Chancellor of Germany, leading to the rapid dismantling of the Weimar Republic and the rise of the Nazi Party."
+    },
+    {
+      "date": "1935-05-10",
+      "title": "Invasion of Ethiopia",
+      "description": "Italy invades and occupies Ethiopia (Abyssinia), leading to League of Nations sanctions and straining the credibility of collective security."
+    },
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward aggressive expansionism."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Spanish Civil War Begins",
+      "description": "The conflict in Spain becomes a testing ground for new military technologies and ideologies, with many European powers providing clandestine support to opposing sides."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "Anschluss",
+      "description": "Germany annexes Austria, expanding its territory and influence within Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain, France, Italy, and Germany agree to the German annexation of the Sudetenland, intended to provide a semblance of peace in Czechoslovakia."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Germany sign a non-aggression pact, including a secret protocol to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland using Blitzkrieg tactics, initiating the immediate collapse of the policy of appeasement and the start of World War II."
+    }
+  ],
+  "summary": "The 1930s were defined by the erosion of the post-WWI international order. The rise of totalitarian regimes in Germany and the expansionist policies of Imperial Japan dismantled the League of Nations' authority. Following the failure of collective security and the policy of appeasement, the Molotov-Ribbentrop Pact cleared the path for German expansion into Poland, sparking a global conflagration as the great powers mobilize to defend their interests and territories."
+}
+```

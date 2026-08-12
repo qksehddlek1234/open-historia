@@ -1,0 +1,27 @@
+# 보존: think 채널을 끄기 전 판정자의 12/12 빈 판정 — 계기 고장의 원본 증거
+divergence: voices x pregameHistory | 6 pairs x 2 judgments
+accuracy 0/12 (0.00) | order-swap contradictions 0/6
+
+pair 1: miss/miss
+    1: 
+    2: 
+
+pair 2: miss/miss
+    1: 
+    2: 
+
+pair 3: miss/miss
+    1: 
+    2: 
+
+pair 4: miss/miss
+    1: 
+    2: 
+
+pair 5: miss/miss
+    1: 
+    2: 
+
+pair 6: miss/miss
+    1: 
+    2: 

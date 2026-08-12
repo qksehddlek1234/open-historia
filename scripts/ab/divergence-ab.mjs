@@ -79,8 +79,26 @@ if (pairs === 0) {
 }
 
 // ── the blind judge ──────────────────────────────────────────────────────────
-const judge = async (first, second) => {
-  const response = await fetch(ENDPOINT, {
+// The judge speaks to Ollama's NATIVE endpoint with `think: false`, and that is
+// a measured decision, not a style choice. This model has a reasoning channel:
+// over the OpenAI-compat endpoint its deltas carry `reasoning` while `content`
+// stays empty, and on heavy comparisons (pregameHistory pairs, ~6KB each) it
+// never leaves the reasoning phase — 12/12 judgments came back EMPTY, which the
+// accuracy table happily rendered as a perfect-looking 0.00 with 0
+// contradictions. An empty pick and a wrong pick are different findings; only
+// reading the detail file told them apart. think:false starves the channel at
+// the source. (Streaming, too, for the family's usual reason: stream:false
+// sends no headers until done, and undici gives up at 300s.)
+//
+// The generators above this file stay on the OpenAI-compat endpoint untouched:
+// they emulate production calls, and changing how THEY run would change what is
+// being measured. The judge is the instrument, so it may be fixed freely — but
+// a judge that no longer deliberates is a DIFFERENT instrument, so every cell
+// judged before this change must be re-judged before its number is compared to
+// a cell judged after.
+const NATIVE_ENDPOINT = "http://localhost:11434/api/chat";
+const judgeOnce = async (first, second) => {
+  const response = await fetch(NATIVE_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -95,14 +113,33 @@ const judge = async (first, second) => {
         },
         { role: "user", content: `[A]\n${first}\n\n[B]\n${second}\n\nWhich was written under the rule? One line: A or B — reason.` },
       ],
-      temperature: 0,
-      stream: false,
+      think: false,
+      stream: true,
+      options: { temperature: 0 },
     }),
   });
-  const json = await response.json();
-  const text = json?.choices?.[0]?.message?.content ?? "";
+  let text = "";
+  let buffer = "";
+  const decoder = new TextDecoder();
+  for await (const chunk of response.body) {
+    buffer += decoder.decode(chunk, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try { text += JSON.parse(line)?.message?.content ?? ""; } catch { /* keep-alive line */ }
+    }
+  }
   const match = /\b([AB])\b/.exec(text);
   return { pick: match?.[1] ?? "?", reason: text.trim().slice(0, 160) };
+};
+
+const judge = async (first, second) => {
+  try { return await judgeOnce(first, second); }
+  catch (error) {
+    process.stdout.write(`  (retrying after: ${error?.cause?.code ?? error?.message})\n`);
+    return judgeOnce(first, second);
+  }
 };
 
 console.log(`\ndivergence: ${contractKey} × ${consumer} — ${pairs} pair(s), judged twice each (order swapped)`);
@@ -111,18 +148,23 @@ console.log(`replies: ${path.relative(ROOT, transcriptPath)} · judge: ${MODEL} 
 let correct = 0;
 let contradictions = 0;
 let total = 0;
+// An empty or unparseable judgment is NOT a miss — it is the instrument failing
+// to fire. Counting it as a miss once rendered a 12/12-empty run as a clean
+// "0.00, indistinguishable, removal ground". Track it apart and say so.
+let unparsed = 0;
 const notes = [];
 for (let i = 0; i < pairs; i += 1) {
   // Pass 1: ON as A. Pass 2: ON as B. A position-answering judge contradicts itself.
   const one = await judge(on[i], off[i]);
   const two = await judge(off[i], on[i]);
+  unparsed += (one.pick === "?" ? 1 : 0) + (two.pick === "?" ? 1 : 0);
   const oneRight = one.pick === "A";
   const twoRight = two.pick === "B";
   total += 2;
   correct += (oneRight ? 1 : 0) + (twoRight ? 1 : 0);
   if (oneRight !== twoRight) contradictions += 1;
-  notes.push(`pair ${i + 1}: ${oneRight ? "hit" : "miss"}/${twoRight ? "hit" : "miss"}${oneRight !== twoRight ? "  (order-swap contradiction)" : ""}\n    1: ${one.reason}\n    2: ${two.reason}`);
-  process.stdout.write(`  pair ${i + 1}/${pairs}  ${oneRight ? "hit " : "miss"} ${twoRight ? "hit" : "miss"}${oneRight !== twoRight ? "  ⚠ contradiction" : ""}\n`);
+  notes.push(`pair ${i + 1}: ${oneRight ? "hit" : "miss"}/${twoRight ? "hit" : "miss"}${oneRight !== twoRight ? "  (order-swap contradiction)" : ""}${one.pick === "?" || two.pick === "?" ? "  (contains empty judgment)" : ""}\n    1: ${one.reason}\n    2: ${two.reason}`);
+  process.stdout.write(`  pair ${i + 1}/${pairs}  ${oneRight ? "hit " : "miss"} ${twoRight ? "hit" : "miss"}${oneRight !== twoRight ? "  ⚠ contradiction" : ""}${one.pick === "?" || two.pick === "?" ? "  ⚠ empty judgment" : ""}\n`);
 }
 
 const accuracy = correct / total;
@@ -131,9 +173,13 @@ fs.writeFileSync(out,
   `divergence: ${contractKey} x ${consumer} | ${pairs} pairs x 2 judgments\n`
   + `accuracy ${correct}/${total} (${accuracy.toFixed(2)}) | order-swap contradictions ${contradictions}/${pairs}\n\n${notes.join("\n\n")}\n`, "utf8");
 
-console.log(`\n  accuracy ${correct}/${total} (${accuracy.toFixed(2)}) · chance 0.50 · contradictions ${contradictions}/${pairs}`);
+console.log(`\n  accuracy ${correct}/${total} (${accuracy.toFixed(2)}) · chance 0.50 · contradictions ${contradictions}/${pairs}${unparsed ? ` · EMPTY JUDGMENTS ${unparsed}/${total}` : ""}`);
 console.log(`  detail: ${path.relative(ROOT, out)}`);
-if (accuracy <= 0.5 + 1 / total) {
+if (unparsed * 2 >= total) {
+  console.log(`\n  INSTRUMENT FAILURE — ${unparsed} of ${total} judgments came back empty or`);
+  console.log(`  unparseable. This number measures the judge, not the contract. Fix the`);
+  console.log(`  judge (see the think:false note above) and re-run; conclude NOTHING here.`);
+} else if (accuracy <= 0.5 + 1 / total) {
   console.log(`\n  INDISTINGUISHABLE — a blind judge cannot tell which reply had the ${contract.text.length}`);
   console.log(`  characters. That is a REMOVAL ground with numbers on it, for THIS consumer.`);
 } else if (accuracy >= 0.75) {
