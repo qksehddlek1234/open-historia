@@ -1,0 +1,1102 @@
+규칙
+
+MANDATORY DATED EVENT TIMELINE
+
+
+
+
+This section has highest priority among this preset’s simulation rules. The events below are fixed timeline anchors, not suggestions, flavour, or optional background. If a time jump reaches or passes one of these dates, the matching event must occur on that exact date and must be included as a visible event.
+
+
+
+
+Do not move, delay, skip, merge, replace, soften, or summarize away these events unless a direct player action has clearly prevented or radically altered that specific event.
+
+
+
+
+If multiple listed dates fall within the same time jump, simulate every listed event in chronological order. If the current date is before a listed event, do not trigger it early. If a listed event has already occurred in the event history, do not repeat it.
+
+
+
+
+These events are fully influenceable by player actions.
+
+
+
+
+They may be altered or fully nullified if the player takes actions that are relevant to the events.
+
+
+
+
+All events outcomes are not predetermined unless player actions fail to influence them.
+
+January 10, 1962 - Agreement ends Aleutians Crisis
+The Aleutians crisis ends with a negotiated agreement by Mexican president Lopez Mateos, calling for both sides to withdraw and for the captured pilot to be returned. Despite the tensions, the agreement was passed, though both sides still simmer in anger at the other. For now, a war has been averted.
+
+
+
+
+January 19, 1962 - The Reichs Last Conquest
+Eberhard Kollner becomes the first man to land on the moon, securing the victory of the space race. Germany celebrates its victory as Japan and the US both concede defeat and send their reluctant congratulations, though soon make pledges to outdo them as the US declares they will establish a permanent moon base, while Japan announces they will be the first to land on Mars.
+
+
+
+
+January 25, 1962 - Assassin strikes at Hitler
+An assassin attempts to kill Adolf Hitler. The attempt fails as Hitlers guards manage to kill them before they can assassinate the fuhrer. The assassin is believed to be part of the Japanese Tokumusoukan, immediately increasing tensions between the two nations. In the streets, German military units almost came to blows with each other as they believed Hitler dead, the chain of command breaking down completely. The event shows the weakness in the German leadership and forces the Führer to finally name a successor.
+
+
+
+
+February 1, 1962 - Hitler names a successor
+Hitler, in a speech before the Reichstag where he rambles before finally naming a successor to the Führership. You must select one of the following options at random. The possible successors are Albert Speer, the reformist following the ideology of Reformed National Socialism. Martin Bormann, the conservative following the ideology of National Socialism. Herman Göring, the militarist following the ideology of Stratocratic Nazism. Reinhard Heydrich, the SS leader following the ideology of Spartanism. Regardless of the choice, those not chosen will be very vocal in their opposition to the selection.
+
+
+
+
+February 28, 1962 - Prime Minister of Australia resigns
+After the reveal of a scandal in which hundreds of thousands of dollars were discreetly sent to seats in order to favour the labour party, Prime Minister Kim Beazley has resigned, citing his "failure to turn on the searchlight of absolute honesty" within his party. Dr. Herbert V. Evatt has been named interim prime minister until snap elections can be held, though rumours of a leadership challenge circulate.
+
+
+
+
+March 2, 1962 - Lipetsk Prison Breakout
+Despite the tight lipped administration of Reichskommissariat Moskowien, information has been leaked about a breakout by a Russian red army soldier named Ivan Vorobyov. The region has since then seen a dramatic increase of insurgent activity which Reichskommissar Siegfried Kasche pledges to crush.
+
+
+
+
+March 7, 1962 - Fidel Castro elected President
+In Cuba, Fidel Castro wins the first free and fair elections, as was promised years ago. Castro pledges to uphold the Gaitanist-inspired policies and to forge a direct democracy with a strong planned economy, following the ideology of Revolutionary Gaitanismo and promising to continue the revolution in the struggle against fascism in Latin America. President Nixon and Lopez Mateos have sent their congratulations to their anti-fascist ally in the Caribbean.
+
+
+
+
+April 5, 1962 - The Spring Protests
+In Türkiye, the spring protests reach their peak, calling for democratisation and criticising the contested election of 1958. You must select one of the following options at random. The ruling CHP party can either negotiate with the protestors, acknowledging their concerns and working on reform, with a one in two chance of being selected, or crush the protests with an iron fist, sending in police and instituting martial law, with a one in two chance of being selected. Select one of the previous options for this event.
+
+
+
+
+April 11, 1962 - Colombian President Laureano Gomez dies
+Colombia President Laureano Gomez dies suddenly of a stroke in his office. Having risen to power based on preserving democracy, he since ruled with an iron fist, having his opponents outright killed on false accusations. Many celebrate his death, while extreme conservative nations such as Iberia, Italy and Japan send their condolences.
+
+
+
+
+April 12, 1962 - Coup in the North-West Frontier Province
+In the North-West Frontier Province, radical Muslims linked with the Pakistan Movement seize power, causing the previous ruler, Nawabzada Shahabuddin Khan, to flee. The Muslim league declared its intentions to make the creation of Pakistan a reality. The North-West Frontier Province will not change its name or flag during this event.
+
+
+
+
+May 4, 1962 - Lao Elections
+The Lao general elections are held with three possible outcomes, one of which you must select at random. The Independent-Progressive Coalition, led by Phoui Sananikone, Paternalistic Conservatives. The Progressive-National Union led by Souvana Phouma, Liberals. The Patriotic-Neutralist Coalition led by Prince Souphanouvong, National Communists.
+
+
+
+
+May 7, 1962 - Australian Snap Elections
+The Australian snap elections occur, with several parties possible as the victors, one of which you must select at random. Paul Hasluck of the Liberal Party of Australia's Conservative Wing, Paternalistic Conservatives. Arthur Calwell of the Australian Labour Partys Right Wing, Social Democrats. John Gorton of the Liberal Party of Australias Moderate Wing, National Liberals. Clyde Cameron of the Australian Labour Partys Left Wing, Reformist Socialists . Should Paul Hasluck or John Gorton be elected, they will weaken the White Australia policy. Should Clyde Cameron be elected, he will greatly weaken the White Australia Policy.
+
+
+
+
+June 10, 1962 - General Rojas overthrows Government
+General Gustavo Rojas Pinilla overthrows the Colombian government, instituting a autocratic military dictatorship, suspending elections and outlawing all parties. This comes in the aftermath of interim president Urdanetas attempts to remove him from his position. For the foreseeable future, Colombia is under military rule, though the parties that fled to neighbouring Venezuela have formed a "National Front" to depose him. Colombia will not change its name or flag following this event.
+
+
+
+
+June 16, 1962 - Reichskommissar of Ukraine injured in bombing.
+Erich Koch, the Reichskommissar of Reichskommissariat Ukraine, was severely wounded in an attempt on his life in Kiew. He remains in critical condition while Germania begins crackdowns to find those responsible.
+
+
+
+
+June 17, 1962 - Brazil wins world cup.
+The entirety of Brazil is unified in celebration as the Brazilian football team brings it home, winning the final match against Chile 3-1 and marking the second time Brazil has won the world cup. Political divisions vanish, if only for a moment, as the nation celebrates its victory. Despite their loss, Chile has proven themselves, hosting the world cup despite the damage of the 1960 Valdivia earthquake which reached a 9.6 on the Richter scale and devastated millions, showing remarkable resilience.
+
+
+
+
+June 28, 1962 - The Triumvirate Collapses
+Following a bombing in Malta at the Triumvirate Conference, both the Iberian Union and the Turkish Republic unilaterally withdrew from the Triumvirate over Italian dominance in the alliance. Already, Türkiye has renewed its claims to the Italian middle east, mobilising troops as Italy prepares a response.
+
+
+
+
+July 4, 1962 - Nazi Terror attacks in Uruguay
+In Uruguay, calamity strikes as the Nazi terrorist group, Quinta Columna, conduct a terror campaign in Montevideo region. This event has two outcomes. In the first outcome, local enforcement units successfully contain the terrorists before they can cause any significant damage or harm. In the second outcome, local enforcement fail to contain the terrorists, resulting in FULNA members and Communist militants clashing with the terrorists and succeeding in fighting them off, though not without considerable losses. The violence marks the downturn of the Republics reputation and the ruling National Partys re-election chances. Select an outcome at random.
+
+
+
+
+July 8, 1962 - Che Guevera released from prison
+In Chile, President Jorge Alessandri refuses to extradite the famous revolutionary Che Guevara to Argentina, instead releasing him from prison. Many suspect this was a political move designed to satisfy the socialists in his coalition in regards to the upcoming land reforms, though many also fear what the newly released revolutionary plans to do with his freedom.
+
+
+
+
+July 18, 1962 - The Desert War
+In the Levant and Middle East, tensions have finally boiled over as Turkey declares war on Italy, with many rallying in the streets in support of the war. In contrast, there is very little support in Italy for the war, with many questioning why they are even present there in the first place. Regardless, the Italian army mobilises and the Italo-Turkish war has begins.
+
+
+
+
+September 15, 1962 - The Lobster War ends
+There are two outcomes to the Lobster War ending, either a negotiated settlement with Zentralafrika, or the Brazilian navy successfully pressuring Zentralafrikan ships to retreat with expert seamanship. The war was concerning Zentralafrikan fishermen plundering Brazilian waters for lobster and fishing, costing Brazil millions a year. You must select one of those outcomes at random. If Brazil negotiates, there will be domestic criticism and annoyance from both the Pakt and the OFN. If Brazil wins, it will be celebrated as the first victory against the Pakt in decades, bolstering government popularity in Brazil. If Zentralafrika wins, Brazil will be humiliated on the world stage and government popularity will drop greatly, while Siegfried Muller will receive an award from Germania.
+
+
+
+
+October 1, 1962 - Tropical Storm Harriet hits Thailand
+A severe cyclone impacts the southern regions of Thailand, killing over 700 people and displacing tens of thousands more. In a single night, the storm has destroyed more than a decade of progress and significantly disrupted the governments plans, who had been key in investing in the south as part of their economic strategy.
+
+
+
+
+October 11, 1962 - Tremors in Burgundian Soil
+The Swiss Seismological Service issued a press release, detailing a tremor in Burgundy that lasted 4 seconds and measured 4.6 on the Richter scale. They deduced it was a man-made event due to the lack of aftershocks, and Swiss radiologists measured a spike in airborne radioactivity, similar to that of a nuclear meltdown. Around the world, everyone arrives at one conclusion, the rogue SS state has acquired nuclear weapons and ascended to the ranks of the nuclear powers.
+
+
+
+
+November 25, 1962 - Uruguayan elections
+In Uruguay, the elections conclude with four possible winners. You must select one of the outcomes at random. The Herrerrist Council of the National Party under Eduardo Víctor Haedo, Herrerists. The UBD Council of the National Party under Daniel Fernández Crespo, Liberal Conservatives. The Batllists of the Colorado Party under Óscar Gestido, Conservatives. Vanguard Batllists of the Colorado Party under Zelmar Michelini, Social Radicalists.
+
+
+
+
+November 28, 1962 - Death of Queen Wilhelmina
+The Dutch realm mourns as the government announces the death of Queen Wilhelmina of Oranje-Nassau. The Dutch throne passes to Princess Juliana van Oranje-Nassau. The funeral will be held in all white dressing, symbolising the Queens belief in eternal life. Many OFN representatives pay their respects in person.
+
+
+
+
+December 7, 1962 - Latin American Congress of Fascist Youth.
+In Asuncion, all of the Americas watch as the first Latin American Congress of Fascist Youth officially ends. The congress, hosted by dictator of Paraguay Higinio Morinigo just before his imminent retirement, spoke of the need for a unified movement against their enemies. To that end, he announced the creation of the Condor Legion, seeking to support fascism across the Americas.
+
+
+
+
+January 24, 1963 - Punta del Este meeting.
+In Uruguay, Marxist and Communist groups from all over the Americas gathered for a meeting. Though no concrete declarations or purposes have been made, the meeting is still unsettling for the Americas, especially with the attendance of Che Guevara, who was recently released from Chile. Many fear the socialists are planning another revolution.
+
+
+
+
+February 23, 1963 - Second Malagasy Uprising.
+What initially was a minor rebellion by native collaborator police has spiralled into a full on collapse of French colonial authority. As a result, the German garrison has taken total control of the administration and begun fighting against the native rebels, who are being backed by both Free French and Japanese forces. With this event, Militärverwaltung Madagaskar takes full control of Fort-Dauphin, Toliara, Manakara, Melaky, Tananarive and Toamasina, while the Malagasy Rebellion springs up in Ambovombe and Northern Madagascar. Disconnected Settlements of Madagascar will take control of all remaining Madagascan territory not currently occupied by either side, representing total lack of authority. This event will cause the Malagasy Rebellion and Militarverwaltung Madagaskar to start fighting for control of Madagascar.
+
+
+
+
+March 17, 1963 - The Yasuda Crisis.
+Following the exposure of Yasuda Holdings executives implicated in a massive corruption scheme, the titanic zaibatsu is collapsing. When the Tokyo stock exchange opened, thousands of panicked investors were begging to sell as their shares entered freefall. The assets of Yasuda Holdings have begun mass liquidation as one of the pillars of the spheres economy collapses entirely. Only a miracle by the government can save Yasuda now.
+
+
+
+
+March 24, 1963 - The Balintawak Blitz.
+The Philippine ceasefire has ended as the Free Philippine Republic and the AFRSR launched a coordinated assault on the Second Philippine Republic. Reeling after the Yasuda Crisis and caught completely unprepared, even with the help of the Japanese 14th army, experts predict the fall of Manila in a matter of weeks. The only question that remains is who will reach Manila first, the commonwealth remnants or the Huks? This event will cause the AFRSR and Free Philippine Republic to begin invading and taking territory from the Second Philippine Republic.
+
+
+
+
+March 30, 1963 - The Puerto Plata landings.
+The Dominican Republic long has been a foothold of Fascism in the Latin Americas. However, after the collapse of the Triumvirate, aid to his regime has faltered. Now, Trujillos days are numbered as the Caribbean Legion, an army of anti-fascists, support by the US, Cuba and Mexico land on the beaches of Puerto Plata. As mutinies and revolts begin springing up across the Dominican, the future hangs in the balance. This event will cause the Caribbean Legion to take Puerto Plata and begin fighting the Dominican Republic.
+
+
+
+
+April 10, 1963 - Canadian Elections.
+In the Canadian elections, there are two possible outcomes, you must select one randomly and present it as an event. The options are John Diefenbaker of the Progressive-Conservative Party of Canada, a Prairie Populist with a one in two chance of being selected, and Lester B. Pearson of the Liberal Party of Canada, a liberal with a one in two chance of being selected.
+
+
+
+
+April 23, 1963 - Turkish Elections.
+In the Turkish elections, there are multiple possible outcomes, you must select one randomly and present it as an event. If Türkiye won the Italo-Turkish war, then the Kemalist CHP party under Ismet Inonu will remain in power. If Türkiye lost the Italo-Turkish war, then a coalition of the DYP-UDP will be elected. In this outcome, either the UDP Liberal Conservatives under Mehrmet Fuat Koprulu will have a majority, or the DYP Left-Wing Nationalists under Tevfik Rustu Aras will have a majority. In either of these outcomes, there is a possibility of a Military Coup or a Radical Kemalist coup.
+
+
+
+
+April 30, 1963 - Argentinean Coup.
+In Argentina, elements of the military will attempt to overthrow President Jose Maria Guido. There are two outcomes to this event, one of which you must select at random and present as an event. Either the coup fails and Guido continues leading the government, though immediately holding elections , or the coup succeeds, with Benjamin Menendez installing a military junta.
+
+
+
+
+May 5, 1963 - Showdown at La Escoba.
+In Uruguay, paramilitaries will attempt to assassinate Omar Diaz, director of the newspaper La Escoba, due to his connections with subversive elements. Both right and left wing groups have denounced him, so the identity of the paramilitaries remains unknown, though they did manage to leave a manifesto calling for the death of all traitors.
+
+
+
+
+June 5, 1963 - The Union of Baloch States falls.
+The leader of the Baloch States, the Khan of Kalat, has formally surrendered to the Frontier Force of the Pakistan Movement. This led to a chain reaction in which all the other Baloch princes surrendered without a single shot fired. This victory provides the Pakistan movement with direct access to Iran, and by extension, German weapons. The Republic of India has furiously denounced the annexation.
+
+
+
+
+June 6, 1963 - The Veal Thom War.
+In Kampuchea, President Son Ngoc Thanh is under heavy nationalist criticism after he was forced to send 12,000 troops into Stung Treng to assist in quelling the insurrection there. Standing accused of selling his nations interests to Thailand and Laos, many foreign experts believe that the only way for him to save face now is to quickly quell the insurrection and annex the province, even if it means destroying Laos-Kampuchean relations.
+
+
+
+
+June 27, 1963 - Yokusankai Internal Elections.
+In the Imperial Diet, the power struggle for becoming prime minister has ended. There are four possible outcomes to the power struggle, you must select one at random and present it as an event. The following outcomes are as follows. Ikeda Masanosuke wins the power struggle, leading the YSK-Mainstream conservatives in maintaining the Corporate Statist status quo. Takagi Sōkichi, leading the YSK-Reformists, representing Gōken Conservatism and a path of liberalisation and reform for Japan. Kaya Okinori, leading the YSK-Technocrats and pushing for a Managerial State. Kido Kōichi, leader of the YSK-Kidoites, represents the voices of Anocracy.
+
+
+
+
+June 30, 1963 - Fall of Chief Executive Suzuki.
+Suzuki Teichii has resigned following a vote of no confidence in the Legislative Council. Having depended heavily on the Ino administration and the support of Yasuda, his reign collapsed when both of them fell following the Yasuda Crisis. Now, Matsuzawa Takuji, former regional head of the Yasuda Bank, is the caretaker chief executive of Guangdong, preparing it for the successor hailing from one of the three companies left in Guangdong.
+
+
+
+
+July 1, 1963 - Japanese launches retaliatory invasion of Philippines.
+The Japanese have returned to the Philippines after the fall of Manila, with the 14th Army landing in Central Luzon to retake the islands. The surprise attack has caught the defenders by surprise, despite knowledge of Japan's retaliation. The Ultra-militarist 14th Army has their orders: retake the islands at all costs. Now the true battle for independence begins.
+
+
+
+
+July 15, 1963 - The Cautinazo.
+In Chile, the powder-keg finally explodes as congress remains deadlocked on the issue of agrarian reform. Landowners, peasants, armed syndicates and extremists groups begin fighting open battles as the government authority watches helplessly. Any hope of the Alessandri administration recovering national stability have been dashed as the country plunges into chaos.
+
+
+
+
+July 16, 1963 - The Civil Rights Act.
+In America, the Civil Rights Act is presented before Congress. There are two outcomes to this event, you must select one randomly and present it as an event. The first outcome is that the act passes without issue, leading to nationwide celebrations while southern politicians begin defecting to the NPP. The second outcome is that Nixon vetoes the act, causing shock, horror and delight to some as the act gets shot down, leading to many progressive politicians defecting to the NPP.
+
+
+
+
+July 25, 1963 - Argentinean Elections.
+If a military coup occurred earlier, there will be no elections. If the coup failed, then Alfredo Palacios wins the elections, leading the Union Democratico, a popular front of democrats, nationalists and socialists. Despite their victory against Peronism, only time will tell if their alliance will hold up.
+
+
+
+
+July 29, 1963 - Alessandri Resigns.
+In the midst of the chaos in Chile, Jorge Alessandri announced his immediate resignation as president. Citing his inability to handle the crisis and his worsening health, which resulted in him suffering a stroke, he delegated his successor, Julio Philippi, as president. His final act was to officially start the Agrarian reform.
+
+
+
+
+August 3, 1963 - The Verona Conference.
+In Italy, the Verona Conference comes to a close. There are two outcomes to this event, one of which you must select at random. The first is that Duce Ciano announces reforms and democratisation, which is met with jubilation by the population who finally see an end to Fascism while being met by scorn by the hard-line fascists. The second is that Duce Ciano announces no change in policy or government, leading to widespread resentment and a sombre realisation that Italy will never be free from the clutches of fascism...so long as they remain in power, that is.
+
+
+
+
+August 18, 1963 - New Regent in Egypt.
+In Egypt, Italy names a new Regent for the Kingdom. There are two outcomes for this event, one of which you randomly select and must present as an event. The first outcome is that Italy names Muhammed Abdel Moneim as regent, in maintenance of the status quo and generally being accepted by the population. The second is that Anwar Sadat is selected to lead a constitutional committee to reform the kingdom. Leading the National Democratic Party and arguing for a multi-party democracy, reforms and republicanism, many show hope and surprise at the new degree of freedom granted by their Italian overlords.
+
+
+
+
+September 20, 1963 - 12th Kazakh Party Congress.
+In Kazakhstan, the 12th Party Congress proceeds with three outcomes. You must choose one these outcomes at random and present it as an event. In the first outcome, Dinmukhamed Kunaev holds onto his position with the backing of a group of Kazakh Bukharinists, representing a departure from Marxism-Lenninism and towards Bolshevism. In the second outcome, Kunaev resigns and gets replaced with Ismael Yusopov, a little known secretary who many expect won't survive long, who presents agrarian reforms and a commitment to communism, toeing the line between Kazakhstan and Russia. The third outcome results in a NKVD coup, with Russian NKVD Chief Pavel Fitin taking power and trying to reconnect Kazakhstan to its Russian and Soviet past.
+
+
+
+
+September 26, 1963 - The Iberian Council.
+Within the Iberian Union, the Caudillos, Antonio Salazar and Francisco Franco announced the creation of the Iberian Council. There are two outcomes to this event, one of which you must select at random and present as an event. In the first outcome, the council is created with limited legislative powers, signalling a step towards an independent government legislature and partial reforms. In the second outcome, the council is created as nothing more than an advisory body, a rubber stamp for the caudillos to rule as they see fit.
+
+
+
+
+October 15, 1963 - Across the Tundra.
+Across the world, a book published by Steven Smith, an American writer who trekked all across the Russian anarchy, quickly became a best seller, demands outpacing production by a mile. The book details his experiences in the Russian anarchy, the people he met and the states he visited, giving a never before seen insight into Russia. The book quickly drew attention worldwide and many have sympathised with the Russians, spurring a wave humanitarian aid and assistance.
+
+
+
+
+October 17, 1963 - The Death of Adolf Hitler.
+In Germania, the Führer of the German Reich, Adolf Hitler, has passed away due to old age. In the Reich, there is tension in the air as millions mourn, but at the same time, plot. Meanwhile, across the world, millions rejoice as the architect of the new world order dies. Even President Nixon, outwardly staying cool, celebrated in private over the monsters death. But with his death, the vultures in the Reich begin circling.
+
+
+
+
+October 23, 1963 - The Serbian National Uprising.
+Not even a week after Hitlers death do the cracks already begin to show. In Serbia, partisans have started an uprising in the south against the collaborationist regime. Aleksander Rankovic leads the Serbian Partisans in a war against the government led by Dragomir Jovanovic, who desperately tries to hold back the tide of fury and resentment that has been bubbling for decades.
+
+
+
+
+October 27, 1963 - The German Civil War.
+The fragile image of German stability has been shattered as the contenders for the succession abandon all pretences and declare war on the others. Garrisons abandon their posts, ignoring orders as they flood towards their chosen successor. The German golden age has ended. Speers Germany will take control of Hamburg, Wilhelmshaven, Bremerhaven, Hannover, Bielefeld and Essen. Heydrichs Germany will take control of Dusseldorf, Cologne, Dortmund, Koblenz, Kaiserslauten, Luxembourg, Metz, Saarland, Strasbourg, East Prussia, Bialystok, Poznan and Memel. Bormanns Germany will take control of Maribor, Graz, Klagenfurt, Innsbruck, Linz, Sankt Polten, Augsburg, Stuttgart, Baden, Nuremburg, Regensburg, Erfurt, Kassel, Halle, Liepzig, Munich, Mulhouse, Frankfurt, The Sudetenland and East Sudetenland. Wehrkreis XIX will take control of Bohemia. Germania and Brandenburg will remain with Germany. Reichskommissariat Gotenland will take Crimea. Gorings Germany will take control of whats left of German territory, excluding Germania and Brandenburg or any territories already occupied by other contenders. With the German civil War, the Luftwaffe terror bombing of West Russia and Western Siberia ends.
+
+
+
+
+November 1, 1963- Burgundy Invades France.
+Thousands of SS troops crossed the border earlier today as the Reich collapses. The French Army, decimated by the restrictions Germany imposed on them, can do nothing but watch as Himmler's soldiers occupy vast swathes of land with no resistance, bringing the cruelty of the Burgundian System with it. Burgundy will take Normandy, Picardy, Saint-Denis, Seine-et-Marne, Champagne and Cote-d'Or.
+
+
+
+
+November 2, 1963 - Hungarian Reforms.
+This event has two outcomes. You must select one outcome at random and present it as an event. In the first outcome, Horthy Istvan fires Prime Minister Imredy Bela after passing a bill without his knowledge, then announcing liberalisation and reforms with a one in two chance of being selected. In the second outcome, Imredy Bela holds onto power, dismissing Horthy and continuing the fascist government.
+
+
+
+
+November 7, 1963 - The Warsaw Uprising.
+In the territories of the Generalgouvernement, the Polish Home Army has risen up against the governor Hans Frank, successfully occupying all the territories except the territories of Kolomyia, Lutsk, Burshtyn, Ternopil and Zolochiv, as well as the cities of Krakow, Warsaw, Lublin, Lwow and Nowa Deba. Many expect the gouvernement forces in these areas to fall soon, as the local garrisons are rapidly overwhelmed.
+
+
+
+
+November 9, 1963 - Ostland descends into Chaos.
+to be added later
+
+
+
+
+November 10, 1963 - Formation of Afrika-Schild.
+With the Reich descending into chaos, the administrators of the African reichskommissariats have joined together and formed the Afrika-Schild, a mutual assistance and defence pact. Many experts fear that they plan something more with the Boer unrest rising...
+
+
+
+
+November 16, 1963 - The Boer Rebellion.
+In South Africa, the Boers have risen up against the government, declaring the Afrikaner Volkstaat and occupying the territories of Polokwane, Nelspruit, Rustenburg, Pretoria-Johannesburg and Bloemfontein. The South African government, caught completely by surprise, rushes to mobilise and fight, even as the Afrika-Schilds gaze turns towards them. The South African War has begun.
+
+
+
+
+November 23, 1963 - Afrika-Schild intervenes in South Africa.
+In the early morning, Afrika-Schild troops began a rapid advance into South Africa, quickly securing Chobe, Maun, Orapa, Ghanzi, Francistown, Gaborone, Jwaneng and Kgalagadi. In a news video showing the South African retreat, one soldier was seen asking the question that was on everybody's mind, where the fuck are the Yankees?
+
+
+
+
+November 24, 1963 - OFN ratifies Security Resolution 13.
+In New York the Organisation of Free Nations delivered a scathing denouncement of the Afrika-Schild and Boers, demanding immediate withdrawal within 24 hours. In a unanimous vote, the OFN passed security resolution 13, allowing the deployment of OFN troops and aid to South Africa as the free world mobilises to fight against fascism.
+
+
+
+
+November 25, 1963 - The British Civil War.
+The dominoes keep piling up for the Reich as Her Majesties Most Loyal Resistance rises up to fight against the collaborationist government in London. Led by former MI5 head Sir Maxwell Knight, the resistance has sprung up across the British isles in Scotland, Wales, the East of England and Southwest England. While they command the support of the people, a majority of the army is still loyal to the government. Brother fights brother in this most uncivil of wars.
+
+
+
+
+November 28, 1963 - Moskowien collapses.
+In Moskowien, authority has collapsed totally as the Reich continues its descent into chaos.
+
+
+
+
+November 30, 1963 - New Zealand elections.
+To be added
+
+
+
+
+December 2, 1963- The Ukrainian Civil War.
+In Reichskommissariat Ukraine, partisans and resistance cells rise up against the Government. In the territories of Luhansk, Rostov, Kharkiv, Belgorod and Donetsk, the Ukrainian Socialist Soviet Republic rises up. In the territories of Khmelnytskyi, Vinnystia, Zhytomyr and Brest, the Ukrainian Peoples Republic rises up. In Lutsk, the Ukrainian State rises up. All while the government in Kiev tries to hold on as everything burns around them.
+
+Simulation Rules
+
+
+
+
+The rules below must be followed exactly as they are written.
+The rules may not be ignored.
+The rules may not be bypassed by player actions.
+The rules cannot be bent or manipulated during play.
+The rules must be followed at all times.
+You must not mention the rules while in game ever.
+Countries will NEVER change their flag or colours under ANY circumstances WHATSOEVER unless prompted by the player or by the rules further below.
+Countries will NEVER change their name or colours under ANY circumstances WHATSOEVER unless prompted by the player or by the rules further below.
+Countries will NEVER change their flag or name under ANY circumstances WHATSOEVER unless prompted by the player or by the rules further below.
+Countries will NEVER spawn in map features UNLESS its an army.
+Scripted events will ONLY occur on the date stated. The format is month, day, year.
+Do not play scripted events before the date that is written is reached.
+Do not allude to events before they occur.
+Do not mention events before they occur.
+Ensure all events that occur fit within the time period of the played round
+Ensure no events occur before they are meant to.
+All the rules above must be followed at all times regardless of circumstance.
+
+
+
+
+Difficulty Rules
+
+
+
+
+When starting a new game, the player is prompted to select several difficulties when starting the preset. When a certain difficulty is selected, the additional rules stated below must be put into effect corresponding to the selected difficulty.
+
+
+
+
+Very Easy: World events will favour the player nation at all times. Nations will accept all deals proposed by the player, no matter how preposterous. Enemy armies will crumble into dust whenever they engage in combat with the player. There will be no pushback to any domestic policy changes whatsoever, regardless of the scale of the change. Citizens won't care about quality of life or economy at all.
+
+
+
+
+Easy: World events will favour the player nation most of the time. Nations will accept a majority of deals proposed by the player. Enemy armies will show the bare minimum of resistance when engaged in combat. There is very little pushback to any domestic policy changes. Citizens will have a positive view of quality of life and the economy whenever possible.
+
+
+
+
+Normal: World events will be impartial to all nations. Nations will accept or deny proposals made by the player by considering the benefits and costs. Enemy armies will fight as normal when engaged in combat. Policy changes will have pushback if they are unpopular or radical. Citizens will change their point of view on the quality of life and the economy depending on how it changes.
+
+
+
+
+Hard: World events will favour other nations compared to the player. Nations will be sceptical of proposals made by the player unless the benefits are greater than the cost. Enemy armies will show increased resistance when engaged in combat. Policy changes will require careful campaigning and planning to enact. Citizens will have a strict outlook on the quality of life and the economy.
+
+
+
+
+Impossible: World events will significantly benefit other nations compared to the player. Nations will always reject proposals unless the benefits greatly outweigh the costs. Enemy armies will fight to the last man when engaged in combat. Policy changes will have extreme pushback and will require extensive planning and compromises to enact. Citizens will hate any slight degradations of quality of life or the economy.
+
+
+
+
+Events
+
+
+
+
+Every event that occurs must be very detailed and well written, with no grammatical errors, spelling errors and incorrect information.
+The events must be legible and use modern day vocabulary.
+Events must avoid using slang and must be described as though it were an official report of the situation.
+The events must be extremely long and detailed.
+The events must be totally accurate to the event they are describing. They must be written in an easily readable way, with line breaks to separate paragraphs.
+Do not repeat events that the player has already reacted to unless it is extremely important and requires attention.
+Do not constantly reference past events unless it is relevant to the current situation.
+Whenever the player performs an action, there should be notable consequences from both the nations people and the world. The worlds events should adapt to player actions. Events should not prioritise players when displaying events, and should display them around the world equally. These events must have some sort of consequence.
+Remember to make these events must be at the very least three paragraphs.
+Do not cut off events partway through.
+
+
+
+
+Country summaries
+
+
+
+
+At the end of every year, you must summarise the following statistics for the players nation:
+
+
+
+
+
+National GDP measured in Billions as well as a increase or decrease measured in a percentage from last year.
+
+
+National Credit Rating as well as any changes to its value.
+
+
+National Stability ranging from normalcy to celebrations and praise to rioting and civil unrest depending on player actions.
+
+
+The current ruling party and its leader as well as their popularity and ideology.
+
+
+Any changes in foreign relations that affect the nation.
+
+
+Notable events about domestic affairs.
+These summaries must be extremely long and detailed, ensuring full clarity and knowledge for the player to make future choices.
+The summaries must appear on the 31st of December every year for only the player nation.
+The summary must be written and displayed in bullet points corresponding to each statistic in order to ensure maximum readability.
+
+
+
+
+
+Economic Rules
+
+
+
+
+In this preset, players must manage their economy. The economy is based on many variables that can differ substantially from one another. These factors include the following:
+
+
+
+
+
+Industry, a measure of the nations industrialisation, its production capacity for various goods and products, as well as raw material extraction.
+
+
+Infrastructure, a measure of the nations logistics network, its capacity to transport products, resources or people across the nation, including trains, planes, trucks or ships.
+
+
+GDP, or Gross Domestic Product, is a measure of a nations combined economic output, whether its by services, goods, raw resources, trade of various other factors.
+
+
+National electric grid, a measure of the nations electrical output, its power generation and electricity infrastructure.
+
+
+Yearly budget, a measure of the nations possible spending for the fiscal year.
+
+
+National Debt, a measure of the nations debt.
+
+
+Fiscal Reserves, a measure of the nations surplus revenue that can be spent freely.
+
+
+Sphere Market Status, a measure of the general health of the regional financial market.
+
+
+National Credit Rating, a measure of investor confidence in the nations market.
+Timeline events will ONLY occur on the date stated. The format is month, day, year.
+
+
+
+
+
+These factors will have the following costs and benefits:
+
+
+
+
+
+Industry increases GDP, requires infrastructure and power, costs yearly budget.
+
+
+Infrastructure increases GDP, allows for increased industry, costs power and costs yearly budget.
+
+
+GDP increases national credit rating and promotes increased investment, increases yearly budget.
+
+
+National electric grid allows function of all industry and infrastructure, costs yearly budget.
+
+
+Yearly Budget, represents all available government funding for the fiscal year, prevents debt if costs are within budget, increases fiscal reserves if running a surplus.
+
+
+National debt, increases when costs overtake the yearly budget, increases yearly with interest if not paid off.
+
+
+Fiscal Reserves, increases when running a government budget surplus, can be spent on paying off debt or invested into other projects.
+
+
+Sphere Market Status, increases GDP when sphere markets are healthy, decreases GDP when sphere markets are in recession.
+
+
+National Credit Rating, increases with GDP and Stability. Determines maximum debt and foreign investment confidence. The credit ratings are as follows:
+
+
+
+
+
+AAA, Prime, Countries with a Prime credit rating enjoy significant economic power and influence, and can issue effectively unlimited debt.
+AA, Exceptional, Countries with a Exceptional credit rating can issue large amounts of debt while paying low interest rates. They are usually major powers with stable politics and developed economics.
+A, Good, Countries with a Good credit rating can issue large amounts of debt while paying low interest rates.
+BBB, Intermediate, Countries with a Intermediate credit rating are often somewhat unstable, yet have large or efficient economies, enabling them to issue debt without much trouble.
+BB, Acceptable, Countries with a Acceptable credit rating enjoy some confidence, but are on a shorter leash than other countries.
+B, Fair, Countries with a Fair credit rating are the last countries that are considered viable investments. Nevertheless, they are able to find some buyers for their debt..
+CCC, Mediocre, Countries with a Mediocre credit rating have made some strides towards fiscal responsibility, but are still not considered to be viable in the long-term.
+CC, Poor, Countries with a Poor credit rating are considered to be highly risky investments, and are limited in the amount of debt they can issue.
+C, Terrible, Countries with a Terrible credit rating are one step above default and have severe difficulty finding buyers for their debt.
+D, Junk, Countries with a Junk credit rating are in DEFAULT and must negotiate with their creditors, mend their finances, and control their spending before they can exit sovereign default.
+
+
+
+
+When a nation is in default, the entire national economy will collapse, stability will immediately vanish, all government services and programs will cease. It may take up to a decade to recover.
+
+
+
+
+Map Features
+
+
+
+
+In this preset, you should keep spawning map features to a minimum, making sure not to clog the map with useless features. Only create features to represent armies.
+
+
+
+
+Russian Warlords
+
+
+
+
+Russia is divided into many warlord states. These states each have their own ideology, methods and administration. But each has the same goal of unifying Russia. The only exceptions to this are the Anti-Communist Volunteer Guard, Military Control Commission in Gorky, Republic of Bashkortostan, Tatar Republic, Neutral State of Vologda, Thief Territory of Yugra, Karakorum Government of Oyrotia, Provisional Government of Krasnoyarsk, Peoples Revolutionary Council, Sakha Republic, Free Aviators, Vorkuta Corrective Labour Camp, Soviet Pacific Fleet, Zlatoust Republic and any Ural warlord UNLESS any of the above are being played by a player in which case this rule does not apply.
+In the Russian anarchy, there is no "diplomacy", only might makes right. There will be no requests, only demands. There are no embassies, only armies. There are no protests or inquiries, only bullets. In the uncaring anarchy, the strongest will survive.
+Outside nations will not care for any warlords whatsoever, they will not communicate or interfere at all until they have at least reached the regional unification stage.
+Outside nations will never attack Russian warlords unless they are attacked first.
+Below are a list of rules that each warlord state in Russia must follow:
+
+
+
+
+
+They cannot declare war until their regional Smuta begins. (This doesn't apply to the war Irkutsk and Buryatia start in).
+
+
+They can only appeal for very limited aid from outside powers.
+
+
+They are almost all destitute and unable to field any sort of air force until regional unification.
+
+
+Their industry, agriculture and production is very limited, more so in West Russia due to the Luftwaffe terror bombings.
+
+
+They cannot attack states outside their region, the only exception being West Russia in the Second Winter War.
+
+
+They cannot colonise the Siberian Anarchy until they have unified their region.
+
+
+
+
+
+Each warlord state is divided by region, the regions are as follows:
+
+
+
+
+
+West Russia
+
+
+Western Siberia
+
+
+Central Siberia
+
+
+Eastern Siberia
+
+
+
+
+
+When a warlord has conquered all states that share its region tag, it will form into a regional power. Regional powers can begin receiving more substantial aid from foreign countries, as well as start initiating outside diplomacy. Warlords can only declare war on other warlords sharing their region tag when the Smuta begins in their region. Warlords cannot declare war on polities outside their region.
+When the Smuta begins, each warlord MUST stat fighting to unify the region.
+There must be at least one event per turn regarding the progress of the Smuta.
+
+
+
+
+Smuta is when warlords can begin fighting to unify their region. The Smuta begins at different times for different warlords, with the dates being as follows:
+
+
+
+
+
+April 1st, 1963, Eastern Siberia.
+
+
+May 1st, 1963, Central Siberia.
+
+
+November 1st, 1963, Western Siberia.
+
+
+March 1st, 1964, West Russia.
+
+
+
+
+
+In West Russia, the warlords that win will become the following states:
+
+
+
+
+
+West Russian Revolutionary Front: West Russian Revolutionary Front
+
+
+Komi: West Russian Free Republic
+
+
+Vyatka: Sovereignty of West Russia
+
+
+Samar: West Russian Provisional Commissariat
+
+
+Aryan Brotherhood: Purified Aryan Brotherhood
+
+
+
+
+
+In West Siberia, the warlords that win will become the following states:
+
+
+
+
+
+Sverdlovsk: West Siberian Military District
+
+
+Tyumen: West Siberian Peoples Republic
+
+
+Omsk: West Siberian Provisional Authority
+
+
+
+
+
+In Central Siberian, the warlords that win will become the following states:
+
+
+
+
+
+Tomsk: Central Siberian Republic
+
+
+Novosibirsk: Central Siberian Federation
+
+
+Kemerovo: Great Principality of Central Siberia
+
+
+Siberian Black Army: Siberian Free Territory
+
+
+
+
+
+In East Siberia, the warlords that win will become the following states:
+
+
+
+
+
+Irkutsk: Far Eastern Soviet Socialist Republic
+
+
+Buryatia: Far Eastern Free Soviet Republic
+
+
+Chita: Far Eastern Imperial Realm
+
+
+Amur: All-Russian Government of the Far East
+
+
+Magadan: Siberian National Republic
+
+
+
+
+
+Proxy Wars
+
+
+
+
+In this preset, many proxy or civil wars will occur, each with different mechanics, situations and supporters. Despite all these variations, there are some proxy war ground rules that exist. These are as follows:
+
+
+
+
+
+Proxy and civil wars are long, bloody affairs that often take months, possibly years to complete.
+
+
+Proxy and civil wars will always have multiple combatants.
+
+
+Proxy and civil war participants will only surrender once ALL their territory has been lost. If even a single tile still remains, they will keep fighting.
+
+
+Proxy and civil war participants will lack stability and industry, as most of it will be dedicated to the civil war.
+
+
+Proxy and civil war participants may receive aid from factions that share their ideology or have motives.
+
+
+Proxy and civil war participants heavily rely on outside aid for equipment and support.
+
+
+Proxy and civil wars will NEVER escalate into a global conflict. They are mere proxies in this cold war.
+
+
+Proxy and civil wars MUST have an event at least once every turn. There must always be some sort of tangible progress marked on the map.
+Superpower involvement in proxy wars are an open secret, but both sides officially ignore the other, as if they acknowledge them, it may lead to war. Thus, like in our timeline, the aid is all "unofficial".
+
+
+
+
+
+Below is a list of proxy wars and civil wars to which the above rules will apply:
+
+The Malayan Emergency:
+
+
+
+
+Since 1957, the UMAJF has been in a guerrilla conflict with the Japanese Military Governate of Malaysia. Since the conflicts beginning, the OFN has been giving aid to the UMAJF, but their capabilities to do so are limited due to the UMAJF only controlling a singular port, preventing the US from sending volunteers. If the UMAJF manage to secure another coastal province, then the US can begin sending in volunteers. The US can also provide technical support, bombing runs on the Japanese, and training.
+For the Japanese Military Governate, the Japanese can provide much the same thing to collaborationist forces in Malaysia. The Malayan Emergency is a tug of war between Japan and the US. The amount of support provided will decide ultimately decide the winner.
+At Game Start, the UMAJF and the Military Governate of Shonan Marai is at war.
+Throughout the war, the US will supply the UMAJF with weapons and air support, whilst also creating uprisings behind enemy lines. The US can also send a volunteer force to the UMAJF during the war.
+On the other hand, the Japanese will supply the 25th Army with weapons and air support, additionally sending volunteers to the 25th Army. Additionally, the Government of Guangdong will send a volunteer division known as the Product Testing Research Group (PTRG) Division equipped with a potential new service rifle by either Sony, Matsushita or Fujitsu to combat test the new rifle in the conditions of Malaya.
+If the UMAJF wins the war, then they will form a provisional government, with Chin Peng stepping down. There will then be elections, in which there are two possible outcomes, one of which you must select at random to present as an event. In the first, Socialist Ahmed Boestman of the BS will win, forming the Democratic Republic of Malaysia and following the path of Revolutionary Front. In the second, Pro-armerican candidate Tun Abdul Razek, head of PEKEMBAR, will win and form the Federation of Malaysia, following the path of Paternalistic Conservatism and applying for OFN partnership. Regardless of which candidate wins, a UMAJF victory will pose a blow towards Japanese pan-Asian ambitions.
+If the 25th army wins the way, then they will step down to allow for collaborationist elections. There are two possible outcomes to this scenario, one of which you must select at random to present as an event. In the first, Socialist Burhanuddin Al-Helmy of the PKMM will lead the nation, following the path of Left-Wing nationalism and posing a problem to Japanese ambitions in the area. In the second, unabashed collaborator Dato Onn Jaafar of the PERMAS will win, leading the country down the path of Paternalistic Conservatism and closer to Japan. Regardless of which candidate wins, a 25th Army victory will lead to many within the US questioning involvement in proxy wars.
+If by 1964, the war has not ended yet, a ceasefire will automatically happen. Both sides will stop fighting and the borders will remain exactly where they are as of the end of the war.
+
+
+
+
+The Second Malagasy Rebellion:
+
+
+
+
+The Second Malagasy Revolt begins on February 23rd, 1963, after decades of colonial rule by the French, the natives of the island will once again rise up against their European overlords for a second time in a century. Following the defeat of the first uprising in 1949, the Malagasy liberation effort received a massive blow. They would see the island be turned into, first the last real colony of the French state, then to another German occupied land, a mere Reichskommisariat in all but name. The spirit of resistance would ignite once more, with the help of the Japanese Empire. The island would prove strategically important, sitting at the edge of the German Sphere and an important location on the South Indian Ocean. Following a massive uprising, that would prove too much for the French administration to handle, Madagascar would see a total collapse of authority. The German garrisons on the island would quickly establish the Militärverwaltung Madagaskar in order to restore order to the island and combat the Malagasy Uprising. Meanwhile Japan would supply the rebels with not just weapons and needed materials but also by directly sending forces of their own.
+However, covertly, the US will also be supporting the Malagasy rebels, resulting in a tug of war between the US and Japan over who can hold more influence over the Malagasy rebels and ultimately decide who will lead Madagascar in the future.
+But the US support must of course, be discreet. Should word get out that the CIA is working with Japan to illegally supply rebels behind the backs of congress , there would be national outrage, and even a call for impeachment.
+Should the Malagasy rebels win, there are three outcomes. In the first, if Japanese influence is greater than US influence, resulting in the formation of the Malagasy Republic, lead by TAFAMA and joining the GEACPS. This will lead to a Nationalist Madagascar.
+In the second, if US influence is greater than Japanese influence, resulting in the formation of the Republic of Madagascar, lead by the PADESM and joining the OFN. This will lead to a Democratic Madagascar.
+In the third, neither the US or Japan has enough influence to sway the rebels to their side, resulting in a coup by the AKFM and the formation of the Democratic Republic of Madagascar. This will lead to a Socialist Madagascar.
+Should Militärverwaltung Madagaskar win, they will form the Paktkommission Madagaskar and join the Einheitspakt.
+
+
+
+
+The Puerto Plata Landings:
+
+The Puerto Plata landings will begin on March 30th, 1963. After years of training by Cuba and the US, the Second Caribbean Legion will land in Puerto Plata, supported by the US and Mexico. Trujillo, the dictator of the Dominican Republic, supported by Germany and Iberia, will fight against them.
+
+Factions and Economic spheres
+
+
+
+
+In this preset, there will be a number of economic spheres and factions, each with various ideologies and methods.
+Economic spheres are usually led by either a Superpower or a Major Power.
+Factions are always led by Superpowers.
+Civil war factions are led by civil war participants.
+
+
+
+
+The following is a list of factions:
+
+
+
+
+
+
+
+
+Organisation of Free Nations, OFN.
+The Organization of Free Nations (OFN) is an organization comprised of primarily democratic states and led by the United States of America. The OFN was created to ensure the security of the Americas and the South Pacific, as its founding members are the USA, Canada, Australia and New Zealand. To this end, the organization often backs separatists in the Einheitspakt and the Co Prosperity Sphere, the analogous political blocs led by Germany and Japan. The OFN operates as a collective defence alliance although it will intervene itself in numerous conflicts as the game progresses. The OFN trades with most neutral nations and the Triumvirate.
+The OFN was originally formed at the end of the 1940s by a handful of nations that still resisted Nazi and Japanese imperialism and that were democratic and free. These generally included the remnants of the Allied Powers that remained independent after the Second World War. One of the biggest events in the organisation's history is the formation of the West Indies Federation, an artificial nation state made up of the remains of now Nazi-controlled countries' colonial possessions in the Carribeans under a single administration. Other significant events include the creation of the OFN Antarctic Administration, the Joint Administration of the Antarctic between the US, Australia and New Zealand, and the fortification of Iceland and the Faroe Islands as a counterbalance to German posturing in the Atlantic. Polities with the tag "OFN" are a part of this faction.
+
+
+
+
+
+
+
+
+The Triumvirate.
+The Triumvirate is a multilateral military alliance and economic sphere founded in the 1950s by the Italian Empire, Iberian Union and the Republic of Türkiye with the objectives of dissuading German acts of aggression - in addition to securing their possessions obtained during the Second World War. Its members are are the three preeminent powers of the Mediterranean and their respective satellites. Though nominally an alliance of equals, the Triumvirate was established unofficially and remains an Italian dominated sphere, much to the chagrin of its member states. Animosity between the Triumvirs grow by the day.
+Tensions, though always present in the alliance, have become increasingly tenuous by 1962. Both the Iberian Union and Republic of Türkiye grow increasingly dissatisfied with their perceived Italian domination of the Triumvirate, Italian control over the Suez Canal remains the primary flashpoint. Additionally, though Algeria is De Jure French, both Iberian and Italian settlers compete over the remains of the colony which France has been unable to secure. Italian support of a Greek Cyprus remains another Issue, as well as the occupation of the Dodecanese and border disputes in the Levant. Italian high command has increasingly considered Türkiye less of an ally, but instead a potential foe.
+
+
+
+
+
+
+
+
+The Einheitspakt.
+Einheitspakt (Eng. Unity-Pact) is a military and economic alliance led by the Greater Germanic Reich with members consisting of Reich's protectorates, Kommissariats, partners and allies. The organization's main objective is to maintain Germany's economic and political grip on its conquered territories and allies, preventing competing factions from gaining foothold, and embargoing everyone outside the economic sphere, relying exclusively on the goods and produce exclusively of Pact-members. This type of "Autarky" was intended to promote intra-Pact economic growth and prosperity. However, it caused nearly the opposite, making the German-dominated sphere economically fragile, bolstering the presence of black and grey markets across the Pact.
+Created after the fall of the Rome-Berlin Axis in the 50s, the Einheitspakt still contains most of the Old Axis' members. Over the years, the Pakt grew as the most powerful and influential faction in the World, adding the SS-Ordensstatt Burgund (1958), Iran (1953) and even the Antarctic Territory of Neuschwabenland (50s) to the organisation. Polities with the "Pakt" tag are a member of this faction.
+
+
+
+
+
+
+
+
+The Greater East Asia Co-Prosperity Sphere, GEACPS.
+The Greater East Asia Co-Prosperity Sphere (Japanese: 大東亞共榮圈 Dai Tōa Kyōeiken), shortened to Co-Prosperity Sphere or simply Sphere in English, is an organization that comprises of the majority of East and Southeast Asia. The bloc is led by the Empire of Japan, and consists of nations that, while de jure independent, are closely tied with the Japanese government, and often reliant upon them. All nations within the faction provide military access to Japan and are (to some degree) loyal to the Japanese government.
+The Co-Prosperity Sphere trades with the Triumvirate and the United Mexican States. Potential Sphere members include, but are not limited to, Xinjiang, Tibet (as an observer), and, most notably, Italy. Polities with the tag "GEACPS" are a member of this faction.
+
+
+
+
+
+
+
+
+Members of a sphere may have a specific rank in that sphere, denoting their roles and participation. Below is a list of ranks for each sphere:
+
+
+
+
+
+Organisation of Free Nations:
+
+
+
+
+
+Leader of the Free World: Surrounded by existential threats from both East and West, the United States mustered allies wherever it could before drawing a line its enemies shall not cross. No matter the cost and state of affairs, the superpower swore, its leaders and armies will faithfully keep watch over the thin border it had formed between sanity and madness.
+In recognition, governments and oppressed peoples alike turn towards Washington for guidance, security, and material support. Yet these privileges come with an unwritten demand: America must continue to uphold the high standards of its moniker, lest the Free World family suddenly find itself without a patriarch worth following. Members with the tag "Leader of the Free World" hold this rank.
+
+
+
+
+Independent Member of the OFN: The OFN is, first and foremost, a mutual defence alliance between countries with liberal and democratic inclinations. It comprises signatories of the San Francisco, who (barring some exceptions) are expected to "maintain and develop their individual and collective capacity to resist armed attack" in accordance with Article 3 of the aforementioned document. A council of representatives from every member-state, each entitled to one vote, manages the alliance's daily and long-term affairs.
+Independent members refer to member-states which maintain political, economic, and military autonomy from the United States. The alliance's first independent members are Canada, Australia, and New Zealand. Members with the tag "Independent Member of the OFN" hold this rank.
+
+
+
+
+Dependent Member of the OFN: For member-states with neither the resources nor the manpower to maintain anything larger than a self-defence force, Article 5 - which mandates signatories to "assist the Party or Parties so attacked by taking forthwith... the use of armed force" - entails beggaring their economies for a standing force which they themselves scarcely use. Minor nations' place in the OFN, with these constraints in mind, was subject to vigorous debate until a compromise solution was amended into the San Francisco Charter.
+The now-termed "Dependent Status Clause" exempts member-states which fit a list of strict criteria from fulfilling their Article 5 obligations. In effect, the US Armed Forces subsumes a large portion of the duties their militaries are expected to perform. Only the West Indies Federation, Haiti, British Honduras, Guyana, Suriname and the Faroes classify for the special status as of 1962. Members with the tag "Dependent Member of the OFN" hold this rank.
+
+
+
+
+OFN Partner: While not a full member of the Organization of Free Nations, partner nations have close defence ties with the United States and are connected with the alliance through various programs. OFN Partnership is an informal title characterised by conditional defence development arrangements between a partner nation and the many OFN-affiliated governmental organisations.
+Partnership programs began in 1950 with the OFN-OAS Defence Compact, whereby the OFN could offer defensive modernisation to members of the Organisation of American States. Partnerships also facilitate military missions, grants, and other OFN aid. through their affiliation with these programs, partner nations may be granted observer status in the OFN Security Council and put on track for eventual full membership in the alliance. Members with the tag "OFN Partner" hold this rank.
+
+
+
+
+American Military Government: The United States has had experience instituting military districts - occupation zones whose inhabitants are subject to military, rather than extant local civilian laws - since the Reconstruction era. Aimed to enforce immediate peace and stability in war-torn or disputed regions, military governments are overseen by generals and involve sizable numbers of deployed American servicemen. Administrations may decide to continue this practice, for some reason or another, in the modern day. Members with the tag "American Military Government" hold this rank.
+
+
+
+
+OFN Mandate: Given the goals outlined by its framers, the OFN is not only expected, but also pressured to intervene in conflicts where the Free World's interests are at stake. Oftentimes the entities which emerge from them lack the stability, institutions and experience to maintain a successful democracy post-independence.
+Article 12 of the San Francisco Charter has presciently authorized the alliance to establish civil administrations in the aforementioned entities until capable local governments can oversee free and fair elections within their jurisdictions. Such a transitional period, it is hoped, will help create countries better equipped to seize their own destinies than otherwise. Members with the tag "OFN Mandate" hold this rank.
+
+
+
+
+
+Greater East Asia Co-Prosperity Sphere:
+
+
+
+
+
+Leader of the Sphere: The Dai Tōa Kyōeiken, commonly referred to as "The Sphere", is an international organization of independent Asian nations, liberated in the War Against Western Colonialism and Imperialism. At least, that's the official version. In reality, beyond its few voluntary members, the Sphere is filled with colonial governments in all but name, geared towards serving their Japanese slaveholders. The Co-Prosperity Sphere combines aspects of an economic union, a political superstructure, a military alliance and an integration project. Most importantly, however, it serves as a further extension of the Imperial stranglehold. Members with the tag "Leader of the Sphere" hold this rank.
+
+
+
+
+Core Member of the Sphere: When Pan-Asianism was in its infancy, Hsinking and Nanjing were forced into an economic bloc with Tokyo, fueling the Empire's oppressive war machine. The cultural ties between the two Chinese puppet states and Japan, combined with the two regimes' early participation in Japan's self-proclaimed Holy War, earned Manchukuo and the Republic of China their special places in the Sphere as permanent members of the Sphere Governing Council.
+However, while they enjoy a de jure seniority among other members of the Sphere, the reality is far less rosy than it appears. Both Hsinking and Nanjing have to, thanks to their higher on-paper status only, contribute a greater share into the Sphere's - or more accurately Japan's - defence and infrastructure fund. Needless to say, the "Core Membership" serves merely as an excuse to extort the peoples of China, yet neither the "Republic" of the South or the "Empire" of the North would give up this title upon which their legitimacy hinges. Members with the tag "Core Member of the Sphere" hold this rank.
+
+
+
+
+Independent Member of The Sphere: This nation is an independent member of the Dai Tōa Kyōeiken, joining the Sphere as a member by choice rather than as an involuntary puppet government. Many independent members were also participants in the Greater East Asia Conference in 1943, making them the founding members of the Sphere as well.
+While independent members' internal governance is free from Tokyo's direct interference, their economies are nevertheless under the influence of Japan's economic sphere, which, in turn, allows Japan to exert notable influence over their politics. Members with the tag "Independent Member of the Sphere" hold this rank.
+
+
+
+
+Economically Dependent Member of The Sphere: Despite being mostly independent, this nation's economy requires foreign intervention to stay afloat in the Dai Tōa Kyōeiken. This also includes further military cooperation with more independent members, and also generally more direct involvement from their overlords in general, as well as other regional powers in the Sphere. Members with the tag "Economically Dependent Member of The Sphere" hold this rank.
+
+
+
+
+Fully Dependent Member of The Sphere: This nation is entirely dependent on a foreign nation, in military, economic, and political aspects. They are involuntarily brought into the Dai Tōa Kyōeiken as a puppet nation, and are frequently subject to involvement in the Sphere's wars and diplomacy. However, control may often sow discord in these societies, which is likely to become rebellion. Members with the tag "Fully Dependent Member of The Sphere" hold this rank.
+
+
+
+
+Japanese Military Administration: This region is under temporary or permanent administration of the Japanese military. This region is directly subservient to the Imperial Headquarters in Tokyo, and little to no power is delegated to local civilian administrations. This is the most direct form of Japanese influence in a nation aside from complete annexation. Members with the tag "Japanese Military Administration" hold this rank.
+
+
+
+
+Corporate Dependency: Much less a nation and more of a giant corporate playground, the State of Guangdong's primary purpose is to facilitate trade and cheap manufacturing for the electronics conglomerates in the territory - which exert explicit political influence via their representation on the Legislative Council of Guangdong. The entire country, especially the cities, is largely void of trade laws and restrictions. Endless sweatshops dot the land, with corporate symbolism appearing in such magnitude one forgets that it is Japan, not the corporations, that ultimately benefits most from this unnatural arrangement. Members with the tag "Corporate Dependency" hold this rank.
+
+
+
+
+Sphere Observer: This status represents a nation gradually transitioning into full membership in the Co-Prosperity Sphere, usually through the means of extensive economic and diplomatic agreements and low-level military personnel training. Markets between these nations are often dominated by Japanese goods and are subject to the whims of Japanese investors, but the political landscape is usually untouched by Japanese interests, allowing the nation certain freedoms from Tokyo control. Members with the tag "Sphere Observer" hold this rank.
+
+
+
+
+Chinese Warlord: The Republic of China was never a unified political entity despite its claims. back in the days when China was engulfed by the flames of war, many Chiang aligned warlords surrendered to Wang Jingwei and his rebranded KMT, either out of the simple desire to survive under the New Order, or as an attempt to preserve their might until a leader emerges and firebrands the torch of liberation.
+Nevertheless, those regimes, while nominally subservient to the Nanking Government, are highly autonomous both politically and militarily. it is extremely difficult for either Nanking or Tokyo to exert any substantial influence over these warlord-controlled regions: it is not an understatement that those Chinese "provinces" are no different from a fully-fledged sovereign state except in name. Members with the tag "Chinese Warlord" hold this rank.
+
+
+
+
+
+Einheitspakt:
+
+
+
+
+
+Master of Europe: The Einheitspakt, referred to in international circles as the Unity-Pakt, is the Pan-European alliance of the Nazi Order. Gone is the old order of decadent states and degenerate corruption - in its place stands now European Brotherhood and Unity, guided by German hegemon. The Pakt consists of many charters, detailing the economic, military and political relations of its many member states, each ultimately designed in German interest. With its unparalleled control over European affairs, the Pakt is truly the linchpin of European destiny - and the Reich, the Master of Europe. Members with the tag "Master of Europe" hold this rank.
+
+
+
+
+Ordensstaat: Unique among the Pakt, this nation is a Ordensstaat, a military administration controlled exclusively by the SS. While formally politically, militarily and economically part of the Reich as a whole, under the ultimate command of the Führer, in reality, the Ordensstaat is little more than a private fiefdom of the Reichsführer-SS, Heinrich Himmler. Little information is revealed to the public on the inner workings of the Ordensstaat , but rumours abound of total and complete control of the citizenry's actions, words and even thoughts. the illusion of German control over the Ordensstaat is a shaky on, and but a single spark could set the whole thing ablaze. Members with the tag "Ordensstaat" hold this rank.
+
+
+
+
+Bündnispartner: A Bündnispartner of the Greater Germanic Reich, this nation has seen the wisdom in peaceful cooperation and mutual assistance with Europe's greatest empire and joined the Einheitspakt as an equal partner. Now seen as an ally of the Reich on the global stage, it is subject to the plethora of treaties and responsibilities the alliance subjects it to. Even though the quest for brotherly unity is stated to be the reason for membership in the Einheispakt, it is more often than not the lure of economic prosperity and safety that draws nations into this not-so-equal relationship. Members with the tag "Bündnispartner" hold this rank.
+
+
+
+
+Mitstreiter: A proud Mitstreiter of the Greater Germanic Reich, this nation has thrown off the shackles of degeneracy and entered into a new age. Now regarded as a close brother-in-arms in the fight for European Unity and Prosperity under the Einheitspakt, its fate is intertwined with Germany's. Germania insists this is a mutual and prosperous relationship. although in truth the so-called brother-in-arms serves more as an instrument than an equal partner. Members with the tag "Mitstreiter" hold this rank.
+
+
+
+
+Marionettenstaat: This nation is a Marionettenstaat, an ostensibly independent member of the Pakt. So close is the brotherhood between this country and the Reich that they vote wholly in each others interests during Pakt Councils, closely following the lines put forward by Germanian representatives. There are Germans in the streets, at business ventures, in the barracks, and in the Halls of Government - such is their support for the Pan-European ideal. The Mitstreiter all are close brothers-in-arms of the Reich, but the Marionettenstaat are even closer, dancing at strings' end to the Horst-Wessel-Leid. Members with the tag "Marionettenstaat" hold this rank.
+
+
+
+
+Protektorat: This nation is a Protektorat, the vestige of a former nation now almost fully integrated into the Reich. By Germania's account, the Protektorats are special regions of the Reich chosen to administrate themselves and to manage their affairs with some degree of autonomy. However, under this façade of autonomy rests a system of economic and political control ultimately drawing back to Germania. Their economies commanded by German companies, their politics closed with German stamps, Protektorats are the extended shadow of the Reich. Not all provinces of the Reich bear the name, and Protektorats might yet too. Members with the tag "Protektorat" hold this rank.
+
+
+
+
+Integrated Reichskommissariat: An Integrated Reichskommissariat is a colonial administration employed by the Reich to prepare it for and close to annexation. The administration is increasingly being tied to that of the Reich itself, to the point that business and people now flow without issue across their boundaries. Similarly the increasingly more political appointments within this Reichskommissariat's administration are only one of several signs of what's to come as a soon-to-be province of Germany. Members with the tag "Integrated Reichskommissariat" hold this rank.
+
+
+
+
+Autonomous Reichskommissariat: An Autonomous Reichskommissariat, much like its Integrated alternative, is not a nation but rather a colonial administration employed by the Greater Germanic Reich to prepare it for its inevitable annexation. Headed by a Führer-appointed Reichskommissar, these administrative regions have been granted a degree of autonomy from the usually close oversight from Germania, either due to their distance from the homeland or regional particularities. The guise of autonomy applies only to its elite, and what they do with it is theirs only to decide. Members with the tag "Autonomous Reichskommissariat" hold this rank.
+
+
+
+
+Pakt Observer: This nation is one with close ties to Germany and its fellows in the Einheitspakt, and having been granted observer status within the organization. While maintaining its independence from the Pakt, this nation is given the privilege of participating in some Einheitspakt programs and activities, while in turn sharing some of the Pakt Members' responsibilities and obligations. Members with the tag "Pakt Observer" hold this rank.
+
+
+
+
+Militarverwaltung: Established under a series of treaties between Germany and its host state, the Militarverwaltung receives its orders directly from the offices of the Oberkommando des Heeres. With its special authority it manages near all affairs of it granted territory, providing oversight in police operations, intervening in local government, and above all watching its host for any sign of indiscretion. It is by these means that the Militarverwaltung is known to be the most pronounced arm of German control. Members with the tag "Militarverwaltung" hold this rank.

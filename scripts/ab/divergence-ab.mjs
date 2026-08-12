@@ -118,6 +118,9 @@ const judgeOnce = async (first, second) => {
       options: { temperature: 0 },
     }),
   });
+  // An HTTP error body is not SSE: without this check it parses to an empty
+  // text that the caller would score as a real (blank) judgment.
+  if (!response.ok) throw new Error(`ollama ${response.status}`);
   let text = "";
   let buffer = "";
   const decoder = new TextDecoder();
@@ -130,7 +133,13 @@ const judgeOnce = async (first, second) => {
       try { text += JSON.parse(line)?.message?.content ?? ""; } catch { /* keep-alive line */ }
     }
   }
-  const match = /\b([AB])\b/.exec(text);
+  // The pick is read ONLY from the head of the reply. The first draft scanned
+  // the whole text for a bare A/B (/\b([AB])\b/), and re-verification built the
+  // counterexample: "Neither - Both A and B follow…" parses as a confident "A".
+  // Every legitimate judgment this harness has ever recorded starts with the
+  // letter ("A - reason" / "B - reason"), so anchoring loses nothing and turns
+  // refusals into "?" — which the empty-judgment guard already counts honestly.
+  const match = /^\s*["'[(]?([AB])\b/.exec(text.trim());
   return { pick: match?.[1] ?? "?", reason: text.trim().slice(0, 160) };
 };
 
@@ -171,7 +180,10 @@ const accuracy = correct / total;
 const out = path.join(ROOT, "docs", "analysis", `divergence-${contractKey}-${consumer}.txt`);
 fs.writeFileSync(out,
   `divergence: ${contractKey} x ${consumer} | ${pairs} pairs x 2 judgments\n`
-  + `accuracy ${correct}/${total} (${accuracy.toFixed(2)}) | order-swap contradictions ${contradictions}/${pairs}\n\n${notes.join("\n\n")}\n`, "utf8");
+  + `accuracy ${correct}/${total} (${accuracy.toFixed(2)}) | order-swap contradictions ${contradictions}/${pairs}`
+  // The file is the record; a failure verdict that lives only in a console
+  // scrollback is a failure that gets cited as a measurement later.
+  + ` | empty judgments ${unparsed}/${total}${unparsed * 2 >= total ? " | INSTRUMENT FAILURE — conclude nothing from this file" : ""}\n\n${notes.join("\n\n")}\n`, "utf8");
 
 console.log(`\n  accuracy ${correct}/${total} (${accuracy.toFixed(2)}) · chance 0.50 · contradictions ${contradictions}/${pairs}${unparsed ? ` · EMPTY JUDGMENTS ${unparsed}/${total}` : ""}`);
 console.log(`  detail: ${path.relative(ROOT, out)}`);

@@ -1,0 +1,205 @@
+TNO anchor pilot v2 | 6 runs
+fired 4/6 · exact date 4/6
+
+-- v2 1/6 — fires:true onDate:true
+```json
+{
+  "events": [
+    {
+      "date": "1962-01-01",
+      "title": "The New Year's Proclamation of Unity",
+      "description": "As the first rays of 1962 rise over the Reich, a massive state ceremony is held in Berlin to mark the beginning of a new era of consolidation. The High Command issues a formal decree emphasizing the absolute unity of the German people under the current leadership, ensuring that any internal dissent regarding the transition of power is met with immediate administrative scrutiny.\n\nThe atmosphere in the capital is one of disciplined fervor. Propaganda broadcasts across the entire Einheitspakt territory, reinforcing the message that the Reich remains unshakable and its core institutions are functioning at peak efficiency. The focus is on stability; every official and citizen is reminded that their primary duty is to the continuity of the state.\n\nThis internal consolidation serves as a signal to both domestic rivals and foreign adversaries that the leadership's grip on power is absolute. While the world watches with bated breath, the Reich remains focused inward, perfecting its machinery of government and ensuring that the gears of industry and military preparation continue to turn without a single skipped beat."
+    },
+    {
+      "date": "1962-01-19",
+      "title": "The Reich's Last Conquest",
+      "description": "In a historic moment that echoes across the globe, Eberhard Köllner becomes the first man to land on the Moon. This triumph is not merely a feat of engineering but a definitive declaration of German superiority in the final frontier. The image of the Reich flag planted in the lunar dust sends a shockwave through the international community.\n\nThe United States and the Empire of Japan are forced into a humiliating diplomatic retreat. In an official communique, the United States pledges to establish a permanent moon base under agreed-upon protocols, while Japan formally commits its resources toward the exploration of Mars. The conquest is absolute; the space race is won by the Reich.\n\nThis victory provides an immense boost to national morale and cements the Reich's position as the preeminent technological power of the century. The success of the mission reinforces the belief in the superiority of German science and determination, ensuring that for decades to come, the name of the Reich will be synonymous with the mastery of both Earth and the heavens."
+    },
+    {
+      "date": "1962-02-15",
+      "title": "Stabilization of the Inner Circle",
+      "description": "Following the lunar triumph, a series of internal administrative reforms are implemented to solidify the transition of leadership. The High Command initiates a 'Loyalty Audit' within the civil service and the military officer corps, ensuring that only those fully committed to the current succession plan hold positions of influence.\n\nThis process is designed to purge any lingering hesitation or factionalism among high-ranking officials. By streamlining the chain of command and rewarding those who demonstrate unwavering loyalty to the state's continuity, the Reich ensures a seamless transition of power. The oversight committees are expanded to monitor key industrial sectors, ensuring that production targets for both heavy machinery and advanced electronics remain unaffected by internal politics.\\n\nThe resulting stability is palpable. Reports from the provinces indicate that local administrations have successfully integrated new directives, creating a unified front. This period of stabilization ensures that the core functions of the Reich—defense, economy, and ideology—remain shielded from any potential ripples caused by the transition of leadership."
+    }
+  ]
+}
+```
+
+-- v2 2/6 — fires:false onDate:false
+```json
+{
+  "events": [
+    {
+      "date": "1962-01-01",
+      "title": "The New Year's Proclamation of Unity",
+      "description": "As the sun rises on the first day of 1962, the atmosphere across the Greater Germanic Reich is one of stoic determination and disciplined pride. In every major city from Berlin to the furthest reaches of the occupied territories, massive displays are erected to celebrate the continuity of the Reich's mission. The central government has issued a decree emphasizing that while the leadership remains firm, the focus for the coming year must be on internal consolidation and the hardening of the 'Festung Europa'.\n\nLocal administrators in the various Protektorats and Reichskommissariats have been instructed to intensify their propaganda efforts, ensuring that every citizen understands their role in the collective destiny of the Volk. The rhetoric is designed to project an image of absolute stability; there is no room for dissent or deviation from the established path. The transition into the new year serves as a psychological reaffirmation of the Reich's permanence and its status as the Master of Europe.\n\nIn the industrial heartlands, production quotas have been increased to support the ongoing integration projects of the Einheitspakt. The message is clear: the Reich does not merely exist; it expands and strengthens. The administration has signaled that any internal movements seeking to destabilize the current order will be met with the full weight of the state's security apparatus."
+    },
+    {
+      "date": "1962-01-15",
+      "title": "The Iron Decree on Succession",
+      "description": "To ensure the longevity of the regime, a series of high-level administrative decrees were signed and distributed across all government branches. These documents explicitly outline the protocols for leadership succession, ensuring that in the event of any unforeseen transition, the mechanisms of state power remain uninterrupted. This is not merely a legal maneuver; it is a public demonstration of the Reich's permanence against its critics.\n\nBy codifying the chain of command and establishing a rigorous system of oversight for high-ranking officials, the central leadership has sought to eliminate any possibility of internal power struggles or factionalism. The goal is to create a seamless transition that would leave no room for challengers to emerge during a period of change. This move has been lauded by the inner circle as a masterpiece of political engineering.\n\nThe decree also mandates that all members of the SS and the Wehrmacht be briefed on these protocols, ensuring that the military and security apparatus remain loyal to the state's continuity above all else. The focus is on the preservation of the Reich's core ideology and its geopolitical standing in the face of a rapidly changing global landscape."
+    },
+    {
+      "date": "1962-01-30",
+      "title": "Solidarity of the Einheitspakt",
+      "description": "A series of diplomatic communiqués were exchanged between the capital and the various member states of the Einheitspakt. These communications reaffirm the mutual commitment to the collective defense of European interests and the shared economic goals of the pact's members. The message is intended to project a unified front against any external pressures or internal instabilities.\n\nBy reinforcing these ties, the Reich ensures that its neighbors—the Bündnispartner and the Marionettenstaat—remain firmly within its sphere of influence. The exchange included specific clauses regarding joint infrastructure projects and the standardization of industrial protocols across the continent, further weaving the economies of the member states into a single, cohesive fabric.\n\nThis diplomatic offensive serves to solidify the Reich's role as the undisputed leader of Europe. By presenting the Einheitspakt as an unbreakable monolith, the leadership ensures that any threat to one is perceived as a threat to all, thereby securing the Reich's hegemony for years to come."
+    },
+    {
+      "date": "1962-02-01",
+      "title": "The Winter Consolidation of the Eastern Frontiers",
+      "description": "As winter settles over the eastern territories, a massive logistical effort has been initiated to fortify and secure the border regions. This operation is designed to ensure that the internal borders between the Reich and its neighboring zones are impenetrable. The focus is on infrastructure: repairing rail lines, building fortified outposts, and ensuring that supplies reach the border garrisons without delay.\n\nThis move aims to create a permanent physical barrier against any potential incursions while simultaneously serving as an intimidating display of force to those outside the Reich's immediate control. The local population in these areas is being integrated into the defense effort, with many being conscripted into auxiliary labor units to maintain the infrastructure.\n\nBy stabilizing these regions early in the year, the leadership ensures that the internal focus can remain on economic expansion and the consolidation of domestic policy without the threat of external disruption. The borderlands are becoming a fortress, securing the heartland for the Reich's future ambitions."
+    },
+    {
+      "date": "1962-02-15",
+      "title": "Economic Integration Initiatives",
+      "description": "The Ministry of Economics has launched a series of initiatives aimed at harmonizing the industrial output of the various territories under the Einheitspakt. These measures include the creation of centralized distribution hubs and the standardization of currency for trade within the pact's zones. The goal is to create a seamless economic environment where goods flow freely between member states.\n\nThis integration is designed to reduce the reliance on independent markets and solidify the Reich's role as the primary hub of commerce in Europe. By streamlining trade, the Reich can better manage its resources and ensure that its industrial goals are met with maximum efficiency. The move also forces smaller nations into a deeper level of economic dependency.\\n\nAdditionally, these measures have streamlined the production of essential goods for the military, ensuring that the Reich's defense capabilities remain at peak readiness. The consolidation of the economy is viewed as a cornerstone of long-term stability and power."
+    },
+    {
+      "date": "1962-02-25",
+      "title": "Security Protocol Reinforcement",
+      "description": "A nationwide review of internal security protocols has been conducted to identify and neutralize any potential cells of dissent. This operation, conducted primarily by the SS in cooperation with local security forces, is aimed at ensuring that the 'spirit' of the Reich remains unified across all levels of society.\\n\nThe focus is on monitoring communication networks and ensuring that propaganda reaches every household without interference. Any individuals found to be questioning the leadership or the core tenets of the state are being re-educated or removed from public life. This proactive stance ensures that internal stability remains absolute as the nation moves into the next phase of its development.\n\nFurthermore, the security forces have been instructed to increase their presence in urban centers and industrial zones to ensure that production quotas are met without disruption. The goal is a society where order is maintained not just by law, but by a shared sense of purpose and fear of the consequences of deviation."
+    },
+    {
+      "date": "1962-03-01",
+      "title": "The Spring Preparation Decree",
+      "description": "As the first month of March begins, a directive has been issued to prepare for the spring season. This involves the mobilization of agricultural labor and the preparation of public works projects intended to improve the quality of life in urban centers while maintaining high production levels.\n\nThis decree serves both as a practical measure for the coming season and a psychological tool to keep the population engaged with state-led initiatives. By involving the citizenry in large-scale construction and agricultural programs, the government reinforces its role as the provider of prosperity and order. The focus is on creating a sense of momentum and progress.\n\nFurthermore, this period marks the beginning of seasonal military exercises designed to test the readiness of the armed forces across all sectors of the Reich. These maneuvers are intended to showcase the power of the unified defense systems and ensure that the standing armies remain sharp and ready for any contingencies."
+    }
+  ]
+}
+```
+
+-- v2 3/6 — fires:false onDate:false
+```json
+{
+  "events": [
+    {
+      "date": "1962-01-01",
+      "title": "The New Year's Decree of Unity",
+      "description": "As the first rays of January light touch the monuments of Berlin, the High Command issues a sweeping decree aimed at solidifying internal stability. The transition following the previous decade's upheavals has left certain administrative sectors in the Reich feeling adrift; this decree mandates a rigorous standardization of civil service protocols across all Protektorats and Integrated Reichskommissariats.\n\nThe objective is to ensure that the machinery of the state operates with seamless precision, removing any ambiguity regarding the chain of command. By centralizing the oversight of local governance under a unified administrative code, the Reich aims to eliminate the bureaucratic friction that often plagues expanding empires. This move is designed to project an image of absolute stability and permanence to both the domestic populace and the wary eyes of the international community.\\n\nWithin the halls of government, the atmosphere is one of disciplined focus. The promotion of loyalist bureaucrats into key positions in the outlying territories ensures that the ideology of the Reich remains untarnished by local customs or competing interests. This internal consolidation is the cornerstone of the current strategy: ensuring the succession of power and the continuity of the state remain unchallenged by domestic dissent or logistical failures."
+    },
+    {
+      "date": "1962-01-15",
+      "title": "The Iron Guard's Vigilance",
+      "description": "Reports from the interior suggest that the transition to the new administrative standards is proceeding with commendable efficiency. The SS and internal security apparatus have intensified their presence in key industrial hubs, ensuring that production targets remain met despite the reorganization of local management. This oversight serves a dual purpose: maintaining economic output while simultaneously rooting out any subversive elements attempting to exploit the period of bureaucratic transition.\n\nIn the eastern territories, the integration of infrastructure projects has begun to show tangible results. The consolidation of transportation networks under unified Reich command allows for a more seamless movement of goods and personnel, effectively knitting the disparate parts of the empire into a single, cohesive entity. This logistical triumph is being hailed by state media as a testament to the efficiency of the Einheitspakt's overarching vision.\\n\nFurthermore, the propaganda machine has successfully pivoted toward celebrating the 'Era of Stability.' Public gatherings and state-sponsored events emphasize the permanence of the current leadership. By focusing on the internal strength and organizational perfection of the Reich, the government aims to insulate the populace from external pressures and ensure that the core tenets of the state remain the only guiding light for the people."
+    },
+    {
+      "date": "1962-02-10",
+      "title": "The Winter Harvest Logistics",
+      "description": "As winter persists across the heartlands, the Reich's logistical arm has successfully streamlined the distribution of essential supplies to the northern districts. The coordination between the industrial centers and the agrarian zones has been bolstered by the new unified oversight protocols, ensuring that grain and fuel reserves remain at optimal levels for the coming quarter.\n\nThis achievement is not merely a victory of logistics but a demonstration of the Reich's ability to govern vast territories with an iron grip. The seamless transition of goods through newly streamlined checkpoints reflects the successful implementation of the January decrees. Local administrators in the outlying territories report that the clarity of the new directives has reduced confusion and improved the speed of local governance significantly.\\n\nInternationally, this period of internal consolidation is being observed with growing concern by the members of the Triumvirate and the OFN. The visible stability of the Reich's domestic operations suggests a government that is not merely surviving but actively refining its grip on power. The message to the world is clear: the Reich is stable, organized, and prepared for the long term."
+    },
+    {
+      "date": "1962-03-01",
+      "title": "The Spring Equinox Preparations",
+      "description": "With the arrival of March, the transition into the spring season sees a surge in both industrial activity and public works projects. The government has authorized a series of infrastructure expansion programs intended to further integrate the outlying regions with the central heartland. These projects are designed to facilitate even greater economic flow while reinforcing the presence of Reich administration in recently integrated zones.\\n\nThe sentiment within the capital is one of quiet confidence. The successful implementation of the 'Succession Stability' protocols has resulted in a measurable decrease in administrative friction and an increase in reporting accuracy from distant provinces. This internal cohesion provides the leadership with a solid foundation upon which to project power externally, ensuring that any future expansion or defense remains supported by a robust and unwavering domestic core.\\n\nAs the new month begins, the focus shifts toward preparing the populace for the upcoming cycle of production. The rhetoric emphasizes the 'unbreakable chain' of the Reich’s governance. By ensuring that every citizen understands their role in the grander architecture of the state, the leadership ensures that the succession remains steady and the spirit of the nation remains unified under a single, unwavering banner."
+    }
+  ]
+}
+```
+
+-- v2 4/6 — fires:true onDate:true
+```json
+{
+  "events": [
+    {
+      "date": "1962-01-01",
+      "title": "The New Year's Proclamation of Unity",
+      "description": "As the sun rises over Berlin on the first day of 1962, the Great Hall of the Volkshalle echoes with the resonance of a new era. The transition of leadership is heralded not merely as a change in personnel, but as a solidification of the Reich's eternal mandate. To ensure the succession remains steady and the momentum of the Einheitspakt remains unchecked, a series of decrees have been issued across all Protektorats and Reichskommissariats.\n\nThese decrees mandate a period of 'Stabilization and Consolidation,' during which the primary focus of every administrative branch is to reinforce the loyalty of the local populace. Propaganda machines are working overtime to project an image of unshakable continuity. The message is clear: the leadership's transition is seamless, as if the very spirit of the Reich has simply reaffirmed its position on the world stage.\n\nIn the industrial heartlands of the Ruhr and the sprawling construction sites of the expanded Eastern territories, workers are being reminded that their labor fuels the destiny of a thousand-year vision. The state's economic apparatus is tightening its grip on production quotas to ensure that no internal friction can disturb the transition. For now, the Reich stands as a monolith of iron will, demanding absolute focus from its citizens and its subordinates alike."
+    },
+    {
+      "date": "1962-01-15",
+      "title": "The Consolidation of the Inner Circle",
+      "description": "Within the inner sanctums of the Reich's governance, a series of high-level meetings have been convened to purge any potential dissidents who might attempt to exploit the transition period for personal gain or political maneuvering. The 'Order of Succession' is being enforced with clinical precision; any official found attempting to forge their own path or create internal factions is being swiftly removed and replaced by loyalists from the SS-Ordensstaat.\n\nThis internal cleansing ensures that the machinery of state continues to function without a moment's hesitation. The bureaucracy is being streamlined, ensuring that the transition of authority flows like a river of steel through every level of the hierarchy. No room is left for ambiguity; the chain of command is absolute and unquestioned.\n\nFurthermore, the coordination between the Reich and its primary partners in the Einheitspakt—the Bündnispartner and Marionettenstaat—has been reinforced. They are reminded that their stability is tied directly to the stability of the Reich. By projecting an image of total internal cohesion, the Reich ensures that its allies see no weakness to be exploited, maintaining the status quo of the European order."
+    },
+    {
+      "date": "1962-02-10",
+      "title": "Economic Stabilization Protocols",
+      "description": "To further bolster the stability of the succession, the Reich has implemented a series of economic stabilization protocols across its territories. These measures are designed to ensure that the transition does not impact the flow of goods or the distribution of resources. By maintaining a steady economic pulse, the government ensures that the populace remains occupied with production and trade rather than political speculation.\n\nIn the Integrated Reichskommissariats, new quotas have been established for heavy machinery and steel production to ensure the ongoing expansion of infrastructure projects. These works serve as public displays of the state's continued vitality. The steady flow of resources into the national coffers ensures that the government can continue its extensive social programs without interruption.\n\nSimultaneously, trade agreements with other members of the Einheitspakt have been reaffirmed. By ensuring that the economic sphere remains stable and predictable, the Reich prevents any external actors from perceiving internal instability. The economy is being used as a tool of psychological warfare; a thriving, productive nation is one that cannot be shaken by the shifting tides of political transition."
+    },
+    {
+      "date": "1962-01-19",
+      "title": "The Reich's Last Conquest",
+      "description": "In a historic moment that transcends terrestrial politics, the Reich's dominance is solidified in the heavens. Eberhard Köllner becomes the first man to land on the Moon, marking the definitive victory of the Reich in the space race. This achievement is not merely a scientific triumph but a symbolic crowning of the Reich's superiority over its rivals.\n\nFollowing this monumental success, the United States and the Empire of Japan have been forced into humiliating concessions regarding their own celestial ambitions. The US has pledged to establish a permanent moon base under terms favorable to the Reich, while Japan has committed to a long-term mission to Mars. This victory provides a massive boost to national pride and confirms the superiority of German engineering and will.\\n\nThe achievement serves as a powerful distraction from any mundane domestic concerns, framing the leadership's transition as part of an unstoppable upward trajectory toward the stars. The world now looks at the Reich not just as a continental power, but as the primary architect of human destiny in the cosmos."
+    },
+    {
+      "date": "1962-03-01",
+      "title": "The Spring Equinox Proclamation",
+      "description": "As the first days of March arrive, the Reich issues a proclamation celebrating the 'Spring of New Beginnings.' This is intended to cement the narrative that the succession has been completed successfully and that the nation enters its next phase with full strength. The atmosphere in the capital is one of celebration and pride, bolstered by the recent lunar success.\n\nReports from the various administrative districts indicate a high level of public compliance and enthusiasm. The integration of propaganda and the tangible successes of the state have created a unified national front. The transition of leadership has been successfully shielded from scrutiny, appearing to the public as a seamless evolution rather than a moment of vulnerability.\n\nThe Reich's standing within the Einheitspakt remains firm. The neighboring nations see no signs of hesitation or internal strife, but rather a reinforced and revitalized leadership. The period of transition is effectively over in the eyes of the world; the machine continues to turn, fueled by the conviction that its path is absolute."
+    }
+  ]
+}
+```
+
+-- v2 5/6 — fires:true onDate:true
+```json
+{
+  "events": [
+    {
+      "date": "1962-01-01",
+      "title": "The Winter of Resolve",
+      "description": "As the new year dawns over the vast expanse of the Reich, the atmosphere in Berlin is one of somber determination. The transition of power following the recent leadership shifts has placed a significant burden on the administrative apparatus. To ensure the stability of the state, the high command has issued strict directives to all regional governors and provincial administrators: the status quo must be maintained with absolute precision. Any deviation from established protocols or unauthorized policy shifts are to be met with immediate disciplinary action.\n\nIn the industrial heartlands of the Ruhr and the manufacturing hubs of the East, production quotas remain unchanged. The propaganda machine is working overtime to project an image of unwavering stability to the populace, emphasizing the continuity of the Reich's mission. While the internal gears of the government grind to adjust to the new leadership structure, the public face remains a monolith of granite; the message is clear: the Reich is unshakable.\n\nThis period of consolidation is intended to solidify the authority of the current leadership and ensure that the bureaucracy functions seamlessly during the transition. By suppressing any internal dissent or radical initiatives, the leadership aims to create a foundation of stability from which future expansion can be orchestrated. For now, the goal is not growth, but the preservation of the existing order."
+    },
+    {
+      "date": "1962-01-15",
+      "title": "Consolidation of the Inner Circle",
+      "description": "The Ministry of Interior has successfully completed a sweeping audit of the regional administrative bodies within the Einheitspakt. The objective was to identify and neutralize any elements of 'administrative drift'—those instances where local leaders attempted to exert independent influence on national policy during the leadership transition. By standardizing the reporting procedures across all territories, from the heart of Germany to the furthest reaches of the Reichskommissariats, the central government has effectively tightened its grip.\n\nThis administrative tightening has had a calming effect on the markets within the Einheitspakt's sphere of influence. Investors and industrialist conglomerates, who were previously wary of the uncertainty surrounding the succession, have noted the firm hand of Berlin in maintaining order. The flow of resources across borders remains steady, and the production of essential war materials continues at peak capacity.\n\nWhile some local officials expressed frustration at the loss of autonomy, the overarching success of the policy is evident. The transition period is proceeding without the expected ripples of civil unrest or economic volatility. The 'hold' command has been internalized by the bureaucracy as a mandate for total compliance."
+    },
+    {
+      "date": "1962-01-30",
+      "title": "The Order of Stability",
+      "description": "A series of internal communiqués from the high command confirms that the transition period is progressing according to the highest expectations. The 'Hold' order has been successfully disseminated through every level of the military and civil hierarchy. In the occupied territories, the presence of the SS remains firm, ensuring that local populations are kept in a state of disciplined compliance while the administration settles into its new rhythm.\n\nIn the industrial sectors, this stability has allowed for the uninterrupted manufacturing of heavy machinery and high-grade steel. The lack of sudden policy shifts means that factory managers can plan their production cycles with confidence, contributing to a steady growth in the Reich's industrial output despite the internal complexities of the transition. The economy remains insulated from the political nuances occurring at the highest levels.\n\nFurthermore, diplomatic channels with neighboring states and members of the Triumvirate remain static. By projecting an image of absolute internal stability, the Reich avoids providing any opening for foreign intervention or criticism during this sensitive window. The message to the world is clear: the Reich is a monolith, unmoved by the passage of time or the changing of leaders."
+    },
+    {
+      "date": "1962-01-19",
+      "title": "The Reich's Last Conquest",
+      "description": "In a monumental achievement that has reshaped the geopolitical landscape of the 20th century, Eberhard Köllner became the first human being to set foot upon the lunar surface. The successful landing and subsequent establishment of orbital dominance have effectively concluded the space race as it was previously known. This victory is not merely a scientific milestone; it is a profound demonstration of the Reich's technological superiority and its ability to project power into the very heavens.\n\nFollowing this historic event, the international community has been forced to acknowledge the new reality of orbital dominance. The United States of America, acknowledging their inability to compete in the immediate future, has pledged to establish a permanent lunar base under specific protocols. Simultaneously, the Empire of Japan has made a formal commitment to focus its space exploration efforts on Mars. This pivot allows both Western powers to maintain some semblance of prestige while conceding the primary theater of lunar dominance to the Reich.\\n\nThis victory provides the Reich with an unprecedented strategic advantage in satellite communications and orbital observation. The consolidation of this power ensures that the Reich's reach is no longer limited by the geography of Earth, but extends into the cosmos. This achievement serves as a powerful propaganda tool, signifying that the Reich's destiny is among the stars."
+    },
+    {
+      "date": "1962-02-15",
+      "title": "Logistical Synchronization",
+      "description": "The Ministry of Transport has initiated a new phase of logistics synchronization across the Einheitspakt. With the leadership transition stabilized by the 'Hold' order, officials have begun optimizing the rail and shipping lanes that connect the various Reichskommissariats to the central hubs in Germany. The goal is to ensure that the flow of raw materials—specifically coal and iron—remains uninterrupted and efficient.\n\nThese improvements are designed to minimize the costs of transportation while maximizing the volume of goods moved across the vast territories. By streamlining the bureaucracy at transit points, the Reich can maintain a high level of industrial output without increasing the strain on its labor force. The stability of these routes is essential for maintaining the economic momentum of the East.\n\nThe integration of infrastructure projects continues to provide a steady boost to the GDP, as new hubs and streamlined lanes allow for faster turnover of goods. While these changes are logistical in nature, they represent a crucial step in ensuring that the Reich's economy remains robust and self-sufficient under its current leadership."
+    },
+    {
+      "date": "1962-03-01",
+      "title": "The Spring of Certainty",
+      "description": "As the first month of March begins, the atmosphere within the Reich is one of settled confidence. The initial period of transition has passed without any significant incidents of unrest or economic volatility. The 'Hold' order has successfully insulated the nation from the potential chaos often associated with leadership transitions, allowing the machinery of state to continue its work without interruption.\n\nReports from the various districts indicate that production levels are holding steady, and the integration of infrastructure projects is yielding consistent results. The population remains focused on their duties, and the propaganda machine continues to project a vision of an unstoppable, unified Reich. The stability achieved in these first two months provides a solid foundation for the next phase of national planning.\\n\nFurthermore, the international community observes a Reich that appears perfectly composed. By maintaining a steady course during this period, the leadership has signaled its strength and resolve. The internal mechanics of the state are now fully synchronized with the current administration's goals, ensuring that the transition is not just a moment in time, but a permanent hardening of the Reich's power."
+    }
+  ]
+}
+```
+
+-- v2 6/6 — fires:true onDate:true
+```json
+{
+  "events": [
+    {
+      "date": "1962-01-01",
+      "title": "The New Year's Proclamation of Unity",
+      "description": "As the first bells of 1962 ring across the sprawling territories of the Reich, a massive state ceremony is broadcast from Berlin to every corner of the Einheitspakt. The atmosphere is one of somber determination and absolute unity. High-ranking officials of the NSDAP and the SS deliver rehearsed addresses emphasizing the 'Eternal Order' that has been established over the European continent.\n\nThe primary objective of this year's opening rhetoric is internal stability. Following several years of rapid expansion, the leadership seeks to solidify the domestic loyalty of the populace by reinforcing the narrative of a unified destiny. The message is clear: the era of conquest is transitioning into an era of consolidation and cultural purification within the inner sanctum of the Reich.\n\nIn the various Protektorats and Reichskommissariats, local administrators are instructed to increase the presence of civil defense units to ensure that the transition into this new year remains undisturbed by external influences or internal dissent. The focus is on creating a sense of permanence in the current administration."
+    },
+    {
+      "date": "1962-01-15",
+      "title": "Consolidation of Internal Security",
+      "description": "The Ministry of Public Safety has initiated a comprehensive review of regional security protocols across all integrated territories. This initiative aims to streamline the coordination between the Gestapo and local administrative bodies in the Reichskommissariats. The goal is to identify and neutralize any remnants of anti-government sentiment that could threaten the stability of the state.\n\nIn addition to personnel shifts, a new series of 'Loyalty Decrees' has been issued for civil servants working within the infrastructure sectors. These mandates require those in positions of authority to undergo intensified ideological training to ensure their continued commitment to the Reich’s goals. This is part of a broader effort to insulate the government from any potential internal fluctuations during this period of transition.\n\nLogistically, the move has bolstered the sense of presence within the populace. While less visible than military maneuvers, the steady integration of security protocols into daily administration serves as a reminder of the Reich's absolute authority over its subjects."
+    },
+    {
+      "date": "1962-02-01",
+      "title": "The Expansion of the Industrial Core",
+      "description": "A significant expansion project has been launched in the heartlands of the Reich, aimed at increasing production capacity for heavy machinery and industrial components. This initiative is designed to ensure that the nation remains self-sufficient and capable of maintaining its infrastructure without relying on external supply chains.\\n\nThe construction involves a network of high-capacity rail lines and automated processing plants. By centralizing several manufacturing hubs, the Reich aims to streamline the production of essential goods for both civilian and military use. This economic push is intended to bolster the national economy while providing employment for hundreds of thousands of workers in the industrial sectors.\n\nInternational observers note that this move toward total self-sufficiency reinforces the boundaries of the Einheitspakt's economic sphere, making it increasingly difficult for outside entities to penetrate or influence the internal markets of the Reich."
+    },
+    {
+      "date": "1962-02-15",
+      "title": "The Solidarity of the Marching Youth",
+      "description": "A massive youth parade was organized in several major cities within the Reich, intended to demonstrate the vitality and devotion of the next generation. The event featured thousands of young participants marching in perfect synchronization, showcasing their commitment to the values of the state.\n\nThese demonstrations serve a dual purpose: they provide an outlet for public gathering while reinforcing the cultural homogeneity of the Reich's population. Education officials have reported that these types of events are vital for maintaining social cohesion and ensuring that the core tenets of the ideology remain unchallenged by outside influences or internal doubts.\n\nWhile the event was largely domestic in nature, its scale was designed to be visible from neighboring territories, serving as a display of strength and stability. The success of such gatherings is considered crucial for maintaining the 'steady succession' of the current order."
+    },
+    {
+      "date": "1962-01-19",
+      "title": "The Reich's Last Conquest",
+      "description": "In a historic moment that has reshaped the geopolitical landscape, Eberhard Köllner became the first man to land on the Moon. This achievement marks a definitive victory for the Reich in the space race, asserting its technological superiority over both Western and Eastern powers.\n\nFollowing the successful landing, international protocols were quickly established. The United States of America has officially pledged to establish a permanent moon base as part of a concession to the new reality of orbital dominance, while the Empire of Japan has committed to an ambitious program targeting Mars. This event serves as a massive propaganda victory for the Reich.\\n\nThe success of this mission has solidified the Reich's position as the premier technological power of the era. The ability to project presence into the heavens has not only secured a sense of pride among its citizens but also established a new frontier where the Reich’s influence is uncontested."
+    },
+    {
+      "date": "1963-03-01",
+      "title": "Quarterly Stability Assessment",
+      "description": "As the first quarter of 1962 concludes, a formal review of the Reich's internal stability has been conducted. The reports indicate that the transition into this new era has been remarkably smooth, with very little pushback from the populace or local administrations regarding the current leadership and policies.\n\nSecurity protocols have held firm, and the integration of various territories into the unified economy shows promising signs of growth. The 'steady succession' order has been met successfully; internal dissent remains at negligible levels, and the population appears to be fully integrated into the prevailing social structures. \n\nThe transition from a period of active conquest to one of institutional consolidation is proceeding according to plan. Infrastructure projects are moving on schedule, and the newly established moon presence provides a significant boost to national morale and international prestige."
+    }
+  ]
+}
+```

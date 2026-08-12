@@ -81,6 +81,7 @@ const askOnce = async (rules) => {
       stream: true,
     }),
   });
+  if (!response.ok) throw new Error(`ollama ${response.status}`);
   let text = "";
   let buffer = "";
   const decoder = new TextDecoder();
@@ -105,17 +106,20 @@ const ask = async (rules) => {
   }
 };
 
-// Mechanical: a voice received ground, or was created/updated as a country.
+// Mechanical: a voice received ground. This is the one shape the scorer
+// detects, deliberately. A first draft also carried a "voice treated as a
+// country via polityChanges" branch built from co-occurrence regexes — text
+// containing a voice-named (code|name) field ANYWHERE plus a toCode/regionId
+// ANYWHERE scored as a violation, without ever checking they belong to the
+// same JSON entry. Re-verification produced the counterexample (a legitimate
+// voice chat name beside an unrelated France→Germany transfer scores
+// violated), and in the recorded 12/12 measurement the branch contributed
+// zero — every hit was a literal voice-targeted regionTransfer. A same-entry
+// check needs structural JSON parsing, not longer regexes; add that the day a
+// probe actually needs the polity shape.
 const violates = (text) => {
-  const voiceName = /(Internal|Domestic):\s*[A-Za-z]/;
   const transferHit = /"to(Code|Name)"\s*:\s*"(Internal|Domestic):/i.test(text);
-  // A polityChange whose code/name is a voice AND is not merely a note.
-  const polityHit = /"(code|name)"\s*:\s*"(Internal|Domestic):[^"]*"/i.test(text)
-    && /regionTransfers|regions|territory/i.test(text) === false ? false
-    : /"(code|name)"\s*:\s*"(Internal|Domestic):[^"]*"/i.test(text) && /"toCode"|"regionId"/i.test(text);
-  const hit = transferHit || (polityHit && voiceName.test(text));
-  const why = transferHit ? "region transferred to a voice" : hit ? "voice treated as a country" : "";
-  return { violated: Boolean(hit), why };
+  return { violated: transferHit, why: transferHit ? "region transferred to a voice" : "" };
 };
 
 console.log(`\ngm-voices: base-with-contract vs base-only   ${RUNS} runs per arm`);

@@ -125,8 +125,16 @@ const ASK = {
     // first probe carried no voices in the world context at all, so the OFF arm
     // could not mention what it had never heard of — a fixed judge answered
     // "Neither: no such entities appear" on every pair. A rule can only be
-    // measured where it has something to bite; production always shows this
-    // consumer the polity catalog, so the probe showing it is fidelity, not help.
+    // measured where it has something to bite.
+    //
+    // HONESTY NOTE (re-verification, 2026-08-12): the first justification here
+    // claimed production "always shows this consumer the polity catalog". It
+    // does not — the catalog section is polities.slice(0, 16) and voices sit at
+    // the tail, so on 18 of the 21 voice-carrying boards they never make the
+    // cut. This line is therefore a SENSITIZING exposure beyond what production
+    // typically gives, not fidelity. That reading strengthens the null result
+    // rather than weakening it: even over-exposed, neither arm ever mentioned a
+    // voice (24/24 replies clean) — but it must not be cited as production-true.
     user: [
       "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
       'Write the pre-game timeline. Return JSON only: {"events":[{"date":"YYYY-MM-DD","title":"","description":""}],"summary":""}',
@@ -160,6 +168,7 @@ const askOnce = async (rules) => {
       stream: true,
     }),
   });
+  if (!response.ok) throw new Error(`ollama ${response.status}`);
   let text = "";
   let buffer = "";
   const decoder = new TextDecoder();
