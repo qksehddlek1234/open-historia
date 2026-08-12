@@ -9,6 +9,7 @@ import { normalizeDiplomaticRelations } from "./diplomacy.js";
 import { normalizeActionOutcome } from "./difficulty.js";
 import { gluedRecordProse, mergeRecoveredProse, repairGluedAction, repairGluedRecord, stripMachineSyntax } from "./machineSyntax.js";
 import { applyCanonRenames, setCanonRenames } from "./nameCanon.js";
+import { isTerritorylessVoiceName } from "./internalVoices.js";
 import { toCountryName } from "./ownerNames.js";
 import { normalizeTimeline } from "./periodTimeline.js";
 import { normalizePersonality } from "./countryPersonality.js";
@@ -95,6 +96,31 @@ export const WORLD_DEFAULTS = {
   // overridable per-world without touching geometry. Wins over feature props.
   regionClaimants: {},
   regionOwnershipOverrides: {},
+  // The board's STARTING ownership, where it differs from the geometry the store
+  // serves. Written once by share-base-map, then read-only forever.
+  //
+  // Only a scenario borrowing the shared base map has one. Its geometry carries
+  // MODERN owners, so "live override disagrees with the feature" — the test that
+  // means conquest on a board with its own map — is true for every region the era
+  // ever differed on. Without this, 1962 opens with 3,948 conquest borders.
+  baselineOwnership: {},
+  // Region ids that are EXPLICITLY UNOWNED — a separate channel from the
+  // override table on purpose.
+  //
+  // The obvious encoding, an override with an empty owner, is already taken and
+  // already means something else: a save damaged by the owner-blanking bug
+  // carries blank overrides, so every consumer reads blank as "damaged, fall
+  // through to the geometry's own owner" (Nations.jsx ownerByRegionId spells
+  // this out) and the normaliser below drops them outright. Reusing it would
+  // make an intended statement indistinguishable from a corrupted one.
+  //
+  // Why it needs saying at all: a scenario that borrows the shared base map
+  // inherits the base's owners, and the base is the modern world where nothing
+  // is unclaimed. Rome in 117 leaves 3,300 regions to nobody; without a way to
+  // cancel an inherited owner, those regions would quietly belong to Russia,
+  // the United States and Fiji. Empty on every save written before this — an
+  // absent list means "nothing to cancel", which is what those saves meant.
+  unownedRegionIds: [],
   simulationHistory: [],
   simulationRules: "",
   startingTimelineText: "",
@@ -745,6 +771,18 @@ const normalizeRegionTransfer = (entry) => {
     return null;
   }
 
+  // An internal voice holds no ground. Measured 2026-08-12 (voices ×
+  // gameMaster, 12/12 both arms): a direct player request defeats every
+  // prompt-side ban, and the GM answers "give Bayern to Internal: Head of
+  // Military" with a literal transfer — which this normalizer used to write
+  // straight into regionOwnershipOverrides, minting a landed voice on the
+  // map. The prompt cell stays (unenforced ≠ unnecessary); the ENGINE is
+  // where the rule holds. Dropped loudly, per the unitOps practice.
+  if (isTerritorylessVoiceName(toCode)) {
+    console.warn(`[gameState] 지역 이전 폐기: ${regionId} → "${toCode}" — 내부 보이스는 영토를 가질 수 없다`);
+    return null;
+  }
+
   return {
     fromCode,
     note: normalizeOptionalString(entry.note || entry.reason),
@@ -761,6 +799,14 @@ const normalizePolityChange = (entry) => {
 
   const code = toCountryName(normalizeOptionalString(entry.code || entry.id || entry.polityCode));
   if (!code) {
+    return null;
+  }
+
+  // Same guard as normalizeRegionTransfer: a polityChange addressed to an
+  // internal voice would mint or mutate a voice-named country row. Voices
+  // change through their own lane, never through the country table.
+  if (isTerritorylessVoiceName(code)) {
+    console.warn(`[gameState] 정치체 변경 폐기: "${code}" — 내부 보이스는 국가 테이블의 행이 아니다`);
     return null;
   }
 
@@ -1475,6 +1521,22 @@ export const normalizeWorldState = (world) => {
       .filter(([regionId, ownerCode]) => regionId && ownerCode),
   );
 
+  const baselineOwnership = Object.fromEntries(
+    Object.entries(nextWorld.baselineOwnership ?? {})
+      .map(([regionId, ownerCode]) => [normalizeOptionalString(regionId), toCountryName(normalizeOptionalString(ownerCode))])
+      .filter(([regionId, ownerCode]) => regionId && ownerCode),
+  );
+
+  // An id that ALSO carries a real override is owned, and the override wins:
+  // the two disagree only after a conquest wrote one without clearing the other,
+  // and a conquered region is owned. Deduped and sorted so the file does not
+  // churn on every write.
+  const unownedRegionIds = [...new Set(
+    normalizeArray(nextWorld.unownedRegionIds)
+      .map((regionId) => normalizeOptionalString(regionId))
+      .filter((regionId) => regionId && !regionOwnershipOverrides[regionId]),
+  )].sort();
+
   const regionClaimants = Object.fromEntries(
     Object.entries(nextWorld.regionClaimants ?? {})
       .map(([regionId, claimants]) => [
@@ -1561,9 +1623,11 @@ export const normalizeWorldState = (world) => {
     lastJumpSummary: normalizeOptionalString(nextWorld.lastJumpSummary),
     lastJumpTargetDate: normalizeOptionalString(nextWorld.lastJumpTargetDate),
     notes: normalizeOptionalString(nextWorld.notes),
+    baselineOwnership,
     polityOverrides,
     regionClaimants,
     regionOwnershipOverrides,
+    unownedRegionIds,
     simulationHistory: normalizeArray(nextWorld.simulationHistory)
       .map((entry) => {
         if (!entry || typeof entry !== "object") {
@@ -1825,6 +1889,13 @@ export const applyEventImpactsToWorld = ({ colors = {}, events = [], world, quie
   for (const event of normalizeEvents(events)) {
     for (const transfer of event.impacts.regionTransfers) {
       nextWorld.regionOwnershipOverrides[transfer.regionId] = transfer.toCode;
+      // Taking unclaimed ground is still taking it. normalizeWorldState would
+      // drop the stale entry on the next read anyway, but the map paints from
+      // this object before that happens, and a region that changed hands should
+      // not stay grey for a frame.
+      if (Array.isArray(nextWorld.unownedRegionIds) && nextWorld.unownedRegionIds.length > 0) {
+        nextWorld.unownedRegionIds = nextWorld.unownedRegionIds.filter((regionId) => regionId !== transfer.regionId);
+      }
     }
 
     for (const change of event.impacts.polityChanges) {

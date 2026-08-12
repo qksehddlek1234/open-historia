@@ -114,6 +114,27 @@ test("two overlapping squares are noded at their crossings into three faces", ()
   assert.deepEqual(areas, [1, 3, 3], "A-only, B-only, and the overlap — no invented territory");
 });
 
+test("a quantum staircase (the Albania trap) resolves as a T-junction and converges", () => {
+  // Two copies of the same border whose tips round ONE round5 quantum apart
+  // (the real coordinates: the Albania/Montenegro corner at 19.3782°E). The
+  // exact crossing sits 0.8-1.8 quanta short of the tips, so splitting at the
+  // ROUNDED point mints a brand-new node one quantum below the tip, re-anchors
+  // both segments to it, and the next pass finds the same configuration one
+  // step further down — a staircase that ran the pass cap forever and walked
+  // Albania's label off the map. Within END_TOL of an endpoint, the endpoint
+  // IS the junction: split only the other segment there, mint nothing.
+  const nodes = buildGraph([
+    [[19.35791, 42.03297], [19.3782, 42.06308]],
+    [[19.37553, 42.05337], [19.3782, 42.06309]],
+  ]);
+  const first = nodeCrossings(nodes);
+  assert.equal(first.crossingsSplit, 1, "one T-junction split — not a two-sided split at a minted node");
+  const second = nodeCrossings(nodes);
+  assert.equal(second.crossingsSplit + second.collinearPairs, 0, "pass two is CLEAN — the staircase generator is dead");
+  assert.equal(nodes.size, 4, "the T-junction station IS the existing tip — zero minted nodes");
+  assert.equal(nodes.get("19.3782,42.06308").nbrs.size, 3, "the tip carries all three arms of the T");
+});
+
 test("a shadow edge (the Vennbahn trap) is split and collapses, walks stay clean", () => {
   // v->(2,0) shadows half of v->(4,0): two edges leave (0,0) at the exact
   // same angle. Untreated, this degenerates the fan and face walks fall into
@@ -160,14 +181,24 @@ test("a border crossing the window edge closes against the frame", () => {
   assert.deepEqual(areas, [-100, 50, 50]);
 });
 
-test("empire-tier lines are excluded by count, not silently", () => {
+test("adminLevel is a CEILING: supranational rides in, deeper tiers are excluded by count", () => {
+  // The equality filter this replaces silently discarded every level-1 line
+  // (1,371 in the 1836 Overpass dump — the German Confederation's ring,
+  // whose lowest-parent rule labels long stretches of Prussia's and
+  // Austria's outer borders) and voided the 08-11 tile ≤3 experiment (its
+  // 1,153 level-3 lines never entered the graph). The fetcher keeps levels
+  // 1..max by contract; the assembler now honours the same reading.
   const features = [
     { properties: { admin_level: 1 }, geometry: { type: "LineString", coordinates: [[0, 0], [1, 0]] } },
-    { properties: { admin_level: "2" }, geometry: { type: "LineString", coordinates: [[0, 0], [1, 0]] } },
+    { properties: { admin_level: "2" }, geometry: { type: "LineString", coordinates: [[0, 1], [1, 1]] } },
+    { properties: { admin_level: 3 }, geometry: { type: "LineString", coordinates: [[0, 2], [1, 2]] } },
+    { properties: { admin_level: "x" }, geometry: { type: "LineString", coordinates: [[0, 3], [1, 3]] } },
   ];
   const { segments, stats } = normalizeSegments(features);
-  assert.equal(segments.length, 1);
-  assert.equal(stats.skippedAdmin, 1);
+  assert.equal(segments.length, 2, "level 1 and level 2 both enter at the default ceiling of 2");
+  assert.equal(stats.skippedAdmin, 2, "level 3 and the non-numeric level are counted out, not silent");
+  const wider = normalizeSegments(features, { adminLevel: 3 });
+  assert.equal(wider.segments.length, 3, "raising the ceiling admits level 3 — the experiment the old filter voided");
 });
 
 console.log("\nAssignment — one label names a face; ambiguity stays loud");
@@ -193,6 +224,39 @@ test("labels assign, conflict, and resolve same-name versions by latest start", 
   ]);
   assert.equal(conflicted.report.conflictFaces, 1);
   assert.deepEqual(conflicted.conflicts[0].names.sort(), ["Rival", "West"]);
+});
+
+test("THE SEA GUARD — a mostly-water face refuses its label, resolve or no resolve", () => {
+  // Measured 2026-08-12 on the 1836 ceiling run: the 1,602.9 deg² sea face
+  // carried Due Sicilie straight past both resolve guards (three labels,
+  // 13× depth margin) and the Mediterranean became Naples. Land fraction is
+  // the discriminator the other guards cannot see — and it must apply to
+  // SINGLE labels too, or a lone leaked center would take the ocean without
+  // even passing through resolve. Here: two faces, the west one land, the
+  // east one water; same label layout as the assign test.
+  const features = [{
+    properties: { admin_level: 2 },
+    geometry: { type: "MultiLineString", coordinates: [...square(0, 0, 2), ...square(2, 0, 2)].map((s) => s) },
+  }];
+  const landTest = (pt) => pt[0] < 2; // west square is land, east is open water
+  const out = assembleEraBorders(features, [
+    { name: "West", center: [1, 1] },
+    { name: "Atlantis", center: [3, 1] },
+  ], { landTest });
+  assert.equal(out.report.assignedFaces, 1, "the land face assigns");
+  assert.equal(out.byPolity.has("West"), true);
+  assert.equal(out.byPolity.has("Atlantis"), false, "the water face refuses its label");
+  assert.equal(out.report.seaRefusals.length, 1);
+  assert.equal(out.report.seaRefusals[0].names[0], "Atlantis");
+  assert.ok(out.report.seaRefusals[0].landFraction < 0.5, "and says how much water it saw");
+  // resolve cannot override the guard: a fused water face with a decisive
+  // depth winner still refuses
+  const fused = assembleEraBorders(features, [
+    { name: "Poseidon", center: [3, 1] },
+    { name: "Triton", center: [2.2, 1.8] },
+  ], { landTest, resolveConflicts: true });
+  assert.equal(fused.report.assignedFaces, 0);
+  assert.ok(fused.conflicts.some((c) => c.refusedResolution === "sea"), "refused as sea, not as margin");
 });
 
 test("decimation thins a coast but never opens it", () => {
@@ -281,6 +345,10 @@ test("the assembler fuses parity-dissolved coasts and reports every diagnosis li
   assert.match(CLI, /경계선 관계/, "border relations posing as polities are filtered out loud");
   assert.match(CLI, /applyCenterOverrides/, "bbox centers lie; hand-pinned interior points correct them");
   assert.match(CLI, /내륙국만 닫힌다/, "running coast-less warns what it means");
+  assert.match(CLI, /path\.dirname\(path\.resolve\(linesPath\)\)/,
+    "no --out means next to the input — the 08-11 Overpass assembly overwrote the tile baseline in out/ because the default was one fixed directory for every transport");
+  assert.doesNotMatch(CLI, /out: path\.join\("scripts", "ohm", "out"\)/,
+    "the fixed default is gone, not merely shadowed");
 });
 
 test("the polity fetcher filters locally with end-aware windows, one polite query", () => {

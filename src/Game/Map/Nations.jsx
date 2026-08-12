@@ -467,6 +467,8 @@ const WorldMap = ({ isGlobe = false }) => {
     worldKnown,
     customRegions: customFlag,
     regionOwnershipOverrides,
+    baselineOwnership,
+    unownedRegionIds,
     regionClaimants,
     polityOverrides,
     labelFont,
@@ -985,13 +987,19 @@ const WorldMap = ({ isGlobe = false }) => {
         regionId,
         ownerColorCss(ownerCode),
       ]);
+    // Explicitly unowned regions paint neutral, and they go in FIRST so a stale
+    // override cannot outrank them. This is the opposite of the blank-override
+    // case above: blank is a damaged entry to fall through, this is a stated
+    // fact — the board says nobody holds this ground.
+    const unownedStops = [...unownedRegionIds].flatMap((regionId) => [regionId, NEUTRAL_LAND_COLOR]);
+    const allStops = [...unownedStops, ...regionOverrideStops];
 
     return {
-      "fill-color": regionOverrideStops.length > 0
+      "fill-color": allStops.length > 0
         ? [
           "match",
           ["get", "GID_1"],
-          ...regionOverrideStops,
+          ...allStops,
           stops.length > 0 ? ["match", ["get", "GID_0"], ...stops, fallback] : fallback,
         ]
         : stops.length > 0
@@ -999,7 +1007,7 @@ const WorldMap = ({ isGlobe = false }) => {
         : fallback,
       "fill-opacity": 0.66,
     };
-  }, [colorMap, regionOwnershipOverrides, ownerColorCss]);
+  }, [colorMap, regionOwnershipOverrides, unownedRegionIds, ownerColorCss]);
 
   // Fill for custom (editor) regions: we pre-compute a _fillColor property onto
   // every feature so the MapLibre paint expression is just ["get", "_fillColor"]
@@ -1032,7 +1040,11 @@ const WorldMap = ({ isGlobe = false }) => {
         // grid), and a translucent tint of the owner's color once claimed, so
         // the sea never reads as solid land.
         const isSea = props.kind === "sea";
-        const liveOwner = regionOwnershipOverrides[id] || props.owner || "";
+        // Stated unowned outranks the geometry's baked owner. On a borrowed base
+        // map that owner is the MODERN one, which is precisely what a historical
+        // board is trying to cancel.
+        const isUnowned = unownedRegionIds.has(id);
+        const liveOwner = isUnowned ? "" : regionOwnershipOverrides[id] || props.owner || "";
         let fillColor;
         if (isSea) {
           if (liveOwner) {
@@ -1044,6 +1056,8 @@ const WorldMap = ({ isGlobe = false }) => {
             // doubt — a 0-alpha fill invites "is this even interactive?").
             fillColor = "rgba(96, 165, 250, 0.07)";
           }
+        } else if (isUnowned) {
+          fillColor = NEUTRAL_LAND_COLOR;
         } else if (overrideColor[id]) {
           fillColor = overrideColor[id];
         } else if (props.owner) {
@@ -1083,7 +1097,7 @@ const WorldMap = ({ isGlobe = false }) => {
         };
       }),
     };
-  }, [regionData, colorMap, regionOwnershipOverrides, regionClaimants, ownerColorCss, resolveOwnerRgb]);
+  }, [regionData, colorMap, regionOwnershipOverrides, unownedRegionIds, regionClaimants, ownerColorCss, resolveOwnerRgb]);
 
   // GADM disputed regions also paint the stock tiles (the crisp z>6.5 layer):
   // GID_1 -> stripe-tile id stops for the tile twin of the disputed layer.
@@ -1110,10 +1124,12 @@ const WorldMap = ({ isGlobe = false }) => {
       // is not nullish, so `??` handed the fill a blank owner and the region painted
       // NEUTRAL_LAND_COLOR: the country vanished into grey even though the geometry
       // right here still knows who owns it. Treat blank as absent and fall through.
-      lookup.set(props.id, regionOwnershipOverrides[props.id] || props.owner || "");
+      // The one exception to falling through: an id on the unowned list is a
+      // STATED fact, not a damaged entry, and it outranks the baked owner.
+      lookup.set(props.id, unownedRegionIds.has(props.id) ? "" : regionOwnershipOverrides[props.id] || props.owner || "");
     }
     return lookup;
-  }, [customActive, regionData, regionOwnershipOverrides]);
+  }, [customActive, regionData, regionOwnershipOverrides, unownedRegionIds]);
 
   const ownerLookupRef = useRef(new Map());
   useEffect(() => {
@@ -1165,10 +1181,17 @@ const WorldMap = ({ isGlobe = false }) => {
       // Absent means "no override"; blank means a damaged entry (see
       // ownerByRegionId) — neither is evidence that the border moved.
       if (live === undefined || live === "") continue;
-      if (toCountryName(live) !== toCountryName(props.owner ?? "")) ids.push(id);
+      // Compared against WHERE THE BOARD STARTED, not against the served
+      // geometry. The two are the same thing on a scenario carrying its own map,
+      // which is why this read `props.owner` alone for as long as every scenario
+      // did. A scenario borrowing the shared base ships modern geometry under an
+      // era overlay, so props.owner is 2026 and the whole board would read as
+      // conquered on turn 1 — measured at 3,948 regions on TNO 1962.
+      const started = baselineOwnership[id] ?? props.owner ?? "";
+      if (toCountryName(live) !== toCountryName(started)) ids.push(id);
     }
     return ids;
-  }, [customActive, regionData, regionOwnershipOverrides]);
+  }, [customActive, regionData, regionOwnershipOverrides, baselineOwnership]);
 
   // Same weight as the national outline, so a taken province reads as a border
   // and not as a heavy province line.

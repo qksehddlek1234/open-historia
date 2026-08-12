@@ -17,9 +17,13 @@
 // Replacing is safe TODAY because nothing but this file writes periodTimeline. If
 // a scenario editor ever lets a designer edit the schedule in-game, this becomes a
 // merge and the stamp is what makes that merge possible.
+import coldwar1946 from "../../data/timelines/coldwar-1946.json" with { type: "json" };
+import coldwar1989 from "../../data/timelines/coldwar-1989.json" with { type: "json" };
+import korea1950 from "../../data/timelines/korea-1950.json" with { type: "json" };
 import millennium2000 from "../../data/timelines/millennium-2000.json" with { type: "json" };
 import modern2016 from "../../data/timelines/modern-2016.json" with { type: "json" };
 import realWorld2026 from "../../data/timelines/real-world-2026.json" with { type: "json" };
+import tno1962 from "../../data/timelines/tno-1962.json" with { type: "json" };
 import { normalizeTimeline } from "./periodTimeline.js";
 
 const normalizeString = (value) => String(value ?? "").trim();
@@ -46,7 +50,11 @@ const buildLibraryEntry = (source) => {
   };
 };
 
-export const TIMELINE_LIBRARY = [millennium2000, modern2016, realWorld2026]
+// Chronological, and the windows must not overlap — timelineForDate takes the
+// first match, so two timelines covering one date would make the winner depend
+// on the order of this array rather than on anything a designer decided.
+// tests/timelines.mjs holds that line.
+export const TIMELINE_LIBRARY = [coldwar1946, korea1950, tno1962, coldwar1989, millennium2000, modern2016, realWorld2026]
   .map(buildLibraryEntry).filter(Boolean).filter((entry) => entry.id);
 
 export const timelineById = (id) => {

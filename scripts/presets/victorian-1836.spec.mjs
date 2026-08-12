@@ -37,6 +37,39 @@ export default {
   // eighteen months before Victoria gives the era its name.
   game: { country: "GBR", startDate: "1836-01-01", gameDate: "1836-01-01" },
 
+  // ── era geometry (plan F-3) ────────────────────────────────────────────────
+  // THE STRONGEST CASE IN THE FLEET, and the numbers say so before any tile is
+  // pulled. This window holds 71 of the 203 polities alive in 1836, against 32
+  // for 1914 and 39 for 1939 — the same 16 tiles at zoom 4, more than twice the
+  // yield. The reason is what those polities ARE: about 35 German Confederation
+  // states (Reuß-Greiz, Schaumburg-Lippe, Anhalt-Cöthen, Hohenzollern-Hechingen)
+  // and eight Italian ones (Lucca, Modena, Parma, Toscana, Due Sicilie). Not one
+  // of them is drawable from modern GADM provinces — Germany's sixteen Länder
+  // cannot produce Waldeck. 1914's Europe is largely nation-states the modern
+  // map can still approximate; 1836's is not.
+  //
+  // The window is [-15,30,50,72] rather than the [-10,35,45,71] wwii-1939 used:
+  // identical tile cost, +2 polities here and +3 at 1914, because it reaches
+  // Iberia and the Aegean. Measured, not preferred. Extending east to 60 adds
+  // exactly nothing and was dropped for that reason.
+  //
+  // Estimate, not promise: one of the 71 is a centre-lie — Русская Америка
+  // spans the antimeridian so its bbox centre lands at [21.2, 61.3], in the
+  // Baltic. That is the failure mode fetch-era-polities' header warns about,
+  // caught live. Expect ~70.
+  //
+  //   node scripts/ohm/plan-era-faces.mjs --build --min-polities 150 --only 1836-01-01
+  //
+  // Until that dump exists the preset builds exactly as before, and says so.
+  // faceOwners is deliberately empty for now: the colonial holdings whose NAME
+  // cannot answer who holds them (Gibraltar, Malta, Heligoland, the Channel
+  // Islands, Algérie française) need the same treatment 1939 got, and that is a
+  // pass over the assembled faces, not a guess made in advance.
+  eraGeometry: {
+    date: "1836-01-01",
+    window: [-15, 30, 50, 72],
+  },
+
   polities: {
     GBR: { name: "United Kingdom", color: "#c0507a", aliases: ["영국", "대영제국", "Britain", "Great Britain", "British Empire", "East India Company"] },
     FRA: { name: "France", color: "#3f5fd0", aliases: ["프랑스", "7월 왕정", "July Monarchy", "Orléanist France"] },

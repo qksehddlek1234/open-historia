@@ -16,7 +16,7 @@ export default {
     name: "Bronze Age — 1200 BC",
     heroTitle: "Before the Collapse",
     heroSubtitle: "The palaces still stand. The Sea Peoples are coming.",
-    eyebrow: "Historical Preset",
+    eyebrow: "Late Bronze Age",
     subtitle: "c. 1200 BC",
     accentColor: "#c28a2e",
     coverImage: "public/loading_screen_3.jpg",

@@ -16,7 +16,7 @@ export default {
     name: "Mongol World — 1300 AD",
     heroTitle: "The Mongol Century",
     heroSubtitle: "Four khanates rule from Korea to the Carpathians, 1300 AD",
-    eyebrow: "Historical Preset",
+    eyebrow: "The Mongol Peace",
     subtitle: "1300 AD",
     accentColor: "#c9a227",
     coverImage: "public/loading_screen_4.jpg",

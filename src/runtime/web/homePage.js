@@ -89,6 +89,8 @@ const css = `
 .oh-btn{width:100%;font-family:var(--display);font-size:.9rem;letter-spacing:.06em;text-transform:uppercase;font-weight:700;
   cursor:pointer;border-radius:11px;padding:14px 20px;border:1px solid transparent;transition:transform .12s ease,box-shadow .2s,background .2s}
 .oh-btn:hover{transform:translateY(-2px)}
+.oh-btn:disabled{cursor:not-allowed;opacity:.45;filter:grayscale(.85);transform:none;box-shadow:none}
+.oh-btn:disabled:hover{transform:none}
 .oh-btn.ghost{background:var(--marble2);border-color:var(--line2);color:var(--ink)}
 .oh-btn.ghost:hover{background:var(--marble)}
 .oh-btn.primary{background:linear-gradient(180deg,#98283a,var(--red-d));color:#f7eccf;border-color:rgba(255,222,160,.4);box-shadow:0 12px 30px -12px rgba(110,26,37,.7);font-size:1rem;padding:15px}
@@ -107,13 +109,17 @@ const colonnade = () => {
   return el("div", { className: "oh-colonnade", "aria-hidden": "true" }, column("l"), column("r"));
 };
 
-let overlay, connPanel;
+let overlay, connPanel, playBtn;
 
 const statCell = (label, value) => el("div", { className: "oh-stat" },
   el("div", { className: "oh-stat-k", textContent: label }),
   el("div", { className: "oh-stat-v", textContent: value }));
 
 const renderConnection = (c) => {
+  // Entering before a node is picked would start the game with no map source
+  // resolved, so the button stays disabled until the connection settles — either
+  // on a community node or on the origin fallback, both of which are playable.
+  if (playBtn) playBtn.disabled = !c;
   if (!connPanel) return;
   if (!c) {
     connPanel.replaceChildren(
@@ -199,7 +205,11 @@ export const showHomePage = () => {
   connPanel = el("div", { className: "oh-conn" });
   renderConnection(null); // initial "finding…" state
   const acctBox = el("div", { className: "oh-acct" }); // filled async so the overlay appears instantly
+  // Starts disabled: renderConnection enables it once a node (or the origin
+  // fallback) is settled, so nobody can enter a half-connected session.
   const play = el("button", { className: "oh-btn primary", textContent: "⚔  Enter Open Historia", onclick: enter });
+  play.disabled = true;
+  playBtn = play;
   const foot = el("div", { className: "oh-foot" },
     el("a", { href: "https://github.com/Open-Historia/open-historia", target: "_blank", rel: "noopener", textContent: "GitHub" }),
     el("a", { href: "https://discord.gg/C3AVwHacZ4", target: "_blank", rel: "noopener", textContent: "Discord" }),

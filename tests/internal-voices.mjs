@@ -198,6 +198,43 @@ test("…and it generalises: a flag alone protects a name nobody registered", ()
   assert.ok(names.has("북방 역병"));
 });
 
+test("A VOICE CANNOT TAKE GROUND — the engine drops the transfer the prompt could not stop", async () => {
+  // Measured 2026-08-12 (voices × gameMaster, 12/12 on BOTH arms): when the
+  // player directly asks, the GM hands Bayern to "Internal: Head of
+  // Military" with or without the contract — the prompt is not where this
+  // rule can hold. The engine is: normalizeRegionTransfer refuses a voice
+  // recipient (loudly), so the literal response that used to write
+  // regionOwnershipOverrides now dies at the choke point. The prompt cell
+  // stays — unenforced is not unnecessary.
+  const { normalizeEventEntry } = await import("../src/runtime/gameState.js");
+  const entry = normalizeEventEntry({
+    title: "군부에 바이에른을",
+    impacts: {
+      regionTransfers: [
+        { regionId: "DEU.1_1", toCode: "Internal: Head of Military" },
+        { regionId: "DEU.2_1", toCode: "France" },
+      ],
+    },
+  });
+  assert.equal(entry.impacts.regionTransfers.length, 1, "the voice-bound transfer is gone");
+  assert.equal(entry.impacts.regionTransfers[0].toCode, "France", "the real one still lands");
+});
+
+test("…and a polityChange addressed to a voice dies at the same choke point", async () => {
+  const { normalizeEventEntry } = await import("../src/runtime/gameState.js");
+  const entry = normalizeEventEntry({
+    title: "유령 국가 조폐 시도",
+    impacts: {
+      polityChanges: [
+        { code: "Domestic: Opposition Leader", reputation: 80 },
+        { code: "France", reputation: 55 },
+      ],
+    },
+  });
+  assert.equal(entry.impacts.polityChanges.length, 1, "no voice-named row reaches the country table");
+  assert.equal(entry.impacts.polityChanges[0].code, "France");
+});
+
 test("the builder carries the flag now, and only for the polity that set it", () => {
   const world = JSON.parse(readFileSync(new URL("../server/data/scenarios/zombie-2019/world.json", import.meta.url), "utf8"));
   const flagged = Object.values(world.polityOverrides ?? {}).filter((row) => row?.speechless === true);

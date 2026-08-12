@@ -135,10 +135,21 @@ test("the setting the slider writes is the one the map reads", () => {
 console.log("\nA conquest is never invisible");
 
 test("diverged regions are compared through toCountryName, not raw", () => {
-  const block = blockAfter("const divergedRegionIds = useMemo", 900);
-  assert.match(block, /toCountryName\(live\)\s*!==\s*toCountryName\(props\.owner/);
+  const block = blockAfter("const divergedRegionIds = useMemo", 1400);
+  assert.match(block, /toCountryName\(live\)\s*!==\s*toCountryName\(started\)/);
   assert.match(block, /props\.kind === "sea"/);
   assert.match(block, /live === undefined \|\| live === ""/);
+});
+
+test("and against where the BOARD started, not against the geometry it borrowed", () => {
+  // 22 of 23 scenarios now share the default map, whose features carry MODERN
+  // owners. Comparing a 1962 override against a 2026 feature calls the whole
+  // world conquered — measured at 3,948 regions on TNO — so the baseline the
+  // scenario shipped wins, and props.owner is only the fallback for a board
+  // still carrying its own map.
+  const block = blockAfter("const divergedRegionIds = useMemo", 1400);
+  assert.match(block, /const started = baselineOwnership\[id\] \?\? props\.owner/);
+  assert.match(block, /\}, \[customActive, regionData, regionOwnershipOverrides, baselineOwnership\]\)/);
 });
 
 test("the diverged layer is only mounted when land has actually changed hands", () => {

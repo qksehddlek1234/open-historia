@@ -15,9 +15,13 @@
 //
 //   node scripts/ohm/fetch-era-polities.mjs 1939-09-01
 //   node scripts/ohm/fetch-era-polities.mjs 1939-09-01 --admin-level 2 --out scripts/ohm/out
+//   node scripts/ohm/fetch-era-polities.mjs 1939-09-01 --refresh   re-download, ignore the cache
 //
 // RUNS ON THE PLAYER'S PC ONLY (the cloud session may not fetch). One request,
-// identified by User-Agent, against a volunteer server — do not loop it.
+// identified by User-Agent, against a volunteer server — do not loop it. That
+// line stood unqualified until plan-era-faces.mjs looped it nineteen times;
+// see the paragraph below the header, and note the loop is now free rather
+// than forbidden, because the answer never depended on the date.
 //
 // Output: era-polities-<date>.json — [{ id, name, names{}, center, start_date,
 // end_date }], plus loud counts of everything filtered out and why. A CENTER
@@ -26,7 +30,20 @@
 // hints and reports every face they fail to name — this file is a source of
 // candidates, not gospel.
 
-import { mkdirSync, writeFileSync } from "fs";
+// THE QUERY DOES NOT MENTION THE DATE, AND THAT CHANGES WHAT LOOPING COSTS.
+//
+// Read the query below: all admin_level-N boundary relations, no date filter —
+// the date is applied locally, a few lines further down, for the reason in the
+// paragraph above. So every date asks Overpass the SAME question and gets the
+// SAME multi-megabyte answer, and running nineteen dates meant downloading one
+// dataset nineteen times off a volunteer server.
+//
+// That is exactly what the "do not loop it" line was warning about, and
+// plan-era-faces.mjs did it anyway on its first real run — the loop is useful,
+// so the fix is to make looping cheap rather than to forbid it. The raw
+// response is cached under out/era-relations-al<N>.json and reused; --refresh
+// re-fetches. Nineteen dates, one request.
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 import { decdateWindow, isoToDecdate, resolveWindow } from "./lib/eraBorders.mjs";
@@ -41,7 +58,7 @@ const usage = (message) => {
   if (message) console.error(`[ohm] ${message}\n`);
   console.error(
     "사용법: node scripts/ohm/fetch-era-polities.mjs <YYYY-MM-DD>" +
-      " [--admin-level 2] [--endpoint URL] [--out DIR]",
+      " [--admin-level 2] [--endpoint URL] [--out DIR] [--refresh]",
   );
   process.exit(1);
 };
@@ -53,6 +70,7 @@ const parseArgs = (argv) => {
     if (arg === "--admin-level") options.adminLevel = Number(argv[(i += 1)]);
     else if (arg === "--endpoint") options.endpoint = String(argv[(i += 1)] ?? "");
     else if (arg === "--out") options.out = String(argv[(i += 1)] ?? "");
+    else if (arg === "--refresh") options.refresh = true;
     else if (!arg.startsWith("--") && options.date === null) options.date = arg;
     else usage(`알 수 없는 인자: ${arg}`);
   }
@@ -69,15 +87,50 @@ const main = async () => {
   // All admin_level-N boundary relations EVER — tags and center only. Date
   // filtering is deliberately local (see header).
   const query = `[out:json][timeout:300];relation["type"="boundary"]["boundary"="administrative"]["admin_level"="${options.adminLevel}"];out tags center;`;
-  console.log(`[ohm] 오버패스 질의: ${options.endpoint} (admin_level=${options.adminLevel}, 태그+중심만)`);
-  const res = await fetch(options.endpoint, {
-    method: "POST",
-    headers: { "User-Agent": USER_AGENT, "Content-Type": "application/x-www-form-urlencoded" },
-    body: `data=${encodeURIComponent(query)}`,
-  });
-  if (!res.ok) throw new Error(`오버패스 HTTP ${res.status} — ${(await res.text()).slice(0, 300)}`);
-  const payload = await res.json();
-  const relations = Array.isArray(payload.elements) ? payload.elements : [];
+
+  // The cache key is the admin level and nothing else, because the query
+  // depends on nothing else. Keyed by date it would never hit.
+  const cacheFile = path.join(options.out
+    ? path.resolve(PROJECT_ROOT, options.out)
+    : path.join(PROJECT_ROOT, "scripts", "ohm", "out"), `era-relations-al${options.adminLevel}.json`);
+  let relations = null;
+  if (!options.refresh && existsSync(cacheFile)) {
+    try {
+      const cached = JSON.parse(readFileSync(cacheFile, "utf8"));
+      if (Array.isArray(cached?.elements)) {
+        relations = cached.elements;
+        console.log(`[ohm] 캐시 사용: ${path.relative(PROJECT_ROOT, cacheFile)}`
+          + ` (${relations.length}개 관계, ${cached.fetchedAt ?? "시각 미상"}) — 질의 안 함. 다시 받으려면 --refresh`);
+      }
+    } catch {
+      // A corrupt cache is not a reason to fail; it is a reason to re-fetch.
+      console.log(`[ohm] 캐시 손상 — 다시 받는다: ${path.relative(PROJECT_ROOT, cacheFile)}`);
+      relations = null;
+    }
+  }
+  if (relations === null) {
+    console.log(`[ohm] 오버패스 질의: ${options.endpoint} (admin_level=${options.adminLevel}, 태그+중심만)`);
+    const res = await fetch(options.endpoint, {
+      method: "POST",
+      headers: { "User-Agent": USER_AGENT, "Content-Type": "application/x-www-form-urlencoded" },
+      body: `data=${encodeURIComponent(query)}`,
+    });
+    if (!res.ok) throw new Error(`오버패스 HTTP ${res.status} — ${(await res.text()).slice(0, 300)}`);
+    const payload = await res.json();
+    relations = Array.isArray(payload.elements) ? payload.elements : [];
+    mkdirSync(path.dirname(cacheFile), { recursive: true });
+    writeFileSync(cacheFile, JSON.stringify({
+      note: "Raw Overpass response, cached because the query carries no date —"
+        + " every date filters this same set locally. Regenerate with --refresh.",
+      fetchedAt: new Date().toISOString(),
+      query,
+      endpoint: options.endpoint,
+      adminLevel: options.adminLevel,
+      elements: relations,
+    }));
+    console.log(`[ohm] 캐시 기록: ${path.relative(PROJECT_ROOT, cacheFile)}`
+      + ` — 이후 날짜는 질의 없이 이 파일을 건다`);
+  }
 
   const polities = [];
   const dropped = new Map();

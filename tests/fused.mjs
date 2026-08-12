@@ -202,4 +202,124 @@ test("a folded topic still reports its size and how much was adopted", () => {
   assert.match(ACTIONS_UI, /queuedCount > 0 \? `✓\$\{queuedCount\} · \$\{topic\.actions\.length\}` : topic\.actions\.length/);
 });
 
+test("THE PAIR DEDUP REMEMBERS NOTHING — a canonical cell, not a Set", async () => {
+  // The first version kept every candidate pair it had tested in a Set of
+  // `si|sj` strings, never released. Its size is the number of distinct
+  // candidate pairs in the whole window, and the 1836 Overpass dump — whole
+  // ways instead of tile-clipped fragments — pushed it past V8's ~16.7M
+  // ceiling and threw `RangeError: Set maximum size exceeded` mid-assembly.
+  // 1939's tile dump already peaks near 5.4M in a single pass, so this was a
+  // wall the project was walking towards regardless of transport.
+  const src = fs.readFileSync(new URL("../scripts/ohm/lib/assembleFaces.mjs", import.meta.url), "utf8");
+  const fn = src.slice(src.indexOf("export const nodeCrossings"), src.indexOf("let crossingsSplit = 0;"));
+  assert.doesNotMatch(fn, /const tested = new Set\(\)/,
+    "no per-pair memo may live across the bucket loop");
+  assert.match(fn, /canonX|canonY/, "the pair must decide where it is allowed to test itself");
+  assert.match(fn, /pairsTested/, "and the workload must be reported before it becomes a crash");
+});
+
+test("…and the canonical cell is one both segments actually occupy", () => {
+  // (max(x0), max(y0)) of two overlapping cell ranges lies inside both, so the
+  // pair is tested exactly once and never zero times. Checked directly rather
+  // than trusted, because "tested zero times" would silently un-node a
+  // crossing and put the face walk back on a non-planar graph.
+  const cases = [[0, 0, 3, 3, 1, 1, 4, 4], [-2, -2, 0, 0, -1, -3, 1, 1], [5, 5, 5, 5, 5, 5, 9, 9]];
+  for (const [ax0, ay0, ax1, ay1, bx0, by0, bx1, by1] of cases) {
+    const cx = Math.max(ax0, bx0);
+    const cy = Math.max(ay0, by0);
+    assert.ok(cx >= ax0 && cx <= ax1 && cy >= ay0 && cy <= ay1, "inside A");
+    assert.ok(cx >= bx0 && cx <= bx1 && cy >= by0 && cy <= by1, "inside B");
+  }
+});
+
+test("A LOOSE END NEVER JOINS ITS OWN TAIL — the nibble that reported itself as a join", async () => {
+  // At full resolution the nearest segment to a chain tip is the chain's own
+  // next segment, one vertex-spacing behind (1836 Overpass: 0.0001–0.001°).
+  // The old search excluded only the tip's incident edges, projected onto
+  // that own segment at t≈0, merged the tip into its own neighbour and
+  // deleted the tip edge: `joins` counted up, the chain got one vertex
+  // SHORTER, nothing connected. Forensics 2026-08-12: after 181 reported
+  // joins, border tips 0.043° from real network were still loose — and
+  // 46,252 edges died in the prune wearing that disguise.
+  const { buildGraph, snapLooseEndsToNetwork } = await import("../scripts/ohm/lib/assembleFaces.mjs");
+  const chain = [[0, 0], [0.001, 0], [0.002, 0], [0.003, 0], [0.004, 0], [0.005, 0]];
+  const segs = [];
+  for (let i = 0; i + 1 < chain.length; i += 1) segs.push([chain[i], chain[i + 1]]);
+  const nodes = buildGraph(segs);
+  const before = nodes.size;
+  const { joins } = snapLooseEndsToNetwork(nodes, 0.06);
+  assert.equal(joins, 0, "no foreign geometry exists — a join here is the tip eating itself");
+  assert.equal(nodes.size, before, "and the chain keeps every vertex it had");
+});
+
+test("…and the same tip DOES join foreign geometry farther than its own tail", async () => {
+  // A vertical line 0.04° west of the tip: farther than the tip's own next
+  // segment (0.001°) but inside the 0.06 tolerance. By raw distance the own
+  // tail always wins — only the reachability guard makes the real target
+  // the best admissible one. This is the Hendaye case: a coast tip 0.043°
+  // from the network that five runs in a row left loose.
+  const { buildGraph, snapLooseEndsToNetwork } = await import("../scripts/ohm/lib/assembleFaces.mjs");
+  const chain = [[0, 0], [0.001, 0], [0.002, 0], [0.003, 0], [0.004, 0], [0.005, 0]];
+  const segs = [];
+  for (let i = 0; i + 1 < chain.length; i += 1) segs.push([chain[i], chain[i + 1]]);
+  segs.push([[-0.04, -0.2], [-0.04, 0.2]]);
+  const nodes = buildGraph(segs);
+  const { joins, splits } = snapLooseEndsToNetwork(nodes, 0.06);
+  assert.ok(joins >= 1, "the tip must reach the foreign line");
+  assert.ok(splits >= 1, "by splitting it at the landing point — a junction, not a nibble");
+  assert.ok([...nodes.keys()].some((k) => k.startsWith("-0.04,")),
+    "a node now lives on the foreign line where the tip landed");
+});
+
+test("THE SKELETON PREVIEW sorts geometry into survivors, anchored chains, and scrap", async () => {
+  // A square (cycle — survives), a chain hanging off its corner (doomed but
+  // ANCHORED — a border that reached the coast at one end), and a floating
+  // scrap (doomed, leads nowhere). The preview is the value oracle both snap
+  // stages weld by: preference, never refusal — the two refusal guards
+  // measured 2026-08-12 collapsed coverage to 10% by killing dense-web
+  // T-junctions, so nothing is forbidden, skeleton targets just win.
+  const { buildGraph, previewAnchors } = await import("../scripts/ohm/lib/assembleFaces.mjs");
+  const segs = [
+    [[0, 0], [1, 0]], [[1, 0], [1, 1]], [[1, 1], [0, 1]], [[0, 1], [0, 0]], // square
+    [[1, 0], [2, 0]], [[2, 0], [3, 0]],                                     // anchored chain off the corner
+    [[5, 5], [6, 5]], [[6, 5], [7, 5]],                                     // floating scrap
+  ];
+  const nodes = buildGraph(segs);
+  const { doomed, leads } = previewAnchors(nodes);
+  assert.ok(!doomed.has("0,0") && !doomed.has("1,1"), "the square survives");
+  assert.ok(doomed.has("2,0") && doomed.has("3,0"), "the hanging chain dies in preview");
+  assert.ok(leads.has("2,0") && leads.has("3,0"), "…but it is ANCHORED — welding to it can complete a separator");
+  assert.ok(doomed.has("5,5") && doomed.has("6,5") && !leads.has("6,5"), "the scrap is doomed and leads nowhere");
+});
+
+test("…and a weld prefers the anchored partner over a nearer scrap", async () => {
+  // The France–Belgium ending, miniaturised with the fix in place: the
+  // border tip has a scrap tip 0.006 away and an anchored chain's tip 0.03
+  // away, both within tolerance. Nearest-first took the scrap and built the
+  // 121-step lollipop that carried the whole border as a face-splitting-
+  // nothing bridge. With the preview, the anchored partner wins.
+  const { buildGraph, previewAnchors, snapDangles } = await import("../scripts/ohm/lib/assembleFaces.mjs");
+  const segs = [
+    // east skeleton (a square) with a chain reaching west: anchored, tip at [2.03,0]
+    [[4, 0], [4, 1]], [[4, 1], [5, 1]], [[5, 1], [5, 0]], [[5, 0], [4, 0]],
+    [[4, 0], [3, 0]], [[3, 0], [2.03, 0]],
+    // west skeleton (the coast, in the real case) with the border chain: anchored, tip at [2,0]
+    [[-2, 0], [-2, 1]], [[-2, 1], [-1, 1]], [[-1, 1], [-1, 0]], [[-1, 0], [-2, 0]],
+    [[-1, 0], [0, 0]], [[0, 0], [1, 0]], [[1, 0], [2, 0]],
+    // the scrap: two segments floating just south of the meeting point
+    [[2.004, -0.004], [2.1, -0.05]], [[2.1, -0.05], [2.2, -0.1]],
+  ];
+  const nodes = buildGraph(segs);
+  const anchors = previewAnchors(nodes);
+  const welds = snapDangles(nodes, 0.06, anchors);
+  // the border tip [2,0] must weld to the anchored tip [2.03,0] — NOT the
+  // scrap [2.004,-0.004], which is nearer by raw distance (0.026 < 0.030)
+  assert.equal(welds.length, 1, "exactly one weld");
+  const pair = [welds[0].from, welds[0].to].map((p) => p.join(","));
+  assert.ok(pair.includes("2,0") && pair.includes("2.03,0"),
+    "the pair is border↔anchored-chain despite the scrap being nearer");
+  const scrapTip = nodes.get("2.004,-0.004");
+  assert.ok(scrapTip && scrapTip.nbrs.size === 1, "the scrap tip was NOT consumed — still a loose end");
+});
+
 console.log(`\n${pass} passed\n`);

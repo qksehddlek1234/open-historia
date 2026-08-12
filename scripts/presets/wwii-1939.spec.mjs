@@ -64,6 +64,20 @@ export default {
   // their modern sovereign, like independent Iraq).
   eraGeometry: {
     date: "1939-09-01",
+    // THE WINDOW THE SHIPPED FACES WERE ACTUALLY CUT WITH, recovered from the
+    // dump's own meta.bbox — it had been typed on a command line once and
+    // recorded nowhere, so a rebuild had no way to reproduce it.
+    //
+    // It is Europe, not the world, and that is the judgment worth keeping: a
+    // window says where era borders differ from modern ones enough to be worth
+    // cutting, NOT how far the board reaches. This board's own assignments span
+    // [-180,-55,180,84] — a world war touches every continent — so no bounding
+    // box of the board's content recovers this number. At zoom 4 it is 16 tiles
+    // against the world's 256, and BOTH clear the extractor's 1,024 ceiling, so
+    // a wider window would not have errored. It would have pulled sixteen times
+    // the tiles off a volunteer server for ground nobody ends up cutting.
+    // scripts/ohm/plan-era-faces.mjs reads this field.
+    window: [-10, 35, 45, 71],
     // The Europe window's frame-bounded residue — everything east and south of
     // where the dump ran out. Measured on the 1939 z4 run: 1,191 deg² spanning
     // 41x45 degrees, six times the next-largest face and reaching from the

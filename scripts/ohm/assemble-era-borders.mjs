@@ -27,7 +27,13 @@
 //                       modern coasts. --no-land-mask = landlocked-only
 //                       assembly, and it says so loudly.
 //   --snap N            weld tolerance in degrees (default: the measured 0.06)
-//   --out DIR           default scripts/ohm/out
+//   --out DIR           default: the directory the lines dump lives in. It was
+//                       scripts/ohm/out unconditionally until 2026-08-11, when
+//                       the first Overpass assembly (input in out-overpass/)
+//                       silently overwrote the tile baseline's era-borders and
+//                       report in out/. Two transports must be able to keep
+//                       their outputs side by side; writing next to the input
+//                       does that with no new flag to remember.
 //
 // This is offline work on local files — safe to run anywhere, including the
 // cloud session. Only the two fetching scripts are PC-only.
@@ -66,7 +72,8 @@ const parseArgs = (argv) => {
     landMask: existsSync(DEFAULT_LAND_MASK) ? DEFAULT_LAND_MASK : null,
     overrides: existsSync(DEFAULT_OVERRIDES) ? DEFAULT_OVERRIDES : null,
     snap: SNAP_TOLERANCE,
-    out: path.join("scripts", "ohm", "out"),
+    out: null, // null = next to the lines dump; see the --out note above
+    maxAdminLevel: 2, // ceiling, matches the lib's reading (level ≤ N enters)
   };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -75,6 +82,9 @@ const parseArgs = (argv) => {
     else if (arg === "--no-land-mask") options.landMask = null;
     else if (arg === "--override-centers") options.overrides = String(argv[(i += 1)] ?? "");
     else if (arg === "--snap") options.snap = Number(argv[(i += 1)]);
+    else if (arg === "--max-admin-level") options.maxAdminLevel = Number(argv[(i += 1)]);
+    else if (arg === "--trace-noding") options.traceNoding = true;
+    else if (arg === "--resolve-conflicts") options.resolveConflicts = true;
     else if (arg === "--out") options.out = String(argv[(i += 1)] ?? "");
     else if (!arg.startsWith("--") && options.lines === null) options.lines = arg;
     else usage(`알 수 없는 인자: ${arg}`);
@@ -82,6 +92,7 @@ const parseArgs = (argv) => {
   if (!options.lines) usage("선 덤프 경로가 없다");
   if (!options.polities) usage("--polities가 없다 (이름 없는 면은 조립해도 나라가 못 된다)");
   if (!Number.isFinite(options.snap) || options.snap < 0) usage("--snap은 0 이상의 수");
+  if (!Number.isInteger(options.maxAdminLevel) || options.maxAdminLevel < 1) usage("--max-admin-level은 1 이상의 정수");
   return options;
 };
 
@@ -89,7 +100,11 @@ const parseArgs = (argv) => {
 // ("Граница СССР-Финляндия" ×3 in the first Europe run) — a border is not a
 // country, and one of them promptly joined a conflict face. Filtered by name
 // shape, counted out loud.
-const BORDER_RELATION_NAME = /^(граница|border of|border between|boundary of|frontière|국경)\b/i;
+// `\b` was the bug: JS word boundaries are ASCII-only, so after a Cyrillic or
+// Hangul word the boundary never matched and "Граница СССР-Финляндия" sailed
+// through as a POLITY. It then claimed faces and posed as a conflict in two of
+// them. Match a separator (or end) instead of a word boundary.
+const BORDER_RELATION_NAME = /^(граница|border of|border between|boundary of|frontière|국경)(?=[\s,(:-]|$)/i;
 
 // Accept either polity-file shape and normalise to { name, names, center, start }.
 const readPolities = (file) => {
@@ -245,6 +260,48 @@ const dissolveByParity = (maskPath, windowBbox) => {
   return { rings: chains, stats: { regions, keptSegments, internalDropped, weirdParity, chains: chains.length } };
 };
 
+// Point-in-land against the seed regions, grid-indexed at 1°. Only the sea
+// guard calls this, for the handful of labelled faces, so simplicity beats
+// cleverness: a cell lists every region polygon whose bbox overlaps it.
+const makeLandTest = (maskPath) => {
+  const mask = JSON.parse(readFileSync(maskPath, "utf8"));
+  const cells = new Map();
+  const cellKey = (cx, cy) => `${cx}:${cy}`;
+  const polys = [];
+  for (const f of mask.features ?? []) {
+    if (!f?.geometry || (f.geometry.type !== "Polygon" && f.geometry.type !== "MultiPolygon")) continue;
+    const list = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const poly of list) {
+      const bb = bboxOfCoords(poly);
+      const idx = polys.push({ poly, bb }) - 1;
+      for (let cx = Math.floor(bb[0]); cx <= Math.floor(bb[2]); cx += 1) {
+        for (let cy = Math.floor(bb[1]); cy <= Math.floor(bb[3]); cy += 1) {
+          const key = cellKey(cx, cy);
+          if (!cells.has(key)) cells.set(key, []);
+          cells.get(key).push(idx);
+        }
+      }
+    }
+  }
+  const inRing = ([px, py], ring) => {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+      const [xi, yi] = ring[i];
+      const [xj, yj] = ring[j];
+      if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  };
+  return (pt) => {
+    for (const idx of cells.get(cellKey(Math.floor(pt[0]), Math.floor(pt[1]))) ?? []) {
+      const { poly, bb } = polys[idx];
+      if (pt[0] < bb[0] || pt[0] > bb[2] || pt[1] < bb[1] || pt[1] > bb[3]) continue;
+      if (inRing(pt, poly[0]) && !poly.slice(1).some((hole) => inRing(pt, hole))) return true;
+    }
+    return false;
+  };
+};
+
 const main = () => {
   const options = parseArgs(process.argv.slice(2));
   const linesPath = path.resolve(PROJECT_ROOT, options.lines);
@@ -291,11 +348,26 @@ const main = () => {
       `해안 ${options.landMask ? path.relative(PROJECT_ROOT, options.landMask) : "없음 — 내륙국만 닫힌다!"}`,
   );
 
+  // The sea guard's oracle: is a point on modern land? Same mask the coasts
+  // came from, so a face the coasts sealed samples ~100% land while the sea
+  // complex samples ~5% — the guard line (0.5) sits in open water between.
+  const landTest = options.landMask ? makeLandTest(path.resolve(PROJECT_ROOT, options.landMask)) : null;
+
   const { byPolity, unassigned, conflicts, lostLabels, report } = assembleEraBorders(dump.features, polities, {
+    adminLevel: options.maxAdminLevel,
     snapTolerance: options.snap,
     windowBbox,
     coastRings,
+    landTest,
+    traceNoding: Boolean(options.traceNoding),
+    resolveConflicts: Boolean(options.resolveConflicts),
   });
+  for (const refusal of report.seaRefusals ?? []) {
+    console.log(
+      `[ohm] 바다 면 배정 거부: ${refusal.names.join(" + ")} (면적 ${refusal.area} deg² · 육지비 ${(refusal.landFraction * 100).toFixed(0)}%)`
+      + " — 해안이 안 닫힌 정치체가 바다를 상속하는 것을 막았다",
+    );
+  }
 
   const features = [];
   for (const [name, entry] of byPolity) {
@@ -310,13 +382,28 @@ const main = () => {
         faces: entry.faces.length,
         source: "ohm-face-assembly",
         coast: coastRings ? "modern-fused" : "none",
+        // Names this polity's faces FUSED WITH because the border between them
+        // never closed. The face is still the best outline we have for this
+        // polity, but it is NOT evidence about the swallowed ones — downstream
+        // must refuse its authority over exactly them.
+        ...(entry.merged?.length ? { mergedWith: entry.merged } : {}),
       },
       geometry: { type: "MultiPolygon", coordinates: facesToMultiPolygon(entry.faces) },
     });
   }
   features.sort((a, b) => a.properties.name.localeCompare(b.properties.name));
 
-  const outDir = path.resolve(PROJECT_ROOT, options.out);
+  for (const r of report.resolvedConflicts ?? []) {
+    console.log(
+      `[ohm] 융합 면 해소: ${r.winner} ← 삼킨 이름 ${r.swallowed.map((x) => (typeof x === "string" ? x : x.name)).join(", ")} `
+      + `(면적 ${r.area} deg² · 라벨 깊이 ${r.depths.map((d) => `${d.name} ${d.depth}`).join(" / ")}) `
+      + "— 삼킨 이름들에 대한 권위는 접합 단계에서 거부된다",
+    );
+  }
+
+  const outDir = options.out
+    ? path.resolve(PROJECT_ROOT, options.out)
+    : path.dirname(path.resolve(linesPath));
   mkdirSync(outDir, { recursive: true });
   const stem = path.basename(linesPath, ".geojson").replace(/^era-lines-/, "");
   const bordersPath = path.join(outDir, `era-borders-${stem}.geojson`);

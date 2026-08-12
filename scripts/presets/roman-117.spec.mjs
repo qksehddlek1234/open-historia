@@ -15,7 +15,7 @@ export default {
     name: "Rome — 117 AD",
     heroTitle: "The Empire at its Zenith",
     heroSubtitle: "Trajan is dead. Hadrian inherits the greatest empire the west has known.",
-    eyebrow: "Historical Preset",
+    eyebrow: "Imperial Rome",
     subtitle: "117 AD",
     accentColor: "#a31c1c",
     coverImage: "public/loading_screen_3.jpg",

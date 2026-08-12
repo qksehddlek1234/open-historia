@@ -17,7 +17,7 @@ export default {
     name: "New World — 1650",
     heroTitle: "The Colonization of the New World",
     heroSubtitle: "Empires of sail and the nations that met them, 1650 AD",
-    eyebrow: "Historical Preset",
+    eyebrow: "Age of Sail",
     subtitle: "1650 AD",
     accentColor: "#2e6b8a",
     coverImage: "public/loading_screen_4.jpg",

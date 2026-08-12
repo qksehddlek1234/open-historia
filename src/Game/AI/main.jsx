@@ -13,6 +13,8 @@ import { buildRelationsText } from "../../runtime/diplomacy.js";
 import { difficultyChatDirective, difficultyDirective } from "../../runtime/difficulty.js";
 import { addressesPlayerByRank, stripPlayerHonorific } from "../../runtime/playerAddress.js";
 import { normalizePromptPack } from "./gameplayPrompts.js";
+import { assembleRules } from "../../runtime/simulationContracts.js";
+import { readWorldState } from "../../runtime/gameState.js";
 import {
     buildPromptContext,
     playerIdentityDirective,
@@ -1361,7 +1363,11 @@ async function buildAdvisorSystemPrompt() {
     // The advisor is the voice that talks to the player most, so it is the one
     // that got the address wrong most often. It serves the player, not the head
     // of state, and the two are not the same person.
-    return `${renderTemplate(promptPack.advisor, { ...variables, ...helperValues })}${secretReportsBlock}\n\n${playerIdentityDirective(variables.playerPolity)}\nYou advise the PLAYER. You are not the head of state's aide, and you do not speak to the player as though they held that office.`;
+    // The contracts rejoin here too — the advisor and the chat root render on
+    // their own path and are the easiest two of the twelve consumers to forget.
+    // See src/runtime/simulationContracts.js; all-on means this changes nothing.
+    const advisorRules = assembleRules(await readWorldState().catch(() => null), "advisor");
+    return `${renderTemplate(promptPack.advisor, { ...variables, ...helperValues, ...(advisorRules ? { HISTORICAL_PRESET_SIMULATION_RULES: advisorRules } : {}) })}${secretReportsBlock}\n\n${playerIdentityDirective(variables.playerPolity)}\nYou advise the PLAYER. You are not the head of state's aide, and you do not speak to the player as though they held that office.`;
 }
 
 // Perspectives ("세계 여론") — the advisor drawer's second voice (Pax parity).
@@ -1454,6 +1460,7 @@ export async function buildDiplomaticSystemPrompt(countries, playerCountry) {
         })),
         chatParticipants: participantList || "",
     };
+    const leaderRules = assembleRules(await readWorldState().catch(() => null), "leader");
     const helperValues = resolveHelperValues(promptPack.helpers, variables);
 
     // Leaders negotiate as softly or ruthlessly as the chosen difficulty — and
@@ -1467,7 +1474,11 @@ export async function buildDiplomaticSystemPrompt(countries, playerCountry) {
     // the hard modes easy in practice because an LLM agrees with the user too
     // readily. Both go in; the chat one goes LAST, closest to the reply.
     return [
-      renderTemplate(promptPack.leader, { ...variables, ...helperValues }),
+      renderTemplate(promptPack.leader, {
+        ...variables,
+        ...helperValues,
+        ...(leaderRules ? { HISTORICAL_PRESET_SIMULATION_RULES: leaderRules } : {}),
+      }),
       difficultyDirective(gameData?.difficulty),
       playerIdentityDirective(playerCountry),
       difficultyChatDirective(gameData?.difficulty),

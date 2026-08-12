@@ -9,6 +9,8 @@
 // our own words, and attached at BUILD time so one wording fixes thirteen specs.
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { assembleRules, CONTRACTS } from "../src/runtime/simulationContracts.js";
+import { indexBase, scenarioOwners } from "../scripts/presets/lib/mapOverlay.mjs";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -18,7 +20,12 @@ const { REGION_CONTRACT, HISTORICAL_PRIOR } = await import("../scripts/presets/l
 const scenarioRules = (id) => {
   const path = new URL(`../server/data/scenarios/${id}/world.json`, import.meta.url);
   if (!fs.existsSync(path)) return null; // preset folders are build products
-  return String(JSON.parse(fs.readFileSync(path, "utf8")).simulationRules ?? "");
+  // The ASSEMBLED rules, not the raw field. The four shared contracts left
+  // simulationRules and are injected per consumer now
+  // (src/runtime/simulationContracts.js) — the board still carries them, it just
+  // no longer stores them. Reading the field alone made this pass go looking for
+  // the contract in the one place it is deliberately absent.
+  return assembleRules(JSON.parse(fs.readFileSync(path, "utf8")), "jumpForward");
 };
 
 const PRESETS = [
@@ -63,13 +70,28 @@ test("the boards this protects really do have single-region polities", () => {
   // where a one-region polity is a small kingdom rather than a warlord. Measured
   // 2026-08-09: magna-1444 6, colonial-1650 3, mongol-1300 3, napoleonic-1804 3,
   // victorian-1836 2, medieval-1200 1, bronze-1200bc 1.
+  // Read through scenarioOwners rather than off the feature, because a board no
+  // longer necessarily HAS a regions.geojson: 22 of 23 now borrow the shared
+  // base map and state their ownership in world.json. Same question, one of two
+  // storage shapes — the helper knows both.
+  const basePath = new URL("../server/data/scenarios/default/regions.geojson", import.meta.url);
+  const baseById = fs.existsSync(basePath)
+    ? indexBase(JSON.parse(fs.readFileSync(basePath, "utf8")))
+    : null;
   const boards = new Map();
   for (const id of fs.readdirSync(new URL("../server/data/scenarios/", import.meta.url))) {
-    const path = new URL(`../server/data/scenarios/${id}/regions.geojson`, import.meta.url);
-    if (!fs.existsSync(path)) continue;
+    const worldPath = new URL(`../server/data/scenarios/${id}/world.json`, import.meta.url);
+    if (!fs.existsSync(worldPath)) continue;
+    const ownPath = new URL(`../server/data/scenarios/${id}/regions.geojson`, import.meta.url);
+    const features = fs.existsSync(ownPath)
+      ? JSON.parse(fs.readFileSync(ownPath, "utf8")).features ?? []
+      : null;
     const counts = new Map();
-    for (const feature of JSON.parse(fs.readFileSync(path, "utf8")).features ?? []) {
-      const owner = feature.properties?.owner;
+    for (const owner of scenarioOwners({
+      features,
+      baseById,
+      world: JSON.parse(fs.readFileSync(worldPath, "utf8")),
+    }).values()) {
       if (owner) counts.set(owner, (counts.get(owner) ?? 0) + 1);
     }
     boards.set(id, counts);
@@ -95,8 +117,18 @@ test("the boards this protects really do have single-region polities", () => {
 
 test("a spec can opt out, so the contract is never a straitjacket", () => {
   const builder = fs.readFileSync(new URL("../scripts/presets/build-preset.mjs", import.meta.url), "utf8");
-  assert.match(builder, /spec\.regionContract === false/);
-  assert.match(builder, /spec\.historicalPrior === false/);
+  // Moved, not removed — see src/runtime/simulationContracts.js. The flag is
+  // still what switches the contract off; the table that reads it is shared with
+  // the runtime now so the two cannot drift.
+  assert.match(builder, /CONTRACTS\s*\n?\s*\.filter\(\(contract\) => spec\[contract\.flag\] !== false\)/);
+  assert.ok(
+    CONTRACTS.some((contract) => contract.flag === "regionContract" && contract.text === REGION_CONTRACT),
+    "the regionContract flag must still name this contract",
+  );
+  assert.ok(
+    CONTRACTS.some((contract) => contract.flag === "historicalPrior"),
+    "the historicalPrior flag must still name a contract",
+  );
 });
 
 console.log(`\n${pass} passed\n`);

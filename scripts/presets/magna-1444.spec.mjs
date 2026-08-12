@@ -17,7 +17,7 @@ export default {
     name: "Magna Europa — 1444",
     heroTitle: "The Day After Varna",
     heroSubtitle: "The crusade is dead and the old world is next, 11 November 1444",
-    eyebrow: "Historical Preset",
+    eyebrow: "Grand Campaign",
     subtitle: "11 November 1444",
     accentColor: "#5a7d4a",
     coverImage: "public/loading_screen_2.jpg",

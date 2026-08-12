@@ -19,7 +19,7 @@ export default {
     name: "Napoleonic Wars — 1804",
     heroTitle: "The Eve of Empire",
     heroSubtitle: "Tomorrow Napoleon crowns himself, 1 December 1804",
-    eyebrow: "Historical Preset",
+    eyebrow: "Revolutionary Europe",
     subtitle: "1 December 1804",
     accentColor: "#7a5aa0",
     coverImage: "public/loading_screen_2.jpg",

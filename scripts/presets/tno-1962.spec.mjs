@@ -364,10 +364,9 @@ export default {
     "diplomacy begin; " +
     "(4) a warlord may not expand into another region before unifying its own; " +
     "(5) the SMUTA — the time of troubles, when warlords may begin fighting to " +
-    "unify — starts on a different date in each region: Eastern Siberia on " +
-    "1 April 1963, Central Siberia on 1 May 1963, Western Siberia on " +
-    "1 November 1963, West Russia on 1 March 1964. Before a region's date its " +
-    "warlords consolidate, arm and posture; they do not conquer each other. " +
+    "unify — starts on a different date in each region, and those four dates are " +
+    "on the period timeline rather than repeated here. Before its region's date a " +
+    "warlord consolidates, arms and postures; it does not conquer its neighbours. " +
     "Once it begins there must be at least one event per turn on that region's " +
     "progress. The exception to all of the above is a warlord the player has " +
     "taken, who is bound by the same map but not by the silence. " +

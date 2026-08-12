@@ -17,18 +17,15 @@ export default {
 
   meta: {
     name: "Medieval — 1200 AD",
-    heroTitle: "The High Middle Ages",
-    heroSubtitle: "A world of emperors, caliphs and crusaders, c. 1200",
-    eyebrow: "Historical Preset",
+    heroTitle: "An Age of Faith and Iron",
+    heroSubtitle: "Emperors, caliphs and crusaders share one crowded world",
+    eyebrow: "High Middle Ages",
     subtitle: "c. 1200 AD",
     accentColor: "#9a6b2f",
     coverImage: "public/loading_screen_4.jpg",
     description:
-      "The year 1200. The Holy Roman Empire and the Capetian kings vie for Europe, the " +
-      "Angevins rule from England to Aquitaine, Byzantium still stands (the Fourth Crusade " +
-      "has not yet come), the Almohads and Ayyubids dominate the Islamic west and east, and " +
-      "the Crusader states cling to the Levantine coast. Lead a kingdom, empire or caliphate " +
-      "through an age of faith and iron.",
+      "The year 1200, and no single power rules anything. The Hohenstaufen emperors and the Capetian kings pull Europe apart between them while the Angevins hold an empire from Yorkshire to the Pyrenees. Constantinople still stands, four years from the crusade that will sack it. The Almohads rule from Marrakesh to Seville and Saladin's heirs hold Cairo and Damascus, with the Crusader states pressed into a coastal strip they can no longer defend alone. Further east the Ghurids ride into India and a Mongol chieftain is uniting the steppe tribes nobody has heard of yet. Take a kingdom, an empire or a caliphate into the century that decides which of them survives.",
+
   },
 
   // Player starts as the Holy Roman Empire. game.country MUST equal the owner code.

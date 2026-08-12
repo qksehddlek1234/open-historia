@@ -622,13 +622,19 @@ const GameCard = ({ active, game, onActivate, onClone, onEdit }) => {
 
 // A netflix-style shelf on the main menu: a titled row of horizontally
 // scrolling cards. Rows that can be legitimately empty pass emptyText.
-const MenuRow = ({ children, emptyText, title }) => (
+// `wrap` turns the shelf into a grid. A horizontal strip suits a handful of
+// cards and fails a library: the scenario tab is now ONE section holding every
+// scenario, and a fourteen-card strip hides most of itself off-screen.
+const MenuRow = ({ children, emptyText, title, wrap = false }) => (
   <div style={{ marginBottom: "1.7rem" }}>
     <div style={{ color: "rgba(255,255,255,0.88)", fontSize: "1.02rem", fontWeight: 800, letterSpacing: "-0.01em", marginBottom: "0.7rem" }}>
       {title}
     </div>
     {React.Children.count(children) > 0 ? (
-      <div style={{ display: "flex", gap: "0.9rem", overflowX: "auto", paddingBottom: "0.35rem", scrollbarWidth: "thin" }}>
+      <div style={wrap
+        ? { display: "flex", flexWrap: "wrap", gap: "0.9rem", paddingBottom: "0.35rem" }
+        : { display: "flex", gap: "0.9rem", overflowX: "auto", paddingBottom: "0.35rem", scrollbarWidth: "thin" }}
+      >
         {children}
       </div>
     ) : (
@@ -1943,34 +1949,22 @@ const LibraryTopBar = () => {
     : null;
 
   // ---- Main-menu shelves ----------------------------------------------------
-  // The catalog's game order is already activation recency (activating unshifts),
-  // so games without a lastPlayedAt stamp (pre-feature saves) keep a sensible
-  // relative order behind the stamped ones.
+  // ONE shelf per tab. The three scenario shelves this replaces — Most Played,
+  // Last Updated, Your Scenarios — were the SAME list re-sorted, so a library of
+  // fourteen presets rendered as forty-odd cards and the player scrolled past
+  // the same scenario three times looking for a different one. Same for the
+  // games tab's Last Played / Most Played pair.
+  //
+  // Scenario order is the catalog's own (the manifest), which rebuild-all now
+  // writes in chronological era order — Bronze Age first, Millennium Dawn last.
+  // For a history game that reads as a timeline, which is a better shelf than
+  // any popularity metric.
+  //
+  // The playCount / lastPlayedAt stamps the store keeps are untouched: they are
+  // save data, and dropping a view is no reason to stop recording.
   const lastPlayedGames = useMemo(
     () => [...games].sort((a, b) => String(b.lastPlayedAt ?? "").localeCompare(String(a.lastPlayedAt ?? ""))),
     [games],
-  );
-  const mostPlayedGames = useMemo(
-    () => [...games].sort((a, b) => (b.playCount ?? 0) - (a.playCount ?? 0) || (b.round ?? 0) - (a.round ?? 0)),
-    [games],
-  );
-  const mostPlayedScenarios = useMemo(
-    () => [...scenarios].sort((a, b) => (b.playCount ?? 0) - (a.playCount ?? 0) || (b.gameCount ?? 0) - (a.gameCount ?? 0)),
-    [scenarios],
-  );
-  const lastUpdatedScenarios = useMemo(
-    () => [...scenarios].sort((a, b) => String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? ""))),
-    [scenarios],
-  );
-  // "Your Scenarios": ones the player made or edited themselves. hubOrigin is
-  // null for locally created scenarios AND for hub imports edited locally (any
-  // local meta write clears it — see writeScenarioMeta). The stock built-in
-  // only counts once it has actually been touched.
-  const yourScenarios = useMemo(
-    () => scenarios.filter(
-      (scenario) => !scenario.hubOrigin && (scenario.id !== "default" || scenario.updatedAt !== scenario.createdAt),
-    ),
-    [scenarios],
   );
 
   return (
@@ -2412,82 +2406,36 @@ const LibraryTopBar = () => {
                   </div>
                 </div>
               ) : (
-                <>
-                  <MenuRow title="🕐 Last Played">
-                    {lastPlayedGames.map((game) => (
-                      <GameCard
-                        key={game.id}
-                        active={game.id === activeGameId}
-                        game={game}
-                        onActivate={handleGameActivate}
-                        onClone={handleGameClone}
-                        onEdit={openGameEditor}
-                      />
-                    ))}
-                  </MenuRow>
-                  <MenuRow title="🔥 Most Played">
-                    {mostPlayedGames.map((game) => (
-                      <GameCard
-                        key={game.id}
-                        active={game.id === activeGameId}
-                        game={game}
-                        onActivate={handleGameActivate}
-                        onClone={handleGameClone}
-                        onEdit={openGameEditor}
-                      />
-                    ))}
-                  </MenuRow>
-                </>
+                <MenuRow title="진행 중인 게임" wrap>
+                  {lastPlayedGames.map((game) => (
+                    <GameCard
+                      key={game.id}
+                      active={game.id === activeGameId}
+                      game={game}
+                      onActivate={handleGameActivate}
+                      onClone={handleGameClone}
+                      onEdit={openGameEditor}
+                    />
+                  ))}
+                </MenuRow>
               )
             ) : (
-              <>
-                <MenuRow title="🔥 Most Played" emptyText="No scenarios yet.">
-                  {mostPlayedScenarios.map((scenario) => (
-                    <ScenarioCard
-                      key={scenario.id}
-                      onClone={handleScenarioClone}
-                      onEdit={openScenarioEditor}
-                      onPlay={handleScenarioPlay}
-                      onSelect={selectScenario}
-                      onUpdate={handleScenarioUpdate}
-                      scenario={scenario}
-                      selected={scenario.id === selectedScenarioId}
-                      updateAvailable={scenarioUpdateAvailable(scenario)}
-                    />
-                  ))}
-                </MenuRow>
-                <MenuRow title="🕐 Last Updated" emptyText="No scenarios yet.">
-                  {lastUpdatedScenarios.map((scenario) => (
-                    <ScenarioCard
-                      key={scenario.id}
-                      onClone={handleScenarioClone}
-                      onEdit={openScenarioEditor}
-                      onPlay={handleScenarioPlay}
-                      onSelect={selectScenario}
-                      onUpdate={handleScenarioUpdate}
-                      scenario={scenario}
-                      selected={scenario.id === selectedScenarioId}
-                      updateAvailable={scenarioUpdateAvailable(scenario)}
-                    />
-                  ))}
-                </MenuRow>
-                <MenuRow title="✦ Your Scenarios">
-                  <CreateScenarioTile busy={isBusy} onCreate={handleCreateScenario} />
-                  {yourScenarios.map((scenario) => (
-                    <ScenarioCard
-                      key={scenario.id}
-                      onClone={handleScenarioClone}
-                      onEdit={openScenarioEditor}
-                      onPlay={handleScenarioPlay}
-                      onSelect={selectScenario}
-                      onUpdate={handleScenarioUpdate}
-                      scenario={scenario}
-                      selected={scenario.id === selectedScenarioId}
-                      updateAvailable={scenarioUpdateAvailable(scenario)}
-                    />
-                  ))}
-                </MenuRow>
-              </>
+              <MenuRow title="시나리오" emptyText="No scenarios yet." wrap>
+                {scenarios.map((scenario) => (
+                  <ScenarioCard
+                    key={scenario.id}
+                    onClone={handleScenarioClone}
+                    onEdit={openScenarioEditor}
+                    onPlay={handleScenarioPlay}
+                    onSelect={selectScenario}
+                    onUpdate={handleScenarioUpdate}
+                    scenario={scenario}
+                    selected={scenario.id === selectedScenarioId}
+                    updateAvailable={scenarioUpdateAvailable(scenario)}
+                  />
+                ))}
+                <CreateScenarioTile busy={isBusy} onCreate={handleCreateScenario} />
+              </MenuRow>
             )}
           </div>
         </div>
