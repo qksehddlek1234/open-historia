@@ -248,7 +248,8 @@ normalizePolityChange, 판별은 isTerritorylessVoiceName, 드롭은 콘솔 경�
 
 커밋 없음(코드 무변경 검증 배치). 테스트 게임에서 실행, 활성 게임은 1935
 캠페인으로 복구 완료. 라이브 힐 없음(테스트 세이브 2개 생성:
-sovereignty-audit-test·-copy — 지우지 않고 남겨 둔다, 판단은 사용자 몫).
+sovereignty-audit-test·-copy — 사용자 지시로 같은 날 API 삭제 완료,
+매니페스트에 라이브 캠페인 2개만 남음).
 
 ### 방법
 
