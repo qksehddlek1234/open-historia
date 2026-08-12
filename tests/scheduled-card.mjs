@@ -157,15 +157,34 @@ test("THE AUTHORED TIMELINE LEADS, and the model only fills the gaps", () => {
   // Asking a 12B to recall them is asking it to guess at data we hold — measured
   // cold it returns one entry, sometimes none, usually the next US election.
   // The window widened from 1400 when the opt-out gate and its explanation went
-  // in between the heading and the code. What is pinned is the ORDER — authored
-  // rows are built before the model is asked — not how much comment sits above
-  // it, so the window may grow again; the two matches below are the invariant.
+  // in between the heading and the code, and again to 3400 when the visibility
+  // filter and its explanation joined them. What is pinned is the ORDER —
+  // authored rows are built before the model is asked — not how much comment
+  // sits above it, so the window may grow again; the matches are the invariant.
   const block = GAMEPLAY.slice(GAMEPLAY.indexOf("AND THE AUTHORED TIMELINE GOES IN FIRST"));
-  assert.match(block.slice(0, 2400), /normalizeTimeline\(bundle\.world\?\.periodTimeline\)/);
-  assert.match(block.slice(0, 2400), /entry\?\.date\) > stopDate/);
+  assert.match(block.slice(0, 3400), /normalizeTimeline\(bundle\.world\?\.periodTimeline\)/);
+  assert.match(block.slice(0, 3400), /entry\?\.date\) > stopDate/);
   assert.match(GAMEPLAY, /buildScheduledCard\(\[\.\.\.authored, \.\.\.normalizeArray\(schedulePayload\?\.entries\)\], stopDate\)/);
   // And if the model pass dies the authored rows still print.
   assert.match(GAMEPLAY, /falling back to the authored timeline alone/);
+});
+
+test("THE CARD SHOWS ONLY WHAT WAS FORESEEABLE, phrased outcome-free", () => {
+  // The suggestion board has held this line all along (foreseeableOutlook:
+  // surprise is the default, and what it shows is the outcome-free sentence,
+  // never the title). The card lagged on both counts — it printed every future
+  // entry by TITLE, and a timeline title carries the outcome. For a
+  // locked-timeline preset (TNO: "Do not mention events before they occur")
+  // that turned every hidden anchor into a spoiler on the public calendar —
+  // the exact leak docs/analysis/tno-original-depth-pilot.md measured this
+  // channel for. foreseeableFrom gates the card the same way it gates the
+  // board: announced mid-campaign means absent before the announcement.
+  const block = GAMEPLAY.slice(GAMEPLAY.indexOf("AND THE AUTHORED TIMELINE GOES IN FIRST"));
+  assert.match(block.slice(0, 3400),
+    /entry\.foreseeable && !\(entry\.foreseeableFrom && entry\.foreseeableFrom > stopDate\)/);
+  assert.match(block.slice(0, 3400), /name: entry\.foreseeable/);
+  assert.doesNotMatch(block.slice(0, 3400), /name: normalizeString\(entry\?\.title\)/,
+    "the title carries the outcome; it must never reach the card");
 });
 
 test("…and it can never cost the turn", () => {
@@ -173,9 +192,9 @@ test("…and it can never cost the turn", () => {
   // the invariant is bounded-and-optional (a try, a timeout, no cost on
   // failure), not the distance from the heading to the call.
   const block = GAMEPLAY.slice(GAMEPLAY.indexOf("THE CALENDAR CARD, BUILT BY THE ENGINE"));
-  assert.match(block.slice(0, 3600), /try \{/);
-  assert.match(block.slice(0, 3600), /the turn is unaffected and simply carries no card/);
-  assert.match(block.slice(0, 3600), /timeoutMs: 120000/);
+  assert.match(block.slice(0, 4600), /try \{/);
+  assert.match(block.slice(0, 4600), /the turn is unaffected and simply carries no card/);
+  assert.match(block.slice(0, 4600), /timeoutMs: 120000/);
 });
 
 console.log(`\n${pass} passed\n`);

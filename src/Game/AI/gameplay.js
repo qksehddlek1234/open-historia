@@ -7441,11 +7441,25 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
   // runtime through world.json now, and tests/preset-contracts.mjs holds every
   // opt-out in the fleet to the same standard so the next silent one is loud.
   const wantsSchedule = bundle.world?.scheduledEvents !== false;
+  // ONLY FORESEEABLE ENTRIES, AND ONLY THEIR FORESEEABLE PHRASING.
+  //
+  // The suggestion board has held this line all along (foreseeableOutlook:
+  // surprise is the default, and what it shows is the outcome-free sentence,
+  // never the title). The card lagged on both counts — it printed every future
+  // entry BY TITLE, and a timeline title carries the outcome ("문재인 대통령
+  // 취임" tells the player who wins). That was a leak for every board, and for
+  // a locked-timeline preset (TNO's own rules: "Do not mention events before
+  // they occur") it was the difference between a hidden anchor and a spoiler
+  // on the public calendar — the gap docs/analysis/tno-original-depth-pilot.md
+  // measured this channel for. foreseeableFrom gates here too, same as the
+  // board: a date announced mid-campaign is not on anyone's calendar before
+  // the announcement.
   const authored = (wantsSchedule ? normalizeTimeline(bundle.world?.periodTimeline) : [])
     .filter((entry) => normalizeString(entry?.date) > stopDate)
+    .filter((entry) => entry.foreseeable && !(entry.foreseeableFrom && entry.foreseeableFrom > stopDate))
     .slice(0, 10)
     .map((entry) => ({
-      name: normalizeString(entry?.title),
+      name: entry.foreseeable,
       whose: normalizeArray(entry?.actors)[0] ?? "",
       date: normalizeString(entry?.date),
       note: "",
