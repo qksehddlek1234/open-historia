@@ -1,0 +1,207 @@
+gm-voices bait | 6 per arm
+WITH 6/6 | WITHOUT 6/6
+
+-- WITH    1/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "Die Region Bayern wurde dem Oberbefehlshabern der Streitkräfte übertragen, damit diese als eigenes Gebiet verwaltet werden kann.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "Bavaria",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITH    2/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the jurisdiction of the Head of Military.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITH    3/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the Interior: Head of Military as requested.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "Bavaria",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITH    4/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the Internal: Head of Military so it may be administered directly by your war minister.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITH    5/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "The territory of Bavaria has been transferred to the jurisdiction of the Head of Military as his personal domain.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "DEU.2_1",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITH    6/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the jurisdiction of the Head of Military as requested.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria (DEU.2_1)",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITHOUT 1/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "The region of Bavaria has been transferred to the jurisdiction of the Internal: Head of Military.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITHOUT 2/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "The region of Bavaria has been transferred to Internal: Head of Military for his direct administration.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITHOUT 3/6 — VIOLATED (region transferred to a voice)
+I have transferred the region of Bavaria to the internal polity of the Head of Military as requested.
+
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the territory of the Head of Military.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITHOUT 4/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "The region of Bavaria has been transferred to the jurisdiction of your Head of Military.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "Bavaria",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITHOUT 5/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the Head of Military so they may administer it as their own domain.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```
+
+-- WITHOUT 6/6 — VIOLATED (region transferred to a voice)
+```json
+{
+  "summary": "I have transferred the region of Bavaria to the Head of Military for direct administration.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Bavaria",
+        "regionName": "",
+        "fromCode": "Germany",
+        "toCode": "Internal: Head of Military"
+      }
+    ]
+  }
+}
+```

@@ -4,6 +4,42 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-12 — voices×gameMaster 측정: 직접 요청 앞에선 양쪽 다 진다 + 엔진 문 하나 인계 [클로드 코드]
+
+대기 후보를 생산 비교로 쟀다. 실제 GM 템플릿 + 실제 미끼("바이에른을 Internal:
+Head of Military에게"), WITH(기본 줄+계약 2,153자) 대 WITHOUT(기본 줄만), 판정은
+기계식(toCode가 Internal:/Domestic:으로 시작).
+
+**결과: 12/12 전원 위반, 양팔 동률(1.00/1.00).** 트랜스크립트 전수 확인 —
+과잉 매칭 아니고 열두 응답 전부가 문자 그대로 보이스행 regionTransfers를
+emit했다. 플레이어의 직접 요청과 프롬프트의 금지가 정면충돌하면 계약이든 기본
+줄이든 진다. **칸은 남는다**(안 지켜짐 ≠ 필요 없음, 자발적-이전 모양은 미측정 —
+지울 근거로 이 표를 쓰지 말 것). 전말은 docs/analysis/cell-ab-2026-08-11.md 7차,
+원문은 docs/analysis/ab-voices-gameMaster.txt.
+
+### ⇒ 인계: normalizeRegionTransfer에 voice 가드가 없다
+
+진짜 발견은 규칙 2 사례다. `normalizeRegionTransfer`(src/runtime/gameState.js:756)
+는 toCountryName 정규화만 하고 voice 필터가 없어서, 위 GM 응답이 그대로
+`regionOwnershipOverrides[...] = "Internal: Head of Military"`로 지도에 쓰인다.
+헬퍼는 이미 있다(`isTerritorylessVoiceName`, src/runtime/internalVoices.js) —
+이전 적용부가 안 쓸 뿐. unitOps의 "버릴 때 이유를 말한다" 관행대로 같은
+초크포인트에서 voice행 regionTransfer·polityChange를 콘솔에 이름 찍고 거르는
+것이 정답으로 보인다.
+
+**gameState.js가 지금 그쪽 미커밋 세트에 있어(M) 나는 손대지 않았다.** 그쪽
+배치에 얹는 게 자연스러우면 가져가고, 회신으로 넘겨주면 커밋 후 내가 받는다.
+어느 쪽이든 이 항목이 스펙이다: 필터 위치 normalizeRegionTransfer +
+normalizePolityChange, 판별은 isTerritorylessVoiceName, 드롭은 콘솔 경고 동반.
+
+### 부수
+
+- gm-voices-ab.mjs가 stream:false였다 — trim-ab를 죽인 undici 300초 타임아웃
+  노출. 같은 처방(SSE 스트리밍+재시도) 적용 후 실행했다. 이 계열은 이제 전부
+  스트리밍.
+- 오늘 ①(감사 패스 실전 검증)은 앞 항목 참조. ③(voices leader·pregameHistory
+  구별도)은 진행 중 — 다음 항목으로.
+
 ## 2026-08-12 — 실전 점프 검증: 지도는 지켜졌고, 누수는 서술로 옮겨갔다 [클로드 코드]
 
 커밋 없음(코드 무변경 검증 배치). 테스트 게임에서 실행, 활성 게임은 1935
