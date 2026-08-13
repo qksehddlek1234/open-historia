@@ -755,6 +755,25 @@ export const traceFaces = (nodes) => {
         u = v;
         v = next;
         steps += 1;
+        // A DOOMED WALK IS KNOWN THE MOMENT IT REPEATS AN EDGE, and waiting
+        // longer is what made 1936 pathological. The successor (u,v)→next is
+        // deterministic, so stepping onto ANY already-visited directed edge —
+        // this walk's own, or one a finished ring consumed — locks the walk
+        // into that edge's fixed orbit forever. That orbit cannot contain this
+        // walk's start edge: if it did, the while() would have ended the walk
+        // on first arrival (and a prior ring's start would have been skipped by
+        // the outer loop). Measured before this guard existed (1936-01-01,
+        // 4,637 lines): all 2,059 anomalies were runaways, each walking the
+        // full global cap of ~1.74M steps — 3.59 BILLION wasted steps, 20.9 of
+        // the assembly's 24 minutes (87%), and every edge they trampled was
+        // marked visited, silently swallowing the faces those edges bounded.
+        // The global cap below stays as the last-resort backstop (rule 5),
+        // now unreachable in any input measured so far.
+        if (visited.has(`${u}>${v}`) && !(u === startU && v === startV)) {
+          anomalies += 1;
+          ok = false;
+          break;
+        }
         if (steps > directedCount + 2) {
           anomalies += 1;
           ok = false;
