@@ -36,6 +36,18 @@ export default {
   // Player starts as the French Empire, one day before the coronation.
   game: { country: "FRA", startDate: "1804-12-01", gameDate: "1804-12-01" },
 
+  // Plan F-3: era geometry graft. Declared after the 2026-08-12 date batch
+  // measured this date at 배정 29 · 실질 31.2% from the cached Overpass response —
+  // the same band as the grafted 1836 baseline. The build discovers
+  // era-borders-1804-12-01*.geojson in scripts/ohm/out and grafts matching
+  // faces; absent the dump it builds exactly as before, and says so.
+  // faceOwners left empty: naming the frame-residue face and the colonial
+  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
+  eraGeometry: {
+    date: "1804-12-01",
+    window: [-15, 30, 50, 72],
+  },
+
   polities: {
     FRA: { name: "French Empire", color: "#3f5fd0", aliases: ["프랑스 제국", "프랑스", "France", "Napoleonic France", "First French Empire"] },
     // The satellite ring — drawn as their own polities per the puppet pattern.

@@ -42,6 +42,18 @@ export default {
   // half of Europe and facing an atomic monopoly with conventional mass.
   game: { country: "SOV", startDate: "1946-03-05", gameDate: "1946-03-05" },
 
+  // Plan F-3: era geometry graft. Declared after the 2026-08-12 date batch
+  // measured this date at 배정 39 · 실질 44.2% from the cached Overpass response —
+  // the same band as the grafted 1836 baseline. The build discovers
+  // era-borders-1946-03-05*.geojson in scripts/ohm/out and grafts matching
+  // faces; absent the dump it builds exactly as before, and says so.
+  // faceOwners left empty: naming the frame-residue face and the colonial
+  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
+  eraGeometry: {
+    date: "1946-03-05",
+    window: [-15, 30, 50, 72],
+  },
+
   polities: {
     // ── 자치령: 왕관은 같아도 정부는 각자다 ───────────────────────────────────
     // 1931년 웨스트민스터 헌장 이후 자치령은 대외정책까지 자기 것이다 — 1939년

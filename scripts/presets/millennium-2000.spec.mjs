@@ -39,6 +39,18 @@ export default {
   // for a Korean player begins on day one.
   game: { country: "KOR", startDate: "2000-01-01", gameDate: "2000-01-01" },
 
+  // Plan F-3: era geometry graft. Declared after the 2026-08-12 date batch
+  // measured this date at 배정 52 · 실질 52.1% from the cached Overpass response —
+  // the same band as the grafted 1836 baseline. The build discovers
+  // era-borders-2000-01-01*.geojson in scripts/ohm/out and grafts matching
+  // faces; absent the dump it builds exactly as before, and says so.
+  // faceOwners left empty: naming the frame-residue face and the colonial
+  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
+  eraGeometry: {
+    date: "2000-01-01",
+    window: [-15, 30, 50, 72],
+  },
+
   polities: {
     // The four places where the 2000 map genuinely differs from the modern one.
     YUG: { name: "FR Yugoslavia", color: "#5b6fae", aliases: ["유고연방", "유고슬라비아", "Yugoslavia", "Serbia and Montenegro", "밀로셰비치의 유고"] },

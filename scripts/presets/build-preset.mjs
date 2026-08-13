@@ -454,6 +454,20 @@ if (eraSpec) {
     const specFaceOwners = Object.fromEntries(
       Object.entries(eraSpec.faceOwners ?? {}).map(([faceName, code]) => [faceName, polityName(code)]),
     );
+    // ERA SOVEREIGNTY OUTRANKS A MODERN NAME MATCH. The name index carries
+    // modern country names (unassignedKeepModernOwner), and OHM has era faces
+    // for entities the era table says were HELD: the 1946 dump's "Isle of
+    // Man" face matched the modern name and stood a crown dependency up as a
+    // sovereign — the exact contradiction the region pass corrects the other
+    // way in the same build (221 reassignments IMN→British Empire), caught by
+    // tests/era-sovereignty.mjs (2026-08-12). A face matching a SPEC polity
+    // is intended and passes untouched; a face matching only a modern name
+    // defers to the era holder — the outline still grafts, the holder owns
+    // it, and every redirect prints.
+    const specPolityNames = new Set(Object.values(spec.polities ?? {}).map((p) => p.name));
+    const MODERN_NAME_TO_GID0 = new Map(Object.entries(COUNTRY_NAMES).map(([g, n]) => [n, g]));
+    const eraSovereigntyFaceRedirects = [];
+    const eraSovereigntyFaceRefusals = [];
     const faces = [];
     const unmatchedFaces = [];
     const styleMatched = [];
@@ -475,6 +489,18 @@ if (eraSpec) {
       const hit = matchFace(face, nameIndex, specFaceOwners);
       if (!hit) { unmatchedFaces.push(face.properties?.name ?? "(무명)"); continue; }
       if (hit.via === "style") styleMatched.push(`${face.properties?.name} → ${hit.owner}`);
+      if (!specPolityNames.has(hit.owner)) {
+        const gid0OfModern = MODERN_NAME_TO_GID0.get(hit.owner);
+        if (gid0OfModern && eraSovereigntyMoves.has(gid0OfModern)) {
+          const holder = eraSovereigntyMoves.get(gid0OfModern);
+          if (holder === "(무주지)") {
+            eraSovereigntyFaceRefusals.push(`${fname} — 이 날짜엔 무주지`);
+            continue;
+          }
+          eraSovereigntyFaceRedirects.push(`${fname}: ${hit.owner} → ${holder}`);
+          hit.owner = holder;
+        }
+      }
       faces.push({
         owner: hit.owner,
         name: face.properties?.name ?? hit.owner,
@@ -508,7 +534,7 @@ if (eraSpec) {
         syncedOverrides += 1;
       }
     }
-    eraReport = { ...grafted.report, syncedOverrides, facesPath, facesTotal: (faceFc.features ?? []).length, facesMatched: faces.length, unmatchedFaces, styleMatched, excludedFaces, faceSizes };
+    eraReport = { ...grafted.report, syncedOverrides, facesPath, facesTotal: (faceFc.features ?? []).length, facesMatched: faces.length, unmatchedFaces, styleMatched, excludedFaces, faceSizes, eraSovereigntyFaceRedirects, eraSovereigntyFaceRefusals };
   }
 }
 
@@ -629,6 +655,8 @@ if (eraReport) {
   console.log(`    면 ${r.facesMatched}/${r.facesTotal} 매칭${r.unmatchedFaces.length ? ` — 미매칭: ${r.unmatchedFaces.join(", ")}` : ""}`);
   if (r.excludedFaces.length) console.log(`    스펙이 배제한 면 ${r.excludedFaces.length}건(창 잔여 면 등): ${r.excludedFaces.join(", ")}`);
   if (r.styleMatched.length) console.log(`    양식 정규화 매칭(사람 눈 확인 권장) ${r.styleMatched.length}건: ${r.styleMatched.join(", ")}`);
+  if (r.eraSovereigntyFaceRedirects?.length) console.log(`    시대 종주권 우선 — 현대 이름 면 ${r.eraSovereigntyFaceRedirects.length}건을 보유국으로: ${r.eraSovereigntyFaceRedirects.join(", ")}`);
+  if (r.eraSovereigntyFaceRefusals?.length) console.log(`    시대 종주권 우선 — 무주지 면 ${r.eraSovereigntyFaceRefusals.length}건 거부: ${r.eraSovereigntyFaceRefusals.join(", ")}`);
   console.log(`    지역 ${r.regionsIn} → ${regionFeaturesFinal.length}: 무접촉 ${r.untouched} · 확인 ${r.confirmed} · 재배정 ${r.reowned.length} · 절단 ${r.cut.length}(조각 +${r.offcuts})`);
   if (r.reowned.length) {
     const sample = r.reowned.slice(0, 6).map((x) => `${x.id} ${x.from || "(무주)"}→${x.to}`).join(", ");

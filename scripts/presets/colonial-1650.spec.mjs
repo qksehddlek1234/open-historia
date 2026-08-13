@@ -38,6 +38,18 @@ export default {
 
   relabelOwnedCountries: true,
 
+  // Plan F-3: era geometry graft. Declared after the 2026-08-12 date batch
+  // measured this date at 배정 34 · 실질 33.5% from the cached Overpass response —
+  // the same band as the grafted 1836 baseline. The build discovers
+  // era-borders-1650-01-01*.geojson in scripts/ohm/out and grafts matching
+  // faces; absent the dump it builds exactly as before, and says so.
+  // faceOwners left empty: naming the frame-residue face and the colonial
+  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
+  eraGeometry: {
+    date: "1650-01-01",
+    window: [-15, 30, 50, 72],
+  },
+
   polities: {
     // — Colonial empires (real ISO codes where the polity IS that country, so
     //   their real flags resolve in the popup) —
