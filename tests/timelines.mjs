@@ -72,14 +72,28 @@ test("a timeline whose entries are all fixtures says so on every entry", () => {
   // The silent no-op this file exists to stop. An entry with no `foreseeable`
   // NEVER reaches the outlook — not an error, just nothing — so a timeline
   // written entirely of calendar fixtures and shipped without the phrasing is a
-  // file that does nothing at all. Every entry of the four boards added for
-  // that purpose must carry it.
-  for (const id of ["coldwar-1946", "korea-1950", "tno-1962", "coldwar-1989"]) {
+  // file that does nothing at all. Every entry of the fixture boards must
+  // carry it.
+  for (const id of ["coldwar-1946", "korea-1950", "coldwar-1989"]) {
     const timeline = TIMELINE_LIBRARY.find((t) => t.id === id);
     assert.ok(timeline, `${id} is in the library`);
     const silent = timeline.entries.filter((entry) => !entry.foreseeable);
     assert.deepEqual(silent.map((e) => `${e.date} ${e.title}`), [], `${id}: entries that would never surface`);
   }
+  // TNO left this list the day its locked timeline landed. Its hidden entries
+  // have no foreseeable ON PURPOSE — the source's own rule is "do not mention
+  // events before they occur", so they must reach no board and no card. What
+  // keeps a hidden entry from being the old silent no-op is the OTHER half of
+  // the machinery: pivotal weight, which guarantees the engine materializes it
+  // the turn its date passes unwritten. So the invariant this pin protects —
+  // no entry that can never surface — survives in a new shape: hidden ⟹
+  // pivotal. A hidden non-pivotal entry would wait out a backlog retry and
+  // could dodge both paths, which is the silence again.
+  const tno = TIMELINE_LIBRARY.find((t) => t.id === "tno-1962");
+  assert.ok(tno, "tno-1962 is in the library");
+  const weakHidden = tno.entries.filter((e) => !e.foreseeable && e.weight !== "pivotal");
+  assert.deepEqual(weakHidden.map((e) => `${e.date} ${e.title}`), [],
+    "tno-1962: a hidden anchor must be pivotal or it can fail to surface at all");
 });
 
 test("the two boards whose drama is undated carry none of it", () => {
@@ -171,11 +185,21 @@ test("TNO states the Smuta dates once — on the timeline, not in the rules", as
   assert.match(rules, /SMUTA/, "the behaviour clause itself must stay");
   assert.match(rules, /consolidates, arms and postures/, "including what happens BEFORE the date");
   const timeline = TIMELINE_LIBRARY.find((t) => t.id === "tno-1962");
+  // Once the timeline was ONLY the four Smuta dates, and this asserted the
+  // whole entry list. The locked timeline (63 hidden anchors) now shares the
+  // file, so the invariant narrows to what it always meant: the CALENDAR —
+  // the foreseeable layer — is exactly the four Smuta dates, once each.
   assert.deepEqual(
-    timeline.entries.map((e) => e.date),
+    timeline.entries.filter((e) => e.foreseeable).map((e) => e.date),
     ["1963-04-01", "1963-05-01", "1963-11-01", "1964-03-01"],
     "and the dates must actually be on the calendar instead",
   );
+  // And the hidden layer is really hidden and really locked: every one of the
+  // 63 anchors is pivotal with no foreseeable phrasing (the port contract from
+  // docs/analysis/tno-original-depth-pilot.md).
+  const hidden = timeline.entries.filter((e) => !e.foreseeable);
+  assert.equal(hidden.length, 63, "the locked timeline carries all 63 source events");
+  assert.ok(hidden.every((e) => e.weight === "pivotal"), "every anchor is pivotal");
 });
 
 test("a board with no fixtures gets no timeline rather than an invented one", () => {
