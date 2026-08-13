@@ -44,11 +44,34 @@ export default {
   // the same band as the grafted 1836 baseline. The build discovers
   // era-borders-2000-01-01*.geojson in scripts/ohm/out and grafts matching
   // faces; absent the dump it builds exactly as before, and says so.
-  // faceOwners left empty: naming the frame-residue face and the colonial
-  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
   eraGeometry: {
     date: "2000-01-01",
     window: [-15, 30, 50, 72],
+    // 2026-08-14 면 검수 (52면 전수).
+    excludeFaces: [
+      // 동부 잔여 메가면(44.3x28.8°, 링 109): 러시아가 2000년 창에서 폐합되지
+      // 않아 벨라루스+러시아+미폐합 동부가 한 면이 되고 민스크의 벨라루스
+      // 라벨을 얻었다. 점검사 실측: 모스크바 안, 키이우 밖(우크라이나는 따로
+      // 폐합). 배제하면 두 나라 다 현대 지역을 유지한다.
+      "Беларусь",
+    ],
+    faceOwners: {
+      // 지역 패스 어휘(COUNTRY_NAMES)와 정확히 같은 문자열로 맞춘다 —
+      // 지도와 소유권 테이블이 한 나라를 두 이름으로 부르면 안 된다.
+      "Česko": "Czechia", // en=Czech Republic이지만 보드 어휘는 Czechia
+      "ПЈР Македонија": "North Macedonia", // 2000년 당시 명칭은 FYROM — 보드 어휘 우선
+      "ٱلْجُمْهُورِيَّةُ ٱلْعَرَبِيَّةُ ٱلْسُوْرِيَّة": "Syria",
+      // 가자: 오슬로 체제 — 지구 대부분이 팔레스타인 자치정부 관할(A/B 구역).
+      // 1989 보드와 달리 Palestine이 시대의 답이고 지역 패스와도 일치한다.
+      "Israeli administration of Gaza": "Palestine",
+    },
+    // 점 검사 실측 두 건 — 융합 기록이 없는 소리 없는 삼킴은 스펙이 명명한다
+    // (1939 독일-유틀란트 전례):
+    // · Deutschland 면이 파리를 포함 — 2000 프랑스 미폐합, 라벨 점도 없음.
+    // · España 면이 리스본을 포함하는데 다른 다섯 날짜와 달리 2000에만
+    //   mergedWith(Portugal) 기록이 없다(포르투갈 라벨이 이 날짜에 부재) —
+    //   첫 빌드 실측: PRT 지역 106건이 스페인으로 재배정되고 있었다.
+    faceKeepOut: { "Deutschland": ["FRA"], "España": ["PRT"] },
   },
 
   polities: {

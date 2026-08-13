@@ -60,11 +60,29 @@ export default {
   // the same band as the grafted 1836 baseline. The build discovers
   // era-borders-1989-01-01*.geojson in scripts/ohm/out and grafts matching
   // faces; absent the dump it builds exactly as before, and says so.
-  // faceOwners left empty: naming the frame-residue face and the colonial
-  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
   eraGeometry: {
     date: "1989-01-01",
     window: [-15, 30, 50, 72],
+    // 2026-08-14 면 검수 (36면 전수). 미매칭은 2면뿐이었지만, "매칭된" 면
+    // 하나가 함정이었다 — 아래 배제 참조.
+    excludeFaces: [
+      // 동부 잔여 메가면(47.7x34.8°, 링 317 — 1946의 쌍둥이): 루마니아
+      // 폴리티 이름(ROU)과 정확 매칭돼 발트·소련 지역을 루마니아로 재배정
+      // 하고 있었다. 배제하면 루마니아는 스펙 배정(ROU) 지역을 유지한다.
+      "Republica Socialistă România",
+    ],
+    faceOwners: {
+      // 가자: 1989는 인티파다 원년이지만 통치는 이스라엘 민정청 —
+      // 지역 패스 어휘로 Israel. 재배정은 크게 인쇄된다.
+      "Israeli administration of Gaza": "Israel",
+      "ٱلْجُمْهُورِيَّةُ ٱلْعَرَبِيَّةُ ٱلْسُوْرِيَّة": "Syria", // 시리아-아랍 공화국 정식명
+    },
+    // 서독 면이 파리를 포함한다(점 검사 실측) — 1989 프랑스가 OHM에서
+    // 폐합되지 않아 미폐합 프랑스가 본 라벨 면에 소리 없이 융합됐고, 프랑스
+    // 라벨 점 자체가 없어 mergedWith 기록조차 남지 않았다. 기록이 없으면
+    // 거부 기계가 못 지키므로 스펙이 명명한다(1939 독일-유틀란트 전례).
+    // 첫 빌드 실측: FRA.1.x 지역들이 서독으로 재배정되고 있었다.
+    faceKeepOut: { "Bundesrepublik Deutschland": ["FRA"] },
   },
 
   polities: {

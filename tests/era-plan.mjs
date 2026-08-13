@@ -151,7 +151,16 @@ test("THE ONE WINDOW THIS REPO HAS USED IS RECORDED, and still matches its dump"
 
   const lines = fs.readdirSync(OUT).filter((f) => f.startsWith(`era-lines-${REFERENCE.date}`) && f.endsWith(".geojson"));
   if (lines.length === 0) return; // dumps are gitignored; only checkable where one exists
-  const meta = JSON.parse(fs.readFileSync(path.join(OUT, lines.sort().at(-1)), "utf8")).meta;
+  // Newest by MTIME, never by name — build-preset's own discovery sorts by
+  // mtime, and lexicographic order is a trap: a stale pre-`-z4` dump
+  // ("….geojson") sorts AFTER its successor ("…-z4.geojson") because "." > "-",
+  // which is exactly how a 8/8-convention leftover outranked the real dump on
+  // the local session's disk (2026-08-13) and turned this pin red for an
+  // environment reason. The pin must read the same file the build would.
+  const newest = lines
+    .map((f) => ({ f, mtimeMs: fs.statSync(path.join(OUT, f)).mtimeMs }))
+    .sort((a, b) => b.mtimeMs - a.mtimeMs)[0].f;
+  const meta = JSON.parse(fs.readFileSync(path.join(OUT, newest), "utf8")).meta;
   assert.deepEqual(meta.bbox.map(Number), spec.eraGeometry.window,
     "the declared window must be the one the shipped faces were actually cut with");
   assert.equal(meta.zoom, REFERENCE.zoom, "and at the zoom the reference records");

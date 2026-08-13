@@ -43,11 +43,68 @@ export default {
   // the same band as the grafted 1836 baseline. The build discovers
   // era-borders-1650-01-01*.geojson in scripts/ohm/out and grafts matching
   // faces; absent the dump it builds exactly as before, and says so.
-  // faceOwners left empty: naming the frame-residue face and the colonial
-  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
   eraGeometry: {
     date: "1650-01-01",
     window: [-15, 30, 50, 72],
+    // 2026-08-14 면 검수 (34면 전수). 잔여 메가면과 라벨 착지 오류는 배제,
+    // 나머지 미매칭 27면 전부 명명 — 근거는 각 행에.
+    excludeFaces: [
+      // 동부 잔여 메가면(40.2x44.9°, 링 193): 미폐합 동부 전체가 한 면이 되어
+      // 러시아 라벨을 얻었다. 점검사 실측: 이스파한(페르시아)이 안에 있다.
+      // 배제하면 모스크바 대공국 지역들은 스펙 배정(RUS)을 유지한다.
+      "Русское царство",
+      // 제노바 라벨이 사르데냐 섬 면(8.1,38.9→9.8,41.3)에 착지 — 리구리아+
+      // 코르시카 bbox 중심이 바다로 떨어지는 중심점 병리. 사르데냐는 1650년
+      // 스페인령이므로 이 면을 그래프트하면 제노바가 사르데냐를 갖는다.
+      // 중심 오버라이드+재조립이 근본 수리(후속), 오늘은 배제.
+      "Serenìscima Repùbrica de Zêna",
+    ],
+    faceOwners: {
+      // — 보드 폴리티의 다른 이름 (코드 배정) —
+      "Commonwealth": "GBR", // en=Commonwealth (1649-1652), 잉글랜드+웨일스 bbox 실측
+      "Republiek der Zeven Verenigde Nederlanden": "NLD",
+      "Magyar Királyság": "HABS", // 왕령 헝가리 — 합스부르크 왕관령
+      "Regnum Siciliae": "ESP", // 시칠리아 섬 — 스페인 부왕령
+      "دولة الجزائر": "OTTO", // 알제 섭정 — 명목상 오스만
+      // 보드는 브리튼을 잉글랜드 연방 하나로 단순화한다. 1650-01-01의 실제:
+      // 스코틀랜드는 찰스 2세를 옹립한 언약도 왕국(크롬웰 침공은 7월),
+      // 맨 섬은 왕당파 더비 백작령(1651 함락). 윤곽만 시대판을 취하고
+      // 소유주는 보드의 단순화를 따른다.
+      "Kinrick o Scotland": "GBR",
+      "Isle of Man": "GBR",
+      // — 로스터 밖 실존 주권체 (이름 그대로 지도에 세운다; 1939 이라크 전례) —
+      // 아일랜드 가톨릭 동맹: 연방과 교전 중(크롬웰 상륙 1649-08)이므로
+      // GBR로 접으면 1650-01-01이 거짓이 된다. 스펙이 아일랜드를 GBR에
+      // 배정했다면 면이 이기고 재배정이 인쇄된다.
+      "Comhdháil Chaitliceach na hÉireann": "Irish Catholic Confederation",
+      "Eidgenossenschaft": "Swiss Confederacy", // 베스트팔렌(1648)으로 제국 이탈 공인
+      "Freistaat der Drei Bünde": "Three Leagues", // 그라우뷘덴 — 스위스 맹방
+      "Republik der Sieben Zenden": "Republic of Valais", // 발레 7개 촌락 공화국
+      "République de Genève": "Republic of Geneva",
+      "Principauté de Neuchâtel": "Principality of Neuchâtel", // 오를레앙-롱빌가
+      "Stadtrepublik Mülhausen": "Republic of Mulhouse", // 스위스 맹방 도시국가
+      "Grand Duchy of Tuscany": "Grand Duchy of Tuscany", // 메디치
+      "Ducato di Parma e Piacenza": "Duchy of Parma", // 파르네세
+      "Ducatus Mutinae et Regii": "Duchy of Modena", // 에스테
+      "Ducato di Massa e Principato di Carrara": "Duchy of Massa and Carrara", // 치보-말라스피나
+      "Ducatus Mantuæ": "Duchy of Mantua", // 곤차가-느베르 (1631 케라스코 이후)
+      "Ducatus Mirandolae": "Duchy of Mirandola", // 피코가
+      "Ducatus Guastalla": "Duchy of Guastalla", // 곤차가 방계
+      "Respublica Lucensis": "Republic of Lucca",
+      "Republica de' Cošpäja": "Republic of Cospaia", // 측량 오류가 낳은 진짜 미소국
+      "Respublica Sancti Marini": "San Marino",
+      "Andorra": "Andorra", // 공동영주제 — 프랑스도 스페인도 아니다
+      "Couto Misto": "Couto Misto", // 갈리시아 국경 공동통치 미소국
+      // 지분 2%·폭 0.06° 가드가 미소국들을 자동 흡수하면 그건 가드의 일 —
+      // 여기서 이름 없이 떨구는 것과는 다르다.
+    },
+    // 프랑스 면이 코모·토리노·아오스타를 포함한다(점 검사 실측) — 사보이아
+    // 공국과 스페인령 밀라노가 1650 창에서 폐합되지 않아 프랑스 면이 알프스
+    // 동쪽으로 흘렀고, 라벨 점이 없어 mergedWith 기록도 없다. 첫 빌드 실측:
+    // 롬바르디아·피에몬테 16개 지역이 (무주)→프랑스로 가고 있었다. 1650년
+    // 프랑스는 GADM ITA 땅을 갖지 않는다(피네롤로는 도 단위 미만 — 지분
+    // 가드가 흡수). 1939 독일-유틀란트 전례.
+    faceKeepOut: { "Royaume de France": ["ITA"] },
   },
 
   polities: {

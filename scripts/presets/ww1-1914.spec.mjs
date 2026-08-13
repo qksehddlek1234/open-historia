@@ -55,11 +55,35 @@ export default {
   // the same band as the grafted 1836 baseline. The build discovers
   // era-borders-1914-07-28*.geojson in scripts/ohm/out and grafts matching
   // faces; absent the dump it builds exactly as before, and says so.
-  // faceOwners left empty: naming the frame-residue face and the colonial
-  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
   eraGeometry: {
     date: "1914-07-28",
     window: [-15, 30, 50, 72],
+    // 2026-08-14 면 검수 (34면 전수). 러시아 면은 실물 확인(바르샤바 안 —
+    // 회의왕국, 바그다드·이스파한 밖). 노르웨이-스웨덴 융합면은 mergedWith
+    // 기계가 이미 담고 있어 배제 불요. 배제 0, 미매칭 14면 전부 명명.
+    faceOwners: {
+      "United Kingdom of Great Britain and Ireland": "GBR",
+      // 모로코 분할 보호령(1912 페스 조약·프랑스-스페인 협정): 스펙은 MAR
+      // 전체를 FRA에 배정했으므로 스페인 지대 면이 북부 지역들을 스페인으로
+      // 재배정하는 것이 맞다 — 면이 이긴다.
+      "Protectorat français au Maroc": "FRA",
+      "Protectorado español en Marruecos": "ESP",
+      "Territorio de Ifni": "ESP", // 1860 테투안 조약의 스페인 영토
+      "Saguía el Hamra": "ESP", // 스페인령 사하라 북부
+      "Colonia del Rio de Oro": "ESP", // 스페인령 사하라 남부
+      "Protectorat français de Tunisie": "FRA", // 1881 바르도 조약
+      "Tripolitania Italiana": "ITA", // 1912 로잔(우시) 조약
+      "Cirenaica Italiana": "ITA",
+      "Colony of Malta": "GBR",
+      // 부하라·히바: 1868/1873부터 러시아 보호령 — 스펙도 UZB·TKM을 RUS에
+      // 배정한다. 면과 지역이 같은 답을 말하게 한다.
+      "امارت بخارا": "RUS",
+      "خیوه خانلیگی": "RUS",
+      // 쿠웨이트·오만: 영국 영향권이지만 스펙이 현대명 국가로 남겨 둔 땅 —
+      // 지역 패스와 같은 어휘(COUNTRY_NAMES)로 맞춘다.
+      "Protectorate of Kuwait": "Kuwait", // 1913 영국-오스만 협약의 자치 셰이크국
+      "Sultanate of Muscat and Oman": "Oman",
+    },
   },
 
   polities: {

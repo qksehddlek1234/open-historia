@@ -23,7 +23,7 @@ import {
 } from "./lib/level2Expansion.mjs";
 import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
-  graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf,
+  graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf, decimateFaceMp,
 } from "./lib/eraGeometry.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -479,9 +479,19 @@ if (eraSpec) {
     // separates it from a large country, so it is named in the spec, and the
     // build prints every face's area and span for the human doing the naming.
     const faceSizes = [];
+    // Overpass-transport faces arrive at full way resolution (~0.002° spacing;
+    // 1946 totals 636,698 vertices where the tile-transport 1939 file carries
+    // 66,761) and polygon-clipping pays per vertex per (region, face) pair —
+    // measured 30+ min per build against seconds. Decimate on load at the
+    // assembler's own coast tolerance; totals print below, drops are counted.
+    const decim = { pointsIn: 0, pointsOut: 0, ringsIn: 0, ringsDropped: 0 };
     for (const face of faceFc.features ?? []) {
-      const mp = toMultiPolygon(face.geometry);
-      if (!mp) continue;
+      const mpRaw = toMultiPolygon(face.geometry);
+      if (!mpRaw) continue;
+      const { mp, stats } = decimateFaceMp(mpRaw);
+      decim.pointsIn += stats.pointsIn; decim.pointsOut += stats.pointsOut;
+      decim.ringsIn += stats.ringsIn; decim.ringsDropped += stats.ringsDropped;
+      if (!mp || mp.length === 0) continue;
       const fname = face.properties?.name ?? "";
       const fb = bboxOf(mp);
       faceSizes.push({ name: fname, span: `${(fb[2] - fb[0]).toFixed(1)}x${(fb[3] - fb[1]).toFixed(1)}` });
@@ -534,7 +544,7 @@ if (eraSpec) {
         syncedOverrides += 1;
       }
     }
-    eraReport = { ...grafted.report, syncedOverrides, facesPath, facesTotal: (faceFc.features ?? []).length, facesMatched: faces.length, unmatchedFaces, styleMatched, excludedFaces, faceSizes, eraSovereigntyFaceRedirects, eraSovereigntyFaceRefusals };
+    eraReport = { ...grafted.report, syncedOverrides, facesPath, facesTotal: (faceFc.features ?? []).length, facesMatched: faces.length, unmatchedFaces, styleMatched, excludedFaces, faceSizes, eraSovereigntyFaceRedirects, eraSovereigntyFaceRefusals, decim };
   }
 }
 
@@ -652,6 +662,9 @@ if (eraReport) {
   // that quietly covered less than it claims is worse than no graft.
   const r = eraReport;
   console.log(`  시대 지오메트리(F-3): ${path.relative(PROJECT_ROOT, r.facesPath)}`);
+  if (r.decim && r.decim.pointsIn > 0) {
+    console.log(`    면 데시메이션(0.01°, 로드 시): 정점 ${r.decim.pointsIn} → ${r.decim.pointsOut}, 붕괴 링 ${r.decim.ringsDropped}/${r.decim.ringsIn} 드롭(마이크로 루프)`);
+  }
   console.log(`    면 ${r.facesMatched}/${r.facesTotal} 매칭${r.unmatchedFaces.length ? ` — 미매칭: ${r.unmatchedFaces.join(", ")}` : ""}`);
   if (r.excludedFaces.length) console.log(`    스펙이 배제한 면 ${r.excludedFaces.length}건(창 잔여 면 등): ${r.excludedFaces.join(", ")}`);
   if (r.styleMatched.length) console.log(`    양식 정규화 매칭(사람 눈 확인 권장) ${r.styleMatched.length}건: ${r.styleMatched.join(", ")}`);
@@ -659,12 +672,23 @@ if (eraReport) {
   if (r.eraSovereigntyFaceRefusals?.length) console.log(`    시대 종주권 우선 — 무주지 면 ${r.eraSovereigntyFaceRefusals.length}건 거부: ${r.eraSovereigntyFaceRefusals.join(", ")}`);
   console.log(`    지역 ${r.regionsIn} → ${regionFeaturesFinal.length}: 무접촉 ${r.untouched} · 확인 ${r.confirmed} · 재배정 ${r.reowned.length} · 절단 ${r.cut.length}(조각 +${r.offcuts})`);
   if (r.reowned.length) {
-    const sample = r.reowned.slice(0, 6).map((x) => `${x.id} ${x.from || "(무주)"}→${x.to}`).join(", ");
-    console.log(`    재배정 상세: ${sample}${r.reowned.length > 6 ? ` … 외 ${r.reowned.length - 6}건` : ""}`);
+    // 전건 인쇄. 6건 샘플 + "외 N건"은 발트→루마니아 90건을 꼬리에 숨겼다
+    // (2026-08-14 실측) — 재배정은 손 스펙을 뒤집는 행위라 전량이 검수
+    // 대상이고, 숨긴 꼬리는 "전건 기명" 계약 위반이다. 소유주별로 접어서
+    // 줄 수는 억제하되 지역 id는 하나도 떨구지 않는다.
+    const byMove = new Map();
+    for (const x of r.reowned) {
+      const key = `${x.from || "(무주)"}→${x.to}`;
+      if (!byMove.has(key)) byMove.set(key, []);
+      byMove.get(key).push(x.id);
+    }
+    console.log(`    재배정 상세 (${r.reowned.length}건 전량):`);
+    for (const [move, ids] of [...byMove.entries()].sort((a, b) => b[1].length - a[1].length)) {
+      console.log(`      ${move} ×${ids.length}: ${ids.join(", ")}`);
+    }
   }
   if (r.cut.length) {
-    const sample = r.cut.slice(0, 6).map((c) => `${c.id}(${c.pieces.map((p) => p.owner || "무주").join("/")})`).join(", ");
-    console.log(`    절단 상세: ${sample}${r.cut.length > 6 ? ` … 외 ${r.cut.length - 6}건` : ""}`);
+    console.log(`    절단 상세 (${r.cut.length}건 전량): ${r.cut.map((c) => `${c.id}(${c.pieces.map((p) => p.owner || "무주").join("/")})`).join(", ")}`);
   }
   if (r.droppedSlivers.length) {
     const worst = r.droppedSlivers.slice().sort((a, b) => (b.fraction ?? 0) - (a.fraction ?? 0))[0];

@@ -120,6 +120,71 @@ export const toGeometry = (mp) => {
   return { type: "MultiPolygon", coordinates: mp };
 };
 
+// ── face decimation on load ──────────────────────────────────────────────────
+// THE TWO TRANSPORTS ARRIVE AT DIFFERENT RESOLUTIONS AND THE GRAFT PAYS FOR IT.
+// The tile transport is pre-simplified by the tiler (1939's 41 faces total
+// 66,761 vertices), but the Overpass transport returns full-resolution way
+// geometry — the 2026-08-12 date batch emitted faces at ~0.002° point spacing
+// (1946: 39 faces / 636,698 vertices, Romania alone 90,039 across 314 rings;
+// 2000: 1,050,134). polygon-clipping cost scales with vertex count per
+// intersection() and the graft runs one per bbox-overlapping (region, face)
+// pair, so the same build that took seconds on tile faces ground for 30+
+// minutes on Overpass faces — measured 2026-08-14 by V8 --prof (ticks
+// dominated by polygon-clipping compare/RingIn).
+//
+// Decimating on LOAD, not at emit, keeps the assembler's artifacts exact and
+// makes the graft transport-blind. The tolerance is the assembler's own coast
+// decimation constant (0.01°): far below the 0.06° weld distance and the 2%
+// piece-fraction guard, so no keep/absorb decision can flip — a boundary can
+// move at most ~0.01°, an order under the smallest surviving cut width ever
+// measured (0.062°). Rings that collapse below 4 points are micro-loops the
+// duplicate-generation storm minted (they decimate to nothing at province
+// scale); they are COUNTED, never silently vanished, and if an outer ring
+// collapses its holes go with it.
+export const decimateFaceMp = (mp, tol = 0.01) => {
+  const stats = { pointsIn: 0, pointsOut: 0, ringsIn: 0, ringsDropped: 0 };
+  if (!mp) return { mp, stats };
+  const out = [];
+  for (const poly of mp) {
+    const rings = [];
+    let outerDropped = false;
+    for (let r = 0; r < poly.length; r += 1) {
+      const ring = poly[r];
+      stats.ringsIn += 1;
+      stats.pointsIn += ring.length;
+      if (outerDropped) { stats.ringsDropped += 1; continue; } // holes of a dead outer
+      const dec = decimateRingLocal(ring, tol);
+      if (dec.length < 4) {
+        stats.ringsDropped += 1;
+        if (r === 0) outerDropped = true;
+        continue;
+      }
+      stats.pointsOut += dec.length;
+      rings.push(dec);
+    }
+    if (rings.length > 0) out.push(rings);
+  }
+  return { mp: out, stats };
+};
+
+// Radial-distance decimation, kept in step with assembleFaces' decimateRing:
+// a point within tol of the last kept point is dropped; first and last stay so
+// the ring remains closed. Local copy because importing the assembler here
+// would couple the graft to a module it must not load (and the function is
+// eight lines).
+const decimateRingLocal = (ring, tol) => {
+  if (!Array.isArray(ring) || ring.length <= 4) return ring ?? [];
+  const kept = [ring[0]];
+  for (let i = 1; i < ring.length - 1; i += 1) {
+    const last = kept[kept.length - 1];
+    const dx = ring[i][0] - last[0];
+    const dy = ring[i][1] - last[1];
+    if (dx * dx + dy * dy >= tol * tol) kept.push(ring[i]);
+  }
+  kept.push(ring[ring.length - 1]);
+  return kept;
+};
+
 // Resolve an era face to the OWNER NAME that should hold it. Two owner families
 // exist on a built preset and both must be reachable: the spec's era polities
 // ("Germany", "British Empire") and — on near-modern presets where

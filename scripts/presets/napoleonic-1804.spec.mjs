@@ -41,11 +41,54 @@ export default {
   // the same band as the grafted 1836 baseline. The build discovers
   // era-borders-1804-12-01*.geojson in scripts/ohm/out and grafts matching
   // faces; absent the dump it builds exactly as before, and says so.
-  // faceOwners left empty: naming the frame-residue face and the colonial
-  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
   eraGeometry: {
     date: "1804-12-01",
     window: [-15, 30, 50, 72],
+    // 2026-08-14 면 검수 (29면 전수). 러시아 면은 실물로 확인(바르샤바 밖 —
+    // 프로이센령 남프로이센이 맞다, 타슈켄트 밖); 배제 2건은 라벨 착지 오류.
+    excludeFaces: [
+      // "Nueva España" 라벨이 남동 이집트 잔여 조각(25.0,21.9→31.7,26.4)에
+      // 착지 — 누에바에스파냐 관계의 bbox 중심(아메리카+필리핀)이 창 남단
+      // 잔여에 떨어지는 중심점 병리(1939 미국-이집트 전례와 동일 계열).
+      "Nueva España",
+      // 칠도공화국(이오니아 제도) 라벨이 펠로폰네소스 본토 면
+      // (20.0,36.4→26.6,41.7)에 착지 — 일곱 섬 span의 중심이 본토 아르카디아
+      // 내륙. 본토는 1804년 오스만령이므로 그래프트하면 거짓이 된다.
+      // 중심 오버라이드(코르푸)+재조립이 근본 수리(후속), 오늘은 배제.
+      "Ἑπτάνησος Πολιτεία",
+    ],
+    faceOwners: {
+      // 라벨이 거짓말하는 면 — 기하가 진실이다. "Kingdom of Etruria" 라벨
+      // 면의 점 검사 실측: 로마·페루자·앙코나 안, 피렌체 밖. 즉 이 면은
+      // 토스카나가 아니라 미폐합 교황령 덩어리다(에트루리아 라벨 점이 그
+      // 안에 착지). 첫 빌드 실측: 로마·움브리아·마르케 9개 지역이
+      // 교황령→에트루리아로 가고 있었다. 기하의 실제 보유자에게 준다.
+      "Kingdom of Etruria": "PAP",
+      // — 보드 폴리티의 다른 이름/보유지 (코드 배정) —
+      "United Kingdom of Great Britain and Ireland": "GBR",
+      "Bataafs Gemenebest": "BAT", // 바타비아 연방(1801-06 국제) — 같은 국가
+      "Regno di Sicilia": "NAP", // 부르봉 시칠리아 — 나폴리와 동군연합
+      "Ducato di Parma e Piacenza": "FRA", // 1802부터 프랑스 행정(모로 드 생메리)
+      "Malta Protectorate": "GBR", // 1800 항복 이후 영국 점령
+      "Isle of Man": "GBR", // 1765 재매입 이후 왕령
+      "دولة الجزائر": "OTT", // 알제 섭정 — 명목상 오스만
+      "Khanate of Kalat": "DUR", // 두라니 종주권 하의 칼라트 칸국 (명목적)
+      // — 로스터 밖 실존 주권체 (이름 그대로) —
+      "امارت بخارا": "Emirate of Bukhara", // 러시아 보호령은 1868부터 — 1804엔 독립
+      "خیوه خانلیگی": "Khanate of Khiva", // 동상 — 1873부터 보호령
+      "الْإِمْبَرَاطُورِيَّة الْعُمَانِيَّة": "Omani Empire", // 부사이드 오만
+      "السلطنة الشريفة": "Sultanate of Morocco", // 알라위 술탄국
+      "Митрополство Црногорско": "Prince-Bishopric of Montenegro", // 페타르 1세 — 사실상 독립
+      "Respublica Lucensis": "Republic of Lucca", // 1805 엘리자 공국화 전
+      "San Marino": "San Marino",
+      "Republica de' Cošpäja": "Republic of Cospaia",
+      "Andorra": "Andorra",
+      "Couto Misto": "Couto Misto",
+    },
+    // 모로코 면이 멜리야(ESP.7.2)를 삼켰다(첫 빌드 실측: 스페인→모로코
+    // 재배정 1건). 스페인 프레시디오는 1497년부터 스페인령 — 면은 스페인
+    // 땅에 들어가지 않는다. 본토는 지브롤터 해협으로 갈려 있어 부작용 없음.
+    faceKeepOut: { "السلطنة الشريفة": ["ESP"] },
   },
 
   polities: {

@@ -47,11 +47,47 @@ export default {
   // the same band as the grafted 1836 baseline. The build discovers
   // era-borders-1946-03-05*.geojson in scripts/ohm/out and grafts matching
   // faces; absent the dump it builds exactly as before, and says so.
-  // faceOwners left empty: naming the frame-residue face and the colonial
-  // holdings is a per-board pass over the ASSEMBLED faces, same as 1939.
   eraGeometry: {
     date: "1946-03-05",
     window: [-15, 30, 50, 72],
+    // 2026-08-14 면 검수 (39면 전수). 첫 검증 빌드(08-13)의 재배정 221건에는
+    // 발트→루마니아가 섞여 있었다 — 아래 잔여 메가면이 원인. 그날 목록을
+    // 안 읽고 통과시킨 것의 정정이 이 배제다.
+    excludeFaces: [
+      // 동부 잔여 메가면(47.7x34.8°, 링 314): 미폐합 동부 전체가 한 면이 되어
+      // 부쿠레슈티의 루마니아 라벨을 얻었다. 점검사 실측: 리가·모스크바가
+      // 안에 있다. 배제하면 루마니아는 현대 지역(rung 2)을 유지하고 발트
+      // SSR들은 스펙 배정을 되찾는다.
+      "Regatul României",
+    ],
+    faceOwners: {
+      // — 점령지대·위임통치·보호령: 이름이 위치를 말하고 소유주는 스펙이 말한다 —
+      // 단, "미국 점령지대" 라벨 면은 라벨이 거짓말한다 — 점 검사 실측:
+      // 베를린·라이프치히 안, 뮌헨·프랑크푸르트 밖. 기하는 소련 지대다.
+      // 첫 빌드 실측: 동독 NUTS 8개 지역이 소련→미국으로 가고 있었다.
+      // 기하의 실제 보유자에게 준다. (영국 지대 면은 진짜 — 함부르크·쾰른
+      // 안, 베를린·뮌헨 밖 실측.)
+      "American occupation zone in Germany": "SOV",
+      "British occupation zone in Germany": "GBR",
+      "British Cyprus": "GBR",
+      "British Military Administration of Libya": "GBR", // 트리폴리타니아·키레나이카 군정 1943-51
+      "Palestine Mandate": "GBR", // 스펙도 PSE·ISR·JOR를 GBR에 배정
+      "Colony of Malta": "GBR",
+      "Protectorate of Kuwait": "GBR", // 스펙 KWT→GBR과 일치
+      "Protectorat français de Tunisie": "FRA",
+      "Colonia del Rio de Oro": "ESP",
+      "Saguía el Hamra": "ESP",
+      "Territorio de Ifni": "ESP",
+      // 탕헤르 국제지대: 1945-10 국제 체제 복귀. 0.1x0.1° 면이라 지분 가드가
+      // 흡수하겠지만, 흡수는 가드의 판정이지 무명 낙하가 아니다.
+      "Tangier International Zone": "Tangier International Zone",
+      // — 로스터 밖 주권국: 지역 패스의 어휘(COUNTRY_NAMES)와 맞춘다 —
+      "Magyar Köztársaság": "Hungary", // 1946-02-01 공화국 선포 직후
+      "Republika Popullore e Shqipërisë": "Albania", // 1946-01-11 인민공화국
+      "République syrienne": "Syria", // 프랑스군 철수 진행 중의 독립 시리아
+      "المملكة العراقية الهاشمية": "Iraq", // 하심 왕국
+      "Sultanate of Muscat and Oman": "Oman",
+    },
   },
 
   polities: {
