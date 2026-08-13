@@ -53,11 +53,9 @@ export default {
       // 러시아 라벨을 얻었다. 점검사 실측: 이스파한(페르시아)이 안에 있다.
       // 배제하면 모스크바 대공국 지역들은 스펙 배정(RUS)을 유지한다.
       "Русское царство",
-      // 제노바 라벨이 사르데냐 섬 면(8.1,38.9→9.8,41.3)에 착지 — 리구리아+
-      // 코르시카 bbox 중심이 바다로 떨어지는 중심점 병리. 사르데냐는 1650년
-      // 스페인령이므로 이 면을 그래프트하면 제노바가 사르데냐를 갖는다.
-      // 중심 오버라이드+재조립이 근본 수리(후속), 오늘은 배제.
-      "Serenìscima Repùbrica de Zêna",
+      // (제노바-사르데냐 오라벨은 2026-08-14 중심 오버라이드+재조립으로 근본
+      // 수리됨 — 재조립 실측 bbox 7.5,43.8→10.1,44.8 = 진짜 리구리아 면.
+      // 배제 해제, 아래 faceOwners로 승격.)
     ],
     faceOwners: {
       // — 보드 폴리티의 다른 이름 (코드 배정) —
@@ -77,6 +75,7 @@ export default {
       // GBR로 접으면 1650-01-01이 거짓이 된다. 스펙이 아일랜드를 GBR에
       // 배정했다면 면이 이기고 재배정이 인쇄된다.
       "Comhdháil Chaitliceach na hÉireann": "Irish Catholic Confederation",
+      "Serenìscima Repùbrica de Zêna": "Republic of Genoa", // 중심 수리 후 진짜 리구리아 면
       "Eidgenossenschaft": "Swiss Confederacy", // 베스트팔렌(1648)으로 제국 이탈 공인
       "Freistaat der Drei Bünde": "Three Leagues", // 그라우뷘덴 — 스위스 맹방
       "Republik der Sieben Zenden": "Republic of Valais", // 발레 7개 촌락 공화국
