@@ -31,6 +31,76 @@ export default {
   // Player starts as the Holy Roman Empire. game.country MUST equal the owner code.
   game: { country: "HRE", startDate: "1200-01-01", gameDate: "1200-01-01" },
 
+  // ── Plan F: 시대 경계 그래프트 — rung-3 단독 하이브리드 (2026-08-14) ──
+  // OHM 1200 추출(rung 1)은 PC 전용 네트워크 작업이라 아직 없다. 이 선언은
+  // historical-basemaps world_1200(rung 3, 대륙 스케일, GPL-3.0 개인 이용)
+  // 단독이며, 실제 조립이 도착하면 rung3-base를 그 위로 재백필해 파일만
+  // 갈아끼우면 된다(지역 단위 rung-1 우선 규칙이 자동으로 양보시킨다).
+  // world_1200의 라벨은 시대착오가 많아(파티마 1171 몰락, 부와이흐 1055
+  // 몰락, 가즈나 1186 몰락…) 전부 2026-08-14 포인트 테스트로 기하를 실측해
+  // 1200-01-01의 실제 보유자에게 붙였다. 추정 항목 없음.
+  eraGeometry: {
+    date: "1200-01-01",
+    window: [-15, 30, 50, 72],
+    file: "scripts/ohm/out/rung3-base-1200-01-01-z4-hybrid.geojson",
+    excludeFaces: [
+      "Buwayhid Emirates", // 1055년 몰락 라벨이 이라크+서페르시아를 한 면에 — ABBS와 KHWA 두 폴리티에 걸쳐 분할 불가; 기반선(IRQ→ABBS, IRN→KHWA)이 담당
+      "Kwarizm-Shah", // 실측: 마크란 프레임 파편(전 기준도시 out) — PAK은 GHUR 기반선 유지
+      "Kara Khitai Khaganate", // 카라 키타이 종주권은 실재하나 로스터에 없음 — UZB/TJK는 KHWA, 카자흐 스텝은 미배정(쿠만) 유지
+      "Cuman Khanates", // 스펙 설계: 쿠만 초원은 '비어있지 않은 미배정' — 색을 입히지 않는다
+      "Celtic kingdoms", // Dublin·Cork·Cardiff IN — 보드는 아일랜드·웨일스를 ENG_A(영주령)로 근사, 같은 색이라 기반선으로 충분
+      "Sardinia", // 유디카티가 로스터에 없음 — 스펙의 제국령 이탈리아 왕국 근사(ITA.14→HRE)를 탄다
+      "Makkura", // 누비아 사막 조각 — 로스터 밖
+      "Muscat", "Ibadites", "Berber Tribes", "Tuareg Nomadic Tribes", // 로스터 밖 — ALM 기반선/미배정 유지
+      "Paleo-Siberian hunter-gatherers", "Finno-Ugric taiga hunter-gatherers", // 무국가 타이가 — 미배정 설계
+      "Guanches", "Sámi", // 1444와 같은 이유
+    ],
+    faceOwners: {
+      // 시대착오 라벨 → 1200-01-01의 실제 보유자 (전부 실측)
+      "Fatimid Caliphate": "AYY", // 카이로·다마스쿠스·예루살렘 IN — 살라딘 사후의 아이유브 영역; 튀니스·십자군 해안 월권은 울타리로
+      "Ghaznavid Emirate": "GHUR", // Herat·Kandahar IN — 1186년부터 구르 왕조의 것
+      "Dutchy of Benevento": "SICI", // Benevento·Palermo IN — 노르만 시칠리아 왕국(어린 프리드리히 2세)
+      "Burgandy": "HRE", // Geneva·Besançon IN, Dijon·Marseille out — 아를 왕국의 제국 동편(프랑슈콩테 백작은 바르바로사의 아들 오토)
+      "Armenia": "GEOR", // Yerevan·Ani IN, 킬리키아 out — 자카리드 아르메니아, 타마르 여왕의 봉신(보드 GEOR가 ARM 담당)
+      "Bulgar Khanate": "BULG", // Tarnovo·Sofia IN — 제2 불가리아 제국(1444의 교훈: 이름이 아니라 기하); 서부 월권은 울타리로
+      // 분열 루스 → 단일 RUS_K (보드 설계)
+      "Principality of Kyiv": "RUS_K",
+      "Principality of Novgorod": "RUS_K",
+      "Principality of Vladimir-Suzdal": "RUS_K",
+      "Principality of Galicia-Volhynia": "RUS_K",
+      "Other Rus Principalities": "RUS_K",
+      // 별칭이 안 닿는 것들
+      "León": "CAST", // 1200엔 분리 왕관(1230 통합 전)이지만 보드는 레온-카스티야 단일
+      "Castilla": "CAST",
+      "Navarre": "NAV", // 스펙 별칭은 "Navarra"
+      "Cyprus": "JERU", // 뤼지냥 왕국(1192~) — 보드 JERU가 CYP 담당
+      "Croatia": "HUNG", // Split IN — 1102년부터 헝가리 왕관 동군연합
+      "Corsica": "HRE", // 피사령(교황 수여) — 제국 이탈리아 왕국권 근사
+      "Britany": "FRA_K", // 서단 조각; 같은 반도의 "Kingdom of France" 동편 조각과 한 색으로(르 굴레 조약의 미묘함은 rules 텍스트가 담당)
+      "Comté de Toulouse": "FRA_K", // 툴루즈 백작은 로스터에 없음 — 프랑스 왕관 근사
+      "Aragón": "ARAG", // 악센트가 별칭("Aragon") 정확 일치를 깨서 명시 — 1차 빌드 미매칭 1건의 교정
+    },
+    faceKeepOut: {
+      // 전부 실측 울타리 — 1·2차 빌드의 재배정/절단 로스터를 전량 읽고 친
+      // 것들. 옳았던 월권(앙주 노르망디·아키텐 절취, 스코네→덴마크, 로도피
+      // →비잔티움, 라만차→알모하드(알라르코스 이후), 알자스·프랑슈콩테·
+      // 사부아→제국, 이스트리아 조각, 슐레스비히→덴마크)은 치지 않았다.
+      "Byzantine Empire": ["TUR", "ITA", "GEO", "SYR"], // Konya·Ankara IN — 럼 술탄국 지대; 남이탈리아(1071년 상실); 1차 실측 추가: 조지아 서부(GEO.2)와 시리아 북부(SYR.11·14!)까지 칠하려 들었다
+      "Fatimid Caliphate": ["TUN", "DZA", "LBY", "ISR", "LBN", "TUR"], // Tunis IN(1160부터 알모하드령) · Acre IN(십자군 수도!) — 이프리키야와 십자군 해안(ISR.3/4·LBN.5/7/8 수작업 JERU)·안티오크(TUR.37) 방어
+      "Bulgar Khanate": ["SRB", "MNE", "XKO", "MKD", "GRC", "ALB", "HRV", "BIH", "ROU"], // Niš·Podgorica·Skopje IN + 1차 실측: 알바니아 11지역 전부(→BYZ 수작업), 라구사(HRV.3!), 보스니아, 왈라키아(쿠만 미배정 설계) — 칼로얀의 미래를 1200에 미리 칠하지 않는다
+      "Armenia": ["TUR", "IRQ", "IRN", "AZE"], // 1차 실측: 자카리드 면이 반호·모술 북부·타브리즈 방면(AYY·ABBS·KHWA 수작업)과 시르반까지 조각을 뿌렸다 — 1199~1201의 아니·드빈 회복은 ARM·GEO 안에서만
+      "Poland": ["CZE", "DEU", "AUT", "SVK"], // 1차 실측: 면이 보헤미아 10지역을 통째로 물었다(1198년 오타카르 1세의 왕관은 제국의 것) + 작센·바이에른 동부·오스트리아 조각 + 스피시(1412 전 헝가리)
+      "Hungary": ["ROU", "CZE"], // 1444와 같은 수: 트란실바니아는 수작업 HUNG이 이미 담당(같은 색이라 잃는 것 없음), 수체아바·네암츠 등 몰다비아 방면 월권만 죽는다; 모라비아 조각(CZE.2·7)도 1444와 같은 crude 노이즈
+      "Angevin Empire": ["ESP"], // 1차 실측: 사라고사·나바라에 가스코뉴 남쪽 조각 — 피레네 이남 앙주령은 없다
+      "Holy Roman Empire": ["HRV", "ITA.1", "SMR"], // 자고레 등 헝가리 크로아티아 침식(이스트리아 조각 하나는 옳지만 5개 오식과 함께 죽는다) · ITA.1은 지역 접두 울타리: 제국면은 북이탈리아(보드 설계)에선 옳고 트론토 이남 아브루초에서만 틀리다 · SMR은 1444와 같은 수(자치 코무네 — 미배정 유지)
+      "Papal States": ["ITA.1"], // 같은 아브루초 — 교황령 면도 테라모 방면을 물었다(1200 국경은 트론토)
+      "Principality of Galicia-Volhynia": ["MDA", "ROU"], // 실측: 키시너우·이아시·수체아바 IN — 몰도바 38지역 전부를 루스로 칠했다; 보드 설계는 쿠만 스텝 미배정
+      "Principality of Novgorod": ["EST"], // 실측: 나르바 IN — 십자군 전의 에스토니아는 미배정 설계(페이푸스 선은 rung-1이 오면 되돌아온다)
+      "Aragón": ["AND"], // 2차 실측(면이 매칭되자마자 안도라를 물었다): 우르헬-푸아 공동 영주령 — 1444와 같은 수, 미배정 유지
+      "Almohad Caliphate": ["ESP.4.5", "ESP.4.4", "ESP.4.3"], // 지역 접두 울타리 — 알라르코스(1195) 이후의 진짜 선: 라만차 남부(알바세테·시우다드레알)는 알모하드가 맞지만 톨레도(1085년부터 기독교, 함락된 적 없음)·과달라하라(타호 이북)·쿠엥카(1177년부터)는 도시가 버텼다
+    },
+  },
+
   // No air power in 1200 — restrict deployable troop types to the era.
   allowedUnitTypes: ["infantry", "armor", "artillery", "naval", "garrison"],
 
@@ -129,6 +199,13 @@ export default {
   regionAssignments: {
     // Scotland
     "GBR.3_1": "SCOT",
+
+    // Pomerania-Stettin: Bogusław's Griffin duchy did homage to Cnut VI in
+    // 1185, and at 1200 Danish supremacy over the southern Baltic coast is a
+    // fact (it breaks at Bornhöved, 1227). Pomerelia (Gdańsk) stays in the
+    // Polish orbit; Silesia and Lubusz are correctly Piast in 1200 and keep
+    // the country baseline.
+    "POL.16_1": "DEN_K",
 
     // Kievan Rus' — the principalities of European Russia (Novgorod's north
     // included); everything east of the Volga and south into the steppe is not Rus'.

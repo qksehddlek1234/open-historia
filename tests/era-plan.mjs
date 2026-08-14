@@ -101,19 +101,20 @@ test("a board whose date OHM cannot express is COUNTED, not dropped", () => {
 
 test("A DATE IT WILL NOT RUN IS NAMED, with the reason", () => {
   // Arrange the one skip path that needs a fixture, and arrange it the way it
-  // will actually occur: magna-1444 is a real board, --probe will give it a
+  // will actually occur: mongol-1300 is a real board, --probe will give it a
   // polity dump, and nobody has chosen its window yet. (This role belonged
-  // to ww1-1914 until the 2026-08-12 date batch declared 1914's window — the
-  // fixture date must be one still undeclared, and the medieval boards are
-  // hybrid candidates, not graft declarations.) Taken away again whatever
-  // happens — a date no board wants would not be planned for at all.
-  const date = "1444-11-11";
+  // to ww1-1914 until the 2026-08-12 date batch declared 1914's window, then
+  // to magna-1444, then to medieval-1200 as each declared its own — the
+  // fixture date must always be one still undeclared, and it migrates forward
+  // each time a board graduates.) Taken away again whatever happens — a date
+  // no board wants would not be planned for at all.
+  const date = "1300-01-01";
   const fixture = path.join(OUT, `era-polities-${date}.json`);
   fs.mkdirSync(OUT, { recursive: true });
   fs.writeFileSync(fixture, JSON.stringify({ polities: Array.from({ length: 300 }, (_, i) => ({ id: i })) }));
   try {
     const { out } = run(["--build", "--min-polities", "1", "--only", date]);
-    assert.match(out, /skipped — noWindow: 1444-11-11/, "the date has to be named, not just counted");
+    assert.match(out, /skipped — noWindow: 1300-01-01/, "the date has to be named, not just counted");
     assert.match(out, /a window is a judgment/, "and told what would unblock it");
     assert.doesNotMatch(out, /will run at z4[\s\S]*extract/, "and nothing may be extracted for it");
   } finally {

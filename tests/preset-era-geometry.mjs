@@ -161,6 +161,25 @@ test("two faces with the same owner do not fake a border through a province", ()
   assert.equal(features[0].properties.edited, undefined, "nothing was divided, so nothing is reshaped");
 });
 
+test("KEEPOUT NAMES A COUNTRY OR A REGION PREFIX — ITA.1 fences Abruzzo, never ITA.18", () => {
+  // medieval-1200: the crude HRE face is RIGHT across the north (the board's
+  // Kingdom-of-Italy coloring) and WRONG south of the Tronto. A country fence
+  // would kill both; the prefix fences exactly the bite. The dot guard is the
+  // point of this pin: "ITA.1" must not creep onto ITA.18_1.
+  const mk = (id) => region(id, "Sicily", 0, 0, 2, 1, { gid0: "ITA" });
+  const intruder = { ...face("Empire", "Empire", -1, -1, 3, 2), keepOut: ["ITA.1"] };
+  const fencedWhole = graftEraGeometry([mk("ITA.1_1")], [intruder]);
+  assert.equal(fencedWhole.report.keepOutRefusals.length, 1, "the bare region id is fenced");
+  assert.equal(fencedWhole.features[0].properties.owner, "Sicily");
+  const fencedSub = graftEraGeometry([mk("ITA.1.3_1")], [intruder]);
+  assert.equal(fencedSub.report.keepOutRefusals.length, 1, "a level-2 child of the prefix is fenced");
+  const free = graftEraGeometry([mk("ITA.18_1")], [intruder]);
+  assert.equal(free.report.keepOutRefusals.length, 0, "ITA.18 shares the string, not the fence");
+  assert.equal(free.features[0].properties.owner, "Empire", "and grafts as usual");
+  const byCountry = graftEraGeometry([mk("ITA.5_1")], [{ ...intruder, keepOut: ["ITA"] }]);
+  assert.equal(byCountry.report.keepOutRefusals.length, 1, "the old gid0 form still fences");
+});
+
 test("bbox prefilter admits touching boxes and rejects disjoint ones", () => {
   assert.equal(bboxOverlaps([0, 0, 1, 1], [1, 1, 2, 2]), true, "touching counts — a shared border is a real overlap");
   assert.equal(bboxOverlaps([0, 0, 1, 1], [1.001, 0, 2, 1]), false);

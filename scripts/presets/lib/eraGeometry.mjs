@@ -292,6 +292,10 @@ export const graftEraGeometry = (regionFeatures, faces, {
     clipFailures: [],
     nonAreaGeometry: 0,
     facesUsed: new Set(),
+    // Hybrid (rung 2+3) accounting: regions where rung-1 presence suppressed
+    // rung-3 candidates, and regions clipped purely by rung-3 backfill.
+    rung3Suppressed: 0,
+    rung3Regions: 0,
   };
   let offcutSeq = 0;
 
@@ -303,12 +307,28 @@ export const graftEraGeometry = (regionFeatures, faces, {
       continue;
     }
     const rb = bboxOf(mp);
-    const candidates = faces.filter((f) => bboxOverlaps(rb, f.bbox));
+    let candidates = faces.filter((f) => bboxOverlaps(rb, f.bbox));
+    // SOURCE-LADDER PRECEDENCE, DECIDED PER REGION AND NEVER GEOMETRICALLY.
+    // Rung-3 backfill polygons (historical-basemaps) arrive WHOLE and may
+    // overlap rung-1 assembly faces; clipping a region against both would
+    // double-cover it and corrupt the per-owner fold below. The rule from the
+    // hybrid design (PLAN-F-OHM, 2026-08-14): a region any rung-1 face
+    // touches belongs to rung 1 entirely — rung-3 exists to cut only the
+    // regions rung 1 never reaches. The seam between the two rungs therefore
+    // follows modern region boundaries, a step of at most one region's width,
+    // inside rung 3's own continent-scale tolerance. Faces without a rung
+    // property are rung 1 (every pre-hybrid dump), so legacy builds are
+    // untouched by construction. Suppressions are counted per region.
+    if (candidates.some((f) => (f.rung ?? 1) !== 3) && candidates.some((f) => (f.rung ?? 1) === 3)) {
+      candidates = candidates.filter((f) => (f.rung ?? 1) !== 3);
+      report.rung3Suppressed += 1;
+    }
     if (candidates.length === 0) {
       report.untouched += 1;
       out.push(feature);
       continue;
     }
+    if (candidates.every((f) => (f.rung ?? 1) === 3)) report.rung3Regions += 1;
     const specOwner = feature.properties.owner;
     const wholeArea = multiPolygonArea(mp);
     const pieces = [];
@@ -328,7 +348,16 @@ export const graftEraGeometry = (regionFeatures, faces, {
       // merged. Germany's 1939 face swallowed Jutland that way (Midtjylland
       // 97.8% inside it). Geometry cannot tell that from a real annexation —
       // only the spec can, by naming the GADM country the face may not enter.
-      if (face.keepOut?.includes(feature.properties.gid0)) {
+      // An entry may also be a REGION-ID PREFIX ("ITA.1"): medieval-1200's
+      // crude HRE face is correct across northern Italy but crosses the
+      // Tronto into Abruzzo, and a country-level fence would have thrown the
+      // whole (deliberate) Kingdom-of-Italy coloring away with the bite. The
+      // dot in the startsWith guard is what keeps "ITA.1" from also matching
+      // ITA.18_1.
+      const keptOutBy = face.keepOut?.find((entry) => entry === feature.properties.gid0
+        || feature.properties.id?.split("_")[0] === entry
+        || feature.properties.id?.startsWith(`${entry}.`));
+      if (keptOutBy) {
         report.keepOutRefusals.push({ id: feature.properties.id, gid0: feature.properties.gid0, face: face.name });
         continue;
       }
