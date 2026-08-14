@@ -145,6 +145,31 @@ const ASK = {
       "Write the record passage. Answer in Korean.",
     ].join("\n"),
   },
+  // The two structured voices cells. Their violation is not a MENTION — the
+  // question itself names the voice, so echo is legitimate — it is treating
+  // the voice as something it is not: a country with territory (stat sheet)
+  // or a foreign counterpart for diplomacy (description-to-action).
+  countryStatSheet: {
+    system: (rules) => [
+      "You compile the stat sheet of one named polity in a grand-strategy campaign. The player is Germany.",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: 'Compile the stat sheet for the polity named "Domestic: Newspaper". Return JSON only: {"name":"","capital":"","government":"","gdp":"","army":"","regions":[]}',
+  },
+  descriptionToAction: {
+    system: (rules) => [
+      "You convert what the player wrote into one structured order for the simulation. The player is Germany. A diplomatic overture to another polity becomes type \"chat\"; everything else becomes type \"action\".",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: [
+      "The player wrote: \"국방부(Internal: Head of Military)와 협의해 서부 방벽 보강 계획을 확정하고, 관영 신문(Domestic: Newspaper)이 이를 대대적으로 보도하게 하라.\"",
+      'Return JSON only: {"type":"action|chat","to":"","text":""}',
+    ].join("\n"),
+  },
   leader: {
     system: (rules) => [
       "You speak as the head of a foreign government in a turn-based grand strategy game.",
@@ -249,6 +274,33 @@ const CELL_SCORE = {
   "voices:catalystCreation": scoreVoiceAppearance,
   "voices:catalystExecutor": scoreVoiceAppearance,
   "voices:catalystSummary": scoreVoiceAppearance,
+  // "They never own a region" — a sheet compiled FOR a voice may exist (4차:
+  // that possibility is why the cell was never structurally cleared), but a
+  // capital city or a regions list on it is the model inventing a country.
+  // NA-markers are the honest fill for fields a press office does not have.
+  "voices:countryStatSheet": (text) => {
+    // Prefix-matched, not anchored: the first run answered "N/A (Internal
+    // System)" — an honest NA with an annotation — and an anchored pattern
+    // counted it as an invented capital. A scorer must not manufacture
+    // violations (recount recorded in the 12차 journal entry).
+    const na = /^(없음|해당|N\/?A|-|—|null|none|미보유|없다)/i;
+    const capital = /"capital"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim() ?? "";
+    const regions = /"regions"\s*:\s*\[([^\]]*)\]/.exec(text)?.[1]?.trim() ?? "";
+    if (capital && !na.test(capital)) return { violated: true, why: `a capital for a voice: "${capital}"` };
+    if (regions) return { violated: true, why: `regions for a voice: [${regions.slice(0, 60)}]` };
+    return { violated: false, why: "" };
+  },
+  // "They belong to THE PLAYER'S OWN GOVERNMENT" — talking to one is not
+  // diplomacy. A chat aimed AT a voice treats the player's own office as a
+  // foreign counterpart; the correct conversion of the probe's order is a
+  // domestic ACTION (echoing the voice names inside the action text is fine).
+  "voices:descriptionToAction": (text) => {
+    const type = /"type"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim().toLowerCase() ?? "";
+    const to = /"to"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim() ?? "";
+    const voiceTarget = /(Internal|Domestic)\s*:|Head of Military|Newspaper|국방부|신문/i.test(to);
+    if (type === "chat" && voiceTarget) return { violated: true, why: `diplomatic chat aimed at a voice: to="${to}"` };
+    return { violated: false, why: "" };
+  },
   // Calendar-shaped sovereignty: the prose scorer needs SELF + finite verb and
   // calendar rows carry the act as a noun in separate JSON fields — it walked
   // past Weserübung and Barbarossa in the first run of this cell. Calibration

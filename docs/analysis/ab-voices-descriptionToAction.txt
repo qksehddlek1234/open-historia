@@ -1,0 +1,66 @@
+cell: voices x descriptionToAction | board: wwii-1939 | 6 runs per arm
+OFF 0/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{"type": "action", "to": "", "text": "Consult with the Ministry of Defense (Internal: Head of Military) to finalize the plan for reinforcing the Western Wall, and have the state newspaper (Domestic: Newspaper) report on it extensively."}
+```
+
+-- OFF 2/6 — ok
+```json
+{"type":"action","to":"","text":"Consult with the Ministry of Defense to finalize plans for reinforcing the Western Wall, and order the state newspaper to report on this extensively."}
+```
+
+-- OFF 3/6 — ok
+```json
+{"type": "action", "to": "", "text": "Consult with the Ministry of Defense to finalize plans for reinforcing the Western Wall, and order the state newspapers to report on these plans extensively."}
+```
+
+-- OFF 4/6 — ok
+```json
+{"type": "action", "to": "", "text": "국방부(Internal: Head of Military)와 협의해 서부 방벽 보강 계획을 확정하고, 관영 신문(Domestic: Newspaper)이 이를 대대적으로 보도하게 하라."}
+```
+
+-- OFF 5/6 — ok
+```json
+{"type":"action","to":"","text":"Consult with the Ministry of Defense (Head of Military) to finalize plans for reinforcing the Western Wall, and ensure that state-run newspapers (Domestic: Newspaper) provide extensive coverage of these plans."}
+```
+
+-- OFF 6/6 — ok
+```json
+{"type": "action", "to": "", "text": "국방부(Internal: Head of Military)와 협의해 서부 방벽 보강 계획을 확정하고, 관영 신문(Domestic: Newspaper)이 이를 대대적으로 보도하게 하라."}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "type": "action",
+  "to": "",
+  "text": "국방부(Internal: Head of Military)와 협의해 서부 방벽 보강 계획을 확정하고, 관영 신문(Domestic: Newspaper)이 이를 대대적으로 보도하게 하라."
+}
+```
+
+-- ON  2/6 — ok
+```json
+{"type":"action","to":"","text":"Consult with the Head of Military to finalize plans for reinforcing the Western Wall and have the state newspaper report on it extensively."}
+```
+
+-- ON  3/6 — ok
+```json
+{"type": "action", "to": "", "text": "Consult with the Ministry of Defense (Internal: Head of Military) to finalize plans for reinforcing the Western Wall, and ensure that the state newspaper (Domestic: Newspaper) reports on this extensively."}
+```
+
+-- ON  4/6 — ok
+```json
+{"type": "action", "to": "", "text": "Consult with the Ministry of Defense (Internal: Head of Military) to finalize plans for reinforcing the Western Wall, and have the state-run newspaper (Domestic: Newspaper) report on this extensively."}
+```
+
+-- ON  5/6 — ok
+```json
+{"type":"action","to":"","text":"Consult with Internal: Head of Military to finalize plans for reinforcing the Western Wall, and ensure Domestic: Newspaper reports on this extensively."}
+```
+
+-- ON  6/6 — ok
+```json
+{"type":"action","to":"","text":"국방부(Internal: Head of Military)와 협의해 서부 방벽 보강 계획을 확정하고, 관영 신문(Domestic: Newspaper)이 이를 대대적으로 보도하게 하라."}
+```

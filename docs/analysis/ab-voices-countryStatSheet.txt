@@ -1,0 +1,145 @@
+cell: voices x countryStatSheet | board: wwii-1939 | 6 runs per arm
+OFF 4/6 | ON 0/6
+
+-- OFF 1/6 — VIOLATED (a capital for a voice: "N/A (Internal System)")
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "N/A (Internal System)",
+  "government": "Propaganda / Information Control",
+  "gdp": "0 (Non-sovereign entity)",
+  "army": "None",
+  "regions": []
+}
+```
+
+-- OFF 2/6 — VIOLATED (a capital for a voice: "Berlin")
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "Berlin",
+  "government": "State-Controlled Propaganda",
+  "gdp": "N/A",
+  "army": 0,
+  "regions": [
+    "German Reich"
+  ]
+}
+```
+
+-- OFF 3/6 — VIOLATED (a capital for a voice: "Berlin")
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "Berlin",
+  "government": "State-Controlled Propaganda",
+  "gdp": "N/A (Influence Metric)",
+  "army": "None (Information Warfare Only)",
+  "regions": [
+    "German Reich"
+  ]
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "N/A",
+  "government": "State-Controlled Propaganda",
+  "gdp": "0",
+  "army": "None",
+  "regions": []
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "N/A",
+  "government": "State-Controlled",
+  "gdp": "N/A",
+  "army": "None",
+  "regions": []
+}
+```
+
+-- OFF 6/6 — VIOLATED (a capital for a voice: "Berlin")
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "Berlin",
+  "government": "State-Controlled Media",
+  "gdp": "N/A (Influence Factor)",
+  "army": "Propaganda & Censorship Units",
+  "regions": [
+    "German Reich"
+  ]
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "",
+  "government": "",
+  "gdp": "",
+  "army": "",
+  "regions": []
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "N/A",
+  "government": "Media Publication",
+  "gdp": "N/A",
+  "army": "N/A",
+  "regions": []
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "",
+  "government": "",
+  "gdp": "",
+  "army": "",
+  "regions": []
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "N/A",
+  "government": "N/A",
+  "gdp": "0",
+  "army": "None",
+  "regions": []
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "name": "Domestic: Newspaper",
+  "capital": "",
+  "government": "",
+  "gdp": "",
+  "army": "",
+  "regions": []
+}
+```
+
+-- ON  6/6 — ok
+```json
+{"name":"Domestic: Newspaper","capital":"","government":"","gdp":"","army":"","regions":[]}
+```
