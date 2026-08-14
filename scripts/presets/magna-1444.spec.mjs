@@ -53,8 +53,7 @@ export default {
       "Reaume de France", // Paris·Rouen·Bordeaux·Toulouse·Dijon·Nantes 전부 IN — 잉글랜드령 노르망디/가스코뉴(FRA.9/10→ENG), 브르타뉴(→BRI), 부르고뉴(→BUR) 수작업 구조를 왕국 전역 면이 밀어버림
       "Imperium Romanum Orientale", // 콘스탄티노플·미스트라·아테네 out / 테살로니키 IN — 1430년 오스만령을 쓴 라벨 거짓말(잔여면)
       "Kingdom of Cyprus", // 로스터에 키프로스 폴리티 없음(원본 보드 설계) — CYP는 미배정 유지
-      "Deasmhumhain", // 실재 데즈먼드(Cork만 IN)지만 게일 아일랜드 폴리티가 로스터에 없음 — 스펙 주석대로 ENG 근사 유지
-      "Ríocht Laighean", // 아일랜드 전역 스팬 잔여면(Dublin out·Kilkenny IN) — 동일
+      "Ríocht Laighean", // 아일랜드 전역 스팬 잔여면(Dublin out·Kilkenny IN) — 라벨 거짓말이라 로스터 확장 3 이후에도 제외(진짜 레인스터는 수작업 배정)
       "Αὐθεντία πόλεως Θεοδωροῦς καὶ παραθαλασσίας", // 테오도로 공국(Mangup만) — 로스터에 없음, 크림은 KHA 기반선
       "Andorra", "Couto Misto", "Republica de' Cošpäja", "Respublica Sancti Marini", // 로스터 밖 미소 정체(코스파이아는 1440년 건국이라 실재!) — 기반선 유지
       // ── rung 3 제외 (world_1400 ≠ 1444, 혹은 로스터 밖) ──
@@ -68,9 +67,13 @@ export default {
       "Sámi", // 동일 — 북방은 KAL 기반선
       "Guanches", // 카나리아 — 1444 정복 진행중, 보드 스케일 밖
       "Muscat", "Cyprus", // 로스터에 없음
+      // ── 제후 분할(로스터 확장 1)로 은퇴한 제국면 둘 ──
+      "Sacrum Imperium Romanum", // rung-1 부분면(쾰른·베를린·뮌헨) — 제후 수작업 모자이크가 승계; 회색 통칠로 SAX·BRA·BAV를 덮을 권리가 없다
+      "Holy Roman Empire", // rung-3 조야 집합체 — 동일; 남아 있던 유일한 실효(슐레스비히 절단)는 HOL 통짜 배정이 승계
     ],
     faceOwners: {
       // ── rung 1 (OHM 원어 이름 → 보드 코드) ──
+      "Deasmhumhain": "DES", // 실재 데즈먼드면(Cork IN·더블린 out) — 로스터 확장 3에서 제외를 풀고 주인에게 돌려줌
       "Deutschordensstaat": "TEU",
       "Ecclesia Osiliensis": "TEU", // 외젤 주교령 — 스펙의 EST/LVA→TEU 근사(리보니아 연맹)와 동일 선택
       "Isle of Man": "ENG", // 스탠리 가문 영주령, 잉글랜드 종주권
@@ -78,7 +81,6 @@ export default {
       "Nogai Horde": "UZK", // Guryev·Orenburg·Sarai IN — 볼가 동안 스텝; 1444 아불하이르 연맹권, 스펙 UZK("Abu'l-Khayr's horde")
       "Regnum Siciliae": "ARA", // 섬만(Palermo IN·Naples out) — 알폰소의 트리나크리아
       "Rìoghachd na h-Alba": "SCO",
-      "Sacrum Imperium Romanum": "HRE", // 부분-실재(Cologne·Berlin·Munich IN / Wien·Prag·Zürich·Milano out) — 독일 본체만
       "Великое княжество Московское": "MOS",
       "Великое княжество Рязанское": "MOS", // 스펙 주석: Tver·Ryazan은 MOS에 근사
       "Великое княжество Тверское": "MOS",
@@ -87,7 +89,7 @@ export default {
       "قزان خانلغی": "KZN",
       "مملكة غرناطة": "GRA",
       // ── rung 3 (별칭 자동 매칭이 안 닿는 것만) ──
-      "Sicily": "ARA", // 본토 나폴리면(Taranto·Reggio·Salerno IN) — 1442부터 알폰소의 것; 섬면(rung 1)과 같은 주인
+      "Sicily": "NAP", // 본토 나폴리면(Taranto·Reggio·Salerno IN) — 로스터 확장 2부터 나폴리 왕국의 것(섬면 rung-1은 ARA 유지, 1458년 분할 상속의 지도적 근거)
       "Sardinia": "ARA",
       "Corsica": "GEN", // 스펙 FRA.5_1→GEN과 동일
       "Aragón": "ARA", // 악센트가 별칭 정확 일치를 깨서 명시
@@ -102,18 +104,18 @@ export default {
       // 전부 실측 — 1차 빌드(2026-08-14) 재배정 로스터를 전량 읽고 지역
       // 이름까지 확인해 친 것들이다. 옳았던 월권(보이보디나·자카르파탸·멜리야
       // ·몰리세→나폴리)은 울타리를 치지 않고 살렸다.
-      "Holy Roman Empire": ["FRA", "AUT", "CZE", "CHE", "LIE", "ITA", "SVN", "POL", "HRV", "SVK", "HUN", "SMR", "BEL", "NLD", "LUX"], // Wien·Prag·Zürich·Milano·Ljubljana·Wrocław 전부 crude 폴리곤 안 — de jure 제국이 분리 왕관들을 덮는다; 1차 빌드 실측 추가: Zagorje(HRV.8)·SVK 조각·서헝가리 조각·San Marino 9지역·부르고뉴 저지대(Bruxelles·Zuid-Holland까지 HRE가 됐다)
-      "Sacrum Imperium Romanum": ["BEL", "NLD", "LUX"], // rung-1 제국면도 서쪽 불룩면이 위트레흐트·헬데를란트를 문다 — 1444 부르고뉴 복합국(스펙 BUR)은 통짜로 지킨다
+      // (제국면 둘은 excludeFaces로 은퇴 — 이전 울타리 기록은 git 이력에)
       "Kingdom of Hungary": ["HRV", "ROU", "UKR", "CZE", "BIH"], // Split IN(달마티아는 1409~20부터 베네치아) · 1차 빌드 실측: Suceava·Neamț(몰다비아 수도권!)를 물고 갈리치아(1349부터 폴란드령)에 조각을 흘림 · 모라비아 조각 · 2차 실측: Republika Srpska 호(바냐루카~동보스니아)를 과반 삼킴(1444 트브르트코 2세는 헝가리 종주권 아래 보스니아 통치 — 사바 변경만이 아니다) — Vojvodina 6지역·Burgenland은 옳아서 SRB·AUT는 안 친다; Zakarpattia는 수작업 배정으로 회수
       "Teutonic Knights": ["LTU"], // 1400 기사단국은 1422년 할양 전 사모기티아 포함 — 메멜은 rung-1 Deutschordensstaat가 담당
-      "Timurid Empire": ["IRQ", "AZE", "ARM", "GEO", "TUR", "SYR", "SAU", "KWT", "QAT"], // 티무르 1400 최대판도가 동아나톨리아(KAR 10·AKK 5지역)·시리아(맘루크)·동아라비아까지 물었다(1차 빌드 실측 19지역+) — 1444엔 양 왕조와 맘루크의 것; 트란스옥시아나 쪽(UZB·KAZ 절단)은 실제 국경이라 남긴다
+      "Timurid Empire": ["IRQ", "AZE", "ARM", "GEO", "TUR", "SYR", "SAU", "KWT", "QAT", "IRN.11", "IRN.15"], // (확장5 실측 추가: 호르무즈 IRN.11·무샤샤 IRN.15를 도로 물어가 지역 접두로 차단) // 티무르 1400 최대판도가 동아나톨리아(KAR 10·AKK 5지역)·시리아(맘루크)·동아라비아까지 물었다(1차 빌드 실측 19지역+) — 1444엔 양 왕조와 맘루크의 것; 트란스옥시아나 쪽(UZB·KAZ 절단)은 실제 국경이라 남긴다
       "Ottoman Empire": ["TUR"], // TUR는 1444 수작업 모자이크 완비(OTT/KRM/TRE/AKK/KAR/MAM/GEO) — 1400 조야면은 단색으로 밀고 콘스탄티노플을 9년 일찍 술탄에게 줄 위험; 발칸(BGR·MKD·SRB-Niš·Pirot)은 그대로 작동
       "Bulgar Khanate": ["SRB"], // 다뉴브 불가리아면이 티목 유역(Borski·Braničevski)까지 뻗는다 — 1444.8 세게드 강화로 전제공국에 반환된 땅
       "Bosnia": ["SRB", "XKO", "ALB", "HRV"], // 1차 빌드 실측: 서세르비아 7지역·코소보·레저 동맹 땅을 물고 라구사(HRV.3)를 통째로 삼켰다 — 1444 전제공국 복원·두브로브니크 독립과 모순; 본체(BIH·MNE)는 그대로
-      "Blue Horde": ["UKR", "GEO"], // 서쪽 29.1E까지 — 야생 벌판은 1441년부터 하즈 기라이(수작업 KHA)의 것; 남쪽으로 캅카스 능선을 넘어 GEO.1·9에 조각을 흘린 것도 실측 차단
+      "Blue Horde": ["UKR", "GEO", "RUS.1", "RUS.20", "RUS.25"], // 서쪽 29.1E까지 — 야생 벌판은 1441년부터 하즈 기라이(수작업 KHA)의 것; 캅카스 능선 너머 GEO.1·9 조각도 실측 차단; 확장 5부터 체르케스 3지역(지역 접두)도 — 산록은 대호드가 아니라 아디게의 것
       "Kalmar Union": ["SJM"], // 스발바르는 1596년까지 미발견 — 1444 지도에 올릴 수 없다
       "Aragón": ["AND"], // 안도라 공동공국은 rung-1 면을 제외한 것과 같은 이유로 미배정 유지
       "Morocco": ["DZA"], // 자이얀 틀렘센이 로스터에 없음 — DZA는 미배정 유지(마린 색을 입히지 않는다)
+      "Papal States": ["ITA.1"], // 로스터 확장 2 실측: 조야 교황령면이 트론토를 넘어 테라모(ITA.1.4)를 물었다 — 1200 보드와 같은 지역 접두 울타리; 아브루초는 왕국(NAP)의 것
       "Hafsid Caliphate": ["DZA", "MAR"], // crude 면이 틀렘센·오랑까지 해안 전체를 하프스로 칠했다(1차 빌드 실측 34지역, 2차에서 MAR.10 조각까지) — 자이얀 서부를 거짓 칠하느니 미배정; 진짜 하프스 동부(콘스탄티노이스)는 수작업 배정으로 회수
     },
   },
@@ -139,7 +141,89 @@ export default {
     TEU: { name: "Teutonic Order", color: "#666666", aliases: ["튜튼 기사단", "독일 기사단국", "Teutonic Knights", "Ordensstaat"] },
     BOH: { name: "Kingdom of Bohemia", color: "#e27300", aliases: ["보헤미아 왕국", "보헤미아", "Bohemia", "Czech crown"] },
     HAB: { name: "Habsburg Austria", color: "#cccccc", aliases: ["합스부르크 오스트리아", "오스트리아", "Austria", "Frederick III's lands"] },
-    HRE: { name: "Holy Roman Empire", color: "#b8b8a0", aliases: ["신성 로마 제국", "독일 제후국들", "German princes", "Reich"] },
+    HRE: { name: "Holy Roman Empire", color: "#b8b8a0", aliases: ["신성 로마 제국", "성직 선제후령과 자유도시들", "Ecclesiastical princes", "Reich"] }, // 제후 분할 후 잔여 집합체: 쾰른·마인츠·트리어 선제후령, 자유도시, 소백령 — 회색은 이제 "그 사이의 제국"이다
+    // ── The German princes (로스터 확장 1 — 원본 209 팔레트에서 이름·색 그대로) ──
+    SAX: { name: "Electorate of Saxony", color: "#7b7d93", aliases: ["작센 선제후국", "작센", "Saxony", "Wettin lands"] },
+    BRA: { name: "Margraviate of Brandenburg", color: "#a44737", aliases: ["브란덴부르크 변경백국", "브란덴부르크", "Brandenburg", "Hohenzollern Brandenburg"] },
+    BAV: { name: "Duchy of Bavaria", color: "#bbbac9", aliases: ["바이에른 공국", "바이에른", "Bavaria", "Wittelsbach Bavaria"] },
+    WUR: { name: "County of Württemberg", color: "#a1ce69", aliases: ["뷔르템베르크 백국", "뷔르템베르크", "Württemberg", "Wurttemberg"] },
+    BAD: { name: "Margraviate of Baden", color: "#a4c6a6", aliases: ["바덴 변경백국", "바덴", "Baden"] },
+    HES: { name: "Landgraviate of Hesse", color: "#af0d3e", aliases: ["헤센 방백국", "헤센", "Hesse", "Hessen"] },
+    KLE: { name: "Duchy of Cleves", color: "#ffeb66", aliases: ["클레페 공국", "클레페-마르크", "Cleves", "Kleve-Mark"] },
+    MUN: { name: "Bishopric of Münster", color: "#ce8346", aliases: ["뮌스터 주교령", "뮌스터", "Münster", "Munster"] },
+    BRK: { name: "Duchy of Brunswick", color: "#8b4e2d", aliases: ["브라운슈바이크 공국", "브라운슈바이크", "Brunswick", "Welf Brunswick"] },
+    LUN: { name: "Duchy of Lüneburg", color: "#115b97", aliases: ["뤼네부르크 공국", "뤼네부르크", "Lüneburg", "Luneburg", "Celle"] },
+    OLD: { name: "County of Oldenburg", color: "#936c6c", aliases: ["올덴부르크 백국", "올덴부르크", "Oldenburg"] },
+    HOL: { name: "Duchy of Holstein", color: "#fff3a3", aliases: ["홀슈타인 공국", "홀슈타인", "Holstein", "Schauenburg Holstein"] },
+    MEC: { name: "Duchy of Mecklenburg", color: "#aeaddb", aliases: ["메클렌부르크 공국", "메클렌부르크", "Mecklenburg", "Mecklenburg-Schwerin"] },
+    WZB: { name: "Bishopric of Würzburg", color: "#c8b265", aliases: ["뷔르츠부르크 주교령", "뷔르츠부르크", "Würzburg", "Wurzburg"] },
+    POM: { name: "Duchy of Pomerania", color: "#619226", aliases: ["포메라니아 공국", "포메라니아", "Pomerania", "Griffin duchy"] },
+    SIL: { name: "Duchies of Silesia", color: "#75b922", aliases: ["실레시아 공국들", "실레시아", "Silesia", "Silésia", "Schlesien"] },
+    FRI: { name: "Free Frisia", color: "#C45100", aliases: ["자유 프리슬란트", "프리슬란트", "Friesland", "Frisian freedom"] },
+    // ── The Italian and Mediterranean minors (로스터 확장 2 — 원본 색 그대로) ──
+    NAP: { name: "Kingdom of Naples", color: "#653294", aliases: ["나폴리 왕국", "나폴리", "Naples", "Regno di Napoli"] }, // 알폰소의 두 번째 왕관 — 1458년 그가 죽으면 아라곤과 갈라져 페란테의 것이 된다
+    FER: { name: "Marquisate of Ferrara", color: "#437406", aliases: ["페라라 후국", "페라라", "Ferrara", "Este Ferrara"] },
+    SIE: { name: "Republic of Siena", color: "#a0ab4f", aliases: ["시에나 공화국", "시에나", "Siena"] },
+    LUC: { name: "Republic of Lucca", color: "#873bce", aliases: ["루카 공화국", "루카", "Lucca"] }, // 원본 키 둘 중 "Lucca" — 1444의 루카는 공화국이다(공국은 1805년 엘리자의 것)
+    PRO: { name: "County of Provence", color: "#c8c0d3", aliases: ["프로방스 백국", "프로방스", "Provence", "René's Provence"] },
+    ATH: { name: "Duchy of Athens", color: "#11a259", aliases: ["아테네 공국", "아테네", "Athens", "Acciaioli Athens"] },
+    // ── Asia subdivided (로스터 확장 5 — 원본 색 그대로) ──
+    CND: { name: "Beylik of Candar", color: "#a36593", aliases: ["찬다르 후국", "이스펜디야르", "Candar", "Isfendiyarids"] },
+    DUL: { name: "Beylik of Dulkadir", color: "#e7ffdb", aliases: ["둘카디르 후국", "둘카디르", "Dulkadir", "Dulkadirids"] },
+    RAM: { name: "Beylik of Ramazan", color: "#9c0d0d", aliases: ["라마잔 후국", "라마잔", "Ramazan", "Ramazanids"] },
+    CIR: { name: "Circassia", color: "#3d9b18", aliases: ["체르케스", "아디게", "Circasia", "Adyghe"] },
+    SHI: { name: "Shirvan", color: "#93b5c7", aliases: ["시르반", "시르반샤", "Shirvan", "Shirvanshah"] },
+    HRM: { name: "Kingdom of Hormuz", color: "#F44E3B", aliases: ["호르무즈 왕국", "호르무즈", "Hormuz", "Ormus"] },
+    MUS: { name: "Mushasha", color: "#96748a", aliases: ["무샤샤", "무샤샤 운동", "Mushasha", "Musha'sha'iyyah"] },
+    OMA: { name: "Nabhani Oman", color: "#694d30", aliases: ["나브하니 오만", "오만", "Oman", "Nabhanids"] },
+    BHN: { name: "Bahrain", color: "#0062B1", aliases: ["바레인", "자브리드 바레인", "Bahrain", "Jabrid Bahrain"] },
+    QTR: { name: "Qatar", color: "#653294", aliases: ["카타르", "Qatar"] },
+    YMN: { name: "Rasulid Yemen", color: "#8b2623", aliases: ["라술 예멘", "예멘", "Yemen", "Rasulids"] },
+    HED: { name: "Sharifate of Hejaz", color: "#73D8FF", aliases: ["헤자즈 샤리프국", "헤자즈", "Sharifate of Hedjaz", "Mecca"] },
+    JAU: { name: "Jaunpur Sultanate", color: "#716271", aliases: ["자운푸르 술탄국", "자운푸르", "Jaunpur", "Sharqi sultanate"] },
+    MEW: { name: "Kingdom of Mewar", color: "#a18c4b", aliases: ["메와르 왕국", "메와르", "Mewar", "Rana Kumbha's Mewar"] },
+    SND: { name: "Samma Sindh", color: "#741a1a", aliases: ["삼마 신드", "신드", "Sindh", "Samma dynasty"] },
+    JHA: { name: "Jharkhand", color: "#8f926b", aliases: ["자르칸드", "나그반시", "Jharkhand", "Nagvanshi"] },
+    ASM: { name: "Ahom Assam", color: "#9a133a", aliases: ["아홈 아삼", "아삼", "Assam", "Ahom kingdom"] },
+    TRI: { name: "Kingdom of Tripura", color: "#a75e55", aliases: ["트리푸라 왕국", "트리푸라", "Tripura", "Manikya dynasty"] },
+    KOT: { name: "Kingdom of Kotte", color: "#738e6c", aliases: ["코테 왕국", "코테", "Kotte", "Sri Lanka"] },
+    ARK: { name: "Kingdom of Mrauk U", color: "#a69678", aliases: ["므라우크우 왕국", "아라칸", "Arakan", "Mrauk U"] },
+    PEG: { name: "Hanthawaddy Pegu", color: "#9fb79a", aliases: ["한타와디 페구", "페구", "Pegu", "Hanthawaddy"] },
+    HSI: { name: "Shan States", color: "#a581b7", aliases: ["샨 제국들", "시포", "Hsipaw", "Shan states"] },
+    LXA: { name: "Lan Xang", color: "#c3564e", aliases: ["란상 왕국", "란상", "Ian Xang", "Lan Xang", "Laos"] },
+    BRU: { name: "Sultanate of Brunei", color: "#0062B1", aliases: ["브루나이 술탄국", "브루나이", "Brunei"] },
+    MGL: { name: "Northern Yuan", color: "#747952", aliases: ["북원", "몽골", "Mongolia", "Eastern Mongols"] },
+    OIR: { name: "Oirat Confederation", color: "#ebc7bc", aliases: ["오이라트 연맹", "오이라트", "Oirat", "Esen's Oirats"] },
+    HAI: { name: "Haixi Jurchens", color: "#cabee1", aliases: ["하이시 여진", "하이시", "Haixi", "Hulun Jurchens"] },
+    JZH: { name: "Jianzhou Jurchens", color: "#4d2a33", aliases: ["젠저우 여진", "건주여진", "Jianzhou"] },
+    TIB: { name: "Phagmodrupa Tibet", color: "#776f8b", aliases: ["파그모드루파 티베트", "티베트", "U", "Ü-Tsang", "Tibet"] },
+    // ── The pre-contact Americas (로스터 확장 4 — 파차쿠티 6년차의 안데스: 잉카는 아직 쿠스코의 왕국이다) ──
+    CHM: { name: "Kingdom of Chimor", color: "#476f71", aliases: ["치무 왕국", "치무", "Chimu", "Chimor", "Chan Chan"] },
+    ICH: { name: "Ichma", color: "#611b24", aliases: ["이치마", "파차카막", "Ichma", "Ychsma", "Pachacamac"] },
+    WAN: { name: "Wanka", color: "#c1a98a", aliases: ["완카", "우앙카", "Wanka", "Huanca"] },
+    HUY: { name: "Huaylas", color: "#417054", aliases: ["우아일라스", "Huyla", "Huaylas", "Callejón de Huaylas"] },
+    CAJ: { name: "Cajamarca", color: "#a77d57", aliases: ["카하마르카", "쿠이스만쿠", "Cajamarca", "Cuismancu"] },
+    CHP: { name: "Chachapoya", color: "#94aebe", aliases: ["차차포야", "구름의 전사들", "Chachapoya", "Chachapoyas"] },
+    COL_A: { name: "Colla", color: "#c9d2a5", aliases: ["코야", "코야오", "Colla", "Qulla", "Collao"] },
+    PAC: { name: "Pacajes", color: "#908eab", aliases: ["파카헤스", "Pacajes", "Pakasa"] },
+    CRC: { name: "Charca", color: "#eba5f6", aliases: ["차르카", "Charca", "Charcas"] }, // 코드 주의: CHA는 참파의 것(중복 키 사고 실측 — 참파가 이겨 포토시가 참파령이 됐었다)
+    QUI: { name: "Quito", color: "#aa7474", aliases: ["키토", "키투-카랑키", "Quito", "Quitu", "Caranqui"] },
+    MUI: { name: "Muisca Confederation", color: "#f4de52", aliases: ["무이스카 연맹", "무이스카", "Muisca", "Chibcha"] },
+    CAL: { name: "Calchaquí", color: "#654a77", aliases: ["칼차키", "디아기타", "Calchaqui", "Diaguita"] },
+    GUA: { name: "Guaraní", color: "#905349", aliases: ["과라니", "Guarani"] },
+    CHR: { name: "Charrúa", color: "#987d7a", aliases: ["차루아", "Charrua"] },
+    CAR: { name: "Carib", color: "#1c5f3d", aliases: ["카리브", "칼리나고", "Carib", "Kalinago"] },
+    TAP: { name: "Tapuia", color: "#fbdb8c", aliases: ["타푸이아", "세르탕 부족들", "Tapuia"] },
+    POT: { name: "Potiguara", color: "#CCCCCC", aliases: ["포티구아라", "Potiguara"] },
+    TUP: { name: "Tupinambá", color: "#b66e5f", aliases: ["투피남바", "Tupinamba"] },
+    // ── The Irish lordships (로스터 확장 3 — 원본 색 그대로; 영주령은 이제 정말 페일과 그 언저리다) ──
+    DES: { name: "Earldom of Desmond", color: "#e57272", aliases: ["데즈먼드 백국", "데즈먼드", "Desmond", "FitzGerald Desmond"] },
+    KID: { name: "Earldom of Kildare", color: "#87a8dd", aliases: ["킬데어 백국", "킬데어", "Kildare", "FitzGerald Kildare"] },
+    THO: { name: "Kingdom of Thomond", color: "#8db8bc", aliases: ["토몬드 왕국", "토몬드", "Thomond", "O'Brien Thomond"] },
+    TYR: { name: "Tyrone", color: "#b58a75", aliases: ["티론", "오닐 티론", "O'Neill Tyrone", "Tír Eoghain"] },
+    SLI: { name: "Sligo", color: "#edc2fc", aliases: ["슬라이고", "오코너 슬라이고", "O'Connor Sligo", "Sligeach"] },
+    CLA: { name: "Clanricarde", color: "#dfff8e", aliases: ["클랜리카드", "버크 클랜리카드", "Clanricarde", "Clarnicarde", "Burke Galway"] },
+    LEI: { name: "Kingdom of Leinster", color: "#40d642", aliases: ["레인스터 왕국", "레인스터", "Leinster", "MacMurrough Kavanagh"] },
     SWI: { name: "Swiss Confederacy", color: "#ff7161", aliases: ["스위스 서약동맹", "스위스", "Switzerland", "Eidgenossenschaft"] },
     // ── The west ──
     ENG: { name: "Kingdom of England", color: "#9f0500", aliases: ["잉글랜드 왕국", "잉글랜드", "England", "Lancastrian England"] },
@@ -241,7 +325,20 @@ export default {
     MAJ: ["IDN"],
     AZT: ["MEX"],
     MAY: ["GTM", "BLZ"],
-    INC: ["PER", "BOL", "ECU"],
+    // 로스터 확장 4: INC:["PER","BOL","ECU"] 통칠을 걷어냈다 — 1444의 잉카는
+    // 쿠스코의 왕국이고(파차쿠티 6년차), 안데스는 아직 정복당하지 않은
+    // 왕국들의 모자이크다. 지역 배정은 아래 regionAssignments의 아메리카 절.
+    GUA: ["PRY"],  // 과라니 테코아들 — 파라과이 전역
+    CHR: ["URY"],  // 차루아 카시케들
+    // 로스터 확장 5 — 아시아 국가 단위분
+    KOT: ["LKA"],  // 파라크라마바후 6세의 코테 — 자프나 통일(1450)은 6년 뒤지만 팔레트에 자프나가 없어 섬 전체 근사
+    LXA: ["LAO"],  // 사이냐착카팟의 란상
+    BRU: ["BRN"],  // 브루나이 술탄국
+    MGL: ["MNG"],  // 북원 — 서부 아이막은 지역 배정으로 오이라트에
+    OMA: ["OMN"],  // 나브하니 오만
+    BHN: ["BHR"], QTR: ["QAT"], // 자브리드 걸프 — 팔레트가 둘을 나눠 그대로 따름
+    YMN: ["YEM"],  // 라술 말기의 예멘
+    CAR: ["DMA", "GRD", "LCA", "ATG", "KNA", "GLP", "MTQ", "BRB", "TTO"], // 칼리나고의 소앤틸리스 — 대앤틸리스(타이노)는 팔레트에 폴리티가 없어 미배정 유지; VCT·MSR·AIA는 GADM 시드에 GID_0가 없어 제외(검증기 실측)
   },
 
   regionAssignments: {
@@ -254,17 +351,21 @@ export default {
     "TUR.25_1": "OTT", "TUR.59_1": "OTT", "TUR.3_1": "OTT", "TUR.20_1": "OTT", "TUR.8_1": "OTT", "TUR.27_1": "OTT",
     "TUR.19_1": "OTT", "TUR.32_1": "OTT", "TUR.23_1": "OTT", "TUR.7_1": "OTT", "TUR.49_1": "OTT", "TUR.39_1": "OTT",
     "TUR.24_1": "OTT", "TUR.51_1": "OTT", "TUR.6_1": "OTT", "TUR.80_1": "OTT", "TUR.74_1": "OTT", "TUR.67_1": "OTT",
-    "TUR.70_1": "OTT", "TUR.46_1": "OTT", "TUR.43_1": "OTT", "TUR.13_1": "OTT", "TUR.81_1": "OTT", "TUR.72_1": "OTT",
+    "TUR.43_1": "OTT", "TUR.13_1": "OTT", "TUR.81_1": "OTT", "TUR.72_1": "OTT", // (46·70은 확장5에서 CND로)
     "TUR.53_1": "KRM", "TUR.44_1": "KRM", "TUR.5_1": "KRM", "TUR.62_1": "KRM", "TUR.61_1": "KRM", "TUR.58_1": "KRM", "TUR.47_1": "KRM", // Karaman — Konya's rival court
     "TUR.75_1": "TRE", "TUR.65_1": "TRE", "TUR.34_1": "TRE", "TUR.63_1": "TRE", "TUR.35_1": "TRE", // the Komnenoi's Pontic shore
-    "TUR.26_1": "AKK", "TUR.57_1": "AKK", "TUR.68_1": "AKK", "TUR.33_1": "AKK", "TUR.48_1": "AKK", "TUR.2_1": "AKK", "TUR.55_1": "AKK", "TUR.42_1": "AKK", // Diyarbakır — Uzun Hasan's rising house
-    "TUR.1_1": "MAM", "TUR.64_1": "MAM", "TUR.37_1": "MAM", // Cilicia and Hatay in the Mamluk orbit
+    "TUR.26_1": "AKK", "TUR.57_1": "AKK", "TUR.68_1": "AKK", "TUR.48_1": "AKK", "TUR.2_1": "AKK", // Diyarbakır — Uzun Hasan's rising house (33·55·42는 확장5에서 DUL로)
+    "TUR.37_1": "MAM", // Hatay in the Mamluk orbit (Adana·Osmaniye는 확장5에서 RAM으로)
     "TUR.31_1": "KAR", "TUR.30_1": "KAR", "TUR.15_1": "KAR", "TUR.76_1": "KAR", "TUR.17_1": "KAR", "TUR.29_1": "KAR",
     "TUR.60_1": "KAR", "TUR.18_1": "KAR", "TUR.78_1": "KAR", "TUR.4_1": "KAR", "TUR.38_1": "KAR", "TUR.69_1": "KAR", "TUR.14_1": "KAR", "TUR.71_1": "KAR", "TUR.36_1": "KAR", // Jahan Shah's east
     "TUR.45_1": "GEO", "TUR.9_1": "GEO", "TUR.10_1": "GEO", // Samtskhe marches
+    // 로스터 확장 5 — 아나톨리아 베이릭 셋 (오스만·맘루크·양조 사이의 진짜 완충들)
+    "TUR.46_1": "CND", "TUR.70_1": "CND", // Kastamonu·Sinop — 이스펜디야르 후국(오스만 봉신이나 별개 왕조)
+    "TUR.1_1": "RAM", "TUR.64_1": "RAM",  // Adana·Osmaniye — 라마잔 후국(맘루크 봉신; 이전 MAM 직할 근사를 교체)
+    "TUR.42_1": "DUL", "TUR.55_1": "DUL", "TUR.33_1": "DUL", // Maraş·Malatya·Antep — 둘카디르(이전 AKK 근사를 교체; 1444 실보유)
     // ── Greece: Byzantium's last province and the Latin sea ──
     "GRC.7_1": "BYZ",  // the Morea — Constantine Palaiologos, despot
-    "GRC.3_1": "BYZ",  // Attica made tributary by the despot's 1444 campaign
+    "GRC.3_1": "ATH",  // Nerio II Acciaioli's duchy — made tributary by the despot's 1444 campaign, but the duke still rules (원본 분리색)
     "GRC.2_1": "BYZ",  // Athos
     "GRC.6_1": "OTT", "GRC.8_1": "OTT", "GRC.5_1": "OTT", // Thessaly, Macedonia, Epirus in the sultan's hand or orbit
     "GRC.4_1": "VEN", "GRC.1_1": "VEN", // Crete and the Aegean — the Serenissima's sea
@@ -285,8 +386,21 @@ export default {
     "HRV.21_1": "HUN", "HRV.4_1": "HUN", "HRV.15_1": "HUN", "HRV.1_1": "HUN", "HRV.12_1": "HUN", "HRV.18_1": "HUN",
     "HRV.2_1": "HUN", "HRV.11_1": "HUN", "HRV.19_1": "HUN",
     // ── The British Isles and France ──
-    "GBR.1_1": "ENG", "GBR.4_1": "ENG", "GBR.2_1": "ENG",
+    "GBR.1_1": "ENG", "GBR.4_1": "ENG",
     "GBR.3_1": "SCO",
+    "GBR.2_1": "TYR", // Ulster — Eoghan O'Neill's country; the earldom is a memory and the crown's writ stops at Dundalk
+    // Ireland beyond the Pale (로스터 확장 3): the Lordship shrinks to what
+    // the Dublin council actually governs in 1444 — the spec's old comment
+    // ("in truth the Pale and little else") becomes the map.
+    "IRL.8_1": "DES", "IRL.4_1": "DES", "IRL.13_1": "DES", "IRL.23_1": "DES", // Kerry, Cork, Limerick, Waterford — the Usurper Earl's palatinate
+    "IRL.22_1": "DES", // Tipperary — Butler Ormond country in truth, but the palette has no Ormond; the rival FitzGerald color is the nearest sphere
+    "IRL.3_1": "THO",  // Clare — O'Brien's kingdom
+    "IRL.7_1": "CLA", "IRL.16_1": "CLA", // Galway and Mayo — the two Burke lordships in one color
+    "IRL.21_1": "SLI", "IRL.12_1": "SLI", "IRL.20_1": "SLI", // Sligo, Leitrim, Roscommon — O'Connor country
+    "IRL.5_1": "TYR", "IRL.2_1": "TYR", "IRL.18_1": "TYR", // Donegal (O'Donnell rides the Ulster color), Cavan, Monaghan
+    "IRL.10_1": "LEI", "IRL.1_1": "LEI", "IRL.25_1": "LEI", "IRL.26_1": "LEI", // Kilkenny, Carlow, Wexford, Wicklow — MacMurrough's Leinster
+    "IRL.9_1": "KID", "IRL.11_1": "KID", "IRL.19_1": "KID", "IRL.24_1": "KID", "IRL.14_1": "KID", // Kildare, Laois, Offaly, Westmeath, Longford — the earl's march beyond the Pale
+    // (Dublin, Meath, Louth stay ENG — the Pale itself, via the IRL baseline)
     "FRA.9_1": "ENG",   // Normandy — English since 1417, five years from the reckoning
     "FRA.10_1": "ENG",  // Gascony — three centuries of Plantagenet Bordeaux
     "FRA.3_1": "BRI",   // the duchy between the crowns
@@ -305,26 +419,73 @@ export default {
     // actually held in 1444 — the Constantinois and Bougie.
     "DZA.8_1": "HAF", "DZA.37_1": "HAF", "DZA.23_1": "HAF", "DZA.39_1": "HAF", "DZA.29_1": "HAF",
     "DZA.15_1": "HAF", "DZA.21_1": "HAF", "DZA.34_1": "HAF", "DZA.5_1": "HAF", "DZA.40_1": "HAF", "DZA.42_1": "HAF",
-    // ── Italy ──
+    // ── Italy (로스터 확장 2: 에밀리아·토스카나는 레벨2로 쪼갠다) ──
     "ITA.13_1": "SAV", "ITA.19_1": "SAV",
     "ITA.9_1": "GEN",
     "ITA.10_1": "MIL",  // Filippo Maria Visconti's last years
-    "ITA.20_1": "VEN", "ITA.7_1": "VEN", "ITA.17_1": "VEN", "ITA.6_1": "VEN", // the Terraferma
-    "ITA.16_1": "FLO",  // Cosimo's Florence
-    "ITA.8_1": "PAP", "ITA.18_1": "PAP", "ITA.11_1": "PAP", "ITA.12_1": "PAP", "ITA.1_1": "PAP",
-    "ITA.5_1": "ARA", "ITA.2_1": "ARA", "ITA.3_1": "ARA", "ITA.4_1": "ARA", "ITA.15_1": "ARA", "ITA.14_1": "ARA", // Alfonso the Magnanimous — Naples won two years ago
+    "ITA.20_1": "VEN", "ITA.7_1": "VEN", "ITA.17_1": "VEN", // the Terraferma proper
+    // Emilia was never Venetian — the old ITA.6→VEN line was the map's worst
+    // Italian lie. At province granularity, 1444:
+    "ITA.6.2_1": "FER", "ITA.6.4_1": "FER", "ITA.6.8_1": "FER", // Leonello d'Este's Ferrara, Modena, Reggio
+    "ITA.6.5_1": "MIL", "ITA.6.6_1": "MIL", // Parma and Piacenza — Visconti
+    "ITA.6.1_1": "PAP", "ITA.6.3_1": "PAP", "ITA.6.9_1": "PAP", // Bologna (Bentivoglio), Forlì (Ordelaffi), Rimini (Malatesta) — papal vicars all
+    "ITA.6.7_1": "VEN", // Ravenna — da Polenta fell to the Serenissima in 1441
+    // Tuscany at province granularity (레벨1 FLO 확장이 레벨2 특정 배정을
+    // 덮는 것이 1차 빌드 실측 — 그래서 전부 명시한다):
+    "ITA.16.5_1": "LUC", // the republic behind its walls
+    "ITA.16.10_1": "SIE", "ITA.16.3_1": "SIE", // Siena and its Maremma
+    "ITA.16.1_1": "FLO", "ITA.16.2_1": "FLO", "ITA.16.4_1": "FLO", "ITA.16.6_1": "FLO",
+    "ITA.16.7_1": "FLO", "ITA.16.8_1": "FLO", "ITA.16.9_1": "FLO", // Cosimo's Florence — Pisa since 1406, Livorno since 1421 (Massa's Malaspina ride the Florentine color)
+    "ITA.8_1": "PAP", "ITA.18_1": "PAP", "ITA.11_1": "PAP",
+    "ITA.12_1": "NAP", "ITA.1_1": "NAP", // Molise and Abruzzo — the Regno's north, not the Patrimony
+    "ITA.5_1": "NAP", "ITA.2_1": "NAP", "ITA.3_1": "NAP", "ITA.4_1": "NAP", // the mainland Regno — Alfonso's second crown, Ferrante's inheritance
+    "ITA.15_1": "ARA", "ITA.14_1": "ARA", // Trinacria and Sardinia stay the Crown of Aragon's own
+    // ── Provence and the Rhône (르네 당주 — 왕국 밖 제국권 백국) ──
+    "FRA.13.1_1": "PRO", "FRA.13.3_1": "PRO", "FRA.13.5_1": "PRO", // the Good King René's county
+    "FRA.13.2_1": "SAV", // Nice — Savoyard since the 1388 dedition
+    "FRA.13.6_1": "PAP", // Avignon and the Comtat Venaissin — papal until 1791
+    // (FRA.13.4 Hautes-Alpes is the Dauphiné and stays with the crown)
     // ── Poland, Prussia, Russia ──
     "POL.11_1": "TEU", "POL.14_1": "TEU", // the Ordensstaat — Thirteen Years' War is a decade out
     "RUS.21_1": "TEU",  // Königsberg
     // The western voivodeships were riding the MODERN border (the fused
-    // Poland-Lithuania face had to be excluded, so no era face carves here):
-    // in 1444 Silesia has been the Bohemian crown's fief since Trenčín (1335,
-    // until 1742!), Lubusz is Brandenburg's Neumark, and western Pomerania is
-    // the Griffin duchy inside the Empire. Poland's real western border runs
-    // far east of the Oder-Neisse — assigned by hand at region granularity.
-    "POL.1_1": "BOH", "POL.8_1": "BOH", "POL.12_1": "BOH", // Lower Silesia, Opole, Upper Silesia — the Bohemian crown
-    "POL.5_1": "HRE",  // Lubusz land — the Neumark
-    "POL.16_1": "HRE", // the Griffin duchy of Pomerania-Stettin
+    // Poland-Lithuania face had to be excluded, so no era face carves here).
+    // Poland's real western border runs far east of the Oder-Neisse —
+    // assigned by hand, now to the original's own polities (로스터 확장 1).
+    "POL.1_1": "SIL", "POL.8_1": "SIL", "POL.12_1": "SIL", // the Silesian duchies — Piast dukes under the Bohemian crown (Trenčín 1335, until 1742); the original draws them as their own color
+    "POL.5_1": "BRA",  // Lubusz land — Brandenburg's Neumark
+    "POL.16_1": "POM", // the Griffin duchy of Pomerania-Stettin
+    // ── Germany at Regierungsbezirk granularity — the princes of 1444 ──
+    // The imperial faces are retired (excludeFaces below): OHM has no German
+    // core and the crude 1400 aggregate could only paint grey. The hand
+    // mosaic below IS the best available source for the Reich's interior.
+    "DEU.DED2": "SAX", "DEU.DED4": "SAX", "DEU.DED5": "SAX", // the Wettin margraviate of Meissen
+    "DEU.DEG0": "SAX", // Thuringia — Wettin since 1264 (the Leipzig division is 1485, forty years out)
+    "DEU.DEE0": "SAX", // Wittenberg electoral core (Magdeburg's archbishopric approximated in)
+    "DEU.DE40": "BRA", "DEU.DE30": "BRA", // Friedrich II Hohenzollern's electorate
+    "DEU.DE21": "BAV", "DEU.DE22": "BAV", // Munich and Landshut Wittelsbach lines
+    "DEU.DE23": "BAV", // Upper Palatinate — Palatinate-Neumarkt Wittelsbach (its duke Christopher wears the Kalmar crown this year!); no Kurpfalz polity, so the family color carries it
+    "DEU.DE11": "WUR", "DEU.DE14": "WUR", // the county of Württemberg
+    "DEU.DE12": "BAD", // the margraviate of Baden
+    "DEU.DE13": "HAB", // Freiburg/Breisgau — Further Austria, Habsburg since 1368
+    "DEU.DE71": "HES", "DEU.DE72": "HES", "DEU.DE73": "HES", // Ludwig I's united landgraviate
+    "DEU.DEA1": "KLE", // Cleves and Berg approximated under Johann I's Cleves-Mark
+    "DEU.DEA5": "KLE", // the county of Mark
+    "DEU.DEA3": "MUN", // the prince-bishopric
+    "DEU.DE91": "BRK", "DEU.DE92": "BRK", // Brunswick-Wolfenbüttel and Calenberg — Welf lands
+    "DEU.DE93": "LUN", // the Celle line
+    "DEU.DE94": "OLD", // the county of Oldenburg (East Frisia's chieftains ride along at this granularity)
+    "DEU.DEF0": "HOL", // Adolf VIII Schauenburg — imperial Holstein and Danish-fief Schleswig, one realm
+    "DEU.DE80": "MEC", // the duchy of Mecklenburg (Vorpommern rides along)
+    "DEU.DE26": "WZB", // the prince-bishopric of Würzburg
+    // Remainder stays the grey HRE filler, deliberately: DE24/25 (Hohenzollern
+    // Franconia, divided from the electorate in 1440), DE27 (Swabian free
+    // cities), DE50/60 (Bremen, Hamburg), DEA2/DEA4 (Cologne's electorate,
+    // Lippe), DEB1/2/3 (Trier, the Kurpfalz), DEC0 — the Empire between.
+    // ── The Low Countries: Burgundy keeps what Philip actually holds ──
+    "NLD.3_1": "FRI", "NLD.5_1": "FRI", // the free Frisians — no lord until 1498
+    "NLD.11_1": "HRE", "NLD.10_1": "HRE", "NLD.1_1": "HRE", // the Sticht and Oversticht of Utrecht — church land, not Burgundian until 1456
+    "NLD.4_1": "HRE", "NLD.7_1": "HRE", // Guelders under Arnold of Egmond — Burgundian only in 1473
     "RUS.49_1": "NOV", "RUS.57_1": "NOV", "RUS.38_1": "NOV", "RUS.14_1": "NOV", "RUS.26_1": "NOV",
     "RUS.4_1": "NOV", "RUS.45_1": "NOV", "RUS.32_1": "NOV", "RUS.78_1": "NOV", "RUS.46_1": "NOV", // the merchant republic's north
     "RUS.44_1": "MOS", "RUS.43_1": "MOS", "RUS.72_1": "MOS", "RUS.81_1": "MOS", "RUS.76_1": "MOS", "RUS.19_1": "MOS",
@@ -346,10 +507,55 @@ export default {
     "VNM.39_1": "KHM", "VNM.12_1": "KHM", "VNM.61_1": "KHM", "VNM.25_1": "KHM", "VNM.58_1": "KHM", "VNM.59_1": "KHM",
     "VNM.6_1": "KHM", "VNM.24_1": "KHM", "VNM.2_1": "KHM", "VNM.51_1": "KHM", "VNM.17_1": "KHM", "VNM.7_1": "KHM", "VNM.10_1": "KHM", // the Mekong is Khmer land
     // ── India: the sultanates and the empire of the south ──
-    "IND.36_1": "BEN", "IND.15_1": "BEN", // Bengal reaches into Jharkhand's east
+    "IND.36_1": "BEN", // Bengal (Jharkhand는 확장5에서 JHA로)
     "IND.20_1": "BAH", "IND.32_1": "BAH", "IND.2_1": "BAH", "IND.16_1": "BAH", "IND.10_1": "BAH", // the Deccan sultanate
     "IND.31_1": "VIJ", "IND.17_1": "VIJ", "IND.27_1": "VIJ", // Deva Raya II's empire
     // (the north stays with Delhi's baseline — Malwa, Gujarat, Jaunpur approximated in)
+    // ── Asia subdivided (로스터 확장 5) ──
+    "SAU.11_1": "HED", "SAU.5_1": "HED", "SAU.13_1": "HED", // Makkah·Madinah·Tabuk — 샤리프 바라카트 1세, 맘루크 종주권 아래 별개색(원본 방식)
+    "AZE.1_1": "SHI", "AZE.3_1": "SHI", "AZE.8_1": "SHI", "AZE.9_1": "SHI", // 쿠라강 이북 — 시르반샤 할릴룰라의 나라; 이남(아란·카라바흐·나흐치반)은 흑양조 잔류
+    "IRN.11_1": "HRM", // Hormozgan — 호르무즈 왕국(인도양 무역의 관문, 티무르 조공국이나 사실상 독립)
+    "IRN.15_1": "MUS", // Khuzestan — 1436년부터 무함마드 이븐 팔라흐의 무샤샤
+    "RUS.1_1": "CIR", "RUS.20_1": "CIR", "RUS.25_1": "CIR", // 아디게·카바르다·카라차이 — 체르케스(4차 확장의 대호드 수용을 팔레트 정답으로 교체)
+    "IND.34_1": "JAU", // Uttar Pradesh — 샤르키 자운푸르의 절정기(사이드 델리의 영은 팔람 너머로 못 간다)
+    "IND.29_1": "MEW", // Rajasthan — 라나 쿰바의 메와르(마르와르가 얹혀 감, 주석)
+    "IND.15_1": "JHA", // Jharkhand — 나그반시 라자들(이전 BEN 근사를 교체)
+    "IND.4_1": "ASM",  // Assam — 아홈 왕국
+    "IND.33_1": "TRI", // Tripura — 마니키야 왕조
+    "PAK.8_1": "SND",  // Sindh — 삼마 잠들(티무르 통칠에서 분리)
+    "MMR.11_1": "ARK", // Rakhine — 민 카이의 므라우크우
+    "MMR.2_1": "PEG", "MMR.15_1": "PEG", "MMR.9_1": "PEG", "MMR.1_1": "PEG", // 바고·양곤·몬·에야와디 — 한타와디(빈냐 란 1세)
+    "MMR.13_1": "HSI", // Shan — 샨 사오파들(시포 색으로 집약; Mong Nai·Mong Yang은 granularity 불가, 기록만)
+    "CHN.11_1": "HAI", // Heilongjiang — 하이시 여진(누르간 도사 철수 1434 이후)
+    "CHN.17_1": "JZH", // Jilin — 건주여진 이만주(훗날 청의 요람)
+    "CHN.19_1": "MGL", // Nei Mongol — 명의 장성 이북 철수(1430년대) 이후 몽골의 초원
+    "Z03.29_1": "TIB", "Z08.29_1": "TIB", // Xizang(분쟁지 의사국가 id) — 파그모드루파 곤마의 위짱(Tsang·Kham 분리는 granularity 불가)
+    "MNG.2_1": "OIR", "MNG.22_1": "OIR", "MNG.13_1": "OIR", "MNG.9_1": "OIR", "MNG.10_1": "OIR", // 서부 아이막 — 에센의 오이라트 본거지(나머지는 북원 기반선)
+    // ── The Andes and the New World (로스터 확장 4 — 정복 이전의 지도) ──
+    // 파차쿠티는 1438년 창카를 꺾고 즉위해 이제 6년차: 잉카는 쿠스코 분지의
+    // 왕국이다. 치모르 정복 ~1470, 코야오 ~1450년대, 키토 ~1463 — 전부
+    // 플레이어가 굽힐 수 있는 미래다.
+    "PER.8_1": "INC", "PER.3_1": "INC", "PER.5_1": "INC", // Cusco, Apurímac, Ayacucho — 창카 전쟁(1438)으로 막 삼킨 땅까지
+    "PER.13_1": "CHM", "PER.14_1": "CHM", "PER.25_1": "CHM", "PER.21_1": "CHM", // Chan Chan의 북부 해안 제국
+    "PER.15_1": "ICH", "PER.16_1": "ICH", "PER.7_1": "ICH", "PER.11_1": "ICH", // 파차카막의 신탁 해안(친차 문화권 근사 포함)
+    "PER.12_1": "WAN", "PER.9_1": "WAN", "PER.20_1": "WAN", "PER.10_1": "WAN", // 만타로 분지의 완카 연맹(고지 야로 권역 근사)
+    "PER.2_1": "HUY",  // 우아일라스 회랑
+    "PER.6_1": "CAJ",  // 쿠이스만쿠의 카하마르카
+    "PER.1_1": "CHP", "PER.23_1": "CHP", // 구름숲의 차차포야
+    "PER.22_1": "COL_A", "PER.4_1": "COL_A", "PER.19_1": "COL_A", "PER.24_1": "COL_A", // 티티카카의 코야와 아이마라 남부
+    // (Loreto·Madre de Dios·Ucayali는 아마조니아 — 미배정 설계)
+    "BOL.4_1": "PAC",  // 파카헤스의 알티플라노
+    "BOL.5_1": "CRC", "BOL.7_1": "CRC", "BOL.1_1": "CRC", "BOL.2_1": "CRC", "BOL.9_1": "CRC", // 차르카 연맹
+    // (Beni·Pando·Santa Cruz는 저지 — 미배정)
+    "ECU.4_1": "QUI", "ECU.11_1": "QUI", "ECU.19_1": "QUI", "ECU.6_1": "QUI", "ECU.23_1": "QUI",
+    "ECU.5_1": "QUI", "ECU.2_1": "QUI", "ECU.3_1": "QUI", "ECU.1_1": "QUI", "ECU.12_1": "QUI", // 시에라의 키투-카랑키 수장국들
+    // (해안 만테뇨·우앙카비야와 오리엔테는 미배정; 갈라파고스는 무인도)
+    "COL.15_2": "MUI", "COL.7_2": "MUI", "COL.5_2": "MUI", // 바카타의 시파와 훈사의 사케 — 무이스카 고원
+    "ARG.17_1": "CAL", "ARG.10_1": "CAL", "ARG.24_1": "CAL", "ARG.2_1": "CAL", // 칼차키 계곡의 디아기타
+    "ARG.14_1": "GUA", "ARG.7_1": "GUA", // 과라니의 남서 연장
+    "BRA.5_1": "TUP", "BRA.26_1": "TUP", "BRA.2_1": "TUP", "BRA.8_1": "TUP", "BRA.19_1": "TUP", // 투피남바 해안(바이아~리우)
+    "BRA.6_1": "POT", "BRA.20_1": "POT", "BRA.15_1": "POT", "BRA.17_1": "POT", // 포티구아라의 북동 첨단
+    "BRA.18_1": "TAP", "BRA.10_1": "TAP", // 세르탕의 타푸이아
     // ── Mesoamerica ──
     "MEX.15_1": "AZT", "MEX.9_1": "AZT", "MEX.13_1": "AZT", "MEX.17_1": "AZT", "MEX.29_1": "AZT", "MEX.21_1": "AZT",
     "MEX.30_1": "AZT", "MEX.12_1": "AZT", "MEX.20_1": "AZT", // the Triple Alliance under Moctezuma I
@@ -384,6 +590,12 @@ export default {
     ["Barcelona", "Barcelona", 2, 35000],
     ["Vienna", "Vienna", 1, 20000],
     ["Prague", "Prague", 2, 40000], // post-Hussite, unconquered
+    ["Cologne", "Cologne", 2, 40000], // the Empire's largest city, a free city in an elector's shadow
+    ["Lübeck", "Lübeck", 2, 25000], // queen of the Hansa
+    ["Nuremberg", [11.08, 49.45], 2, 22000], // the Empire's workshop
+    ["Augsburg", [10.9, 48.37], 1, 20000], // Fugger money is one generation away
+    ["Breslau", [17.03, 51.11], 1, 20000], // Silesia's capital under the Bohemian crown
+    ["Danzig", [18.65, 54.35], 1, 20000], // the Order's rich, restive port — ten years from revolt
     ["Buda", "Budapest", 2, 25000], // Hunyadi's kingdom, kingless today
     ["Kraków", [19.94, 50.06], 2, 20000],
     ["Vilnius", [25.28, 54.69], 1, 15000],
@@ -440,9 +652,13 @@ export default {
     "and the court debates everything in memorials; Japan's Ashikaga shogunate is " +
     "sliding toward Ōnin-era fragmentation; Malacca is converting the strait into money; " +
     "Vijayanagara under Deva Raya II is the subcontinent's counterweight. MAP " +
-    "APPROXIMATIONS the rules carry: the Holy Roman aggregate stands for hundreds of " +
-    "princes and free cities (electors chief among them); the Delhi color covers Malwa, " +
-    "Gujarat and Jaunpur which are sovereign in fact; Granada's color overfills the true " +
+    "APPROXIMATIONS the rules carry: the great lay princes of the Empire are drawn " +
+    "(Wettin Saxony, Hohenzollern Brandenburg, the Wittelsbach duchies, the Welf lands, " +
+    "Hesse, Württemberg, Baden, Cleves, Holstein, Mecklenburg, the Silesian and " +
+    "Pomeranian duchies), while the remaining grey Imperial color stands for the " +
+    "ecclesiastical electorates, free cities and minor counts between them — an " +
+    "election, not a state; the Delhi color covers Malwa and " +
+    "Gujarat which are sovereign in fact (Jaunpur and Mewar are drawn); Granada's color overfills the true " +
     "emirate; Bosnia's color carries Kosača's Herzegovina; the Kalmar Union is one crown " +
     "over three quarreling kingdoms (Sweden revolts on a timer); the American polities " +
     "are drawn at the scale of their tribute networks, and northern Mexico, Amazonia, " +

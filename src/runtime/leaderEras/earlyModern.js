@@ -157,6 +157,289 @@ export const REFERENCE = {
       { name: "총사령관 제르지 카스트리오티 스칸데르베그", from: "1444-03-02", until: "1468-01-17" },
     ],
   },
+  // ---- 로스터 확장 1: 독일 제후들 (1444-11-11 실제 재위자, 원본 209 분할 대응) ----
+  "Electorate of Saxony": {
+    leader: [
+      { name: "선제후 프리드리히 2세 (온화공)", from: "1428-01-04", until: "1464-09-07" },
+      { name: "선제후 에른스트", from: "1464-09-07", until: "1486-08-26" },
+    ],
+  },
+  "Margraviate of Brandenburg": {
+    leader: [
+      { name: "선제후 프리드리히 2세 (철치)", from: "1440-09-20", until: "1470-02-10" },
+      { name: "선제후 알브레히트 3세 아킬레스", from: "1470-02-10", until: "1486-03-11" },
+    ],
+  },
+  "Duchy of Bavaria": {
+    // 뮌헨계 — 란츠후트계(부유공 하인리히 16세)와 분할 통치 중이나 단일 색이므로 뮌헨계를 적는다.
+    leader: [
+      { name: "공작 알브레히트 3세 (경건공)", from: "1438-07-02", until: "1460-02-29" },
+      { name: "공작 알브레히트 4세 (현명공)", from: "1465-01-01", until: "1508-03-18" },
+    ],
+  },
+  "County of Württemberg": {
+    // 1442 뉘르팅겐 분할(우라흐 루트비히 1세 / 슈투트가르트 울리히 5세) — 우라흐 종가를 적는다.
+    leader: [
+      { name: "백작 루트비히 1세", from: "1419-01-01", until: "1450-09-23" },
+      { name: "백작 울리히 5세 (애호공)", from: "1450-09-23", until: "1480-09-01" },
+    ],
+  },
+  "Margraviate of Baden": {
+    leader: [
+      { name: "변경백 야코프 1세", from: "1431-05-25", until: "1453-10-13" },
+      { name: "변경백 카를 1세", from: "1453-10-13", until: "1475-02-24" },
+    ],
+  },
+  "Landgraviate of Hesse": {
+    leader: [
+      { name: "방백 루트비히 1세 (평화공)", from: "1413-06-18", until: "1458-01-17" },
+      { name: "방백 루트비히 2세", from: "1458-01-17", until: "1471-11-08" },
+    ],
+  },
+  "Duchy of Cleves": {
+    leader: [
+      { name: "공작 아돌프 1세", from: "1417-04-28", until: "1448-09-23" },
+      { name: "공작 요한 1세", from: "1448-09-23", until: "1481-09-05" },
+    ],
+  },
+  "Bishopric of Münster": {
+    leader: [
+      { name: "주교후 하인리히 2세 폰 뫼르스", from: "1424-06-02", until: "1450-06-02" },
+    ],
+  },
+  "Duchy of Brunswick": {
+    leader: [
+      { name: "공작 하인리히 2세 (평화공)", from: "1432-01-01", until: "1473-12-07" },
+    ],
+  },
+  "Duchy of Lüneburg": {
+    // 1444엔 오토 1세와 공동 통치(오토는 1446 사망) — 장기 재위자를 적는다.
+    leader: [
+      { name: "공작 프리드리히 2세 (경건공)", from: "1434-07-30", until: "1457-01-01" },
+      { name: "공작 베른하르트 2세", from: "1457-01-01", until: "1464-07-09" },
+    ],
+  },
+  "County of Oldenburg": {
+    // 4년 뒤 덴마크 왕 크리스티안 1세가 되는 바로 그 백작 — 칼마르와의 연결 고리.
+    leader: [
+      { name: "백작 크리스티안 7세", from: "1440-01-01", until: "1448-09-28" },
+      { name: "백작 게르하르트 6세 (호전공)", from: "1448-09-28", until: "1483-01-01" },
+    ],
+  },
+  "Duchy of Holstein": {
+    leader: [
+      { name: "공작 아돌프 8세", from: "1427-01-01", until: "1459-12-04" },
+    ],
+  },
+  "Duchy of Mecklenburg": {
+    leader: [
+      { name: "공작 하인리히 4세 (비만공)", from: "1422-01-01", until: "1477-03-09" },
+    ],
+  },
+  "Bishopric of Würzburg": {
+    leader: [
+      { name: "주교후 고트프리트 솅크 폰 림푸르크", from: "1443-08-05", until: "1455-04-01" },
+    ],
+  },
+  "Duchy of Pomerania": {
+    // 볼가스트-슈테틴 분할 통치 — 종가 볼가스트계를 적는다.
+    leader: [
+      { name: "공작 바르티슬라프 9세", from: "1415-01-01", until: "1457-04-17" },
+      { name: "공작 에리히 2세", from: "1457-04-17", until: "1474-07-05" },
+    ],
+  },
+  "Duchies of Silesia": {
+    // 분열 피아스트 제공국 — 단일 수반 없음(선례: Maya "제후 왕국들").
+    leader: [
+      { name: "피아스트 제공들 (보헤미아 왕관 봉신)" },
+    ],
+  },
+  "Free Frisia": {
+    // 영주 없는 프리슬란트 자유 — 1498년 작센의 알브레히트가 끝낸다.
+    leader: [
+      { name: "레제벤 자치 (프리슬란트 자유)", from: "1444-01-01", until: "1498-07-20" },
+    ],
+  },
+  // ---- 로스터 확장 2: 이탈리아·지중해 소국 (1444-11-11 실재위자) ----
+  "Kingdom of Naples": {
+    // 아라곤의 알폰소 5세가 같은 사람 — 1458년 그의 죽음이 두 왕관을 가른다.
+    leader: [
+      { name: "국왕 알폰소 1세 (관대왕)", from: "1442-06-02", until: "1458-06-27" },
+      { name: "국왕 페르디난도 1세 (페란테)", from: "1458-06-27", until: "1494-01-25" },
+    ],
+  },
+  "Marquisate of Ferrara": {
+    leader: [
+      { name: "후작 레오넬로 데스테", from: "1441-12-26", until: "1450-10-01" },
+      { name: "후작 보르소 데스테", from: "1450-10-01", until: "1471-08-20" },
+    ],
+  },
+  "Republic of Siena": {
+    // 발리아가 다스리는 과두 공화정 — 개인이 아니라 제도가 수반이다.
+    leader: [
+      { name: "발리아 (공화정)" },
+    ],
+  },
+  "Republic of Lucca": {
+    // 1430년 구이니지 참주정이 무너진 뒤 복원된 공화정.
+    leader: [
+      { name: "곤팔로니에레와 원로회 (공화정)" },
+    ],
+  },
+  "County of Provence": {
+    leader: [
+      { name: "백작 르네 당주 (선량왕)", from: "1434-11-12", until: "1480-07-10" },
+      { name: "백작 샤를 3세 뒤 멘", from: "1480-07-10", until: "1481-12-11" },
+    ],
+  },
+  "Duchy of Athens": {
+    // 1444년 콘스탄티노스의 원정으로 모레아의 조공국이 됐지만 공작이 다스린다.
+    leader: [
+      { name: "공작 네리오 2세 아차이올리", from: "1435-01-01", until: "1451-01-01" },
+      { name: "공작 프란체스코 1세 아차이올리", from: "1451-01-01", until: "1455-01-01" },
+    ],
+  },
+  // ---- 로스터 확장 5: 아시아 세분 (1444-11-11 실재위자; 불확실은 제도) ----
+  "Beylik of Candar": {
+    leader: [{ name: "베이 이스마일 (이스펜디야르)", from: "1443-01-01", until: "1461-01-01" }],
+  },
+  "Beylik of Dulkadir": {
+    leader: [{ name: "베이 술레이만", from: "1442-01-01", until: "1454-01-01" }],
+  },
+  "Beylik of Ramazan": { leader: [{ name: "라마잔오울루 베이들" }] },
+  "Circassia": { leader: [{ name: "아디게 대공들 (부족연합)" }] },
+  "Shirvan": {
+    leader: [{ name: "시르반샤 할릴룰라 1세", from: "1417-01-01", until: "1465-01-01" }],
+  },
+  "Kingdom of Hormuz": { leader: [{ name: "호르무즈의 왕들 (투란샤 왕조)" }] },
+  "Mushasha": {
+    leader: [{ name: "무함마드 이븐 팔라흐", from: "1436-01-01", until: "1461-01-01" }],
+  },
+  "Nabhani Oman": { leader: [{ name: "나브하니 술탄들" }] },
+  "Bahrain": { leader: [{ name: "자브리드 셰이크들" }] },
+  "Qatar": { leader: [{ name: "자브리드 셰이크들" }] },
+  "Rasulid Yemen": { leader: [{ name: "라술 술탄들 (말기 내란)" }] },
+  "Sharifate of Hejaz": {
+    leader: [{ name: "샤리프 바라카트 1세", from: "1425-01-01", until: "1455-01-01" }],
+  },
+  "Jaunpur Sultanate": {
+    leader: [{ name: "술탄 마흐무드 샤 샤르키", from: "1440-01-01", until: "1457-01-01" }],
+  },
+  "Kingdom of Mewar": {
+    // 쿰발가르를 쌓은 그 라나 — 1444는 그의 절정기다.
+    leader: [{ name: "라나 쿰바", from: "1433-01-01", until: "1468-01-01" }],
+  },
+  "Samma Sindh": { leader: [{ name: "삼마 잠들" }] },
+  "Jharkhand": { leader: [{ name: "나그반시 라자들" }] },
+  "Ahom Assam": {
+    leader: [{ name: "국왕 수센파", from: "1439-01-01", until: "1488-01-01" }],
+  },
+  "Kingdom of Tripura": {
+    leader: [{ name: "마하라자 다르마 마니키야 1세", from: "1431-01-01", until: "1462-01-01" }],
+  },
+  "Kingdom of Kotte": {
+    leader: [{ name: "국왕 파라크라마바후 6세", from: "1412-01-01", until: "1467-01-01" }],
+  },
+  "Kingdom of Mrauk U": {
+    leader: [{ name: "국왕 민 카이 (알리 칸)", from: "1434-01-01", until: "1459-01-01" }],
+  },
+  "Hanthawaddy Pegu": {
+    leader: [
+      { name: "국왕 빈냐 란 1세", from: "1424-01-01", until: "1446-01-01" },
+      { name: "국왕 빈냐 와루", from: "1446-01-01", until: "1451-01-01" },
+    ],
+  },
+  "Shan States": { leader: [{ name: "샨 사오파들" }] },
+  "Lan Xang": {
+    leader: [{ name: "국왕 사이냐착카팟", from: "1441-01-01", until: "1478-01-01" }],
+  },
+  "Sultanate of Brunei": { leader: [{ name: "브루나이 술탄들 (초기 왕통 불명)" }] },
+  "Northern Yuan": {
+    // 에센의 괴뢰에 가깝지만 칸위는 그의 것이다.
+    leader: [{ name: "타이순 칸 톡토아부카", from: "1433-01-01", until: "1452-01-01" }],
+  },
+  "Oirat Confederation": {
+    // 5년 뒤 토목보에서 명 황제를 사로잡는 그 사람.
+    leader: [{ name: "타이시 에센", from: "1438-01-01", until: "1454-01-01" }],
+  },
+  "Haixi Jurchens": { leader: [{ name: "하이시 제부 수장들" }] },
+  "Jianzhou Jurchens": {
+    leader: [{ name: "도독 이만주", from: "1424-01-01", until: "1467-01-01" }],
+  },
+  "Phagmodrupa Tibet": {
+    leader: [
+      { name: "곤마 착파 중네", from: "1432-01-01", until: "1445-01-01" },
+      { name: "곤마 쿤가 렉파", from: "1448-01-01", until: "1481-01-01" },
+    ],
+  },
+  // ---- 로스터 확장 4: 정복 이전 아메리카 (확실한 둘만 이름, 나머지는 제도) ----
+  "Kingdom of Chimor": {
+    // 연대기에 확실한 마지막 대군주 — 1470년경 투팍 유팡키에게 정복된다.
+    leader: [
+      { name: "대군주 민찬사만", from: "1440-01-01", until: "1470-01-01" },
+    ],
+  },
+  "Colla": {
+    // 파차쿠티에게 1450년대에 꺾이는 코야오의 왕 — 연대기(사르미엔토)에 실명.
+    leader: [
+      { name: "카팍 추치 카팍", from: "1440-01-01", until: "1458-01-01" },
+    ],
+  },
+  "Ichma": { leader: [{ name: "파차카막 신탁의 사제후들" }] },
+  "Wanka": { leader: [{ name: "완카 아이유 연맹" }] },
+  "Huaylas": { leader: [{ name: "우아일라스 쿠라카들" }] },
+  "Cajamarca": { leader: [{ name: "쿠이스만쿠 왕조 (구스망고 카팍)" }] },
+  "Chachapoya": { leader: [{ name: "차차포야 쿠라카 연맹" }] },
+  "Pacajes": { leader: [{ name: "파카헤스 아이유 연맹" }] },
+  "Charca": { leader: [{ name: "차르카 연맹의 군주들" }] },
+  "Quito": { leader: [{ name: "키투-카랑키 수장들" }] },
+  "Muisca Confederation": { leader: [{ name: "바카타의 시파와 훈사의 사케" }] },
+  "Calchaquí": { leader: [{ name: "칼차키 계곡의 쿠라카들" }] },
+  "Guaraní": { leader: [{ name: "테코아의 카시케들" }] },
+  "Charrúa": { leader: [{ name: "차루아 카시케들" }] },
+  "Carib": { leader: [{ name: "칼리나고 우보투들" }] },
+  "Tapuia": { leader: [{ name: "세르탕의 카시케들" }] },
+  "Potiguara": { leader: [{ name: "포티구아라 카시케들" }] },
+  "Tupinambá": { leader: [{ name: "투피남바 카시케들" }] },
+  // ---- 로스터 확장 3: 아일랜드 영주들 (1444-11-11 실재위자) ----
+  "Earldom of Desmond": {
+    leader: [
+      { name: "백작 제임스 피츠제럴드 (찬탈백)", from: "1411-01-01", until: "1462-01-01" },
+      { name: "백작 토머스 피츠제럴드", from: "1462-01-01", until: "1468-02-15" },
+    ],
+  },
+  "Earldom of Kildare": {
+    leader: [
+      { name: "백작 토머스 피츠제럴드 (7대)", from: "1427-01-01", until: "1478-03-25" },
+    ],
+  },
+  "Kingdom of Thomond": {
+    leader: [
+      { name: "국왕 타젤바흐 보그 오브라이언", from: "1438-01-01", until: "1459-01-01" },
+    ],
+  },
+  "Tyrone": {
+    leader: [
+      { name: "오언 오닐 (티론의 오닐)", from: "1432-01-01", until: "1455-01-01" },
+      { name: "헨리 오닐", from: "1455-01-01", until: "1483-01-01" },
+    ],
+  },
+  "Sligo": {
+    // 오코너 슬라이고 수장 계승이 1440년대에 불확실 — 인물을 지어내지 않는다.
+    leader: [
+      { name: "오코너 슬라이고 수장가 (게일 수장정)" },
+    ],
+  },
+  "Clanricarde": {
+    leader: [
+      { name: "울릭 루아 버크", from: "1429-01-01", until: "1485-01-01" },
+    ],
+  },
+  "Kingdom of Leinster": {
+    leader: [
+      { name: "국왕 돈카 막 아르트 카바나", from: "1417-01-01", until: "1478-01-01" },
+    ],
+  },
   "Republic of Ragusa": {
     // 매달 새 렉토르를 뽑는 귀족 공화정 — 개인이 아니라 제도가 수반이다.
     leader: [

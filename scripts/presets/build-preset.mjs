@@ -697,7 +697,7 @@ if (eraReport) {
   if (r.droppedSlivers.length) {
     const worst = r.droppedSlivers.slice().sort((a, b) => (b.fraction ?? 0) - (a.fraction ?? 0))[0];
     const byWhy = r.droppedSlivers.reduce((acc, x) => ({ ...acc, [x.why ?? "fraction"]: (acc[x.why ?? "fraction"] ?? 0) + 1 }), {});
-    console.log(`    슬리버 접기 ${r.droppedSlivers.length}건(지분 미달 ${byWhy.fraction ?? 0} · 폭 미달 ${byWhy.width ?? 0} · 최대 지분 ${((worst.fraction ?? 0) * 100).toFixed(2)}% — ${worst.id}/${worst.owner ?? worst.face}): 다수 소유주로 흡수, 지도에서 사라지지 않음`);
+    console.log(`    슬리버 접기 ${r.droppedSlivers.length}건(지분 미달 ${byWhy.fraction ?? 0} · 폭 미달 ${byWhy.width ?? 0} · 최대 지분 ${((worst.fraction ?? 0) * 100).toFixed(2)}% — ${worst.id}/${worst.owner || worst.face || "(무주)"}): 다수 소유주로 흡수, 지도에서 사라지지 않음`);
   }
   if (r.cutFractions.length) {
     const f = r.cutFractions.slice().sort((a, b) => a - b);
