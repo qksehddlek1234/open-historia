@@ -1,0 +1,218 @@
+cell: sovereignty x scheduledEvents | board: wwii-1939 | 6 runs per arm
+OFF 1/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status."
+    }
+  ]
+}
+```
+
+-- OFF 2/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status."
+    }
+  ]
+}
+```
+
+-- OFF 3/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy Becomes Belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status to active belligerent."
+    },
+    {
+      "name": "Soviet Pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Expansion of influence/pressure on neighboring independent or Romanian territories."
+    }
+  ]
+}
+```
+
+-- OFF 4/6 — VIOLATED (scheduled for Germany unordered: Fall of the Low Countries)
+```json
+{
+  "entries": [
+    {
+      "name": "Norway Campaign Deadline",
+      "whose": "Germany",
+      "date": "1939-12-01",
+      "note": "Deadline for German occupation to prevent Allied intervention at Narvik."
+    },
+    {
+      "name": "Invasion of Denmark and Norway",
+      "whose": "Germany",
+      "date": "1940-04-09",
+      "note": "Commencement of operations to secure northern territories."
+    },
+    {
+      "name": "Fall of the Low Countries",
+      "whose": "Germany",
+      "date": "1940-05-10",
+      "note": "Invasion of Belgium and the Netherlands."
+    },
+    {
+      "name": "Italian Declaration of War",
+      "whose": "Italy",
+      "date": "1940-06-10",
+      "note": "Italy officially enters the war as a belligerent against France and Great Britain."
+    },
+    {
+      "name": "Operation Barbarossa",
+      "whose": "Germany/Soviet Union",
+      "date": "1940-06-22",
+      "note": "Planned commencement of the invasion of Soviet territory."
+    }
+  ]
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy's status changes from non-belligerent to belligerent."
+    }
+  ]
+}
+```
+
+-- OFF 6/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italian declaration of war/entry into the conflict."
+    }
+  ]
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Soviet Pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure begins on the independence of Estonia, Latvia, Lithuania, and Romanian Bessarabia."
+    },
+    {
+      "name": "Italian Status Change",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status."
+    }
+  ]
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status to active belligerent."
+    }
+  ]
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian declaration of war",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to belligerent status."
+    },
+    {
+      "name": "Soviet pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Expansion of Soviet influence into the Baltic states and Romanian territory."
+    }
+  ]
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Winter War",
+      "whose": "Soviet Union",
+      "date": "1939-11-30",
+      "note": "Invasion of Finland begins."
+    },
+    {
+      "name": "Italian Declaration of War",
+      "whose": "Italy",
+      "date": "1940-06-10",
+      "note": "Italy declares war on France and Great Britain."
+    }
+  ]
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy's status as non-belligerent ends."
+    }
+  ]
+}
+```
+
+-- ON  6/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Declaration of War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy becomes a belligerent."
+    }
+  ]
+}
+```

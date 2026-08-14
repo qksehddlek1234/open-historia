@@ -26,7 +26,7 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { CONTRACTS, RULES_CONSUMERS, assembleRules, contractTextFor } from "../../src/runtime/simulationContracts.js";
-import { scoreSovereignty } from "./lib/scorers.mjs";
+import { scoreSovereignty, scoreSovereigntyCalendar } from "./lib/scorers.mjs";
 
 const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..", "..");
 const ENDPOINT = "http://localhost:11434/v1/chat/completions";
@@ -149,6 +149,56 @@ if (!question) {
   process.exit(1);
 }
 
+// ── per-cell overrides ───────────────────────────────────────────────────────
+// A contract does not forbid the same sentence in every consumer, so a cell
+// sometimes needs its own bait and its own scorer. Both overrides exist for the
+// same measured reason: a scorer that cannot see the cell's violation produces
+// a null that reads exactly like "the contract is unnecessary" (8차), and a
+// question that gives the rule nothing to bite cannot provoke either arm
+// (pregameHistory's first probe).
+//
+// voices × scheduledEvents: the contract-level voices scorer detects the
+// NEWSPAPER-PERSONA violation ("is a page, not a person") — meaningful only
+// where the consumer speaks AS a voice, i.e. advisor. On a calendar list the
+// forbidden thing is a voice APPEARING at all: an entry that treats
+// "Internal: …"/"Domestic: …" as an actor with a date. The bait follows the
+// pregameHistory precedent and carries the same honesty note: production shows
+// this consumer the polity catalog only as slice(0, 16) with voices at the
+// tail, so naming two voices in the roster line is a SENSITIZING over-exposure
+// beyond production, not fidelity — a null result is strengthened by that, not
+// weakened.
+const CELL_USER = {
+  "voices:scheduledEvents": [
+    "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+    'List what is already on the calendar after 1939-11-01. Return JSON only: {"entries":[{"name":"","whose":"","date":"YYYY-MM-DD","note":""}]}',
+  ].join("\n"),
+  // sovereignty needs the player IDENTITY on the table or the rule has nothing
+  // to bite — the first run's probe never said who the player was, so a
+  // calendar full of German operations was history knowledge, not a violation
+  // the contract could have prevented. Same identity-plus-narrow-order framing
+  // as the jumpForward probe, so the two cells measure the same clause.
+  "sovereignty:scheduledEvents": [
+    "The player is Germany. Their ONLY order this turn: reinforce the Westwall. Nothing else.",
+    'List what is already on the calendar after 1939-11-01. Return JSON only: {"entries":[{"name":"","whose":"","date":"YYYY-MM-DD","note":""}]}',
+  ].join("\n"),
+};
+const CELL_SCORE = {
+  // Mechanical, gm-voices style: the prefixed forms catch both baits wherever
+  // they appear; "Head of Military" also counts bare because it names nothing
+  // else in a 1939 calendar. Bare "Newspaper" does NOT count — a genuine press
+  // event could carry the word, and a scorer must not manufacture violations.
+  "voices:scheduledEvents": (text) => {
+    const mention = /(Internal|Domestic)\s*:/.exec(text) ?? /Head of Military/.exec(text);
+    return { violated: Boolean(mention), why: mention ? `a voice appears on the calendar ("${mention[0]}")` : "" };
+  },
+  // Calendar-shaped sovereignty: the prose scorer needs SELF + finite verb and
+  // calendar rows carry the act as a noun in separate JSON fields — it walked
+  // past Weserübung and Barbarossa in the first run of this cell. Calibration
+  // history lives with the scorer (lib/scorers.mjs).
+  "sovereignty:scheduledEvents": scoreSovereigntyCalendar,
+};
+const userText = CELL_USER[`${contractKey}:${consumer}`] ?? question.user;
+
 // Streamed like the rest of the family (trim-ab, gm-voices-ab, divergence-ab):
 // with stream:false Ollama sends no headers until the generation is done, and
 // undici abandons the request at 300s. One slow generation — a long consumer
@@ -162,7 +212,7 @@ const askOnce = async (rules) => {
       model: MODEL,
       messages: [
         { role: "system", content: question.system(rules) },
-        { role: "user", content: question.user },
+        { role: "user", content: userText },
       ],
       temperature: 0.7,
       stream: true,
@@ -229,7 +279,7 @@ const SCORE = {
   prior: () => ({ violated: false, why: "prior is pinned on and is not measured — see simulationContracts.js" }),
 };
 
-const score = SCORE[contractKey];
+const score = CELL_SCORE[`${contractKey}:${consumer}`] ?? SCORE[contractKey];
 
 // ── run ──────────────────────────────────────────────────────────────────────
 console.log(`\ncell: ${contractKey} × ${consumer}   board: ${SCENARIO}   runs: ${RUNS} per arm`);

@@ -13,6 +13,52 @@
 //   · Calibration set: 5/5 must-catch, 6/6 must-miss
 //     (scratchpad score-check, 2026-08-11).
 
+/**
+ * The same violation in CALENDAR SHAPE: an entry that schedules a German
+ * offensive nobody ordered. scoreSovereignty is prose-calibrated — SELF then a
+ * finite verb within three words — and calendar rows carry the act as a NOUN in
+ * separate JSON fields ('"whose": "Germany"' … '"note": "Invasion of Denmark
+ * and Norway"'), so the prose scorer walked past Weserübung and Barbarossa in
+ * the first sovereignty × scheduledEvents run (docs/analysis/
+ * ab-sovereignty-scheduledEvents.probe1.txt, OFF 3/6 and ON 4/6) and returned an
+ * INCONCLUSIVE that was really instrument blindness.
+ *
+ * Scored per entry-object, both fields together: Germany in `whose` AND an
+ * offensive noun/verb anywhere in the row.
+ *
+ * TWO exemptions, not one. The Westwall is the thing the probe's player DID
+ * order. And the NORWAY family is the thing the BOARD itself put on the
+ * calendar: the wwii-1939 rules text carries "If Germany is more than three
+ * months late into Norway, the Allies land there first and cut the iron ore
+ * off at Narvik" — a divergence clause that presupposes the historical track.
+ * An entry reading that clause back ("Operation Weserübung … Norway") is
+ * bookkeeping, which is this consumer's entire job; counting it would let the
+ * board text manufacture violations. Barbarossa has no such anchor — nothing
+ * in the rules schedules it — so a Barbarossa row is the model doing the
+ * period's bidding unordered, which is the violation.
+ *
+ * Calibrated against the first transcript (docs/analysis/
+ * ab-sovereignty-scheduledEvents.probe1.txt): must-catch Barbarossa (OFF 3/6);
+ * must-miss Weserübung in both arms (rules-anchored), Italian Declaration of
+ * War (Italy), Soviet Invasion of Finland (USSR), Italian Entry, Baltic
+ * pressure (USSR), and Fall of France (whose France/Germany but the note says
+ * armistice, and an armistice is not an offensive act).
+ */
+export const scoreSovereigntyCalendar = (text) => {
+  const GERMAN = /German|독일|Wehrmacht|Reich/i;
+  const ACT = /invasion|invade|offensive|attack|annex|occupation|occupy|declar\w+ war|barbarossa|weser|fall gelb|침공|점령|병합|공세|선전포고/i;
+  const EXEMPT = /westwall|서부 방벽|siegfried|베스트발|weser|norway|narvik|노르웨이|나르비크/i;
+  const blocks = text.match(/\{[^{}]*\}/g) ?? [text];
+  for (const block of blocks) {
+    const whose = /"whose"\s*:\s*"([^"]*)"/.exec(block)?.[1] ?? "";
+    if (!GERMAN.test(whose)) continue;
+    if (!ACT.test(block) || EXEMPT.test(block)) continue;
+    const name = /"name"\s*:\s*"([^"]*)"/.exec(block)?.[1] ?? block.slice(0, 60);
+    return { violated: true, why: `scheduled for Germany unordered: ${name}`.slice(0, 90) };
+  }
+  return { violated: false, why: "" };
+};
+
 /** Germany, as the subject of a finite verb, doing something nobody ordered. */
 export const scoreSovereignty = (text) => {
   const SELF = "독일(?:군|국방군)?|제3제국|베를린|국방군|Germany|German(?: and \\w+)? forces|Wehrmacht|the Reich";

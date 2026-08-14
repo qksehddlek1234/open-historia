@@ -1,0 +1,272 @@
+cell: region x scheduledEvents | board: wwii-1939 | 6 runs per arm
+OFF 0/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Entry into War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status."
+    },
+    {
+      "name": "Soviet Pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure on independent states (Estonia, Latvia, Lithuania) and Romanian territory."
+    }
+  ]
+}
+```
+
+-- OFF 2/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Belligerence Deadline",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "End of non-belligerent status."
+    }
+  ]
+}
+```
+
+-- OFF 3/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Entry into War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy transitions from non-belligerent to a declared belligerent."
+    },
+    {
+      "name": "Soviet Pressure on Baltic States and Romania",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure exerted on Estonia, Latvia, Lithuania, and Romanian Bessarabia."
+    }
+  ]
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian entry into the war",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to belligerent status."
+    },
+    {
+      "name": "Soviet pressure on Baltic States and Romania",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure on Estonia, Latvia, Lithuania, and Bessarabia."
+    }
+  ]
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy Entry into War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to belligerent status."
+    }
+  ]
+}
+```
+
+-- OFF 6/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status to active participant in the war."
+    }
+  ]
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Entry into War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to active belligerent status."
+    },
+    {
+      "name": "Soviet Expansion of Influence",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure and movement toward the Baltic states and Romanian Bessarabia."
+    }
+  ]
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Winter Season Transition",
+      "whose": "World",
+      "date": "1939-12-01",
+      "note": "Seasonal change affecting movement speeds, supply consumption, and logistics."
+    },
+    {
+      "name": "Soviet Pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "The USSR begins its push to incorporate Estonia, Latvia, Lithuania, and Romanian Bessarabia."
+    },
+    {
+      "name": "Italian Entry into War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy transitions from non-belligerent to active belligerent status."
+    }
+  ]
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status."
+    }
+  ]
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy's status as non-belligerent ends."
+    }
+  ]
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Operation Weserüberg",
+      "whose": "Germany",
+      "date": "1940-04-09",
+      "note": "Invasion of Denmark and Norway"
+    },
+    {
+      "name": "Fall Gelb",
+      "whose": "Germany",
+      "date": "1940-05-10",
+      "note": "Invasion of the Low Countries and France"
+    },
+    {
+      "name": "Italian Declaration of War",
+      "whose": "Italy",
+      "date": "1940-06-10",
+      "note": "Italy declares war on Great Britain and France"
+    },
+    {
+      "name": "Operation Barbarossa",
+      "whose": "Germany",
+      "date": "1941-06-22",
+      "note": "Invasion of the Soviet Union"
+    },
+    {
+      "name": "Attack on Pearl Harbor",
+      "whose": "Japan",
+      "date": "1941-12-07",
+      "note": "Japanese attack; United States enters the war"
+    },
+    {
+      "name": "Operation Torch",
+      "whose": "Allied Powers",
+      "date": "1942-11-11",
+      "note": "Invasion of North Africa"
+    },
+    {
+      "name": "Italian Armistice",
+      "whose": "Italy",
+      "date": "1943-09-08",
+      "note": "Italian surrender to the Allies becomes effective"
+    },
+    {
+      "name": "Operation Overlord",
+      "whose": "Allied Powers",
+      "date": "1944-06-06",
+      "note": "Invasion of Normandy"
+    },
+    {
+      "name": "VE Day",
+      "whose": "Allied Powers",
+      "date": "1945-05-08",
+      "note": "Victory in Europe; German surrender"
+    },
+    {
+      "name": "VJ Day",
+      "whose": "Allied Powers",
+      "date": "1945-08-15",
+      "note": "Victory over Japan"
+    }
+  ]
+}
+```
+
+-- ON  6/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Polish Campaign Concludes",
+      "whose": "Germany/Poland",
+      "date": "1939-11-16",
+      "note": "The official end of the Polish campaign; front lines stabilize for winter."
+    },
+    {
+      "name": "Winter Season Begins",
+      "whose": "World",
+      "date": "1939-12-01",
+      "note": "Environmental conditions shift to winter. Movement and supply penalties apply."
+    },
+    {
+      "name": "Italy Declares War",
+      "whose": "Italy",
+      "date": "1940-06-10",
+      "note": "Italy enters the war as a belligerent against the Allies."
+    }
+  ]
+}
+```

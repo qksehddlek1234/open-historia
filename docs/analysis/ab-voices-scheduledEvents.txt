@@ -1,0 +1,209 @@
+cell: voices x scheduledEvents | board: wwii-1939 | 6 runs per arm
+OFF 0/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy enters war",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy becomes a belligerent."
+    }
+  ]
+}
+```
+
+-- OFF 2/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy transitions from non-belligerent to belligerent status."
+    },
+    {
+      "name": "Soviet pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "The Soviet Union begins pressuring the independence of Estonia, Latvia, Lithuania, and Romanian Bessarabia."
+    }
+  ]
+}
+```
+
+-- OFF 3/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian status change",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status."
+    },
+    {
+      "name": "Soviet pressure on Baltic states and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure begins in 1940."
+    }
+  ]
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Status Change",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to belligerent status."
+    }
+  ]
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Baltic Consolidation",
+      "whose": "Soviet Union",
+      "date": "1939-11-10",
+      "note": "Heightened military pressure and administrative maneuvers regarding the status of Lithuania and Latvia."
+    },
+    {
+      "name": "Phoney War Transition",
+      "whose": "France/United Kingdom",
+      "date": "1939-12-01",
+      "note": "Formalization of 'Phoney War' defensive posture and winter logistics preparation."
+    }
+  ]
+}
+```
+
+-- OFF 6/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes a belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to active combatant."
+    },
+    {
+      "name": "Soviet pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Pressure/Invasion of Estonia, Latvia, Lithuania, and Romanian Bessarabia."
+    }
+  ]
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Entry into War",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent to belligerent status."
+    }
+  ]
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italian Status Change",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy ceases to be a non-belligerent."
+    }
+  ]
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy enters the war",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Transition from non-belligerent status to active belligerent."
+    },
+    {
+      "name": "Soviet pressure and annexation of Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-03-01",
+      "note": "Consolidation of territory in the Baltic region and Moldova."
+    }
+  ]
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Italy becomes belligerent",
+      "whose": "Italy",
+      "date": "1940-06-01",
+      "note": "Italy joins the war as a belligerent."
+    }
+  ]
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "entries": [
+    {
+      "name": "Winter War",
+      "whose": "Finland",
+      "date": "1939-12-01",
+      "note": "Beginning of Finnish resistance against Soviet invasion."
+    },
+    {
+      "name": "Soviet Pressure on Baltic States and Bessarabia",
+      "whose": "USSR",
+      "date": "1940-01-01",
+      "note": "Commencement of diplomatic and military pressure to annex neighboring territories."
+    },
+    {
+      "name": "Operation Weserüberg (Invasion of Norway)",
+      "whose": "Germany",
+      "date": "1940-04-09",
+      "note": "Requirement for Narvik control; if delayed past June 1940, Allied intervention at Narvik is likely."
+    },
+    {
+      "name": "Italian Declaration of War",
+      "whose": "Italy",
+      "date": "1940-06-10",
+      "note": "End of non-belligerence status; joining the conflict against Britain and France."
+    }
+  ]
+}
+```
+
+-- ON  6/6 — ok
+```json
+{"entries":[]}
+```
