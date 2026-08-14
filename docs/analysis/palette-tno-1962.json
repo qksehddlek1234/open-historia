@@ -1,0 +1,1874 @@
+{
+ "West Indies Federation": {
+  "color": "#587280",
+  "additionalNames": [],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Republic of Turkey": {
+  "color": "#633131",
+  "additionalNames": [
+   "Turkiye",
+   "Turkey"
+  ],
+  "tags": []
+ },
+ "Free Aviators": {
+  "color": "#7D4F4A",
+  "additionalNames": [],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Uruguay": {
+  "color": "#124C7A",
+  "additionalNames": [
+   "Oriental Republic of Uruguay"
+  ],
+  "tags": [
+   "OFN Partner"
+  ]
+ },
+ "Uzbek Soviet Socialist Republic": {
+  "color": "#A96D77",
+  "additionalNames": [
+   "Uzbekistan"
+  ],
+  "tags": []
+ },
+ "East African Interim Unitary Government": {
+  "color": "#3A4960",
+  "additionalNames": [
+   "OFN East Africa"
+  ],
+  "tags": [
+   "OFN Mandate",
+   "OFN"
+  ]
+ },
+ "Kamchatka": {
+  "color": "#6D8AB9",
+  "additionalNames": [
+   "Soviet Pacific Fleet"
+  ],
+  "tags": [
+   "East Siberia"
+  ]
+ },
+ "Wehrkreis XIX": {
+  "color": "#272A37",
+  "additionalNames": [],
+  "tags": [
+   "German Civil War"
+  ]
+ },
+ "Oyrotia": {
+  "color": "#283E54",
+  "additionalNames": [
+   "Karakorum Government of Oyrotia"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "N.C.S.Z": {
+  "color": "#183018",
+  "additionalNames": [
+   "Northern Ireland",
+   "Northern Counties Special Zone",
+   "Ulster"
+  ],
+  "tags": []
+ },
+ "Principality of Andorra": {
+  "color": "#653294",
+  "additionalNames": [
+   "Andorra"
+  ],
+  "tags": []
+ },
+ "Republic of Colombia": {
+  "color": "#70725D",
+  "additionalNames": [
+   "Colombia"
+  ],
+  "tags": [
+   "La Violencia"
+  ]
+ },
+ "Kingdom of Saudi Arabia": {
+  "color": "#102A16",
+  "additionalNames": [
+   "Saudi Arabia"
+  ],
+  "tags": []
+ },
+ "Magnitogorsk": {
+  "color": "#152E4C",
+  "additionalNames": [
+   "People's Republic of Magnigorsk"
+  ],
+  "tags": [
+   "Ural"
+  ]
+ },
+ "Kingdom of Montenegro": {
+  "color": "#252326",
+  "additionalNames": [
+   "Montenegro"
+  ],
+  "tags": []
+ },
+ "Kingdom of Romania": {
+  "color": "#8D946C",
+  "additionalNames": [
+   "Romania"
+  ],
+  "tags": [
+   "Mitstreiter",
+   "Pakt"
+  ]
+ },
+ "Yorubaland": {
+  "color": "#232E49",
+  "additionalNames": [
+   "Republic of Yorubaland"
+  ],
+  "tags": []
+ },
+ "Republic of Chile": {
+  "color": "#554B46",
+  "additionalNames": [
+   "Chile"
+  ],
+  "tags": []
+ },
+ "Kingdom of Laos": {
+  "color": "#3B2831",
+  "additionalNames": [
+   "Laos"
+  ],
+  "tags": [
+   "Fully Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Stati della Tregua": {
+  "color": "#567F42",
+  "additionalNames": [
+   "Italian Gulf",
+   "Gulf Governorate"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Militärverwaltung Madagaskar": {
+  "color": "#393434",
+  "additionalNames": [
+   "German Madagascar"
+  ],
+  "tags": [
+   "Second Malagasy Uprising",
+   "Mitstreiter"
+  ]
+ },
+ "Republic of Finland": {
+  "color": "#799AB1",
+  "additionalNames": [
+   "Finland"
+  ],
+  "tags": []
+ },
+ "Republic of Venezuela": {
+  "color": "#765D78",
+  "additionalNames": [
+   "Venezuela"
+  ],
+  "tags": [
+   "OFN Partner"
+  ]
+ },
+ "Iceland": {
+  "color": "#383745",
+  "additionalNames": [],
+  "tags": [
+   "Independent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Argentine Republic": {
+  "color": "#3A628E",
+  "additionalNames": [
+   "Argentina"
+  ],
+  "tags": []
+ },
+ "Gôring's Germany": {
+  "color": "#26313E",
+  "additionalNames": [],
+  "tags": [
+   "German Civil War"
+  ]
+ },
+ "United States of America": {
+  "color": "#365581",
+  "additionalNames": [
+   "United States",
+   "America",
+   "USA"
+  ],
+  "tags": [
+   "Leader of the Free World",
+   "OFN",
+   "Superpower"
+  ]
+ },
+ "Guyana": {
+  "color": "#22294D",
+  "additionalNames": [
+   "Co-operative Commonwealth of Guyana"
+  ],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "El Salvador": {
+  "color": "#3B3D41",
+  "additionalNames": [
+   "Republic of El Salvador"
+  ],
+  "tags": []
+ },
+ "Kyrgyz Soviet Socialist Republic": {
+  "color": "#D39195",
+  "additionalNames": [
+   "Kyrgyzstan"
+  ],
+  "tags": []
+ },
+ "United Kingdom": {
+  "color": "#472A2A",
+  "additionalNames": [
+   "Great Britain",
+   "England",
+   "Collaborationist Britain"
+  ],
+  "tags": [
+   "Mitstreiter",
+   "Pakt"
+  ]
+ },
+ "New Grenada": {
+  "color": "#1B314D",
+  "additionalNames": [
+   "State of New Grenada"
+  ],
+  "tags": [
+   "La Violencia"
+  ]
+ },
+ "Jinshaan Administrative Office": {
+  "color": "#41354A",
+  "additionalNames": [
+   "Jinshann"
+  ],
+  "tags": [
+   "Chinese Warlord",
+   "GEACPS"
+  ]
+ },
+ "Tatarstan": {
+  "color": "#4482BA",
+  "additionalNames": [
+   "Tatar Republic"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "AFRSR": {
+  "color": "#834554",
+  "additionalNames": [
+   "Hukbalahap Regime",
+   "Hukbalahap",
+   "All-Filipino Revolutionary Socialist Republic"
+  ],
+  "tags": [
+   "Philippine civil war"
+  ]
+ },
+ "Omsk": {
+  "color": "#03172E",
+  "additionalNames": [
+   "Siberian Black League"
+  ],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Ordensstaat Burgund": {
+  "color": "#01060F",
+  "additionalNames": [
+   "Burgundy",
+   "SS-Ordensstaat Burgund"
+  ],
+  "tags": [
+   "Ordensstaat",
+   "Pakt"
+  ]
+ },
+ "Regno di Tunisia": {
+  "color": "#494C45",
+  "additionalNames": [
+   "Tunisia",
+   "Kingdom of Tunisia",
+   "Tunis"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Hellenic State": {
+  "color": "#326593",
+  "additionalNames": [
+   "Greece"
+  ],
+  "tags": []
+ },
+ "Reichskommissariat Sudwestafrika": {
+  "color": "#41454B",
+  "additionalNames": [
+   "German South-West Africa"
+  ],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Republic of Cuba": {
+  "color": "#21274A",
+  "additionalNames": [
+   "Cuba"
+  ],
+  "tags": [
+   "OFN Partner"
+  ]
+ },
+ "Republic of Armenia": {
+  "color": "#262551",
+  "additionalNames": [
+   "Armenia"
+  ],
+  "tags": [
+   "Turkey"
+  ]
+ },
+ "Azad Hind Government": {
+  "color": "#112C24",
+  "additionalNames": [
+   "Azad Hind",
+   "Government of Free India"
+  ],
+  "tags": [
+   "Independent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Tibet": {
+  "color": "#767882",
+  "additionalNames": [],
+  "tags": []
+ },
+ "Großgermanische Reich": {
+  "color": "#1C2125",
+  "additionalNames": [
+   "Greater German Reich",
+   "German Reich",
+   "Germany"
+  ],
+  "tags": [
+   "Master of Europe",
+   "Pakt",
+   "Superpower"
+  ]
+ },
+ "Commonwealth of Australia": {
+  "color": "#435D40",
+  "additionalNames": [
+   "Australia"
+  ],
+  "tags": [
+   "Independent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Dai-Nippon Teikoku": {
+  "color": "#2D1B1B",
+  "additionalNames": [
+   "Empire of Japan",
+   "Japan"
+  ],
+  "tags": [
+   "Leader of the Sphere",
+   "GEACPS",
+   "Superpower"
+  ]
+ },
+ "Disconnected Settlements of Madagascar": {
+  "color": "#262B30",
+  "additionalNames": [
+   "Madagascar Anarchy"
+  ],
+  "tags": [
+   "Second Malagasy Rebellion"
+  ]
+ },
+ "Dominican Republic": {
+  "color": "#705450",
+  "additionalNames": [
+   "Dominican Republic"
+  ],
+  "tags": []
+ },
+ "Mengjiang United Autonomous Government": {
+  "color": "#4F3C45",
+  "additionalNames": [
+   "Mengjiang",
+   "Mongolia"
+  ],
+  "tags": [
+   "Chinese Warlord",
+   "GEACPS"
+  ]
+ },
+ "Republic of Thailand": {
+  "color": "#222E3C",
+  "additionalNames": [
+   "Thailand",
+   "Siam"
+  ],
+  "tags": [
+   "Independent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Dahomey": {
+  "color": "#6A5B39",
+  "additionalNames": [
+   "Republic of Dahomey"
+  ],
+  "tags": []
+ },
+ "Sikkim": {
+  "color": "#37423C",
+  "additionalNames": [
+   "Kingdom of Sikkim"
+  ],
+  "tags": [
+   "Fully Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "North-West Frontier Province": {
+  "color": "#445356",
+  "additionalNames": [
+   "Pakistan",
+   "Balochistan"
+  ],
+  "tags": []
+ },
+ "Imperial State of Iran": {
+  "color": "#5A512C",
+  "additionalNames": [
+   "Persia",
+   "Iran"
+  ],
+  "tags": [
+   "Pakt Observer"
+  ]
+ },
+ "New Zealand": {
+  "color": "#3E3C57",
+  "additionalNames": [
+   "Dominion of New Zealand"
+  ],
+  "tags": [
+   "Independent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Haiti": {
+  "color": "#24293E",
+  "additionalNames": [
+   "Republic of Haiti"
+  ],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Vyatka": {
+  "color": "#12343D",
+  "additionalNames": [
+   "Principality of Vyatka"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "Switzerland": {
+  "color": "#392837",
+  "additionalNames": [
+   "Swiss Confederation"
+  ],
+  "tags": []
+ },
+ "Kemerovo": {
+  "color": "#162F58",
+  "additionalNames": [
+   "Principality of Kemerovo"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Empire of Vietnam": {
+  "color": "#4A3B51",
+  "additionalNames": [
+   "Vietnam"
+  ],
+  "tags": [
+   "Fully Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Colombian Revolutionary Union": {
+  "color": "#44222F",
+  "additionalNames": [],
+  "tags": [
+   "La Violencia"
+  ]
+ },
+ "Aïr": {
+  "color": "#5B5449",
+  "additionalNames": [
+   "Air",
+   "Aïr",
+   "Sultanate of Aïr"
+  ],
+  "tags": []
+ },
+ "Reichskommissariat Niederlande": {
+  "color": "#292C2D",
+  "additionalNames": [
+   "Netherlands",
+   "Holland"
+  ],
+  "tags": [
+   "Integrated Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "VI. Inspectorate-General": {
+  "color": "#372525",
+  "additionalNames": [
+   "Kurdistan",
+   "Mosul and Kerkuk"
+  ],
+  "tags": [
+   "Turkey"
+  ]
+ },
+ "Murmansk Peoples Republic": {
+  "color": "#405260",
+  "additionalNames": [
+   "Murmansk"
+  ],
+  "tags": [
+   "Second Winter War"
+  ]
+ },
+ "Republic of Iraq": {
+  "color": "#67748B",
+  "additionalNames": [
+   "Iraq"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Ural League": {
+  "color": "#8196C7",
+  "additionalNames": [],
+  "tags": [
+   "Ural"
+  ]
+ },
+ "Turkestan Legion": {
+  "color": "#212A36",
+  "additionalNames": [],
+  "tags": []
+ },
+ "Cameroonian African State": {
+  "color": "#0A3909",
+  "additionalNames": [
+   "Cameroon"
+  ],
+  "tags": []
+ },
+ "Africa Orientale Italiana": {
+  "color": "#2E6A28",
+  "additionalNames": [
+   "Italian East Africa",
+   "East Africa"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Republic of Fiji": {
+  "color": "#3A4074",
+  "additionalNames": [
+   "Fiji"
+  ],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Tomsk": {
+  "color": "#112932",
+  "additionalNames": [
+   "Central Siberian Republic"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Sultanate of Muscat and Oman": {
+  "color": "#9B9987",
+  "additionalNames": [
+   "Oman"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Irkutsk": {
+  "color": "#2F243D",
+  "additionalNames": [
+   "Presidium of the Supreme Soviet"
+  ],
+  "tags": [
+   "East Siberian"
+  ]
+ },
+ "Azawad": {
+  "color": "#3B608B",
+  "additionalNames": [
+   "Tuareg Confederation of Azawad"
+  ],
+  "tags": []
+ },
+ "United Mexican States": {
+  "color": "#364C4F",
+  "additionalNames": [
+   "Mexico"
+  ],
+  "tags": []
+ },
+ "Free France": {
+  "color": "#161C6A",
+  "additionalNames": [
+   "Free French Liberation Forces"
+  ],
+  "tags": []
+ },
+ "Gayny": {
+  "color": "#0F2144",
+  "additionalNames": [
+   "Order of Saint George"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "French Southern and Antarctic Lands": {
+  "color": "#FFFFFF",
+  "additionalNames": [],
+  "tags": [
+   "Militarverwaltung",
+   "Pakt",
+   "Antarctic Administration"
+  ]
+ },
+ "Costa Rica": {
+  "color": "#261E2A",
+  "additionalNames": [
+   "Republic of Costa Rica"
+  ],
+  "tags": []
+ },
+ "Honduras": {
+  "color": "#2B363C",
+  "additionalNames": [
+   "Republic of Honduras"
+  ],
+  "tags": []
+ },
+ "Faroe Islands": {
+  "color": "#8A7C88",
+  "additionalNames": [
+   "Republic of the Faroe Islands"
+  ],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Turkmen Soviet Socialist Republic": {
+  "color": "#523A43",
+  "additionalNames": [
+   "Turkmenistan"
+  ],
+  "tags": []
+ },
+ "Santa Cruz": {
+  "color": "#0E193A",
+  "additionalNames": [
+   "Oriental Government Comission"
+  ],
+  "tags": []
+ },
+ "Sierra Leone": {
+  "color": "#232C40",
+  "additionalNames": [
+   "Republic of Sierra Leone"
+  ],
+  "tags": []
+ },
+ "Generalgouvernement": {
+  "color": "#1A2126",
+  "additionalNames": [
+   "Generalgouvernement der Weichsel"
+  ],
+  "tags": [
+   "Integrated Reichskommissariat"
+  ]
+ },
+ "Malagasy Rebellion": {
+  "color": "#25423E",
+  "additionalNames": [],
+  "tags": [
+   "Second Malagasy Uprising"
+  ]
+ },
+ "Kingdom of Sweden": {
+  "color": "#1B368C",
+  "additionalNames": [
+   "Sweden"
+  ],
+  "tags": [
+   "Pakt Observer",
+   "Pakt"
+  ]
+ },
+ "Neuschwabenland": {
+  "color": "#CCCCCC",
+  "additionalNames": [
+   "German Antarctica"
+  ],
+  "tags": [
+   "Militarverwaltung",
+   "Pakt",
+   "Antarctic Administration"
+  ]
+ },
+ "Sverdlovsk": {
+  "color": "#31436F",
+  "additionalNames": [
+   "Ural Military District"
+  ],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Republic of Mali": {
+  "color": "#706A42",
+  "additionalNames": [
+   "Mali"
+  ],
+  "tags": []
+ },
+ "Komi": {
+  "color": "#234F8B",
+  "additionalNames": [
+   "Komi Republic"
+  ],
+  "tags": [
+   "West Russia"
+  ]
+ },
+ "French State": {
+  "color": "#0F264A",
+  "additionalNames": [
+   "France"
+  ],
+  "tags": [
+   "Mitstreiter",
+   "Pakt"
+  ]
+ },
+ "Casamance": {
+  "color": "#1C3E64",
+  "additionalNames": [
+   "Republic of Casamance"
+  ],
+  "tags": []
+ },
+ "Kingdom of Egypt": {
+  "color": "#42663F",
+  "additionalNames": [
+   "Egypt"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Republic of Guinea": {
+  "color": "#625C4B",
+  "additionalNames": [
+   "Guinea"
+  ],
+  "tags": []
+ },
+ "Nicaragua": {
+  "color": "#1B212C",
+  "additionalNames": [
+   "Republic of Nicaragua"
+  ],
+  "tags": []
+ },
+ "Samara": {
+  "color": "#948554",
+  "additionalNames": [
+   "Committee for the Liberation of the Peoples of Russia"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "African National Congress": {
+  "color": "#1B4223",
+  "additionalNames": [
+   "ANC"
+  ],
+  "tags": [
+   "South African War"
+  ]
+ },
+ "Free Philippine Republic": {
+  "color": "#2E4564",
+  "additionalNames": [
+   "Third Republic of the Philippines"
+  ],
+  "tags": []
+ },
+ "Orenburg": {
+  "color": "#1F5928",
+  "additionalNames": [
+   "Orenburg Communes"
+  ],
+  "tags": [
+   "Ural"
+  ]
+ },
+ "Slovak Republic": {
+  "color": "#36486A",
+  "additionalNames": [
+   "Slovakia"
+  ],
+  "tags": [
+   "Marionettenstaat",
+   "Pakt"
+  ]
+ },
+ "Dirlewanger Brigade": {
+  "color": "#000000",
+  "additionalNames": [
+   "36th Waffen Grenadier Division of the SS"
+  ],
+  "tags": [
+   "Russia",
+   "Ural"
+  ]
+ },
+ "Union of South Africa": {
+  "color": "#755439",
+  "additionalNames": [
+   "South Africa"
+  ],
+  "tags": []
+ },
+ "Yunnan Province": {
+  "color": "#2D2431",
+  "additionalNames": [],
+  "tags": [
+   "Chinese Warlord",
+   "GEACPS"
+  ]
+ },
+ "State of Guangdong": {
+  "color": "#271E29",
+  "additionalNames": [
+   "Guangdong"
+  ],
+  "tags": [
+   "Corporate Dependency",
+   "GEACPS"
+  ]
+ },
+ "Nippon-ryō Nankyoku Chiiki": {
+  "color": "#CCCCCC",
+  "additionalNames": [
+   "Japanese Antarctica"
+  ],
+  "tags": [
+   "Japanese Military Administration",
+   "GEACPS",
+   "Antarctic Administration"
+  ]
+ },
+ "NRA 24th Army": {
+  "color": "#373E59",
+  "additionalNames": [
+   "Xikang Clique"
+  ],
+  "tags": []
+ },
+ "Guatemala": {
+  "color": "#434854",
+  "additionalNames": [
+   "Republic of Guatemala"
+  ],
+  "tags": []
+ },
+ "Republic of Ireland": {
+  "color": "#183018",
+  "additionalNames": [
+   "Ireland"
+  ],
+  "tags": [
+   "Pakt Observer"
+  ]
+ },
+ "OFN Provisional Government of the Congo": {
+  "color": "#3A4960",
+  "additionalNames": [
+   "OFN Congo"
+  ],
+  "tags": [
+   "OFN Mandate",
+   "OFN"
+  ]
+ },
+ "Isolated Settlements of Northeastern Siberia": {
+  "color": "#282830",
+  "additionalNames": [
+   "Eastern Siberian Anarchy"
+  ],
+  "tags": [
+   "Eastern Siberian"
+  ]
+ },
+ "Regno d'Albania": {
+  "color": "#2E6A28",
+  "additionalNames": [
+   "Albania",
+   "Kingdom of Albania"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "People's Republic of Karakalpakstan": {
+  "color": "#7E4D58",
+  "additionalNames": [
+   "Karakalpakstan"
+  ],
+  "tags": []
+ },
+ "Novosibirsk": {
+  "color": "#1E436F",
+  "additionalNames": [
+   "Federation of Novosibirsk and Altay"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Nanpo Gunseikan": {
+  "color": "#352132",
+  "additionalNames": [
+   "North Borneo Military Administration"
+  ],
+  "tags": [
+   "Japanese Military Administration",
+   "GEACPS"
+  ]
+ },
+ "Republic of China": {
+  "color": "#38253B",
+  "additionalNames": [
+   "China",
+   "Republic of China",
+   "Reorganised Government of China"
+  ],
+  "tags": [
+   "Core Member of the Sphere",
+   "GEACPS"
+  ]
+ },
+ "United States of Brazil": {
+  "color": "#284136",
+  "additionalNames": [
+   "Brazil",
+   "Republic of the United States of Brazil"
+  ],
+  "tags": [
+   "OFN Partner"
+  ]
+ },
+ "Siberian Black Army": {
+  "color": "#00020A",
+  "additionalNames": [],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Dominion of Canada": {
+  "color": "#44354C",
+  "additionalNames": [
+   "Canada"
+  ],
+  "tags": [
+   "Independent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Kingdom of Hungary": {
+  "color": "#665620",
+  "additionalNames": [
+   "Hungary"
+  ],
+  "tags": [
+   "Mitstreiter",
+   "Pakt"
+  ]
+ },
+ "Algerian Military Command": {
+  "color": "#B3A56D",
+  "additionalNames": [
+   "Iberian Algeria"
+  ],
+  "tags": [
+   "Iberia"
+  ]
+ },
+ "Vorkuta": {
+  "color": "#7890A7",
+  "additionalNames": [
+   "Vorkuta Corrective Labor Camp"
+  ],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Kingdom of Denmark": {
+  "color": "#4F2C2C",
+  "additionalNames": [
+   "Denmark"
+  ],
+  "tags": [
+   "Protektorat",
+   "Pakt"
+  ]
+ },
+ "Shonan-Marai Gunseibu": {
+  "color": "#362D3D",
+  "additionalNames": [
+   "Japanese Malaysia",
+   "Military Governorate of Shonan-Marai",
+   "25th Army"
+  ],
+  "tags": [
+   "Fully Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Reichskommissariat Kaukasien": {
+  "color": "#282B2D",
+  "additionalNames": [],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Second Philippine Republic": {
+  "color": "#534C51",
+  "additionalNames": [],
+  "tags": [
+   "Fully Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Guiana-Caiena": {
+  "color": "#293226",
+  "additionalNames": [
+   "Allied Administration of Guiana-Caiena"
+  ],
+  "tags": [
+   "OFN Partner"
+  ]
+ },
+ "Gorky": {
+  "color": "#7C3C3C",
+  "additionalNames": [
+   "Military Control Commission in Gorky"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "Amur": {
+  "color": "#5D647D",
+  "additionalNames": [
+   "All-Russian Government of Amur"
+  ],
+  "tags": [
+   "East Siberian"
+  ]
+ },
+ "Bashkortostan": {
+  "color": "#3F758B",
+  "additionalNames": [
+   "Republic of Bashkortostan"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "Buryatia": {
+  "color": "#4E263D",
+  "additionalNames": [
+   "Buryat Autonomous Soviet Socialist Republic"
+  ],
+  "tags": [
+   "East Siberian"
+  ]
+ },
+ "Isolated Settlements of Northern Siberia": {
+  "color": "#282830",
+  "additionalNames": [
+   "Central Siberian Anarchy"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Emirate of Transjordan": {
+  "color": "#3B3B37",
+  "additionalNames": [
+   "Jordan"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Iberian Union": {
+  "color": "#998A5F",
+  "additionalNames": [
+   "Spain",
+   "Portugual",
+   "Iberia"
+  ],
+  "tags": []
+ },
+ "Union of Burma": {
+  "color": "#3D2C37",
+  "additionalNames": [
+   "Burma",
+   "Myanmar"
+  ],
+  "tags": [
+   "Economically Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Kingdom of Nepal": {
+  "color": "#4B5A7B",
+  "additionalNames": [
+   "Nepal"
+  ],
+  "tags": []
+ },
+ "Haute-Volta": {
+  "color": "#544350",
+  "additionalNames": [
+   "Republic Of Haute-Volta"
+  ],
+  "tags": []
+ },
+ "Ukrainian State": {
+  "color": "#1F2430",
+  "additionalNames": [
+   "Ukrainian Partisan Army"
+  ],
+  "tags": [
+   "Ukrainian Civil War"
+  ]
+ },
+ "Reichskommissariat Zentralafrika": {
+  "color": "#283237",
+  "additionalNames": [
+   "German Central Africa"
+  ],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Xinjiang Border Defence Administration": {
+  "color": "#334554",
+  "additionalNames": [
+   "Xinjiang"
+  ],
+  "tags": []
+ },
+ "Reichskommissariat Ukraine": {
+  "color": "#1D293C",
+  "additionalNames": [
+   "German Ukraine"
+  ],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Caribbean Legion": {
+  "color": "#8A5726",
+  "additionalNames": [],
+  "tags": [
+   "Puerto Plata"
+  ]
+ },
+ "Republic of Panama": {
+  "color": "#3F4151",
+  "additionalNames": [
+   "Panama"
+  ],
+  "tags": []
+ },
+ "Yugra": {
+  "color": "#A2A889",
+  "additionalNames": [
+   "Thief Territory of Yugra"
+  ],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Syrian National State": {
+  "color": "#331608",
+  "additionalNames": [
+   "Syria"
+  ],
+  "tags": [
+   "Turkey"
+  ]
+ },
+ "UMAJF": {
+  "color": "#734555",
+  "additionalNames": [
+   "UMAJF",
+   "United Malayan Anti-Japanese Front"
+  ],
+  "tags": []
+ },
+ "Liberia": {
+  "color": "#26487B",
+  "additionalNames": [
+   "Republic of Liberia"
+  ],
+  "tags": []
+ },
+ "Vologda": {
+  "color": "#223D73",
+  "additionalNames": [
+   "Neutral State of Vologda"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "Chita": {
+  "color": "#3B4963",
+  "additionalNames": [
+   "Transbaikal Principality"
+  ],
+  "tags": [
+   "East Siberian"
+  ]
+ },
+ "Onega": {
+  "color": "#1C5E37",
+  "additionalNames": [
+   "Anti-Communist Volunteer Guard"
+  ],
+  "tags": []
+ },
+ "Reichskommissariat Ostland": {
+  "color": "#21272D",
+  "additionalNames": [
+   "Ostland",
+   "Baltics"
+  ],
+  "tags": [
+   "Integrated Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Firipinu Gunseibu": {
+  "color": "#1B1010",
+  "additionalNames": [
+   "Jyuyon Gun Gunseikanbu",
+   "14th Army"
+  ],
+  "tags": []
+ },
+ "Ukrainian Peoples Republic": {
+  "color": "#324760",
+  "additionalNames": [
+   "Free Ukraine"
+  ],
+  "tags": [
+   "Ukrainian Civil War"
+  ]
+ },
+ "Senegal": {
+  "color": "#534245",
+  "additionalNames": [
+   "Republic of Senegal"
+  ],
+  "tags": []
+ },
+ "Bhutan": {
+  "color": "#4A4743",
+  "additionalNames": [
+   "Kingdom of Bhutan"
+  ],
+  "tags": [
+   "Fully Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Kingdom of Croatia": {
+  "color": "#354259",
+  "additionalNames": [
+   "Croatia"
+  ],
+  "tags": []
+ },
+ "People's Revolutionary Council": {
+  "color": "#161423",
+  "additionalNames": [
+   "Tannu Tuva",
+   "Tuva"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Speer's Germany": {
+  "color": "#42495A",
+  "additionalNames": [],
+  "tags": [
+   "German Civil War"
+  ]
+ },
+ "Independent State of Serbia": {
+  "color": "#0C1E42",
+  "additionalNames": [
+   "Serbia"
+  ],
+  "tags": [
+   "Marionettenstaat",
+   "Pakt"
+  ]
+ },
+ "Empire of Manchuria": {
+  "color": "#431E37",
+  "additionalNames": [
+   "Manchuria",
+   "Manchukuo"
+  ],
+  "tags": [
+   "Core Member of the Sphere",
+   "GEACPS"
+  ]
+ },
+ "Republic of Paraguay": {
+  "color": "#0E193A",
+  "additionalNames": [
+   "Paraguay"
+  ],
+  "tags": []
+ },
+ "Tyumen": {
+  "color": "#502C2C",
+  "additionalNames": [
+   "West Siberian Peoples Republic"
+  ],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Coalition Government of Angola": {
+  "color": "#3A4960",
+  "additionalNames": [
+   "OFN Angola"
+  ],
+  "tags": [
+   "OFN Mandate",
+   "OFN"
+  ]
+ },
+ "Reichskommissariat Ostafrika": {
+  "color": "#1E262E",
+  "additionalNames": [
+   "German East Africa"
+  ],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Republic of India": {
+  "color": "#161D34",
+  "additionalNames": [
+   "India"
+  ],
+  "tags": []
+ },
+ "Divine Mandate of Siberia": {
+  "color": "#CCCCCC",
+  "additionalNames": [],
+  "tags": [
+   "Eastern Siberia"
+  ]
+ },
+ "Sokoto": {
+  "color": "#376A45",
+  "additionalNames": [
+   "Sultanate of Sokoto"
+  ],
+  "tags": []
+ },
+ "Mutawakkilite Kingdom of Yemen": {
+  "color": "#6E4C4C",
+  "additionalNames": [
+   "Yemen"
+  ],
+  "tags": []
+ },
+ "Republic of Kampuchea": {
+  "color": "#1D2534",
+  "additionalNames": [
+   "Kampuchea",
+   "Cambodia"
+  ],
+  "tags": [
+   "Economically Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Republic of Ceylon": {
+  "color": "#3E3538",
+  "additionalNames": [
+   "Ceylon",
+   "Sri Lanka"
+  ],
+  "tags": []
+ },
+ "Regno d'Italia": {
+  "color": "#2E6A28",
+  "additionalNames": [
+   "Italian Empire",
+   "Italy"
+  ],
+  "tags": []
+ },
+ "Tsardom of Bulgaria": {
+  "color": "#363F50",
+  "additionalNames": [
+   "Bulgaria"
+  ],
+  "tags": [
+   "Mitstreiter",
+   "Pakt"
+  ]
+ },
+ "Aryan Brotherhood": {
+  "color": "#616641",
+  "additionalNames": [],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "Reichskommissariat Norwegen": {
+  "color": "#40526B",
+  "additionalNames": [
+   "Norway"
+  ],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Polish Home Army": {
+  "color": "#463245",
+  "additionalNames": [
+   "Polish Underground State",
+   "Republic of Poland"
+  ],
+  "tags": [
+   "Warsaw Uprising"
+  ]
+ },
+ "Guangxi Province": {
+  "color": "#332A36",
+  "additionalNames": [],
+  "tags": [
+   "Chinese Warlord",
+   "GEACPS"
+  ]
+ },
+ "Afrikaner Volkstaat": {
+  "color": "#CA8C34",
+  "additionalNames": [
+   "Boer Rebellion",
+   "Boers"
+  ],
+  "tags": [
+   "South African War"
+  ]
+ },
+ "Guizhou Province": {
+  "color": "#3F3849",
+  "additionalNames": [],
+  "tags": [
+   "Chinese Warlord",
+   "GEACPS"
+  ]
+ },
+ "Republic of Peru": {
+  "color": "#40282F",
+  "additionalNames": [
+   "Peru"
+  ],
+  "tags": []
+ },
+ "Union of Baloch States": {
+  "color": "#2B2B2E",
+  "additionalNames": [
+   "Balochistan"
+  ],
+  "tags": []
+ },
+ "West Russian Revolutionary Front": {
+  "color": "#5E3333",
+  "additionalNames": [
+   "West Russia",
+   "WRRF",
+   "Soviet"
+  ],
+  "tags": [
+   "West Russian"
+  ]
+ },
+ "Governatorato della Palestina": {
+  "color": "#546555",
+  "additionalNames": [
+   "Governorate of Palestine",
+   "Palestine"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Kazakh Soviet Socialist Republic": {
+  "color": "#5D3535",
+  "additionalNames": [
+   "Kazakhstan"
+  ],
+  "tags": []
+ },
+ "Transnistria Governorate": {
+  "color": "#8E946C",
+  "additionalNames": [],
+  "tags": [
+   "Pakt",
+   "Mitsreiter"
+  ]
+ },
+ "Zlatoust Republic": {
+  "color": "#554A3C",
+  "additionalNames": [
+   "Zlatoust"
+  ],
+  "tags": [
+   "West Siberian"
+  ]
+ },
+ "Reichskommissariat Moskowien": {
+  "color": "#131E2F",
+  "additionalNames": [
+   "Moskowien"
+  ],
+  "tags": [
+   "Autonomous Reichskommissariat",
+   "Pakt"
+  ]
+ },
+ "Ahnenerbe Antarktis Gruppe": {
+  "color": "#CCCCCC",
+  "additionalNames": [
+   "Burgundian Antarctica"
+  ],
+  "tags": [
+   "Antarctic Administration",
+   "Militarverwaltung",
+   "Pakt"
+  ]
+ },
+ "Suriname": {
+  "color": "#655148",
+  "additionalNames": [
+   "Kingdom of the Netherlands"
+  ],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Viet Minh": {
+  "color": "#62343C",
+  "additionalNames": [
+   "League for the Independence of Vietnam"
+  ],
+  "tags": []
+ },
+ "Serbian National Liberation Front": {
+  "color": "#173B7D",
+  "additionalNames": [
+   "Government of National Salvation"
+  ],
+  "tags": [
+   "Serbian Civil War"
+  ]
+ },
+ "Kanem": {
+  "color": "#2C5577",
+  "additionalNames": [
+   "Republic of Kanem"
+  ],
+  "tags": []
+ },
+ "Republic of Indonesia": {
+  "color": "#3E2537",
+  "additionalNames": [
+   "Indonesia"
+  ],
+  "tags": [
+   "Economically Dependent Member of The Sphere",
+   "GEACPS"
+  ]
+ },
+ "Krasnoyarsk": {
+  "color": "#5C7282",
+  "additionalNames": [
+   "Provisional Government of Krasnoyarsk"
+  ],
+  "tags": [
+   "Central Siberian"
+  ]
+ },
+ "Heydrich's Germany": {
+  "color": "#071323",
+  "additionalNames": [],
+  "tags": [
+   "German Civil War"
+  ]
+ },
+ "Ukrainian Socialist Soviet Republic": {
+  "color": "#462F40",
+  "additionalNames": [],
+  "tags": [
+   "Ukrainian Civil War"
+  ]
+ },
+ "Tajik Soviet Socialist Republic": {
+  "color": "#1E1C24",
+  "additionalNames": [
+   "Tajikistan"
+  ],
+  "tags": []
+ },
+ "Second Patriotic Army": {
+  "color": "#A67E72",
+  "additionalNames": [],
+  "tags": [
+   "La Violencia"
+  ]
+ },
+ "NRA 40th Army Group": {
+  "color": "#1E2941",
+  "additionalNames": [
+   "Northwestern Revolutionary Government"
+  ],
+  "tags": []
+ },
+ "Northwestern Security Command": {
+  "color": "#3E3138",
+  "additionalNames": [],
+  "tags": [
+   "Chinese Warlord",
+   "GEACPS"
+  ]
+ },
+ "Mauritania": {
+  "color": "#325531",
+  "additionalNames": [
+   "Islamic Republic of Mauritania"
+  ],
+  "tags": []
+ },
+ "Ghana": {
+  "color": "#25795E",
+  "additionalNames": [
+   "Republic of Ghana"
+  ],
+  "tags": []
+ },
+ "Lebanese Republic": {
+  "color": "#0F2522",
+  "additionalNames": [
+   "Lebanon"
+  ],
+  "tags": []
+ },
+ "British Honduras": {
+  "color": "#35232D",
+  "additionalNames": [
+   "Belize",
+   "Crown Colony of British Honduras"
+  ],
+  "tags": [
+   "Dependent Member of the OFN",
+   "OFN"
+  ]
+ },
+ "Kingdom of Afghanistan": {
+  "color": "#3F4B5C",
+  "additionalNames": [
+   "Afghanistan"
+  ],
+  "tags": []
+ },
+ "Republic of Bolivia": {
+  "color": "#3B363A",
+  "additionalNames": [
+   "Bolivia"
+  ],
+  "tags": []
+ },
+ "Magadan": {
+  "color": "#6E8090",
+  "additionalNames": [
+   "Free State of Magadan"
+  ],
+  "tags": [
+   "East Siberian"
+  ]
+ },
+ "Bormann's Germany": {
+  "color": "#30404D",
+  "additionalNames": [],
+  "tags": [
+   "German Civil War"
+  ]
+ },
+ "OFN Antarctic Administration": {
+  "color": "#CCCCCC",
+  "additionalNames": [
+   "OFN Antarctica"
+  ],
+  "tags": [
+   "American Military Government",
+   "OFN",
+   "Antarctic Administration"
+  ]
+ },
+ "Territorio Militare Algerino": {
+  "color": "#5C5D52",
+  "additionalNames": [
+   "Italian Algeria",
+   "Algerian Military Territory"
+  ],
+  "tags": [
+   "Regno D'Italia"
+  ]
+ },
+ "Sakha Republic": {
+  "color": "#1A3043",
+  "additionalNames": [
+   "Yakutia"
+  ],
+  "tags": [
+   "East Siberian"
+  ]
+ },
+ "French Madagascar": {
+  "color": "#1E375D",
+  "additionalNames": [
+   "Madagascar",
+   "Colony of Madagascar and Dependencies",
+   "French Madagascar"
+  ],
+  "tags": [
+   "Mitstreiter",
+   "Pakt"
+  ]
+ },
+ "Ecuador": {
+  "color": "#3D598F",
+  "additionalNames": [
+   "Republic of Ecuador"
+  ],
+  "tags": []
+ },
+ "Free Britain": {
+  "color": "#8E3C3C",
+  "additionalNames": [
+   "Her Majesty's Most Loyal Resistance",
+   "HMMLR"
+  ],
+  "tags": [
+   "British Civil War"
+  ]
+ }
+}

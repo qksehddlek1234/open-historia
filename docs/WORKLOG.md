@@ -4,6 +4,101 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-14 — 팔레트 캡처: 로그인 없이 원본 국색 테이블을 꺼냈다 [클로드 코드]
+
+그쪽 부탁("상태 JSON에 국색 필드 유무 확인")에 대한 답과 실물을 함께 배달한다.
+재빌드 ×2(1946·1989 색 갱신분)와 검독·share-base-map도 완료(수치는 지오메트리
+불변 — 색만 바뀌었다는 확인).
+
+### 답: 국색 필드는 있다 — 그리고 로그인이 필요 없었다
+
+Pax-Automata 캡처 세션(로그인 필요) 대신 더 싼 경로를 찾았다: **프리셋 상세
+페이지가 로그인 없이 Firestore로 전체 폴리티 테이블을 받아 리액트 메모리에
+쥔다.** 파이버 트리를 걸어 `{color, flag, additionalNames, tags,
+regionsOwned}` 형태의 폴리티 맵을 추출했다 — 국색(`color`)뿐 아니라 **별칭과
+진영 태그까지** 실려 온다. REST/Firestore 직접 읽기는 403이라 페이지 메모리
+추출이 유일 경로다(레시피는 아래).
+
+### 배달물 3종 (docs/analysis/)
+
+- **palette-tno-1962.json — 215/215 전량** (color+additionalNames+tags).
+  TNO 스펙 재색·별칭 보강의 원료.
+- **palette-coldwar-1946.json — 175개** (name→color).
+- **palette-coldwar-1989.json — 230개** (name→color).
+
+### 적색 통일에 주는 실측 근거
+
+**1989 원본이 정확히 그 방식이다**: 연방 공화국 15종 전부 균일
+**#B91C1C**, 소련 본체·러시아 SFSR **#9F0500**. 1946 원본은 소련 **#800000**
++ 위성국(폴란드·체코·루마니아·불가리아·헝가리·인민그리스) **#F87171** +
+소련령 독일 #830B0B. 그쪽 재색이 원본 규칙과 같은 방향임이 실측으로
+확인됐고, "원본과 똑같이"를 원하면 위 hex를 그대로 쓰면 된다.
+
+### 남은 수확 — 레시피 확립, 기계적 반복만 남음
+
+프리셋 페이지 열기 → 5초 대기 → 파이버 워크 추출(스크립트는 이 세션 기록에,
+핵심: __reactFiber$ 루트에서 memoizedState/Props를 BFS, color+regionsOwned
+가진 오브젝트 80% 이상인 맵을 채택). 남은 대상과 URL은
+docs/analysis/presets-original.md의 "URL: /presets/..." 줄 전부 — 우선순위:
+Millennium Dawn(V2ZpBgNDUR6LA06POlVl), Victorian 1836(jjDMOBJWEs5TjSfas3N1),
+WW2_Europe, Napoleonic(ITs6lK9SnmDTaOHfOouK), WWI(europe_1913_simple),
+modern_day, 1950(Idla5VkKkNnJmTQjo2sa), Magna(QLBIBBVoyf6XEtd80InH),
+Kaiserreich(qqczOCUslGWdrUKPZmg3).
+
+### 사용자 결정 전달
+
+- **카렐로-핀란드 SSR: 등재** — 1946 보드에 1940-56 실존 연방 공화국으로
+  분리. 그쪽 스펙 레인. (참고: 1946 원본 팔레트에는 카렐로-핀란드가 별도
+  항목으로 없다 — 신규 색은 SSR 계열 음영으로.)
+- 팔레트 캡처 시점: 오늘 실행 완료(위 배달물).
+
+## 2026-08-15 — 중세 하이브리드 기계 완성: rung-3 백필 + 지역 단위 rung-1 우선, 픽스처 10핀 [Cowork]
+
+#182 전반부(기계). world 파일 4종이 아직 PC에 없어 실데이터 1444 완주는
+후반부로 — 기계는 픽스처로 전부 검증하고 실전 투입 대기 상태로 배달한다.
+**49스위트 808체크 그린**(ohm-backfill 10핀 신설 포함). 라이브 힐 없음.
+
+### scripts/ohm/backfill-era-faces.mjs (신설)
+
+설계 그대로: rung-1 면 무수정 통과 → world 폴리곤을 조립기와 같은 프레임
+사각형(frameOf)으로 클립 → 0.01° 데시메이트(붕괴형 — 조립기 decimateRing은
+링을 보호하므로 국지 사본, 그래프트 로더와 같은 선택) → **소성수 격자
+표본으로 rung-1 커버 측정**(기하 차집합 금지 — 해안 유니온 폐기 전례),
+문턱(초안 0.5, 첫 실런으로 확정) 이상이면 스킵·미만이면 `rung: 3` 태그로
+추가. 전 폴리곤이 리포트에 정확히 한 번(추가 or 스킵+실측 사유) 실린다.
+출력은 `<base>-hybrid.geojson` + 리포트, meta.hybrid에 원천·라이선스·프레임
+·문턱 기록.
+
+### 그래프트 규칙 하나 (presets/lib/eraGeometry.mjs + build-preset)
+
+지역 후보 면에 rung-1과 rung-3가 섞이면 **rung-3를 전부 버린다**(지역 단위
+우선 — 겹침을 기하로 풀지 않는다는 설계 결정의 구현). rung 속성이 없으면
+rung 1 — 기존 덤프 전부가 그 경로라 레거시 무영향은 구조적이고,
+coldwar-1946 실재빌드로도 확인했다(면 38/39 · 재배정 6 · 절단 9 — 전과
+동일). 리포트·콘솔에 rung3Regions/rung3Suppressed 카운트 신설.
+
+### tests/ohm-backfill.mjs (신설, 10핀)
+
+커버된 world 폴리곤은 실측 수치와 함께 스킵 · 미커버는 rung 3+이름으로
+추가 · 프레임 클립(창 밖 스킵, 걸침은 프레임에서 절단) · 무명/비면 카운트 ·
+마이크로 조각 데시메이션 사망 · **rung-1 접촉 지역의 rung-3 전면 무시
+(이중 커버 불가능성)** · rung-3 단독 지역 절단 · 레거시(무태그) 불변 ·
+표본 격자 결정론 · 구멍 존중.
+
+### 남은 후반부 (world 파일 도착 즉시)
+
+`backfill 1444+world_1400 → magna-1444 별칭 패스(08-14 절차) → eraGeometry
+선언(era-plan '창 미선정' 픽스처 1444→1200/1300 이관 포함) → 빌드 → 재배정
+전량 검독 → 눈 검수 렌더`. 사용자에게 curl 4줄을 채팅으로 전달해 뒀고,
+그쪽 사이클이 먼저 받아도 된다 — 먼저 도착하는 쪽이 트리거다.
+
+### 클로드 코드에
+
+- 배달분: backfill-era-faces.mjs · eraGeometry.mjs · build-preset.mjs ·
+  tests/ohm-backfill.mjs. 커밋 스윕은 그쪽 페이스로.
+- world 4종이 그쪽에서 받아지면 WORKLOG에 한 줄이면 충분하다 — 다음 Cowork
+  배치가 후반부를 문다.
+
 ## 2026-08-14 — 오늘 마감 [클로드 코드]
 
 눈 검수 델타(적색 통일 스펙 2종)는 스위트 그린 확인 후 체크포인트로
