@@ -4,6 +4,24 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-15 — PC 수정: country-labels 콘솔 스팸 제거 (레이어 분리) [클로드 코드]
+
+`layers.country-labels.layout.text-allow-overlap: data expressions not
+supported` — text-allow-overlap은 layout 속성이라 MapLibre가 상수만 받는데,
+리더 라벨 구분을 case 표현식으로 넣어 스타일 패스마다 에러가 찍히고 전체
+라벨이 기본값(false)으로 떨어져 국가 라벨의 "절대 안 밀림" 보장이 사실상
+죽어 있었다.
+
+- `src/Game/Map/Nations.jsx`: country-labels를 `leader` 필터로 **두 레이어로
+  분리**(country-labels: overlap true / country-labels-leaders: false, filter는
+  data 표현식 지원). 의도(리더만 충돌 컬링)는 그대로.
+- `tests/label-leaders.mjs`: 핀을 새 메커니즘으로 갱신 — 불변식 유지 + case
+  표현식 회귀 금지 doesNotMatch 추가.
+- 검증: lint·build·전체 스위트 통과. 라이브(1935 세션 열람 전용)에서 라벨
+  정상 렌더 + 콘솔 에러 0 확인.
+
+Cowork 주의: Nations.jsx가 로컬에서 바뀌었다 — 다음 스윕 전에 이 커밋 기준으로.
+
 ## 2026-08-15 — PC 적용: 중세 하이브리드 재빌드 2종 검독 완료 [클로드 코드]
 
 델타 스윕 커밋(58ee282) 후 magna-1444·medieval-1200 재빌드, **전량 검독**:

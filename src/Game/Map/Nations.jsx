@@ -1342,25 +1342,39 @@ const WorldMap = ({ isGlobe = false }) => {
     [labelFont],
   );
 
-  const pointLabelLayerLayout = useMemo(() => ({
+  const pointLabelLayoutBase = useMemo(() => ({
     "text-field": ["get", "name"],
     "text-font": labelFontStack,
     "text-size": buildCountryTextSize(1, isGlobe),
     "text-rotate": ["get", "rotation"],
     "text-anchor": "center",
-    // A country's own label always draws — it is standing on its own ground and
-    // nothing else has a better claim to that spot. A LEADER label is different:
-    // it has been moved off its country into shared space, and 71 of them are
-    // eligible world-wide, most of them islands packed into the Caribbean and
-    // the Pacific. With overlap allowed they would stack into an unreadable
-    // smear there, so leader labels alone submit to collision culling and the
-    // ones that lose simply are not drawn at that zoom.
-    "text-allow-overlap": ["case", ["==", ["get", "leader"], 1], false, true],
     "text-pitch-alignment": "map",
     "text-rotation-alignment": "map",
     "text-keep-upright": false,
     visibility: mapDisplaySettings.hideCountryLabels ? "none" : "visible",
   }), [isGlobe, labelFontStack, mapDisplaySettings.hideCountryLabels]);
+
+  // A country's own label always draws — it is standing on its own ground and
+  // nothing else has a better claim to that spot. A LEADER label is different:
+  // it has been moved off its country into shared space, and 71 of them are
+  // eligible world-wide, most of them islands packed into the Caribbean and
+  // the Pacific. With overlap allowed they would stack into an unreadable
+  // smear there, so leader labels alone submit to collision culling and the
+  // ones that lose simply are not drawn at that zoom.
+  //
+  // The split lives in two layers filtered on `leader`, NOT in one case
+  // expression: text-allow-overlap is a layout property MapLibre accepts only
+  // as a constant, and a data expression there is rejected with a console
+  // error on every style pass while every label silently falls back to the
+  // default (false) — the exact opposite of what the country half wants.
+  const pointLabelLayerLayout = useMemo(
+    () => ({ ...pointLabelLayoutBase, "text-allow-overlap": true }),
+    [pointLabelLayoutBase],
+  );
+  const leaderLabelLayerLayout = useMemo(
+    () => ({ ...pointLabelLayoutBase, "text-allow-overlap": false }),
+    [pointLabelLayoutBase],
+  );
 
   const curvedLabelLayerLayout = useMemo(() => ({
     "text-field": ["get", "glyph"],
@@ -1608,7 +1622,15 @@ const WorldMap = ({ isGlobe = false }) => {
         <Layer
           id="country-labels"
           type="symbol"
+          filter={["!=", ["get", "leader"], 1]}
           layout={pointLabelLayerLayout}
+          paint={labelLayerPaint}
+        />
+        <Layer
+          id="country-labels-leaders"
+          type="symbol"
+          filter={["==", ["get", "leader"], 1]}
+          layout={leaderLabelLayerLayout}
           paint={labelLayerPaint}
         />
       </Source>

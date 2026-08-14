@@ -118,7 +118,22 @@ test("A LEADER LABEL YIELDS TO COLLISION, a country's own never does", () => {
   // into the Caribbean and the Pacific. A country standing on its own ground has
   // the best claim to that spot and always draws; a label that has been moved
   // off its country into shared space has to take its chances.
-  assert.match(NATIONS, /"text-allow-overlap": \["case", \["==", \["get", "leader"\], 1\], false, true\]/);
+  //
+  // The split MUST be two layers filtered on `leader`, never one case
+  // expression: text-allow-overlap is layout, MapLibre takes it only as a
+  // constant, and a data expression is rejected on every style pass while
+  // every label falls back to the default (false) — the country half loses
+  // exactly the guarantee this pin exists to hold.
+  assert.match(NATIONS, /\.\.\.pointLabelLayoutBase, "text-allow-overlap": true/,
+    "the country layer allows overlap unconditionally");
+  assert.match(NATIONS, /\.\.\.pointLabelLayoutBase, "text-allow-overlap": false/,
+    "the leader layer submits to collision unconditionally");
+  assert.doesNotMatch(NATIONS, /"text-allow-overlap": \["case"/,
+    "no data expression may return to this property");
+  // And the filters route each feature to exactly one of the two layers.
+  const source = NATIONS.slice(NATIONS.indexOf('id="country-point-label-source"'));
+  assert.match(source, /id="country-labels"\n\s*type="symbol"\n\s*filter=\{\["!=", \["get", "leader"\], 1\]\}/);
+  assert.match(source, /id="country-labels-leaders"\n\s*type="symbol"\n\s*filter=\{\["==", \["get", "leader"\], 1\]\}/);
 });
 
 test("and the setting is in the panel with the rest of the rendering dials", () => {
