@@ -112,17 +112,23 @@ export const writeTimelineEffect = (entry, event) => {
 // exactly this. Divergence is untouched — an entry the model DID write about, as
 // happening or prevented or delayed, scores as accounted for and never reaches
 // here, so a player who genuinely changed the outcome keeps their change.
-export const materializeTimelineEntry = (entry, { playerPolity = "" } = {}) => {
+export const materializeTimelineEntry = (entry, { playerPolity = "", branchRolls = null } = {}) => {
   if (!entry || typeof entry !== "object") return null;
   const date = normalizeString(entry.date);
   const title = normalizeString(entry.title);
   if (!ISO_DATE.test(date) || !title) return null;
   const home = normalizeString(playerPolity).toLowerCase();
   const actors = normalizeArray(entry.actors).map((value) => normalizeString(value).toLowerCase());
+  // A fork entry's detail deliberately says "could go either way" — right for
+  // the prompt, wrong for a chronicle entry the engine itself is writing after
+  // the date has passed. The rolled branch is appended so the written history
+  // states what actually happened.
+  const rolledOutcome = branchOutcomeOf(entry, branchRolls);
+  const detail = normalizeString(entry.detail) || title;
   const event = {
     date,
     title,
-    description: normalizeString(entry.detail) || title,
+    description: rolledOutcome ? `${detail} ${rolledOutcome}` : detail,
     kind: "world",
     // The campaign's own convention: a domestic event of the player's country is
     // player-related even when no order of theirs caused it (2016-12-05 탄핵소추안
@@ -169,7 +175,34 @@ export const normalizeTimelineEntry = (entry, index = 0) => {
     foreseeableFrom: ISO_DATE.test(normalizeString(entry.foreseeableFrom)) ? normalizeString(entry.foreseeableFrom) : "",
     // What it does to world state, if the scenario author knew. See above.
     effect: normalizeTimelineEffect(entry.effect ?? entry.impact ?? entry.impacts),
+    // A SCRIPTED FORK, where the source declared one ("select one at random":
+    // TNO's succession, its elections). Each branch is one outcome sentence,
+    // written to print as chronicle text. The entry's own detail stays
+    // uncertainty-phrased — which branch actually happens is decided by ONE
+    // engine roll per campaign (world.timelineBranchRolls, rolled in the jump
+    // flow), never by asking the model to "pick at random": the anchor pilot
+    // measured prompt-side randomness at 0/6–4/6 compliance, and a roll the
+    // save remembers is what keeps retries and later turns telling one story.
+    branches: normalizeArray(entry.branches)
+      .map((branch) => ({
+        outcome: normalizeString(branch?.outcome),
+        chance: normalizeString(branch?.chance),
+      }))
+      .filter((branch) => branch.outcome),
   };
+};
+
+// The rolled outcome of a fork entry, read from the save's roll table. Empty
+// when the entry has no branches, no roll has been made yet, or the stored
+// index no longer fits the branch list (a revision shrank it) — every caller
+// treats empty as "no fork to speak of", which fails safe to the entry's own
+// uncertainty-phrased detail.
+export const branchOutcomeOf = (entry, branchRolls) => {
+  const branches = normalizeArray(entry?.branches);
+  if (branches.length === 0) return "";
+  const index = branchRolls?.[entry.id];
+  if (!Number.isInteger(index) || index < 0 || index >= branches.length) return "";
+  return normalizeString(branches[index]?.outcome);
 };
 
 export const normalizeTimeline = (entries) =>
@@ -210,15 +243,25 @@ export const selectTimelineEntries = (entries, limit = 12) => {
 // something to quietly not happen; the player has to be able to see what changed
 // and why. An absence with no story behind it is the same silent drop this engine
 // treats as a bug everywhere else.
-export const buildTimelineText = (entries, { playerPolity = "", missed = [] } = {}) => {
+export const buildTimelineText = (entries, { playerPolity = "", missed = [], branchRolls = null } = {}) => {
   const listed = entries.flatMap((entry) => {
     const who = entry.actors.length > 0 ? ` [${entry.actors.join(", ")}]` : "";
     const mark = entry.weight === "pivotal" ? " (PIVOTAL)" : "";
     const line = `- ${entry.date}${mark} ${entry.title}${who}${entry.detail ? ` — ${entry.detail}` : ""}`;
+    const extras = [];
+    // A fork entry's detail lists the possibilities; the engine has already
+    // rolled which one this campaign gets (once, remembered by the save). The
+    // model writes THAT branch — handing it the menu instead was measured at
+    // 0/6–4/6 compliance in the anchor pilot, and a re-roll every retry would
+    // let the same campaign tell two histories.
+    const rolledOutcome = branchOutcomeOf(entry, branchRolls);
+    if (rolledOutcome) {
+      extras.push(`    this one resolves as: ${rolledOutcome} Write THIS outcome as the event — the other possibilities did not happen.`);
+    }
     // A declared effect is shown as the literal impacts object to copy, because
     // "carry the real impacts" in the abstract is what the model keeps ignoring.
-    if (!entry.effect) return [line];
-    return [line, `    impacts for this one: ${JSON.stringify(entry.effect)}`];
+    if (entry.effect) extras.push(`    impacts for this one: ${JSON.stringify(entry.effect)}`);
+    return [line, ...extras];
   });
   const overdue = missed.map((entry) => `- ${entry.date} ${entry.title} (was due in an earlier period and has still not been accounted for)`);
   const player = normalizeString(playerPolity) || "the player's polity";

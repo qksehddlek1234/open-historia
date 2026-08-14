@@ -136,6 +136,11 @@ export const WORLD_DEFAULTS = {
   // are re-offered next turn rather than dropped — an entry that never appears is
   // the same silent loss as an order that never resolves.
   timelineBacklog: [],
+  // Which branch each scripted fork on the timeline rolled, keyed by entry id
+  // (see periodTimeline.js `branches`). Rolled once per campaign by the jump
+  // flow and remembered here so retries and later turns tell one history —
+  // and so a replayed campaign can roll differently.
+  timelineBranchRolls: {},
   units: [],
 };
 
@@ -1676,6 +1681,16 @@ export const normalizeWorldState = (world) => {
         : 0,
     },
     timelineBacklog: normalizeTimeline(nextWorld.timelineBacklog),
+    // Explicit, like the two above and for the same documented trap: the fork
+    // rolls survive every write path only because they are normalized here by
+    // name. Keys are entry ids, values are non-negative branch indexes; range
+    // against the entry's branch list is checked at read time (branchOutcomeOf),
+    // because the timeline copy can be revised after a roll was made.
+    timelineBranchRolls: Object.fromEntries(
+      Object.entries(nextWorld.timelineBranchRolls ?? {})
+        .filter(([key, value]) => normalizeOptionalString(key) && Number.isInteger(value) && value >= 0)
+        .map(([key, value]) => [key, value]),
+    ),
     units: normalizeUnits(nextWorld.units),
   };
 };

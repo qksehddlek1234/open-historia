@@ -3408,6 +3408,12 @@ const applySimulationResult = async ({
       // actually produced a verdict on them (a catalyst or game-master result
       // carries no timeline pass, and must not wipe what a jump left behind).
       ...(Array.isArray(result.timelineBacklog) ? { timelineBacklog: result.timelineBacklog } : {}),
+      // Fork rolls the jump made. Merged over the stored map, never replacing
+      // it, and only when the turn actually rolled — same guard family as the
+      // two timeline fields around it.
+      ...(result.timelineBranchRolls && typeof result.timelineBranchRolls === "object"
+        ? { timelineBranchRolls: { ...(baseWorld?.timelineBranchRolls ?? {}), ...result.timelineBranchRolls } }
+        : {}),
       // The shipped schedule, when this turn seeded or corrected it. Same guard,
       // same reason: a catalyst or game-master result carries neither and must
       // not blank the save's copy.
@@ -5554,6 +5560,28 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     ...timelineWindow(periodTimeline, originDate, targetDate),
     ...timelineBacklog,
   ];
+  // A SCRIPTED FORK IS ROLLED BY THE ENGINE, ONCE PER CAMPAIGN. The source
+  // presets phrase these as "select one at random" — an instruction the anchor
+  // pilot measured the model obeying 0/6 naively and 4/6 under a mandate, and
+  // a model-side roll would re-roll on every retry besides. So the engine
+  // rolls when a fork entry first enters a jump window, remembers the result
+  // in world.timelineBranchRolls (a save field — a replayed campaign rolls
+  // fresh), and every consumer reads the same answer thereafter. Uniform pick:
+  // every shipped fork today declares equal chances, and inventing weights
+  // beyond the data would violate rule 6.
+  const timelineBranchRolls = { ...(bundle.world?.timelineBranchRolls ?? {}) };
+  let branchRollsDirty = false;
+  for (const entry of timelineDue) {
+    const branches = normalizeArray(entry.branches);
+    if (branches.length === 0) continue;
+    const stored = timelineBranchRolls[entry.id];
+    if (Number.isInteger(stored) && stored >= 0 && stored < branches.length) continue;
+    const rolled = Math.floor(Math.random() * branches.length);
+    timelineBranchRolls[entry.id] = rolled;
+    branchRollsDirty = true;
+    // Rule 1: a decision the engine takes for the world is named out loud.
+    console.info(`[timeline] 분기 롤: "${entry.title}" → ${branches[rolled].outcome}`);
+  }
   const { kept: timelineEntries, dropped: timelineDropped } = selectTimelineEntries(timelineDue, 12);
   if (timelineDropped.length > 0) {
     // Never a silent truncation: what did not fit rides to the next turn.
@@ -5570,7 +5598,7 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
   }
   const aliasedGroups = actionGroups.map((group) => ({ ...group, actions: group.actions.map(aliasedCopy) }));
   const periodTimelineText = timelineEntries.length > 0
-    ? buildTimelineText(timelineEntries, { playerPolity: variables.playerPolity, missed: timelineBacklog })
+    ? buildTimelineText(timelineEntries, { playerPolity: variables.playerPolity, missed: timelineBacklog, branchRolls: timelineBranchRolls })
     : "";
   // THE STORIES THE WORLD HAS ALREADY BEEN GIVEN.
   //
@@ -6583,7 +6611,7 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
         stillWaiting.push(entry);
         continue;
       }
-      const event = materializeTimelineEntry(entry, { playerPolity: variables.playerPolity });
+      const event = materializeTimelineEntry(entry, { playerPolity: variables.playerPolity, branchRolls: timelineBranchRolls });
       if (!event) {
         stillWaiting.push(entry);
         continue;
@@ -7543,6 +7571,10 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
     // Scheduled entries this turn did not account for, so the next one can put
     // them back in front of the model instead of losing them.
     timelineBacklog: nextTimelineBacklog,
+    // Fork rolls made this turn ride the result so the save remembers them.
+    // Only when something was actually rolled — an unchanged map must not
+    // overwrite what another write path may have added meanwhile.
+    ...(branchRollsDirty ? { timelineBranchRolls } : {}),
     // Only set when the shipped timeline seeded or corrected this save's copy;
     // otherwise absent, so the write below leaves what is stored alone.
     ...(periodTimelineSource ? { periodTimeline, periodTimelineSource } : {}),
