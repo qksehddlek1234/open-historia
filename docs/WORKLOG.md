@@ -23,8 +23,8 @@ regionsOwned}` 형태의 폴리티 맵을 추출했다 — 국색(`color`)뿐 �
 
 - **palette-tno-1962.json — 215/215 전량** (color+additionalNames+tags).
   TNO 스펙 재색·별칭 보강의 원료.
-- **palette-coldwar-1946.json — 175개** (name→color).
-- **palette-coldwar-1989.json — 230개** (name→color).
+- **palette-coldwar-1946.json — 171개** (name→color).
+- **palette-coldwar-1989.json — 256개** (name→color).
 
 ### 적색 통일에 주는 실측 근거
 
