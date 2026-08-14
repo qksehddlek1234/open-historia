@@ -112,6 +112,18 @@ test("a drop removes the WHOLE event and prints its name", () => {
   assert.match(GAMEPLAY, /mergedEvents = mergedEvents\.filter\(\(_, index\) => !dropIndexes\.has\(index\)\)/);
 });
 
+console.log("\nThe paid mapping's failure posture");
+
+test("coverage mapping retries once, and the reason is the queue, not the model", () => {
+  // Probed in isolation (scripts/ab/coverage-timeout-probe.mjs) this call
+  // answers in 1–8s and matches the paraphrase the bigram matcher missed —
+  // the 08-12 live timeouts happened while a measurement harness shared the
+  // same sequential Ollama queue. One retry catches a freed queue; raising
+  // the timeout instead would just hold the turn hostage to bookkeeping.
+  assert.match(GAMEPLAY, /failed once — retrying, the local queue may have been busy/);
+  assert.match(GAMEPLAY, /await askOnce\(\)\.catch\(/, "the retry wraps the first attempt, not the whole pass");
+});
+
 console.log("\nThe registrations");
 
 test("prompt, schema and task list all know the pass", async () => {

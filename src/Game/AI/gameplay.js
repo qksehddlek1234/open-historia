@@ -5893,16 +5893,28 @@ export const simulateTimelineJump = async ({ days, mode = "jump", signal } = {})
       .map((action) => `[${realToAlias.get(String(action.id)) ?? action.id}] ${normalizeString(action.title) || buildActionDisplayText(action).slice(0, 100)}`)
       .join("\n");
     try {
-      const { payload: mapPayload } = await runJsonTask("actionCoverage", {
+      // Hard-bounded on purpose, unlike the jump itself: this is bookkeeping.
+      // If it cannot answer, the orders simply stay queued, which is exactly
+      // where they already were. ONE retry before giving up, and the budget is
+      // a measured number, not a guess: probed in isolation this call answers
+      // in 1–8s with the paraphrase matched correctly (A1 "서부 방벽 보강" →
+      // "서부 방어선의 강화" — scripts/ab/coverage-timeout-probe.mjs), so a
+      // 120s timeout means the LOCAL QUEUE was occupied, not that the model
+      // was slow — the 08-12 live run timed out exactly while a measurement
+      // harness shared the same sequential Ollama. A retry lands when the
+      // queue frees; a second timeout means it has not, and more waiting
+      // would just hold the turn hostage to bookkeeping.
+      const askOnce = () => runJsonTask("actionCoverage", {
         signal,
-        // Hard-bounded on purpose, unlike the jump itself: this is bookkeeping.
-        // If it cannot answer in two minutes the orders simply stay queued, which
-        // is exactly where they already were.
         timeoutMs: 120000,
         userMessage:
           `Events generated this turn:\n${numbered}\n\nThe player's queued orders still unaccounted for:\n${orders}\n\n` +
           `For each order, name the event number that carried it out. Omit any order no event carried out. Return JSON only.`,
         variables: { playerPolity: variables.playerPolity, language: variables.language },
+      });
+      const { payload: mapPayload } = await askOnce().catch((error) => {
+        console.warn(`[actions] coverage mapping (${passLabel}) failed once — retrying, the local queue may have been busy.`, error);
+        return askOnce();
       });
       let matched = 0;
       for (const assignment of normalizeArray(mapPayload?.assignments)) {
