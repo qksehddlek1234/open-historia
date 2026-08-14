@@ -59,6 +59,25 @@ export const scoreSovereigntyCalendar = (text) => {
   return { violated: false, why: "" };
 };
 
+/**
+ * A VOICE APPEARING AT ALL, for prose/bookkeeping consumers. The contract's
+ * sentence for them is "a turn's narration must not mention them at all" —
+ * different from the newspaper-persona clause the advisor cell scores, which
+ * is why the advisor scorer must not be reused here (10차: a contract does not
+ * forbid the same sentence in every consumer).
+ *
+ * Mechanical, gm-voices style: the prefixed forms catch both baits wherever
+ * they appear; "Head of Military" also counts bare because it names nothing
+ * else on these boards. Bare "Newspaper" does NOT count — a genuine press
+ * event could carry the word, and a scorer must not manufacture violations.
+ * Shared by the voices × {scheduledEvents, catalystCreation, catalystExecutor,
+ * catalystSummary} cells; the bait that makes it bite is per-cell (CELL_USER).
+ */
+export const scoreVoiceAppearance = (text) => {
+  const mention = /(Internal|Domestic)\s*:/.exec(text) ?? /Head of Military/.exec(text);
+  return { violated: Boolean(mention), why: mention ? `a voice appears in the output ("${mention[0]}")` : "" };
+};
+
 /** Germany, as the subject of a finite verb, doing something nobody ordered. */
 export const scoreSovereignty = (text) => {
   const SELF = "독일(?:군|국방군)?|제3제국|베를린|국방군|Germany|German(?: and \\w+)? forces|Wehrmacht|the Reich";

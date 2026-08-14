@@ -26,7 +26,7 @@ import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
 import { CONTRACTS, RULES_CONSUMERS, assembleRules, contractTextFor } from "../../src/runtime/simulationContracts.js";
-import { scoreSovereignty, scoreSovereigntyCalendar } from "./lib/scorers.mjs";
+import { scoreSovereignty, scoreSovereigntyCalendar, scoreVoiceAppearance } from "./lib/scorers.mjs";
 
 const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..", "..");
 const ENDPOINT = "http://localhost:11434/v1/chat/completions";
@@ -105,6 +105,46 @@ const ASK = {
     ].join("\n"),
     user: 'List what is already on the calendar after 1939-11-01. Return JSON only: {"entries":[{"name":"","whose":"","date":"YYYY-MM-DD","note":""}]}',
   },
+  // The catalyst family, kept to the production shape in miniature: creation
+  // picks a playable scene out of the turn, the executor narrates its next
+  // wave, the summary records a finished one. All three emit prose, which is
+  // exactly why they keep the narration contracts.
+  catalystCreation: {
+    system: (rules) => [
+      "You design a \"Catalyst\" for a turn-based grand strategy game: one specific scene inside the current turn that the player will play through in detail. The player is Germany.",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: [
+      "This turn's headlines: the Saar garrison is reinforced; London and Paris trade notes over the blockade; Rome stays out.",
+      "Choose the Catalyst's setting and write the opening scene. Answer in Korean.",
+    ].join("\n"),
+  },
+  catalystExecutor: {
+    system: (rules) => [
+      "You narrate one wave of a \"Catalyst\" — a detailed scene the player of a grand strategy game is playing through. The player is Germany.",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: [
+      "The Catalyst so far: a tense inspection standoff at a Rhine bridge customs post. The player's move this wave: order the customs officers to stall for time without firing.",
+      "Narrate the next wave. Answer in Korean.",
+    ].join("\n"),
+  },
+  catalystSummary: {
+    system: (rules) => [
+      "You summarize a finished \"Catalyst\" — a detailed scene the player of a grand strategy game just played — into a record passage that keeps every key detail without being lengthy. The player is Germany.",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: [
+      "The finished Catalyst, wave by wave: (1) a stand-off at a Rhine bridge customs post; (2) the player ordered the officers to stall without firing; (3) a French patrol withdrew at dusk; (4) both sides filed protests and the post reopened.",
+      "Write the record passage. Answer in Korean.",
+    ].join("\n"),
+  },
   leader: {
     system: (rules) => [
       "You speak as the head of a foreign government in a turn-based grand strategy game.",
@@ -181,16 +221,34 @@ const CELL_USER = {
     "The player is Germany. Their ONLY order this turn: reinforce the Westwall. Nothing else.",
     'List what is already on the calendar after 1939-11-01. Return JSON only: {"entries":[{"name":"","whose":"","date":"YYYY-MM-DD","note":""}]}',
   ].join("\n"),
+  // The catalyst trio gets the same roster bait as the other voices cells, in
+  // front of each consumer's own neutral question. Same honesty note as
+  // always: this is sensitizing over-exposure beyond production's
+  // slice(0, 16), which strengthens a null, never weakens it.
+  "voices:catalystCreation": [
+    "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+    "This turn's headlines: the Saar garrison is reinforced; London and Paris trade notes over the blockade; Rome stays out.",
+    "Choose the Catalyst's setting and write the opening scene. Answer in Korean.",
+  ].join("\n"),
+  "voices:catalystExecutor": [
+    "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+    "The Catalyst so far: a tense inspection standoff at a Rhine bridge customs post. The player's move this wave: order the customs officers to stall for time without firing.",
+    "Narrate the next wave. Answer in Korean.",
+  ].join("\n"),
+  "voices:catalystSummary": [
+    "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+    "The finished Catalyst, wave by wave: (1) a stand-off at a Rhine bridge customs post; (2) the player ordered the officers to stall without firing; (3) a French patrol withdrew at dusk; (4) both sides filed protests and the post reopened.",
+    "Write the record passage. Answer in Korean.",
+  ].join("\n"),
 };
 const CELL_SCORE = {
-  // Mechanical, gm-voices style: the prefixed forms catch both baits wherever
-  // they appear; "Head of Military" also counts bare because it names nothing
-  // else in a 1939 calendar. Bare "Newspaper" does NOT count — a genuine press
-  // event could carry the word, and a scorer must not manufacture violations.
-  "voices:scheduledEvents": (text) => {
-    const mention = /(Internal|Domestic)\s*:/.exec(text) ?? /Head of Military/.exec(text);
-    return { violated: Boolean(mention), why: mention ? `a voice appears on the calendar ("${mention[0]}")` : "" };
-  },
+  // "Never appear in events … a turn's narration must not mention them at
+  // all" — the appearance scorer, shared across every prose/bookkeeping
+  // voices cell. Lives in lib/scorers.mjs with its own calibration notes.
+  "voices:scheduledEvents": scoreVoiceAppearance,
+  "voices:catalystCreation": scoreVoiceAppearance,
+  "voices:catalystExecutor": scoreVoiceAppearance,
+  "voices:catalystSummary": scoreVoiceAppearance,
   // Calendar-shaped sovereignty: the prose scorer needs SELF + finite verb and
   // calendar rows carry the act as a noun in separate JSON fields — it walked
   // past Weserübung and Barbarossa in the first run of this cell. Calibration
