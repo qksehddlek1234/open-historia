@@ -132,7 +132,10 @@ export default {
     // Occupied Germany has NO German state until 1949 — the zones belong to
     // their occupiers on this map. Austria differs: occupied by four powers
     // but with an elected government since November 1945.
-    AUS: { name: "Allied-occupied Austria", color: "#b8b8c8", aliases: ["연합군 점령하 오스트리아", "오스트리아", "Austria", "Second Austrian Republic"] },
+    // **코드 충돌 수리** (1935와 같은 사고, 승자만 반대): 폴리티는 오스트리아가
+    // 이기고 영토 배정은 오스트리아가 이겨서, **호주 연방이 보드에서 통째로
+    // 사라져 있었다**. AUS는 호주, AUT는 오스트리아.
+    AUT: { name: "Allied-occupied Austria", color: "#b8b8c8", aliases: ["연합군 점령하 오스트리아", "오스트리아", "Austria", "Second Austrian Republic"] },
     CSK: { name: "Czechoslovakia", color: "#5b7fae", aliases: ["체코슬로바키아", "Czechoslovak Republic", "Third Republic"] },
     YUG: { name: "Yugoslavia", color: "#6a8caf", aliases: ["유고슬라비아", "FPR Yugoslavia", "Tito's Yugoslavia"] },
     ITA: { name: "Italy", color: "#4f7942", aliases: ["이탈리아", "Kingdom of Italy", "Italy (referendum pending)"] },
@@ -199,7 +202,7 @@ export default {
     AEF: ["TCD", "CAF", "COG", "GAB"],
     // 1945년 9월 하노이에서 독립이 선포됐고 프랑스는 그것을 인정하지 않는다.
     FIC: ["VNM", "LAO", "KHM"],
-    AUS: ["AUT"],
+    AUT: ["AUT"],
     CSK: ["CZE", "SVK"],
     YUG: ["SRB", "HRV", "BIH", "MNE", "MKD", "SVN", "XKO"],
     ITA: ["ITA"],

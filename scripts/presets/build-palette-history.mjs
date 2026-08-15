@@ -4,6 +4,17 @@
 //
 //   node scripts/presets/build-palette-history.mjs            write data/palette-history.json
 //   node scripts/presets/build-palette-history.mjs --dry-run  report only
+//   node scripts/presets/build-palette-history.mjs --merge <file>   fold another clone's manifest in first
+//
+// `--merge` EXISTS BECAUSE THE UNION KEPT BREAKING, three times in one day.
+// The file is a union across clones, and a clone that regenerates from its own
+// copy and then ships that copy silently drops every row only the other clone
+// had — wwii-1939/Lithuania lost one of its two colours three times that way.
+// The colours differ in the first place because a polity with no `color` in its
+// spec is painted by the procedural fallback, which is not the same in two
+// clones. Merging the other side's file in BEFORE harvesting makes the union
+// mechanical instead of a thing to remember: stage their copy, pass it here,
+// deliver the result.
 //
 // The sibling of build-rules-history.mjs, and the reasoning is the same one:
 // a running campaign holds its own copy of a board's palette (see the fork note
@@ -57,6 +68,10 @@ const SCENARIOS = path.join(ROOT, "server", "data", "scenarios");
 const BASE_PALETTE = "public/assets/colors.json";
 const OUT = path.join(ROOT, "data", "palette-history.json");
 const DRY = process.argv.includes("--dry-run");
+const MERGE = (() => {
+  const at = process.argv.indexOf("--merge");
+  return at >= 0 ? (process.argv[at + 1] ?? "") : "";
+})();
 
 const git = (args) => {
   try {
@@ -75,6 +90,26 @@ const readJson = (file) => {
 };
 
 const existing = readJson(OUT) ?? { note: "", base: {}, boards: {} };
+// The other clone's copy, folded in before anything else so its rows are part of
+// the union this run writes back out. A file that cannot be read is named and
+// the run continues — a missing merge source costs coverage, never correctness.
+const incoming = MERGE ? readJson(MERGE) : null;
+if (MERGE && !incoming) console.log(`  [merge] could not read ${MERGE} — continuing without it`);
+if (incoming) {
+  const rowsIn = (src) => Object.values(src ?? {}).reduce((n, l) => n + (Array.isArray(l) ? l.length : 0), 0);
+  for (const [name, list] of Object.entries(incoming.base ?? {})) {
+    existing.base = existing.base ?? {};
+    existing.base[name] = [...new Set([...(existing.base[name] ?? []), ...list])];
+  }
+  for (const [id, names] of Object.entries(incoming.boards ?? {})) {
+    existing.boards = existing.boards ?? {};
+    existing.boards[id] = existing.boards[id] ?? {};
+    for (const [name, list] of Object.entries(names)) {
+      existing.boards[id][name] = [...new Set([...(existing.boards[id][name] ?? []), ...list])];
+    }
+  }
+  console.log(`  [merge] folded ${MERGE}: floor ${rowsIn(incoming.base)} colours · ${Object.keys(incoming.boards ?? {}).length} boards`);
+}
 const rows = (source) => new Map(Object.entries(source ?? {}).map(([name, list]) => [name, new Set(list)]));
 const base = rows(existing.base);
 const boards = new Map(Object.entries(existing.boards ?? {}).map(([id, names]) => [id, rows(names)]));

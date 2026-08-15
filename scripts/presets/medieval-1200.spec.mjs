@@ -269,7 +269,7 @@ export default {
     LIEG:  { name: "Prince-Bishopric of Liège", color: "#a8c45a", aliases: ["Liège", "Luik", "Hainaut"] },
     LUXE:  { name: "County of Luxembourg", color: "#5a8ac4", aliases: ["Luxembourg", "Lützelburg"] },
     HOLL:  { name: "County of Holland", color: "#d45a8a", aliases: ["Holland", "Zeeland"] },
-    UTRE:  { name: "Bishopric of Utrecht", color: "#8a5a3a", aliases: ["Utrecht", "Oversticht"] },
+    UTRE:  { name: "Bishopric of Utrecht", color: "#6a4a8a", aliases: ["Utrecht", "Oversticht"] },
     FRIS:  { name: "Frisian Freedom", color: "#3a8ac4", aliases: ["Frisia", "Friesland", "Free Frisians"] },
     GELD:  { name: "County of Guelders", color: "#c43a7a", aliases: ["Guelders", "Gelre", "Gelderland"] },
     ZAHR:  { name: "Duchy of Zähringen", color: "#a8a87a", aliases: ["Zähringen", "Burgundy rectorate", "Bern"] },
@@ -311,6 +311,39 @@ export default {
     KILW:  { name: "Kilwa Sultanate", color: "#3a6ad4", aliases: ["Kilwa", "Swahili coast", "Zanj"] },
     MOGA:  { name: "Sultanate of Mogadishu", color: "#a8d43a", aliases: ["Mogadishu", "Benadir"] },
     MAPU:  { name: "Mapungubwe", color: "#d46a3a", aliases: ["Mapungubwe", "Limpopo kingdom"] },
+
+    // ── 확장 6: 아메리카 ──────────────────────────────────────────────────
+    // 1200년의 아메리카는 **두 제국 사이의 골짜기**다. 톨텍 툴라는 1150년경
+    // 무너졌고 아즈텍의 테노치티틀란은 1325년이며, 티와나쿠·와리는 이미 사라졌고
+    // 잉카의 정복은 15세기다. 그래서 여기 있는 건 큰 제국이 아니라 그 사이를
+    // 채운 실제 정치체들이다. 지도자는 열하나 전부 기관인데, 아프리카와 또 다른
+    // 이유다 — 이쪽은 **기록의 성격 자체가 다르다**(고고학·구전·논쟁적 연대기).
+    CHIC:  { name: "Chichén Itzá", color: "#3ad4d4", aliases: ["Chichen Itza", "Maya", "Itza"] },
+    MIXT:  { name: "Mixtec–Zapotec City-States", color: "#d43a8a", aliases: ["Mixtec", "Zapotec", "Oaxaca", "Ñuu Dzaui"] },
+    CHIM:  { name: "Chimor", color: "#c4843a", aliases: ["Chimu", "Chimú", "Chan Chan"] },
+    CUZC:  { name: "Kingdom of Cusco", color: "#d4b83a", aliases: ["Cusco", "Cuzco", "early Inca"] },
+    QULL:  { name: "Qulla Kingdom", color: "#5a3ac4", aliases: ["Colla", "Aymara kingdoms", "Titicaca"] },
+    CHAC:  { name: "Chachapoya", color: "#6ac48a", aliases: ["Chachapoyas", "cloud people"] },
+    MUIS:  { name: "Muisca Confederation", color: "#c45ad4", aliases: ["Muisca", "Chibcha", "Zipa", "Zaque"] },
+    TAIR:  { name: "Tairona", color: "#3a9a5a", aliases: ["Tayrona", "Sierra Nevada chiefdoms"] },
+    CAHO:  { name: "Cahokia", color: "#8a4a2a", aliases: ["Mississippian culture", "Cahokia"] },
+    PUEB:  { name: "Ancestral Puebloans", color: "#d49a6a", aliases: ["Anasazi", "Mesa Verde", "Chaco"] },
+    TAIN:  { name: "Taíno Chiefdoms", color: "#4ac4b8", aliases: ["Taino", "Caciquedoms", "Antilles"] },
+
+    // ── 확장 7: 스텝·발트·게일 아일랜드 ───────────────────────────────────
+    // 마지막 남은 셋. 셋 다 **곧 사라질 세계**라는 공통점이 있고, 1200년은 그
+    // 직전이다: 리보니아·에스토니아·리투아니아는 아직 이교도 부족이고(리가 1201,
+    // 검의 형제기사단 1202, 튜튼 기사단 1226), 몽골 고원의 패자는 아직 옹칸이며
+    // **테무진은 그의 봉신**이다(칭기즈 칸 즉위 1206). 게일 왕들은 앵글로-노르만
+    // 영주령에 밀리는 중이다. 지금 안 그리면 이 보드는 결과만 남고 판이 사라진다.
+    CONN:  { name: "Kingdom of Connacht", color: "#4a8a3a", aliases: ["Connacht", "Ó Conchobair", "Connaught"] },
+    ULAI:  { name: "Cenél nEógain", color: "#3a4a8a", aliases: ["Ulaid", "Ulster", "Ó Néill", "Tír Eoghain"] },
+    LIVO:  { name: "Livonian Tribes", color: "#8ac4d4", aliases: ["Livonia", "Latgalians", "Curonians", "Semigallians"] },
+    ESTO:  { name: "Estonian Maakonds", color: "#d4c4a8", aliases: ["Estonia", "Maakond", "Saaremaa"] },
+    LITH:  { name: "Lithuanian Tribes", color: "#a83ac4", aliases: ["Lithuania", "Samogitia", "Aukštaitija"] },
+    KERE:  { name: "Kerait Khanate", color: "#c4b83a", aliases: ["Kerait", "Toghrul", "Wang Khan"] },
+    NAIM:  { name: "Naiman Khanate", color: "#3ac4a8", aliases: ["Naiman", "Tayang Khan"] },
+    MONG:  { name: "Mongol Tribe", color: "#8a3a3a", aliases: ["Mongols", "Temüjin", "Borjigin"] },
   },
 
   countryAssignments: {
@@ -351,6 +384,7 @@ export default {
     DAIV:  ["VNM"],
     SRIV:  ["IDN", "MYS"],
     POLO:  ["LKA"],
+    TAIN:  ["CUB", "DOM", "HTI", "PRI", "JAM", "BHS"], // 확장 6: 대앤틸리스와 바하마 전역이 타이노 카시케들의 땅이다
     LUXE:  ["LUX"],                        // 확장 3: 룩셈부르크 백작령
     // 확장 2: 벵골 삼각주와 카트만두 분지 — 면이 없는 구역이라 국가 단위로.
     SENA:  ["BGD"],                        // 세나의 동벵골(비크람푸르)
@@ -405,6 +439,46 @@ export default {
 
     // The Chola heartland on the Tamil coast (declining but standing).
     "IND.31_1": "CHOL", "IND.27_1": "CHOL",
+
+    // ── 확장 7: 스텝·발트·게일 아일랜드 ──
+    "IRL.7_1": "CONN", "IRL.16_1": "CONN", "IRL.20_1": "CONN", "IRL.21_1": "CONN", "IRL.12_1": "CONN", // 카할 크로브데르그 오 콘초바르의 코나흐트
+    "IRL.5_1": "ULAI", "IRL.2_1": "ULAI", "IRL.18_1": "ULAI", "GBR.TLN0": "ULAI", // 아드 메흐 오 닐의 티르 어건. 렌스터·미스·먼스터 동부는 앵글로-노르만 영주령이 맞아 ENG_A로 둔다
+    "GBR.TLL5": "ENG_A",                       // 남동 웨일스(글러모건·귄트)는 마처 영주들의 땅이다 — 포위스로 준 확장 1의 근사를 여기서 좁힌다. **데허바르스는 그릴 수 없다**: 웨일스가 세 조각뿐이라 포위스와 같은 조각에 들어간다
+    "LVA.1_1": "LIVO", "LVA.2_1": "LIVO", "LVA.3_1": "LIVO", "LVA.4_1": "LIVO", "LVA.5_1": "LIVO",
+    "EST.1_1": "ESTO", "EST.2_1": "ESTO", "EST.3_1": "ESTO", "EST.4_1": "ESTO", "EST.5_1": "ESTO",
+    "EST.6_1": "ESTO", "EST.7_1": "ESTO", "EST.8_1": "ESTO", "EST.9_1": "ESTO", "EST.10_1": "ESTO",
+    "EST.11_1": "ESTO", "EST.12_1": "ESTO", "EST.13_1": "ESTO", "EST.14_1": "ESTO", "EST.15_1": "ESTO", "EST.16_1": "ESTO",
+    "LTU.1_1": "LITH", "LTU.2_1": "LITH", "LTU.3_1": "LITH", "LTU.4_1": "LITH", "LTU.5_1": "LITH",
+    "LTU.6_1": "LITH", "LTU.7_1": "LITH", "LTU.8_1": "LITH", "LTU.9_1": "LITH", "LTU.10_1": "LITH",
+    // 발트 셋은 **1200년에 아직 아무에게도 정복되지 않았다**: 리가 창건 1201,
+    // 검의 형제기사단 1202, 튜튼 기사단의 프로이센 진출 1226. 이 보드는 그 직전이다.
+    "MNG.20_1": "KERE", "MNG.21_1": "KERE", "MNG.1_1": "KERE", "MNG.17_1": "KERE",
+    "MNG.4_1": "KERE", "MNG.18_1": "KERE", "MNG.5_1": "KERE", "MNG.16_1": "KERE",
+    "MNG.14_1": "KERE", "MNG.8_1": "KERE", "MNG.11_1": "KERE", // 옹칸 토그릴 — 1200년 몽골 고원의 패자
+    "MNG.2_1": "NAIM", "MNG.13_1": "NAIM", "MNG.22_1": "NAIM", "MNG.9_1": "NAIM",
+    "MNG.10_1": "NAIM", "MNG.3_1": "NAIM",     // 타양칸의 나이만 — 알타이 서쪽
+    "MNG.12_1": "MONG", "MNG.6_1": "MONG", "MNG.19_1": "MONG", "MNG.7_1": "MONG", "MNG.15_1": "MONG",
+    // **헨티(MNG.12)가 테무진의 고향이다.** 1200년의 그는 칸이 아니라 옹칸의
+    // 의제 아들이자 봉신이고, 이 다섯 지역이 그가 가진 전부다. 1206년에 달라진다.
+
+    // ── 확장 6: 아메리카 ──
+    "MEX.31_1": "CHIC", "MEX.23_1": "CHIC", "MEX.4_1": "CHIC", "GTM.12_1": "CHIC", // 유카탄 반도. **1200년은 치첸이차의 끝자락**이고 마야판 연맹은 1220년경이라 아직 이쪽이다
+    "MEX.20_1": "MIXT", "MEX.12_1": "MIXT", // 오악사카·게레로 — 미스텍·사포텍 도시국가들. 8-사슴 재규어발톱은 1063년 사람이라 이 보드엔 없다
+    "PER.13_1": "CHIM", "PER.14_1": "CHIM", "PER.21_1": "CHIM", "PER.2_1": "CHIM", "PER.25_1": "CHIM", // 찬찬의 치모르 — 북부 해안. 시칸(람바예케) 흡수는 1375년경이라 여기선 접었다
+    "PER.8_1": "CUZC", "PER.3_1": "CUZC",  // **쿠스코 왕국일 뿐 잉카 제국이 아니다.** 파차쿠텍의 정복은 1438년부터 — 두 지역이 맞다
+    "PER.22_1": "QULL", "BOL.4_1": "QULL", "BOL.5_1": "QULL", // 티티카카의 아이마라 왕국들. 티와나쿠는 이미 무너졌다(1000년경)
+    "PER.1_1": "CHAC", "PER.23_1": "CHAC", // 차차포야 — 구름 위의 사람들
+    "COL.7_2": "MUIS", "COL.15_2": "MUIS", "COL.5_2": "MUIS", "COL.28_2": "MUIS", // 무이스카 — 지파와 자케, **수장이 둘인 연맹**이다
+    "COL.20_2": "TAIR", "COL.19_2": "TAIR", "COL.12_2": "TAIR", // 시에라네바다의 타이로나
+    "USA.14_1": "CAHO", "USA.26_1": "CAHO", "USA.4_1": "CAHO", "USA.43_1": "CAHO",
+    "USA.25_1": "CAHO", "USA.18_1": "CAHO", // 카호키아는 1200년에 **런던보다 크다**. 미시시피 문화의 중심 — 1350년경 버려진다
+    "USA.32_1": "PUEB", "USA.3_1": "PUEB", "USA.45_1": "PUEB", "USA.6_1": "PUEB", // 차코 캐니언은 1150년에 비었고 1200년의 중심은 메사베르데다
+    // 남긴 것들:
+    //   멕시코 중앙고원(툴라·테노치티틀란) — **톨텍은 1150년경 무너졌고 아즈텍은
+    //     1325년이다.** 이 100년은 진짜로 비어 있던 시기다.
+    //   미초아칸 — 타라스칸(푸레페차) 통합은 1300년경.
+    //   아마존·파타고니아·대평원·캐나다 — 수렵·채집·소규모 원예 사회.
+    //   중앙아메리카 남부(코스타리카·파나마) — 추장국 단위.
 
     // ── 확장 5: 사하라 이남 아프리카 ──
     // 해안·강 유역만 준다. 여기서 나라 단위로 칠하면 **거의 전부가 과장**이 된다 —

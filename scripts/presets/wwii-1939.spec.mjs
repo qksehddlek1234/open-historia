@@ -333,7 +333,10 @@ export default {
     "CHN.2_1": "JAP",   // Beijing
     "CHN.27_1": "JAP",  // Tianjin
     "CHN.10_1": "JAP",  // Hebei
-    "CHN.25_1": "JAP",  // Shanxi
+    // "CHN.25_1": "JAP" 였다 — 위에서 옌시산에게 준 산시를 **뒤쪽 키가 조용히 덮어**
+    // 산시 군벌이 0지역이 됐다. 일본은 1937년 11월 타이위안을 얻었지만 성 전체를
+    // 쥔 적이 없다(제2전구는 1939년에도 서남부에서 싸운다). 한 지역은 쪼갤 수 없으니
+    // 스펙이 처음에 고른 쪽 — 옌시산 — 을 남긴다.
     "CHN.23_1": "JAP",  // Shandong
     "CHN.15_1": "JAP",  // Jiangsu (Nanking)
     "CHN.24_1": "JAP",  // Shanghai
@@ -341,7 +344,9 @@ export default {
     "CHN.13_1": "JAP",  // Hubei (Wuhan, fell Oct 1938)
     "CHN.6_1": "JAP",   // Guangdong (Canton, fell Oct 1938)
     "CHN.9_1": "JAP",   // Hainan (occupied Feb 1939)
-    "CHN.19_1": "JAP",  // Nei Mongol (Mengjiang puppet regime)
+    // "CHN.19_1": "JAP" 였다 — 같은 사고. 몽강연합자치정부는 **보드 날짜 그 달**
+    // (1939년 9월)에 성립하고, 이 보드는 만주국을 이미 별도 폴리티로 그린다.
+    // 괴뢰국을 일본색으로 칠하면 스펙이 선언한 나라가 지도에서 사라진다.
     // British Somaliland (the north of modern Somalia; the rest is Italian).
     "SOM.1_1": "GBR",   // Awdal
     "SOM.18_1": "GBR",  // Woqooyi Galbeed (Hargeisa)

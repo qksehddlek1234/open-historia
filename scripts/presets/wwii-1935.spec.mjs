@@ -117,7 +117,10 @@ export default {
     DEI: { name: "Dutch East Indies", color: "#d08a4a", aliases: ["네덜란드령 동인도", "Nederlands-Indië", "Dutch East Indies", "Indonesia"] },
     BCO: { name: "Belgian Congo", color: "#8a9a3a", aliases: ["벨기에령 콩고", "Congo belge", "Belgian Congo"] },
     GER: { name: "Germany", color: "#3a3a3a", aliases: ["독일", "나치 독일", "Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },
-    AUS: { name: "Austria", color: "#b8b8c8", aliases: ["오스트리아", "Federal State of Austria", "Austrian Republic"] },
+    // **코드 충돌 수리**: 이 줄은 원래 `AUS`였고, 위에서 선언한 호주 연방을 조용히
+    // 덮었다. 결과는 "오스트리아라는 이름으로 호주와 파푸아뉴기니를 다스리는 나라"
+    // 였다(빌드 로그의 `PNG→Austria`가 그 흔적). ISO대로 AUS는 호주, AUT는 오스트리아.
+    AUT: { name: "Austria", color: "#b8b8c8", aliases: ["오스트리아", "Federal State of Austria", "Austrian Republic"] },
     CSK: { name: "Czechoslovakia", color: "#5b7fae", aliases: ["체코슬로바키아", "Czechoslovak Republic", "ČSR"] },
     ETH: { name: "Ethiopia", color: "#7a8f3a", aliases: ["에티오피아", "Abyssinia", "Ethiopian Empire"] },
     SIA: { name: "Siam", color: "#4068bf", aliases: ["시암", "Thailand", "Kingdom of Siam"] },
@@ -144,7 +147,7 @@ export default {
     //   German territory (demilitarized — a rules fact, not a map fact); the
     //   Saar rejoined in March 1935 after the plebiscite.
     GER: ["DEU"],
-    AUS: ["AUT"],
+    AUT: ["AUT"],
     CSK: ["CZE", "SVK"],
     // — Ethiopia fights on: the northern front is around Mekelle, the
     //   southern in the Ogaden, and the capital is free.

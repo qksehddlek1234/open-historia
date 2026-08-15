@@ -1678,6 +1678,9 @@
         "8d5236",
         "932828"
       ],
+      "Commonwealth of Australia": [
+        "d07a5a"
+      ],
       "Czechoslovakia": [
         "5b7fae"
       ],
@@ -5694,6 +5697,9 @@
       "Almohad Caliphate": [
         "2e7d4f"
       ],
+      "Ancestral Puebloans": [
+        "d49a6a"
+      ],
       "Angevin Empire": [
         "b23b3b"
       ],
@@ -5719,6 +5725,7 @@
         "a8d4c4"
       ],
       "Bishopric of Utrecht": [
+        "6a4a8a",
         "8a5a3a"
       ],
       "Brunswick-Lüneburg": [
@@ -5730,8 +5737,23 @@
       "Byzantine Empire": [
         "7d3fb2"
       ],
+      "Cahokia": [
+        "8a4a2a"
+      ],
+      "Cenél nEógain": [
+        "3a4a8a"
+      ],
+      "Chachapoya": [
+        "6ac48a"
+      ],
       "Chaulukya of Gujarat": [
         "c46a8a"
+      ],
+      "Chichén Itzá": [
+        "3ad4d4"
+      ],
+      "Chimor": [
+        "c4843a"
       ],
       "Chola Empire": [
         "c07a4a"
@@ -5832,6 +5854,9 @@
       "Eastern Ganga Dynasty": [
         "7a5a3a"
       ],
+      "Estonian Maakonds": [
+        "d4c4a8"
+      ],
       "Frisian Freedom": [
         "3a8ac4"
       ],
@@ -5919,6 +5944,9 @@
       "Kanem Empire": [
         "6a8ad4"
       ],
+      "Kerait Khanate": [
+        "c4b83a"
+      ],
       "Khmer Empire": [
         "c2a23a"
       ],
@@ -5936,6 +5964,12 @@
       ],
       "Kingdom of Bohemia": [
         "5a3a8a"
+      ],
+      "Kingdom of Connacht": [
+        "4a8a3a"
+      ],
+      "Kingdom of Cusco": [
+        "d4b83a"
       ],
       "Kingdom of Dali": [
         "6aae8a"
@@ -5991,6 +6025,12 @@
       "Landgraviate of Thuringia": [
         "9a3a5a"
       ],
+      "Lithuanian Tribes": [
+        "a83ac4"
+      ],
+      "Livonian Tribes": [
+        "8ac4d4"
+      ],
       "Mapungubwe": [
         "d46a3a"
       ],
@@ -6002,6 +6042,18 @@
       ],
       "Marquisate of Montferrat": [
         "5ad4d4"
+      ],
+      "Mixtec–Zapotec City-States": [
+        "d43a8a"
+      ],
+      "Mongol Tribe": [
+        "8a3a3a"
+      ],
+      "Muisca Confederation": [
+        "c45ad4"
+      ],
+      "Naiman Khanate": [
+        "3ac4a8"
       ],
       "Nepal Mandala": [
         "9ac45a"
@@ -6023,6 +6075,9 @@
       ],
       "Qara Khitai": [
         "9a9a3f"
+      ],
+      "Qulla Kingdom": [
+        "5a3ac4"
       ],
       "Republic of Genoa": [
         "c4d43a"
@@ -6053,6 +6108,12 @@
       ],
       "Sultanate of Rum": [
         "c25a3a"
+      ],
+      "Taíno Chiefdoms": [
+        "4ac4b8"
+      ],
+      "Tairona": [
+        "3a9a5a"
       ],
       "Takrur": [
         "d4a86a"
@@ -9159,6 +9220,9 @@
       ],
       "Chinese Soviet Republic": [
         "c03030"
+      ],
+      "Commonwealth of Australia": [
+        "d07a5a"
       ],
       "Czechoslovakia": [
         "5b7fae"
