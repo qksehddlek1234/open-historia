@@ -167,6 +167,18 @@ export default {
     LUC: { name: "Republic of Lucca", color: "#873bce", aliases: ["루카 공화국", "루카", "Lucca"] }, // 원본 키 둘 중 "Lucca" — 1444의 루카는 공화국이다(공국은 1805년 엘리자의 것)
     PRO: { name: "County of Provence", color: "#c8c0d3", aliases: ["프로방스 백국", "프로방스", "Provence", "René's Provence"] },
     ATH: { name: "Duchy of Athens", color: "#11a259", aliases: ["아테네 공국", "아테네", "Athens", "Acciaioli Athens"] },
+    // ── Africa subdivided (로스터 확장 6, 최종 극장 — 원본 색 그대로) ──
+    TLE: { name: "Zayyanid Tlemcen", color: "#0062B1", aliases: ["자이얀 틀렘센", "틀렘센", "Tlemcen", "Zayyanids"] }, // 1·2차 빌드에서 미배정으로 남겨뒀던 DZA 공백의 주인 — 팔레트에 있었다
+    ADA: { name: "Adal Sultanate", color: "#923659", aliases: ["아달 술탄국", "아달", "Adal", "Barr Sa'ad ad-din"] },
+    AJU: { name: "Ajuran Sultanate", color: "#fff8ff", aliases: ["아주란 술탄국", "아주란", "Ajuuraan", "Ajuran"] },
+    WAR: { name: "Warsangeli Sultanate", color: "#531c87", aliases: ["와르상갈리 술탄국", "와르상갈리", "Warsangli", "Warsangeli"] },
+    MRH: { name: "Marehan", color: "#47527b", aliases: ["마레한", "Marehan"] },
+    BOR: { name: "Borana", color: "#dfaa4e", aliases: ["보라나", "가다", "Borana", "Boorana"] },
+    SID: { name: "Sidamo", color: "#653294", aliases: ["시다모", "시다마", "Sidamo", "Sidama"] },
+    KIL: { name: "Kilwa Sultanate", color: "#C45100", aliases: ["킬와 술탄국", "킬와", "Kilwa", "Swahili coast"] },
+    BNI: { name: "Kingdom of Benin", color: "#c19a57", aliases: ["베냉 왕국", "베냉", "Benin", "Edo kingdom"] },
+    OYO: { name: "Oyo", color: "#c8a66a", aliases: ["오요", "초기 오요", "Oyo"] },
+    MER: { name: "Imerina", color: "#217d4f", aliases: ["이메리나", "메리나", "Merina Kingdom", "Merina"] },
     // ── Asia subdivided (로스터 확장 5 — 원본 색 그대로) ──
     CND: { name: "Beylik of Candar", color: "#a36593", aliases: ["찬다르 후국", "이스펜디야르", "Candar", "Isfendiyarids"] },
     DUL: { name: "Beylik of Dulkadir", color: "#e7ffdb", aliases: ["둘카디르 후국", "둘카디르", "Dulkadir", "Dulkadirids"] },
@@ -338,6 +350,7 @@ export default {
     OMA: ["OMN"],  // 나브하니 오만
     BHN: ["BHR"], QTR: ["QAT"], // 자브리드 걸프 — 팔레트가 둘을 나눠 그대로 따름
     YMN: ["YEM"],  // 라술 말기의 예멘
+    ADA: ["DJI"],  // 아달의 다나킬 해안(확장 6)
     CAR: ["DMA", "GRD", "LCA", "ATG", "KNA", "GLP", "MTQ", "BRB", "TTO"], // 칼리나고의 소앤틸리스 — 대앤틸리스(타이노)는 팔레트에 폴리티가 없어 미배정 유지; VCT·MSR·AIA는 GADM 시드에 GID_0가 없어 제외(검증기 실측)
   },
 
@@ -419,6 +432,7 @@ export default {
     // actually held in 1444 — the Constantinois and Bougie.
     "DZA.8_1": "HAF", "DZA.37_1": "HAF", "DZA.23_1": "HAF", "DZA.39_1": "HAF", "DZA.29_1": "HAF",
     "DZA.15_1": "HAF", "DZA.21_1": "HAF", "DZA.34_1": "HAF", "DZA.5_1": "HAF", "DZA.40_1": "HAF", "DZA.42_1": "HAF",
+    "DZA.6_1": "HAF", "DZA.9_1": "HAF", "DZA.24_1": "HAF", // 오레스(바트나·비스크라·헨셸라) — 하프스 쪽 산지(확장 6에서 추가)
     // ── Italy (로스터 확장 2: 에밀리아·토스카나는 레벨2로 쪼갠다) ──
     "ITA.13_1": "SAV", "ITA.19_1": "SAV",
     "ITA.9_1": "GEN",
@@ -511,6 +525,30 @@ export default {
     "IND.20_1": "BAH", "IND.32_1": "BAH", "IND.2_1": "BAH", "IND.16_1": "BAH", "IND.10_1": "BAH", // the Deccan sultanate
     "IND.31_1": "VIJ", "IND.17_1": "VIJ", "IND.27_1": "VIJ", // Deva Raya II's empire
     // (the north stays with Delhi's baseline — Malwa, Gujarat, Jaunpur approximated in)
+    // ── Africa subdivided (로스터 확장 6) ──
+    // 자이얀 틀렘센 — 텔 아틀라스의 서·중부 25지역(아불아바스 아흐마드 알아킬).
+    // 콘스탄티노이스+오레스는 하프스 수작업, 심장 사하라는 미배정 유지.
+    "DZA.48_1": "TLE", "DZA.3_1": "TLE", "DZA.32_1": "TLE", "DZA.38_1": "TLE", "DZA.30_1": "TLE",
+    "DZA.27_1": "TLE", "DZA.36_1": "TLE", "DZA.14_1": "TLE", "DZA.35_1": "TLE", "DZA.46_1": "TLE",
+    "DZA.43_1": "TLE", "DZA.4_1": "TLE", "DZA.45_1": "TLE", "DZA.10_1": "TLE", "DZA.2_1": "TLE",
+    "DZA.28_1": "TLE", "DZA.13_1": "TLE", "DZA.47_1": "TLE", "DZA.12_1": "TLE", "DZA.16_1": "TLE",
+    "DZA.25_1": "TLE", "DZA.26_1": "TLE", "DZA.11_1": "TLE", "DZA.31_1": "TLE", "DZA.17_1": "TLE",
+    // 아프리카의 뿔 — 곰릿 전투(1445) 전야의 아달과 그 이웃들
+    "ETH.9_1": "ADA", "ETH.7_1": "ADA", "ETH.5_1": "ADA", "ETH.2_1": "ADA", // 하라르·디레다와·소말리·아파르 — 바들라이의 술탄국
+    "SOM.1_1": "ADA", "SOM.18_1": "ADA", "SOM.17_1": "ADA", // 아우달·워쿠이갈베드·토그데르
+    "SOM.13_1": "WAR", "SOM.4_1": "WAR", "SOM.16_1": "WAR", // 사나그·바리·솔 — 와르상갈리(하르티) 해안
+    "SOM.3_1": "AJU", "SOM.14_1": "AJU", "SOM.15_1": "AJU", "SOM.8_1": "AJU", "SOM.6_1": "AJU", "SOM.5_1": "AJU", "SOM.2_1": "AJU", // 베나디르와 샤벨레 유역 — 아주란
+    "SOM.7_1": "MRH", "SOM.9_1": "MRH", "SOM.10_1": "MRH", // 주바 유역 — 마레한 (무두그·누갈은 미배정 유목지)
+    "ETH.8_1": "BOR", // 오로미아 — 가다 회의의 보라나(팔레트 패리티; 16세기 오로모 대이동 전이라 근사임을 명기)
+    "ETH.10_1": "SID", // 남부 제족 — 시다마 왕들
+    // 스와힐리 해안 — 킬와의 금 항로 (내륙과 무타파는 팔레트 부재로 미배정)
+    "TZA.2_1": "KIL", "TZA.20_1": "KIL", "TZA.10_1": "KIL", "TZA.15_1": "KIL", "TZA.27_1": "KIL",
+    "TZA.28_1": "KIL", "TZA.29_1": "KIL", "TZA.30_1": "KIL", "TZA.18_1": "KIL", "TZA.19_1": "KIL", // 잔지바르·펨바
+    "MOZ.1_1": "KIL", "MOZ.7_1": "KIL", "MOZ.11_1": "KIL", "MOZ.9_1": "KIL", // 카부델가두·남풀라·잠베지아·소팔라
+    // 기니만 — 에우아레 대왕의 베냉과 초기 오요
+    "NGA.12_1": "BNI", "NGA.10_1": "BNI", // 에도·델타
+    "NGA.31_1": "OYO", "NGA.30_1": "OYO", "NGA.24_1": "OYO", // 오요·오순·콰라
+    "MDG.1_1": "MER", // 이메리나 고원 (나머지 마다가스카르는 미배정)
     // ── Asia subdivided (로스터 확장 5) ──
     "SAU.11_1": "HED", "SAU.5_1": "HED", "SAU.13_1": "HED", // Makkah·Madinah·Tabuk — 샤리프 바라카트 1세, 맘루크 종주권 아래 별개색(원본 방식)
     "AZE.1_1": "SHI", "AZE.3_1": "SHI", "AZE.8_1": "SHI", "AZE.9_1": "SHI", // 쿠라강 이북 — 시르반샤 할릴룰라의 나라; 이남(아란·카라바흐·나흐치반)은 흑양조 잔류
