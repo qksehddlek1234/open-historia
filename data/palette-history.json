@@ -1,0 +1,9959 @@
+{
+  "note": "Every colour each board has shipped for each polity, by name. A save's colour that matches one of these is a stale BUILD and may be refreshed; a colour matching none of them was chosen by a player or minted by the AI and is never touched. `base` is the app palette every board is assembled on top of — read a board's own row when it has one and `base` otherwise. Union across clones — this file is merged into, never replaced. Regenerate after a rebuild: node scripts/presets/build-palette-history.mjs",
+  "base": {
+    "ABK": [
+      "33cc33"
+    ],
+    "AFA": [
+      "990033"
+    ],
+    "AFG": [
+      "40a0a7"
+    ],
+    "Afghanistan": [
+      "40a0a7"
+    ],
+    "ALB": [
+      "952d66"
+    ],
+    "Albania": [
+      "952d66"
+    ],
+    "ALT": [
+      "ccffff"
+    ],
+    "ANG": [
+      "258c3d"
+    ],
+    "ANU": [
+      "80bfff"
+    ],
+    "AOI": [
+      "009933"
+    ],
+    "ARG": [
+      "919dec"
+    ],
+    "Argentina": [
+      "919dec"
+    ],
+    "ARM": [
+      "b066b4"
+    ],
+    "Armenia": [
+      "b066b4"
+    ],
+    "ASY": [
+      "800060"
+    ],
+    "AU1": [
+      "398f61"
+    ],
+    "AUS": [
+      "c2c6d7",
+      "cc8f3c"
+    ],
+    "Australia": [
+      "cc8f3c"
+    ],
+    "AZR": [
+      "459731"
+    ],
+    "Bahrain": [
+      "e60000"
+    ],
+    "BAR": [
+      "ff4d4d"
+    ],
+    "BAY": [
+      "e9e7f6"
+    ],
+    "BEG": [
+      "ffd480"
+    ],
+    "BEL": [
+      "c1ab08"
+    ],
+    "Belarus": [
+      "9660a8"
+    ],
+    "Belgium": [
+      "c1ab08"
+    ],
+    "BHR": [
+      "e60000"
+    ],
+    "BHU": [
+      "ac7a58"
+    ],
+    "BIA": [
+      "009933"
+    ],
+    "BLC": [
+      "4d9900"
+    ],
+    "BLR": [
+      "9660a8",
+      "b4dcbe"
+    ],
+    "BOL": [
+      "cca56c"
+    ],
+    "Bolivia": [
+      "cca56c"
+    ],
+    "BOT": [
+      "0b8470"
+    ],
+    "BRA": [
+      "4c913f"
+    ],
+    "Brazil": [
+      "4c913f"
+    ],
+    "BRN": [
+      "e6e600"
+    ],
+    "Brunei": [
+      "e6e600"
+    ],
+    "BSK": [
+      "33cc33"
+    ],
+    "BUK": [
+      "cc9966"
+    ],
+    "BUL": [
+      "339b00"
+    ],
+    "BYA": [
+      "0040ff"
+    ],
+    "CAM": [
+      "644796"
+    ],
+    "Cambodia": [
+      "996633"
+    ],
+    "CAN": [
+      "e93b3b"
+    ],
+    "Canada": [
+      "e93b3b"
+    ],
+    "CBV": [
+      "0066cc"
+    ],
+    "CH1": [
+      "f50c37"
+    ],
+    "CHI": [
+      "28288c"
+    ],
+    "Chile": [
+      "9b656b"
+    ],
+    "China": [
+      "f50c37"
+    ],
+    "CHL": [
+      "9b656b"
+    ],
+    "CHM": [
+      "2e2eb8"
+    ],
+    "CHN": [
+      "f50c37"
+    ],
+    "CHR": [
+      "cc7a00"
+    ],
+    "CHU": [
+      "bf8040"
+    ],
+    "CIN": [
+      "00cc00"
+    ],
+    "CKK": [
+      "b3b300"
+    ],
+    "COG": [
+      "989fd1"
+    ],
+    "COL": [
+      "debb5b"
+    ],
+    "Colombia": [
+      "debb5b"
+    ],
+    "COS": [
+      "98802b"
+    ],
+    "Costa Rica": [
+      "ff5050"
+    ],
+    "CRI": [
+      "ff5050"
+    ],
+    "CRO": [
+      "e646b4"
+    ],
+    "CSA": [
+      "91a3b0"
+    ],
+    "CUB": [
+      "8c41a6"
+    ],
+    "Cuba": [
+      "8c41a6"
+    ],
+    "CZE": [
+      "36a79c"
+    ],
+    "Czechia": [
+      "36a79c"
+    ],
+    "D01": [
+      "7ab361"
+    ],
+    "D02": [
+      "c28c56"
+    ],
+    "D03": [
+      "c8641f"
+    ],
+    "D04": [
+      "5096b3"
+    ],
+    "D05": [
+      "5c5cc5"
+    ],
+    "D06": [
+      "9a4574"
+    ],
+    "D07": [
+      "c3959b"
+    ],
+    "D08": [
+      "d26a2f"
+    ],
+    "D09": [
+      "699356"
+    ],
+    "D10": [
+      "afa26c"
+    ],
+    "D11": [
+      "7c8ca2"
+    ],
+    "D12": [
+      "bb4f56"
+    ],
+    "D13": [
+      "459dd0"
+    ],
+    "D14": [
+      "8e4fc8"
+    ],
+    "D15": [
+      "7ab361"
+    ],
+    "D16": [
+      "c28c56"
+    ],
+    "D17": [
+      "c8641f"
+    ],
+    "D18": [
+      "5096b3"
+    ],
+    "D19": [
+      "5c5cc5"
+    ],
+    "D20": [
+      "9a4574"
+    ],
+    "D21": [
+      "c3959b"
+    ],
+    "D22": [
+      "d26a2f"
+    ],
+    "D23": [
+      "699356"
+    ],
+    "D24": [
+      "afa26c"
+    ],
+    "D25": [
+      "7c8ca2"
+    ],
+    "D26": [
+      "bb4f56"
+    ],
+    "D27": [
+      "459dd0"
+    ],
+    "D28": [
+      "8e4fc8"
+    ],
+    "D29": [
+      "7ab361"
+    ],
+    "D30": [
+      "c28c56"
+    ],
+    "D31": [
+      "c8641f"
+    ],
+    "D32": [
+      "5096b3"
+    ],
+    "D33": [
+      "5c5cc5"
+    ],
+    "D34": [
+      "9a4574"
+    ],
+    "D35": [
+      "c3959b"
+    ],
+    "D36": [
+      "d26a2f"
+    ],
+    "D37": [
+      "699356"
+    ],
+    "D38": [
+      "afa26c"
+    ],
+    "D39": [
+      "7c8ca2"
+    ],
+    "D40": [
+      "bb4f56"
+    ],
+    "D41": [
+      "459dd0"
+    ],
+    "D42": [
+      "8e4fc8"
+    ],
+    "D43": [
+      "7ab361"
+    ],
+    "D44": [
+      "c28c56"
+    ],
+    "D45": [
+      "c8641f"
+    ],
+    "D46": [
+      "5096b3"
+    ],
+    "D47": [
+      "5c5cc5"
+    ],
+    "D48": [
+      "9a4574"
+    ],
+    "D49": [
+      "c3959b"
+    ],
+    "D50": [
+      "d26a2f"
+    ],
+    "DAG": [
+      "00ccff"
+    ],
+    "DEN": [
+      "99745d"
+    ],
+    "DEU": [
+      "665f56"
+    ],
+    "DIP": [
+      "7d2931"
+    ],
+    "DOM": [
+      "9882bf"
+    ],
+    "Dominican Republic": [
+      "9882bf"
+    ],
+    "DON": [
+      "ffaa00"
+    ],
+    "ECU": [
+      "f99262"
+    ],
+    "Ecuador": [
+      "f99262"
+    ],
+    "EGY": [
+      "e6e646"
+    ],
+    "Egypt": [
+      "e6e646"
+    ],
+    "ELS": [
+      "9882bf"
+    ],
+    "ESP": [
+      "f2cd5e"
+    ],
+    "EST": [
+      "3287af"
+    ],
+    "Estonia": [
+      "3287af"
+    ],
+    "ETH": [
+      "9882bf"
+    ],
+    "Ethiopia": [
+      "9882bf"
+    ],
+    "EVE": [
+      "99ddff"
+    ],
+    "EZO": [
+      "666699"
+    ],
+    "FER": [
+      "b32d00"
+    ],
+    "FIN": [
+      "4d79bf",
+      "cdd4e4"
+    ],
+    "Finland": [
+      "4d79bf"
+    ],
+    "FOR": [
+      "008080"
+    ],
+    "FR1": [
+      "3971e4"
+    ],
+    "FRA": [
+      "3971e4"
+    ],
+    "France": [
+      "3971e4"
+    ],
+    "FSA": [
+      "00b33c"
+    ],
+    "GAR": [
+      "8080ff"
+    ],
+    "GB1": [
+      "c9385d"
+    ],
+    "GBA": [
+      "009933"
+    ],
+    "GBR": [
+      "c9385d"
+    ],
+    "GDC": [
+      "2d8659"
+    ],
+    "GEN": [
+      "737373"
+    ],
+    "GEO": [
+      "ff9696"
+    ],
+    "Georgia": [
+      "ff9696"
+    ],
+    "Germany": [
+      "665f56"
+    ],
+    "Greenland": [
+      "5db5e3"
+    ],
+    "GRL": [
+      "5db5e3"
+    ],
+    "GRN": [
+      "ff5050"
+    ],
+    "GSM": [
+      "693c64"
+    ],
+    "GUA": [
+      "483170"
+    ],
+    "GXC": [
+      "477161"
+    ],
+    "HAI": [
+      "ae7171"
+    ],
+    "HAN": [
+      "ff0000"
+    ],
+    "HAR": [
+      "f2f2f2"
+    ],
+    "HBC": [
+      "9c1b16"
+    ],
+    "HES": [
+      "ffb3b3"
+    ],
+    "HON": [
+      "809141"
+    ],
+    "HUN": [
+      "f97e62"
+    ],
+    "Hungary": [
+      "f97e62"
+    ],
+    "IAS": [
+      "009933"
+    ],
+    "Iceland": [
+      "647daf"
+    ],
+    "IMO": [
+      "f2f2f2"
+    ],
+    "INC": [
+      "ffcc00"
+    ],
+    "IND": [
+      "e28728"
+    ],
+    "India": [
+      "e28728"
+    ],
+    "INS": [
+      "283278"
+    ],
+    "INU": [
+      "33cccc"
+    ],
+    "Iraq": [
+      "b27263"
+    ],
+    "Ireland": [
+      "509f5a"
+    ],
+    "IRL": [
+      "509f5a"
+    ],
+    "IRQ": [
+      "b27263"
+    ],
+    "ISL": [
+      "647daf"
+    ],
+    "ISR": [
+      "9882bf"
+    ],
+    "Israel": [
+      "9882bf"
+    ],
+    "ITA": [
+      "437f3f"
+    ],
+    "Italy": [
+      "437f3f"
+    ],
+    "ITZ": [
+      "cccc00"
+    ],
+    "Japan": [
+      "ffc9b2"
+    ],
+    "JOR": [
+      "6f374e"
+    ],
+    "Jordan": [
+      "6f374e"
+    ],
+    "JPN": [
+      "ffc9b2"
+    ],
+    "KAL": [
+      "ffcc00"
+    ],
+    "KAR": [
+      "009933"
+    ],
+    "KAT": [
+      "cc2900"
+    ],
+    "KBK": [
+      "ff471a"
+    ],
+    "KEN": [
+      "91670e"
+    ],
+    "Kenya": [
+      "91670e"
+    ],
+    "KHA": [
+      "33cc33"
+    ],
+    "KHI": [
+      "33ccff"
+    ],
+    "KHM": [
+      "996633"
+    ],
+    "KKP": [
+      "ff8000"
+    ],
+    "KLT": [
+      "00ab00"
+    ],
+    "KOM": [
+      "00e6b8"
+    ],
+    "KOR": [
+      "fff0c3"
+    ],
+    "KUB": [
+      "666699"
+    ],
+    "KUM": [
+      "ffe680"
+    ],
+    "KUR": [
+      "eab31e"
+    ],
+    "LAO": [
+      "b06688"
+    ],
+    "Laos": [
+      "b06688"
+    ],
+    "LAT": [
+      "4b4dba"
+    ],
+    "LBA": [
+      "c8b45a"
+    ],
+    "LBV": [
+      "b30b00"
+    ],
+    "LEB": [
+      "82963c"
+    ],
+    "LIB": [
+      "9882bf"
+    ],
+    "LIT": [
+      "dbdb77"
+    ],
+    "LUX": [
+      "41afb3"
+    ],
+    "Luxembourg": [
+      "41afb3"
+    ],
+    "MAL": [
+      "c56064"
+    ],
+    "MAN": [
+      "ff7847"
+    ],
+    "MAY": [
+      "ff5050"
+    ],
+    "MEK": [
+      "baf556"
+    ],
+    "MEL": [
+      "ffe6e6"
+    ],
+    "MEN": [
+      "b9ff98"
+    ],
+    "MEX": [
+      "689853"
+    ],
+    "Mexico": [
+      "689853"
+    ],
+    "MIS": [
+      "ff3300"
+    ],
+    "MNG": [
+      "6c8c2a"
+    ],
+    "MNT": [
+      "4d5a69"
+    ],
+    "Mongolia": [
+      "6c8c2a"
+    ],
+    "MZB": [
+      "703e5a"
+    ],
+    "NAH": [
+      "339966"
+    ],
+    "NEN": [
+      "ccffcc"
+    ],
+    "NEP": [
+      "9882bf"
+    ],
+    "Netherlands": [
+      "cb8a4a"
+    ],
+    "New Zealand": [
+      "9882bf"
+    ],
+    "NIC": [
+      "92b3bf"
+    ],
+    "Nicaragua": [
+      "92b3bf"
+    ],
+    "NLD": [
+      "cb8a4a"
+    ],
+    "NOA": [
+      "ffaa00"
+    ],
+    "NOR": [
+      "6f4747"
+    ],
+    "North Korea": [
+      "7ab361"
+    ],
+    "Norway": [
+      "6f4747"
+    ],
+    "NXM": [
+      "697d96"
+    ],
+    "NZL": [
+      "9882bf"
+    ],
+    "OKN": [
+      "ff8c1a"
+    ],
+    "OMA": [
+      "9b656b"
+    ],
+    "ORO": [
+      "ff4d4d"
+    ],
+    "OVO": [
+      "009933"
+    ],
+    "PAK": [
+      "006600"
+    ],
+    "Pakistan": [
+      "006600"
+    ],
+    "PAL": [
+      "aa7d50"
+    ],
+    "PAN": [
+      "9882bf"
+    ],
+    "Panama": [
+      "9882bf"
+    ],
+    "PAP": [
+      "ffffcc"
+    ],
+    "PAR": [
+      "3971e4"
+    ],
+    "PER": [
+      "477161"
+    ],
+    "Peru": [
+      "477161"
+    ],
+    "PHI": [
+      "0028c3"
+    ],
+    "PLU": [
+      "3399ff"
+    ],
+    "POL": [
+      "d6668b"
+    ],
+    "Poland": [
+      "d6668b"
+    ],
+    "Portugal": [
+      "277446"
+    ],
+    "PRE": [
+      "a0a0a0"
+    ],
+    "PRK": [
+      "7ab361"
+    ],
+    "PRT": [
+      "277446"
+    ],
+    "PRU": [
+      "c4bdcc"
+    ],
+    "PSH": [
+      "1f8a1f"
+    ],
+    "PSR": [
+      "1f1f7a"
+    ],
+    "QEM": [
+      "336699"
+    ],
+    "QUE": [
+      "0066ff"
+    ],
+    "RAA": [
+      "737373"
+    ],
+    "RAN": [
+      "737373"
+    ],
+    "RAP": [
+      "cc0000"
+    ],
+    "RAR": [
+      "737373"
+    ],
+    "RCO": [
+      "737373"
+    ],
+    "Republic of the Congo": [
+      "989fd1"
+    ],
+    "RGB": [
+      "737373"
+    ],
+    "RHD": [
+      "737373"
+    ],
+    "RHI": [
+      "009933"
+    ],
+    "RIG": [
+      "000080"
+    ],
+    "RKA": [
+      "737373"
+    ],
+    "RKB": [
+      "737373"
+    ],
+    "RKC": [
+      "737373"
+    ],
+    "RKG": [
+      "737373"
+    ],
+    "RKH": [
+      "737373"
+    ],
+    "RKI": [
+      "737373"
+    ],
+    "RKK": [
+      "737373"
+    ],
+    "RKL": [
+      "737373"
+    ],
+    "RKM": [
+      "737373"
+    ],
+    "RKN": [
+      "737373"
+    ],
+    "RKO": [
+      "737373"
+    ],
+    "RKT": [
+      "737373"
+    ],
+    "RKU": [
+      "737373"
+    ],
+    "RKV": [
+      "737373"
+    ],
+    "RNA": [
+      "737373"
+    ],
+    "RNG": [
+      "ffbf00"
+    ],
+    "ROA": [
+      "737373"
+    ],
+    "Romania": [
+      "d7c448"
+    ],
+    "ROU": [
+      "d7c448"
+    ],
+    "RUS": [
+      "2f8f4f",
+      "737373"
+    ],
+    "Russia": [
+      "2f8f4f"
+    ],
+    "SAB": [
+      "00ace6"
+    ],
+    "SAF": [
+      "c36ba0"
+    ],
+    "SAR": [
+      "e6b800"
+    ],
+    "SAU": [
+      "abbe98"
+    ],
+    "Saudi Arabia": [
+      "abbe98"
+    ],
+    "SAX": [
+      "666600"
+    ],
+    "SER": [
+      "a06e6e"
+    ],
+    "SHL": [
+      "3333ff"
+    ],
+    "SHX": [
+      "52020f"
+    ],
+    "SIA": [
+      "abbe98"
+    ],
+    "SIC": [
+      "006080"
+    ],
+    "SID": [
+      "6666ff"
+    ],
+    "SIK": [
+      "47be98"
+    ],
+    "SLO": [
+      "9ea1bc"
+    ],
+    "Slovenia": [
+      "789646"
+    ],
+    "SND": [
+      "e65c00"
+    ],
+    "SNG": [
+      "cc0000"
+    ],
+    "SOK": [
+      "00802b"
+    ],
+    "South Korea": [
+      "fff0c3"
+    ],
+    "SP1": [
+      "00ffff"
+    ],
+    "Spain": [
+      "f2cd5e"
+    ],
+    "SVN": [
+      "789646",
+      "9ea1bc"
+    ],
+    "SWE": [
+      "2484f7"
+    ],
+    "Sweden": [
+      "2484f7"
+    ],
+    "SWI": [
+      "e00505"
+    ],
+    "SYR": [
+      "646496"
+    ],
+    "Syria": [
+      "646496"
+    ],
+    "TAN": [
+      "9882bf"
+    ],
+    "TAT": [
+      "ff3300"
+    ],
+    "TAY": [
+      "006699"
+    ],
+    "THU": [
+      "6699ff"
+    ],
+    "TIB": [
+      "50642d"
+    ],
+    "TIG": [
+      "ff3300"
+    ],
+    "TML": [
+      "800000"
+    ],
+    "TOS": [
+      "ff8080"
+    ],
+    "TTS": [
+      "e6e600"
+    ],
+    "TUR": [
+      "abbe98"
+    ],
+    "Turkey": [
+      "abbe98"
+    ],
+    "UBD": [
+      "5c5c8a"
+    ],
+    "UDM": [
+      "404040"
+    ],
+    "UKR": [
+      "0050e6"
+    ],
+    "Ukraine": [
+      "0050e6"
+    ],
+    "United Kingdom": [
+      "c9385d"
+    ],
+    "United States": [
+      "1485ed"
+    ],
+    "URG": [
+      "abbe98"
+    ],
+    "US1": [
+      "1485ed"
+    ],
+    "USA": [
+      "1485ed"
+    ],
+    "VEN": [
+      "abbe98"
+    ],
+    "Venezuela": [
+      "abbe98"
+    ],
+    "VGE": [
+      "999999"
+    ],
+    "VIN": [
+      "e6df32"
+    ],
+    "VLA": [
+      "ffcc00"
+    ],
+    "WPG": [
+      "ac3939"
+    ],
+    "WUR": [
+      "ffcc99"
+    ],
+    "XIC": [
+      "2b5cb5"
+    ],
+    "XSM": [
+      "695a84"
+    ],
+    "YAK": [
+      "00ffff"
+    ],
+    "YAM": [
+      "cc9900"
+    ],
+    "YEM": [
+      "9b656b"
+    ],
+    "Yemen": [
+      "9b656b"
+    ],
+    "YUC": [
+      "ff1a1a"
+    ],
+    "YUG": [
+      "48497e"
+    ],
+    "YUN": [
+      "729450"
+    ],
+    "ZIM": [
+      "0707ef"
+    ]
+  },
+  "boards": {
+    "bronze-1200bc": {
+      "Alashiya": [
+        "3f9a8a"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Elam": [
+        "9a6a3a"
+      ],
+      "Hittite Empire": [
+        "8f5a3f"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Kassite Babylonia": [
+        "3f6ab8"
+      ],
+      "Kingdom of Shu": [
+        "5a9a5a"
+      ],
+      "Libu Tribes": [
+        "8a7a4a"
+      ],
+      "Middle Assyrian Empire": [
+        "7a3f3f"
+      ],
+      "Mycenaean Kingdoms": [
+        "4a78c0"
+      ],
+      "New Kingdom Egypt": [
+        "c9a227"
+      ],
+      "Olmec": [
+        "7a5c8a"
+      ],
+      "Shang Dynasty": [
+        "b8860b"
+      ],
+      "Wilusa": [
+        "6a8a3a"
+      ]
+    },
+    "citizen-2026": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belarus": [
+        "8d6236"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Brazil": [
+        "5a9a5a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Germany": [
+        "8a8a9a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Islamic Emirate of Afghanistan": [
+        "7a7a5a"
+      ],
+      "Islamic Republic of Iran": [
+        "5a8a6a"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libya": [
+        "ac40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "8a9a4a"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "7a9a5a"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Poland": [
+        "b0705a"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Russian Federation": [
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Saudi Arabia": [
+        "7a9a6a"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "a87a5a"
+      ],
+      "South Sudan": [
+        "bf408c"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "b0a05a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Syrian Arab Republic": [
+        "9a7a5a"
+      ],
+      "Taiwan": [
+        "4a6db5"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Türkiye": [
+        "c05a4a"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukraine": [
+        "3f7fd0"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "coldwar-1946": {
+      "Allied-occupied Austria": [
+        "b8b8c8"
+      ],
+      "Allied-occupied Japan": [
+        "b23b3b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Armenian SSR": [
+        "a02a2a",
+        "b06a4a"
+      ],
+      "Azerbaijan SSR": [
+        "962e2e",
+        "c08a5a"
+      ],
+      "Belgian Congo": [
+        "8a9a3a"
+      ],
+      "Belgium": [
+        "b0902e"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "British Central Africa": [
+        "a89a7a"
+      ],
+      "British East Africa": [
+        "b08a5a"
+      ],
+      "British Empire": [
+        "c0507a"
+      ],
+      "British Raj": [
+        "c07a8a"
+      ],
+      "British West Africa": [
+        "c09a6a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Byelorussian SSR": [
+        "8d5236",
+        "932828"
+      ],
+      "Czechoslovakia": [
+        "5b7fae"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "Dominion of New Zealand": [
+        "b06a7a"
+      ],
+      "Dutch East Indies": [
+        "d08a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Estonian SSR": [
+        "7a6a8a",
+        "b04242"
+      ],
+      "French Equatorial Africa": [
+        "4a6fb0"
+      ],
+      "French Indochina": [
+        "6a8fd0"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "French West Africa": [
+        "5a7fc0"
+      ],
+      "Georgian SSR": [
+        "8e2020",
+        "c07a4a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Italy": [
+        "4f7942"
+      ],
+      "Kazakh SSR": [
+        "8f6b3c",
+        "912424"
+      ],
+      "Kirghiz SSR": [
+        "9c7a44",
+        "a63838"
+      ],
+      "Latvian SSR": [
+        "8a7a9a",
+        "aa3c3c"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libya": [
+        "ac40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuanian SSR": [
+        "9a8aaa",
+        "b44848"
+      ],
+      "Moldavian SSR": [
+        "9c3232",
+        "b08a7a"
+      ],
+      "Mongolian People's Republic": [
+        "a85454"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Netherlands": [
+        "e08a2e"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Republic of China": [
+        "4a6db5"
+      ],
+      "Russian SFSR": [
+        "9e2222",
+        "a03c28"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Siam": [
+        "4068bf"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "Soviet Civil Administration in Korea": [
+        "a33232"
+      ],
+      "Soviet Union": [
+        "8b1a1a"
+      ],
+      "Spain": [
+        "d0a02e"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tajik SSR": [
+        "9a2c2c",
+        "a87c46"
+      ],
+      "Turkmen SSR": [
+        "8f2626",
+        "b08a4a"
+      ],
+      "Ukrainian SSR": [
+        "a83030",
+        "b9603a"
+      ],
+      "Union of South Africa": [
+        "a87a5a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "US Military Government in Korea": [
+        "3a7fbf"
+      ],
+      "Uzbek SSR": [
+        "a43434",
+        "c99a52"
+      ],
+      "Yugoslavia": [
+        "6a8caf"
+      ]
+    },
+    "coldwar-1989": {
+      "Albania": [
+        "7a8a4a"
+      ],
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Armenian SSR": [
+        "a02a2a",
+        "b06a4a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Azerbaijan SSR": [
+        "962e2e",
+        "c08a5a"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Byelorussian SSR": [
+        "8d5236",
+        "932828"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Czechoslovakia": [
+        "5b7fae"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Estonian SSR": [
+        "7a6a8a",
+        "b04242"
+      ],
+      "Federal Republic of Germany": [
+        "8a8a9a"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Georgian SSR": [
+        "8e2020",
+        "c07a4a"
+      ],
+      "German Democratic Republic": [
+        "7a5a5a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Hungarian People's Republic": [
+        "8a9a5a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakh SSR": [
+        "8f6b3c",
+        "912424"
+      ],
+      "Kirghiz SSR": [
+        "9c7a44",
+        "a63838"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Latvian SSR": [
+        "8a7a9a",
+        "aa3c3c"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libya": [
+        "ac40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuanian SSR": [
+        "9a8aaa",
+        "b44848"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldavian SSR": [
+        "9c3232",
+        "b08a7a"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "40b7bf"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Democratic Republic of Yemen": [
+        "a05a4a"
+      ],
+      "People's Republic of Bulgaria": [
+        "9a7a5a"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "People's Republic of Kampuchea": [
+        "8a6a4a"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Polish People's Republic": [
+        "b0705a"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Afghanistan": [
+        "8a7a4a"
+      ],
+      "Republic of China": [
+        "4a6db5"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Russian SFSR": [
+        "9e2222",
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Socialist Republic of Romania": [
+        "a08a4a"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "a87a5a"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "4057bf"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tajik SSR": [
+        "9a2c2c",
+        "a87c46"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Turkmen SSR": [
+        "8f2626",
+        "b08a4a"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukrainian SSR": [
+        "a83030",
+        "b9603a"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbek SSR": [
+        "a43434",
+        "c99a52"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "a0503a"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Yemen Arab Republic": [
+        "b0a05a"
+      ],
+      "Yugoslavia": [
+        "6a8caf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "colonial-1650": {
+      "Ajuran Sultanate": [
+        "3a6a8f"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Apacheria": [
+        "9a6a3a"
+      ],
+      "Ayutthaya": [
+        "d0b060"
+      ],
+      "Cherokee": [
+        "6f8f3f"
+      ],
+      "Choctaw and Chickasaw": [
+        "b8604a"
+      ],
+      "Commonwealth of England": [
+        "b23b3b"
+      ],
+      "Crimean Khanate": [
+        "5aa06a"
+      ],
+      "Dai Viet": [
+        "3f7ab8"
+      ],
+      "Denmark-Norway": [
+        "b0486a"
+      ],
+      "Dine (Navajo)": [
+        "8f5f8f"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Duchy of Guastalla": [
+        "66bf40"
+      ],
+      "Duchy of Mantua": [
+        "66bf40"
+      ],
+      "Duchy of Massa and Carrara": [
+        "66bf40"
+      ],
+      "Duchy of Mirandola": [
+        "66bf40"
+      ],
+      "Duchy of Modena": [
+        "66bf40"
+      ],
+      "Duchy of Parma": [
+        "66bf40"
+      ],
+      "Dutch Republic": [
+        "e08a2e"
+      ],
+      "Dzungar Khanate": [
+        "4f6ab8"
+      ],
+      "Ethiopian Empire": [
+        "4a8f6a"
+      ],
+      "Funj Sultanate": [
+        "4f8f6a"
+      ],
+      "Ganden Phodrang": [
+        "d0a040"
+      ],
+      "Grand Duchy of Tuscany": [
+        "66bf40"
+      ],
+      "Habsburg Monarchy": [
+        "caa64a"
+      ],
+      "Haudenosaunee": [
+        "8a5a8a"
+      ],
+      "Holy Roman Empire": [
+        "b0a878"
+      ],
+      "Imamate of Oman": [
+        "b85a2e"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Irish Catholic Confederation": [
+        "bfac40"
+      ],
+      "Itza Maya": [
+        "5a9a8a"
+      ],
+      "Joseon": [
+        "5a9a7a"
+      ],
+      "Kanem-Bornu": [
+        "6f5a9a"
+      ],
+      "Kazakh Khanate": [
+        "b8722e"
+      ],
+      "Khalkha Mongols": [
+        "7a9a3f"
+      ],
+      "Khanate of Bukhara": [
+        "3f9a9a"
+      ],
+      "Khanate of Khiva": [
+        "a04f70"
+      ],
+      "Kingdom of Cambodia": [
+        "6a9a4f"
+      ],
+      "Kingdom of France": [
+        "2f5fd0"
+      ],
+      "Kingdom of Kandy": [
+        "7a5a30"
+      ],
+      "Kingdom of Mutapa": [
+        "8f7a3f"
+      ],
+      "Lan Xang": [
+        "9a8f2e"
+      ],
+      "Mapuche": [
+        "3f7a4f"
+      ],
+      "Mughal Empire": [
+        "3a7d4f"
+      ],
+      "Muscogee": [
+        "c07a4a"
+      ],
+      "Oceti Sakowin": [
+        "7a94b8"
+      ],
+      "Ottoman Empire": [
+        "6b4f2e"
+      ],
+      "Polish-Lithuanian Commonwealth": [
+        "d23ca0"
+      ],
+      "Portuguese Empire": [
+        "2e7d6b"
+      ],
+      "Principality of Neuchâtel": [
+        "84bf40"
+      ],
+      "Qasimid Yemen": [
+        "8f6a2e"
+      ],
+      "Qing Dynasty": [
+        "c9a227"
+      ],
+      "Republic of Genoa": [
+        "66bf40"
+      ],
+      "Republic of Lucca": [
+        "66bf40"
+      ],
+      "Republic of Valais": [
+        "84bf40"
+      ],
+      "Safavid Persia": [
+        "34869a"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Spanish Empire": [
+        "d2a02e"
+      ],
+      "Sultanate of Morocco": [
+        "2e5d8f"
+      ],
+      "Swedish Empire": [
+        "4a78c0"
+      ],
+      "Swiss Confederacy": [
+        "84bf40"
+      ],
+      "Three Leagues": [
+        "84bf40"
+      ],
+      "Tokugawa Japan": [
+        "c0507a"
+      ],
+      "Toungoo Burma": [
+        "c04f4f"
+      ],
+      "Tsardom of Russia": [
+        "2f8f4f",
+        "7a6b9a"
+      ]
+    },
+    "default": {
+      "Afghanistan": [
+        "40a0a7",
+        "859a5b"
+      ],
+      "AGO": [
+        "bf40b5"
+      ],
+      "AIA": [
+        "bf404f"
+      ],
+      "Akrotiri and Dhekelia": [
+        "5740bf",
+        "b34242"
+      ],
+      "ALA": [
+        "88bf40"
+      ],
+      "Aland Islands": [
+        "46c86c",
+        "88bf40"
+      ],
+      "Albania": [
+        "952d66",
+        "9f51d6"
+      ],
+      "Algeria": [
+        "40bf9b",
+        "59a680"
+      ],
+      "American Samoa": [
+        "bf409f",
+        "ccc175"
+      ],
+      "AND": [
+        "40bf82"
+      ],
+      "Andorra": [
+        "38a6bc",
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5",
+        "d13d8d"
+      ],
+      "Anguilla": [
+        "7bc563",
+        "bf404f"
+      ],
+      "Antigua and Barbuda": [
+        "726ed4",
+        "bf406a"
+      ],
+      "ARE": [
+        "8c40bf"
+      ],
+      "Argentina": [
+        "80b3db",
+        "919dec"
+      ],
+      "Armenia": [
+        "b066b4",
+        "c6612f"
+      ],
+      "ASM": [
+        "bf409f"
+      ],
+      "ATF": [
+        "bf406c"
+      ],
+      "ATG": [
+        "bf406a"
+      ],
+      "Australia": [
+        "cc8f3c",
+        "cc9f5c"
+      ],
+      "Austria": [
+        "bf7340",
+        "c28e99"
+      ],
+      "AUT": [
+        "bf7340"
+      ],
+      "AZE": [
+        "40bf9d"
+      ],
+      "Azerbaijan": [
+        "40bf9d",
+        "50be95"
+      ],
+      "Bahamas": [
+        "4068bf",
+        "c45ace"
+      ],
+      "Bahrain": [
+        "c3db66",
+        "e60000"
+      ],
+      "Bangladesh": [
+        "40bfb5",
+        "427ab3"
+      ],
+      "Barbados": [
+        "40bf88",
+        "c84661"
+      ],
+      "BDI": [
+        "86bf40"
+      ],
+      "Belarus": [
+        "51d65d",
+        "9660a8"
+      ],
+      "Belgium": [
+        "bcb062",
+        "c1ab08"
+      ],
+      "Belize": [
+        "9675cc",
+        "bf4051"
+      ],
+      "BEN": [
+        "40bf46"
+      ],
+      "Benin": [
+        "40bf46",
+        "bc9138"
+      ],
+      "Bermuda": [
+        "3dd1cc",
+        "bf6640"
+      ],
+      "BES": [
+        "40bf51"
+      ],
+      "BFA": [
+        "40bf6c"
+      ],
+      "BGD": [
+        "40bfb5"
+      ],
+      "BGR": [
+        "40acbf"
+      ],
+      "BHS": [
+        "4068bf"
+      ],
+      "Bhutan": [
+        "4059bf",
+        "c563ac"
+      ],
+      "BIH": [
+        "4240bf"
+      ],
+      "BLM": [
+        "bf406c"
+      ],
+      "BLZ": [
+        "bf4051"
+      ],
+      "BMU": [
+        "bf6640"
+      ],
+      "Bolivia": [
+        "9cd46e",
+        "cca56c"
+      ],
+      "Bonaire, Sint Eustatius and Saba": [
+        "2f47c6",
+        "40bf51"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf",
+        "be5e50"
+      ],
+      "Botswana": [
+        "5ace8b",
+        "bf40ae"
+      ],
+      "Brazil": [
+        "4c913f",
+        "51b86b"
+      ],
+      "BRB": [
+        "40bf88"
+      ],
+      "British Virgin Islands": [
+        "b966db",
+        "bf40a4"
+      ],
+      "Brunei": [
+        "b2b342",
+        "e6e600"
+      ],
+      "BTN": [
+        "4059bf"
+      ],
+      "Bulgaria": [
+        "40acbf",
+        "46a2c8"
+      ],
+      "Burkina Faso": [
+        "40bf6c",
+        "d65188"
+      ],
+      "Burundi": [
+        "80cc75",
+        "86bf40"
+      ],
+      "BWA": [
+        "bf40ae"
+      ],
+      "Cabo Verde": [
+        "4f38bc",
+        "bf404f"
+      ],
+      "CAF": [
+        "4051bf"
+      ],
+      "Cambodia": [
+        "996633",
+        "d1823d"
+      ],
+      "Cameroon": [
+        "6240bf",
+        "63c5ad"
+      ],
+      "Canada": [
+        "ce828c",
+        "e93b3b"
+      ],
+      "Cayman Islands": [
+        "7140bf",
+        "d46ecf"
+      ],
+      "Central African Republic": [
+        "4051bf",
+        "93c62f"
+      ],
+      "Chad": [
+        "5079be",
+        "acbf40"
+      ],
+      "CHE": [
+        "84bf40"
+      ],
+      "Chile": [
+        "698ebf",
+        "9b656b"
+      ],
+      "China": [
+        "cb4c48",
+        "f50c37"
+      ],
+      "CIV": [
+        "40bf62"
+      ],
+      "CMR": [
+        "6240bf"
+      ],
+      "COD": [
+        "bf40b7"
+      ],
+      "COK": [
+        "bf40a8"
+      ],
+      "Colombia": [
+        "c9b85e",
+        "debb5b"
+      ],
+      "COM": [
+        "bf40a4"
+      ],
+      "Comoros": [
+        "bf40a4",
+        "ce5a63"
+      ],
+      "Cook Islands": [
+        "66db7f",
+        "bf40a8"
+      ],
+      "Costa Rica": [
+        "7b42b3",
+        "ff5050"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62",
+        "c8ae46"
+      ],
+      "CPV": [
+        "bf404f"
+      ],
+      "Croatia": [
+        "40bfbf",
+        "51cbd6"
+      ],
+      "Cuba": [
+        "8c41a6",
+        "c17067"
+      ],
+      "CYM": [
+        "7140bf"
+      ],
+      "CYP": [
+        "7740bf"
+      ],
+      "Cyprus": [
+        "7740bf",
+        "cc75ab"
+      ],
+      "Czechia": [
+        "36a79c",
+        "64bc38"
+      ],
+      "Democratic Republic of the Congo": [
+        "3d42d1",
+        "bf40b7"
+      ],
+      "Denmark": [
+        "40bf97",
+        "c5636c"
+      ],
+      "DJI": [
+        "bf8a40"
+      ],
+      "Djibouti": [
+        "bf8a40",
+        "c57c63"
+      ],
+      "DMA": [
+        "40bf40"
+      ],
+      "DNK": [
+        "40bf97"
+      ],
+      "Dominica": [
+        "40bf40",
+        "6ed4a5"
+      ],
+      "Dominican Republic": [
+        "9882bf",
+        "ae2fc6"
+      ],
+      "DZA": [
+        "40bf9b"
+      ],
+      "Ecuador": [
+        "b0be50",
+        "f99262"
+      ],
+      "Egypt": [
+        "ccb67b",
+        "e6e646"
+      ],
+      "El Salvador": [
+        "40bf4a",
+        "5a9dce"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa",
+        "db6688"
+      ],
+      "ERI": [
+        "40bf9d"
+      ],
+      "Eritrea": [
+        "40bf9d",
+        "42b343"
+      ],
+      "ESH": [
+        "40a2bf"
+      ],
+      "Estonia": [
+        "3287af",
+        "6d46c8"
+      ],
+      "Ethiopia": [
+        "7da857",
+        "9882bf"
+      ],
+      "Faroe Islands": [
+        "bfac40",
+        "d6a051"
+      ],
+      "Fiji": [
+        "40bf8e",
+        "75ccc2"
+      ],
+      "Finland": [
+        "4d79bf",
+        "91b9d4"
+      ],
+      "FJI": [
+        "40bf8e"
+      ],
+      "France": [
+        "3971e4",
+        "6480ce"
+      ],
+      "French Guiana": [
+        "bc38a6",
+        "bf6240"
+      ],
+      "French Polynesia": [
+        "40bf7d",
+        "8cd13d"
+      ],
+      "French Southern Territories": [
+        "637bc5",
+        "bf406c"
+      ],
+      "FRO": [
+        "bfac40"
+      ],
+      "FSM": [
+        "95bf40"
+      ],
+      "GAB": [
+        "51bf40"
+      ],
+      "Gabon": [
+        "51bf40",
+        "d4736e"
+      ],
+      "Gambia": [
+        "2fc662",
+        "40bf48"
+      ],
+      "Georgia": [
+        "ba6d94",
+        "ff9696"
+      ],
+      "Germany": [
+        "665f56",
+        "a48565"
+      ],
+      "GGY": [
+        "bf4093"
+      ],
+      "GHA": [
+        "bf4084"
+      ],
+      "Ghana": [
+        "9650be",
+        "bf4084"
+      ],
+      "GIN": [
+        "bf5940"
+      ],
+      "GLP": [
+        "5bbf40"
+      ],
+      "GMB": [
+        "40bf48"
+      ],
+      "GNB": [
+        "40bf8a"
+      ],
+      "GNQ": [
+        "40bfaa"
+      ],
+      "GRC": [
+        "9540bf"
+      ],
+      "GRD": [
+        "9740bf"
+      ],
+      "Greece": [
+        "5aa3ce",
+        "9540bf"
+      ],
+      "Greenland": [
+        "5db5e3",
+        "cec55a"
+      ],
+      "Grenada": [
+        "66c2db",
+        "9740bf"
+      ],
+      "GTM": [
+        "bf4051"
+      ],
+      "Guadeloupe": [
+        "5bbf40",
+        "b34279"
+      ],
+      "Guam": [
+        "60c846",
+        "bf7140"
+      ],
+      "Guatemala": [
+        "5e51d6",
+        "bf4051"
+      ],
+      "Guernsey": [
+        "bf4093",
+        "cc9775"
+      ],
+      "GUF": [
+        "bf6240"
+      ],
+      "Guinea": [
+        "38bc92",
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a",
+        "cd3dd1"
+      ],
+      "GUM": [
+        "bf7140"
+      ],
+      "GUY": [
+        "bf8a40"
+      ],
+      "Guyana": [
+        "acc563",
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf",
+        "6e9bd4"
+      ],
+      "HND": [
+        "bf9140"
+      ],
+      "Honduras": [
+        "bf9140",
+        "c62f46"
+      ],
+      "HRV": [
+        "40bfbf"
+      ],
+      "HTI": [
+        "4057bf"
+      ],
+      "Hungary": [
+        "83ab69",
+        "f97e62"
+      ],
+      "Iceland": [
+        "50be5f",
+        "647daf"
+      ],
+      "IDN": [
+        "bf406c"
+      ],
+      "IMN": [
+        "6640bf"
+      ],
+      "India": [
+        "dd944b",
+        "e28728"
+      ],
+      "Indonesia": [
+        "bf406c",
+        "c56e59"
+      ],
+      "Iran": [
+        "94a659",
+        "bfb040"
+      ],
+      "Iraq": [
+        "ac8f5d",
+        "b27263"
+      ],
+      "Ireland": [
+        "509f5a",
+        "5dc06b"
+      ],
+      "IRN": [
+        "bfb040"
+      ],
+      "Isle of Man": [
+        "6640bf",
+        "8b5ace"
+      ],
+      "Israel": [
+        "779acf",
+        "9882bf"
+      ],
+      "Italy": [
+        "437f3f",
+        "6fb888"
+      ],
+      "JAM": [
+        "40bf4d"
+      ],
+      "Jamaica": [
+        "40bf4d",
+        "dbba66"
+      ],
+      "Japan": [
+        "e38288",
+        "ffc9b2"
+      ],
+      "Jersey": [
+        "42b2b3",
+        "6e40bf"
+      ],
+      "JEY": [
+        "6e40bf"
+      ],
+      "Jordan": [
+        "6f374e",
+        "c846a1"
+      ],
+      "KAZ": [
+        "bf6a40"
+      ],
+      "Kazakhstan": [
+        "69a6b5",
+        "bf6a40"
+      ],
+      "Kenya": [
+        "91670e",
+        "bd7f56"
+      ],
+      "KGZ": [
+        "4088bf"
+      ],
+      "KNA": [
+        "bf9140"
+      ],
+      "Kosovo": [
+        "407bbf",
+        "88d651"
+      ],
+      "Kuwait": [
+        "757fcc",
+        "bf4073"
+      ],
+      "KWT": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf",
+        "bc5038"
+      ],
+      "Laos": [
+        "3dd182",
+        "b06688"
+      ],
+      "Latvia": [
+        "40bfa4",
+        "ae63c5"
+      ],
+      "LBN": [
+        "9540bf"
+      ],
+      "LBR": [
+        "9d40bf"
+      ],
+      "LBY": [
+        "ac40bf"
+      ],
+      "LCA": [
+        "bb40bf"
+      ],
+      "Lebanon": [
+        "9540bf",
+        "ced46e"
+      ],
+      "Lesotho": [
+        "2f92c6",
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf",
+        "be5078"
+      ],
+      "Libya": [
+        "6ea677",
+        "ac40bf"
+      ],
+      "LIE": [
+        "40bf51"
+      ],
+      "Liechtenstein": [
+        "40bf51",
+        "62ce5a"
+      ],
+      "Lithuania": [
+        "40bf4a",
+        "8066db"
+      ],
+      "LKA": [
+        "40b3bf"
+      ],
+      "LSO": [
+        "84bf40"
+      ],
+      "LTU": [
+        "40bf4a"
+      ],
+      "Luxembourg": [
+        "41afb3",
+        "b37c42"
+      ],
+      "LVA": [
+        "40bfa4"
+      ],
+      "Madagascar": [
+        "4073bf",
+        "46c8ae"
+      ],
+      "Malawi": [
+        "86bf40",
+        "d651ca"
+      ],
+      "Malaysia": [
+        "40bf93",
+        "54b6a9"
+      ],
+      "Mali": [
+        "5ebf40",
+        "aacc75"
+      ],
+      "Malta": [
+        "3863bc",
+        "46bf40"
+      ],
+      "MAR": [
+        "40bf5e"
+      ],
+      "Marshall Islands": [
+        "bf4060",
+        "d13d41"
+      ],
+      "Martinique": [
+        "63c57c",
+        "bf4440"
+      ],
+      "Mauritania": [
+        "a66ed4",
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40",
+        "c6af2f"
+      ],
+      "Mayotte": [
+        "40bf95",
+        "50afbe"
+      ],
+      "MDA": [
+        "4080bf"
+      ],
+      "MDG": [
+        "4073bf"
+      ],
+      "Mexico": [
+        "689853",
+        "87ae5b"
+      ],
+      "MHL": [
+        "bf4060"
+      ],
+      "Micronesia": [
+        "95bf40",
+        "ce5a9c"
+      ],
+      "MKD": [
+        "aabf40"
+      ],
+      "MLI": [
+        "5ebf40"
+      ],
+      "MLT": [
+        "46bf40"
+      ],
+      "MMR": [
+        "40bf77"
+      ],
+      "MNE": [
+        "40bf9d"
+      ],
+      "MNP": [
+        "40bfb5"
+      ],
+      "Moldova": [
+        "4080bf",
+        "8476b2"
+      ],
+      "Mongolia": [
+        "6085a9",
+        "6c8c2a"
+      ],
+      "Montenegro": [
+        "40bf9d",
+        "87db66"
+      ],
+      "Montserrat": [
+        "4442b3",
+        "bf407b"
+      ],
+      "Morocco": [
+        "40bf5e",
+        "b85647"
+      ],
+      "MOZ": [
+        "4073bf"
+      ],
+      "Mozambique": [
+        "4073bf",
+        "c86e46"
+      ],
+      "MRT": [
+        "bf40b9"
+      ],
+      "MSR": [
+        "bf407b"
+      ],
+      "MTQ": [
+        "bf4440"
+      ],
+      "MUS": [
+        "bf8a40"
+      ],
+      "MWI": [
+        "86bf40"
+      ],
+      "Myanmar": [
+        "40bf77",
+        "51d6a1"
+      ],
+      "MYS": [
+        "40bf93"
+      ],
+      "MYT": [
+        "40bf95"
+      ],
+      "NA": [
+        "bf408e",
+        "c275cc"
+      ],
+      "NAM": [
+        "bf5540"
+      ],
+      "Namibia": [
+        "a5bc38",
+        "bf5540"
+      ],
+      "Nauru": [
+        "3d8bd1",
+        "40b5bf"
+      ],
+      "NCL": [
+        "a8bf40"
+      ],
+      "Nepal": [
+        "4dbf40",
+        "c5637a"
+      ],
+      "NER": [
+        "40bf68"
+      ],
+      "Netherlands": [
+        "cb8a4a",
+        "df8549"
+      ],
+      "New Caledonia": [
+        "6ed473",
+        "a8bf40"
+      ],
+      "New Zealand": [
+        "69b599",
+        "9882bf"
+      ],
+      "NGA": [
+        "40b7bf"
+      ],
+      "Nicaragua": [
+        "632fc6",
+        "92b3bf"
+      ],
+      "Niger": [
+        "40bf68",
+        "be9650"
+      ],
+      "Nigeria": [
+        "40b7bf",
+        "66a64e"
+      ],
+      "North Korea": [
+        "7ab361",
+        "875b9a"
+      ],
+      "North Macedonia": [
+        "5acec6",
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540",
+        "db66c1"
+      ],
+      "Northern Mariana Islands": [
+        "40bfb5",
+        "79b342"
+      ],
+      "Norway": [
+        "587dbb",
+        "6f4747"
+      ],
+      "NPL": [
+        "4dbf40"
+      ],
+      "NRU": [
+        "40b5bf"
+      ],
+      "Oman": [
+        "4660c8",
+        "7340bf"
+      ],
+      "OMN": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "006600",
+        "439d73"
+      ],
+      "Palau": [
+        "40bf46",
+        "d65f51"
+      ],
+      "Palestine": [
+        "75cc97",
+        "bf4091"
+      ],
+      "Panama": [
+        "9238bc",
+        "9882bf"
+      ],
+      "Papua New Guinea": [
+        "40bfa8",
+        "d1ce3d"
+      ],
+      "Paraguay": [
+        "63abc5",
+        "bf40a8"
+      ],
+      "Peru": [
+        "477161",
+        "bf8069"
+      ],
+      "Philippines": [
+        "6aafc8",
+        "bf4059"
+      ],
+      "PHL": [
+        "bf4059"
+      ],
+      "PLW": [
+        "40bf46"
+      ],
+      "PNG": [
+        "40bfa8"
+      ],
+      "Poland": [
+        "ba7890",
+        "d6668b"
+      ],
+      "Portugal": [
+        "277446",
+        "4ca990"
+      ],
+      "PRI": [
+        "b540bf"
+      ],
+      "PRY": [
+        "bf40a8"
+      ],
+      "PSE": [
+        "bf4091"
+      ],
+      "Puerto Rico": [
+        "b540bf",
+        "d46e9b"
+      ],
+      "PYF": [
+        "40bf7d"
+      ],
+      "QAT": [
+        "bf6a40"
+      ],
+      "Qatar": [
+        "45c62f",
+        "bf6a40"
+      ],
+      "Republic of the Congo": [
+        "6050be",
+        "989fd1"
+      ],
+      "REU": [
+        "bf7740"
+      ],
+      "Reunion": [
+        "bf7740",
+        "ce8c5a"
+      ],
+      "Romania": [
+        "c4b36e",
+        "d7c448"
+      ],
+      "Russia": [
+        "2f8f4f",
+        "5b9a5d"
+      ],
+      "RWA": [
+        "408cbf"
+      ],
+      "Rwanda": [
+        "408cbf",
+        "66dbbb"
+      ],
+      "Saint Barthelemy": [
+        "b342b1",
+        "bf406c"
+      ],
+      "Saint Helena, Ascension and Tris": [
+        "a0c846",
+        "bf404f"
+      ],
+      "Saint Kitts and Nevis": [
+        "5187d6",
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf",
+        "cc757f"
+      ],
+      "Saint Pierre and Miquelon": [
+        "38bc51",
+        "4040bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf",
+        "833dd1"
+      ],
+      "Samoa": [
+        "4071bf",
+        "c5ae63"
+      ],
+      "San Marino": [
+        "40bf84",
+        "6eced4"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40",
+        "c62f91"
+      ],
+      "Saudi Arabia": [
+        "459266",
+        "abbe98"
+      ],
+      "SDN": [
+        "4057bf"
+      ],
+      "SEN": [
+        "6a40bf"
+      ],
+      "Senegal": [
+        "6a40bf",
+        "77be50"
+      ],
+      "Serbia": [
+        "5a62ce",
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d",
+        "db8166"
+      ],
+      "SGP": [
+        "bf408c"
+      ],
+      "SHN": [
+        "bf404f"
+      ],
+      "Sierra Leone": [
+        "42b37c",
+        "59bf40"
+      ],
+      "Singapore": [
+        "af46c8",
+        "bf408c"
+      ],
+      "SJM": [
+        "bfb340"
+      ],
+      "SLB": [
+        "60bf40"
+      ],
+      "SLE": [
+        "59bf40"
+      ],
+      "Slovakia": [
+        "b7bf40",
+        "c9d651"
+      ],
+      "Slovenia": [
+        "75aacc",
+        "789646"
+      ],
+      "SLV": [
+        "40bf4a"
+      ],
+      "SMR": [
+        "40bf84"
+      ],
+      "Solomon Islands": [
+        "60bf40",
+        "bc3862"
+      ],
+      "SOM": [
+        "4082bf"
+      ],
+      "Somalia": [
+        "4082bf",
+        "40d13d"
+      ],
+      "South Africa": [
+        "b3914d",
+        "bf6040"
+      ],
+      "South Korea": [
+        "957dbf",
+        "fff0c3"
+      ],
+      "South Sudan": [
+        "7d63c5",
+        "bf408c"
+      ],
+      "Spain": [
+        "d6b751",
+        "f2cd5e"
+      ],
+      "SPM": [
+        "4040bf"
+      ],
+      "SRB": [
+        "ac40bf"
+      ],
+      "Sri Lanka": [
+        "40b3bf",
+        "d4a76e"
+      ],
+      "SSD": [
+        "bf408c"
+      ],
+      "STP": [
+        "bf4f40"
+      ],
+      "Sudan": [
+        "2fc6b0",
+        "4057bf"
+      ],
+      "SUR": [
+        "bf9540"
+      ],
+      "Suriname": [
+        "be50ae",
+        "bf9540"
+      ],
+      "Svalbard and Jan Mayen": [
+        "9bce5a",
+        "bfb340"
+      ],
+      "SVK": [
+        "b7bf40"
+      ],
+      "Swaziland": [
+        "55bf40",
+        "6686db"
+      ],
+      "Sweden": [
+        "2484f7",
+        "6ca1d0"
+      ],
+      "Switzerland": [
+        "84bf40",
+        "ce6467"
+      ],
+      "SWZ": [
+        "55bf40"
+      ],
+      "SYC": [
+        "40bf7d"
+      ],
+      "Syria": [
+        "646496",
+        "ad6d52"
+      ],
+      "Taiwan": [
+        "73c0c9",
+        "bf406c"
+      ],
+      "Tajikistan": [
+        "b040bf",
+        "b34442"
+      ],
+      "Tanzania": [
+        "46c86f",
+        "bfbd40"
+      ],
+      "TCA": [
+        "b3bf40"
+      ],
+      "TCD": [
+        "acbf40"
+      ],
+      "TGO": [
+        "408cbf"
+      ],
+      "THA": [
+        "4068bf"
+      ],
+      "Thailand": [
+        "4068bf",
+        "62b0bc"
+      ],
+      "Timor-Leste": [
+        "a251d6",
+        "bf4640"
+      ],
+      "TJK": [
+        "b040bf"
+      ],
+      "TKL": [
+        "bf408a"
+      ],
+      "TKM": [
+        "bf4088"
+      ],
+      "TLS": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf",
+        "ccc375"
+      ],
+      "Tokelau": [
+        "38a4bc",
+        "bf408a"
+      ],
+      "TON": [
+        "7dbf40"
+      ],
+      "Tonga": [
+        "7dbf40",
+        "d13d8a"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf",
+        "79c563"
+      ],
+      "TTO": [
+        "4f40bf"
+      ],
+      "TUN": [
+        "8e40bf"
+      ],
+      "Tunisia": [
+        "746ed4",
+        "8e40bf"
+      ],
+      "Turkey": [
+        "abbe98",
+        "bb5869"
+      ],
+      "Turkmenistan": [
+        "bf4088",
+        "c6642f"
+      ],
+      "Turks and Caicos Islands": [
+        "50be97",
+        "b3bf40"
+      ],
+      "TUV": [
+        "9f40bf"
+      ],
+      "Tuvalu": [
+        "9f40bf",
+        "c65ace"
+      ],
+      "TWN": [
+        "bf406c"
+      ],
+      "TZA": [
+        "bfbd40"
+      ],
+      "UGA": [
+        "a8bf40"
+      ],
+      "Uganda": [
+        "a8bf40",
+        "c0db66"
+      ],
+      "Ukraine": [
+        "0050e6",
+        "729bcb"
+      ],
+      "UMI": [
+        "7540bf"
+      ],
+      "United Arab Emirates": [
+        "4278b3",
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c9385d",
+        "cb7288"
+      ],
+      "United States": [
+        "1485ed",
+        "5170b8"
+      ],
+      "United States Minor Outlying Islands": [
+        "7540bf",
+        "c8465f"
+      ],
+      "Uruguay": [
+        "51d65f",
+        "9dbf40"
+      ],
+      "URY": [
+        "9dbf40"
+      ],
+      "UZB": [
+        "bf40bd"
+      ],
+      "Uzbekistan": [
+        "9875cc",
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bc9338",
+        "bf9f40"
+      ],
+      "VCT": [
+        "4086bf"
+      ],
+      "Venezuela": [
+        "abbe98",
+        "c37986"
+      ],
+      "VGB": [
+        "bf40a4"
+      ],
+      "Vietnam": [
+        "40bdbf",
+        "adb04f"
+      ],
+      "VIR": [
+        "bf8240"
+      ],
+      "Virgin Islands, U.S.": [
+        "3dd1ce",
+        "bf8240"
+      ],
+      "VNM": [
+        "40bdbf"
+      ],
+      "VUT": [
+        "bf9f40"
+      ],
+      "Wallis and Futuna": [
+        "bf404f",
+        "c563aa"
+      ],
+      "Western Sahara": [
+        "40a2bf",
+        "bbaa81"
+      ],
+      "WLF": [
+        "bf404f"
+      ],
+      "WSM": [
+        "4071bf"
+      ],
+      "XAD": [
+        "5740bf"
+      ],
+      "XKO": [
+        "407bbf"
+      ],
+      "Yemen": [
+        "9ad46e",
+        "9b656b"
+      ],
+      "Z01": [
+        "40b0bf"
+      ],
+      "Z02": [
+        "40aebf"
+      ],
+      "Z03": [
+        "40acbf"
+      ],
+      "Z04": [
+        "40aabf"
+      ],
+      "Z05": [
+        "40a8bf"
+      ],
+      "Z06": [
+        "40a6bf"
+      ],
+      "Z07": [
+        "40a4bf"
+      ],
+      "Z08": [
+        "40a2bf"
+      ],
+      "Z09": [
+        "409fbf"
+      ],
+      "ZAF": [
+        "bf6040"
+      ],
+      "Zambia": [
+        "2f44c6",
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "be6050",
+        "bf4073"
+      ],
+      "ZMB": [
+        "bf7140"
+      ],
+      "ZNC": [
+        "bfb540"
+      ],
+      "ZWE": [
+        "bf4073"
+      ]
+    },
+    "firerises-2020": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Autonomous Administration of North and East Syria": [
+        "c0a05a"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belarus": [
+        "8d6236"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Brazil": [
+        "5a9a5a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "Donetsk People's Republic": [
+        "8a4a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Ethiopia": [
+        "8a9a5a"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Germany": [
+        "8a8a9a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Government of National Accord": [
+        "5a8a9a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Islamic Republic of Afghanistan": [
+        "8a8a5a"
+      ],
+      "Islamic Republic of Iran": [
+        "5a8a6a"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libyan National Army": [
+        "a08a5a"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Luhansk People's Republic": [
+        "7a4040"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "40b7bf"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "bf4091"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Republic of Yemen": [
+        "b0a05a"
+      ],
+      "Russian Federation": [
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Saudi Arabia": [
+        "7a9a6a"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "bf6040"
+      ],
+      "South Sudan": [
+        "bf408c"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "4057bf"
+      ],
+      "Supreme Political Council": [
+        "a05a4a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Syrian Arab Republic": [
+        "9a7a5a"
+      ],
+      "Syrian Salvation Government": [
+        "6a7a4a"
+      ],
+      "Taiwan": [
+        "4a6db5"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Türkiye": [
+        "c05a4a"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukraine": [
+        "3f7fd0"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "kaiserreich-1936": {
+      "Andorra": [
+        "40bf82"
+      ],
+      "Austria-Hungary": [
+        "c0a060"
+      ],
+      "Beiyang Government": [
+        "4a6db5"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Commune of France": [
+        "c04040"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Empire of Japan": [
+        "b23b3b"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Fengtian Government": [
+        "a08a5a"
+      ],
+      "Flanders-Wallonia": [
+        "b0902e"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "German Empire": [
+        "3a3a4a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Kingdom of Bulgaria": [
+        "9a7a5a"
+      ],
+      "Kingdom of Finland": [
+        "7a8a9a"
+      ],
+      "Kingdom of Italy": [
+        "4f7942"
+      ],
+      "Kingdom of Lithuania": [
+        "9a8aaa"
+      ],
+      "Kingdom of Poland": [
+        "b0705a"
+      ],
+      "Kingdom of Spain": [
+        "d0a02e"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Left Kuomintang": [
+        "8a9a4a"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libya": [
+        "ac40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Ma Clique": [
+        "a89a6a"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Mongolia": [
+        "a85454"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "National France": [
+        "3f6fd0"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Netherlands": [
+        "e08a2e"
+      ],
+      "Nigeria": [
+        "40b7bf"
+      ],
+      "Norway": [
+        "6a8aaa"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Ottoman Empire": [
+        "7a9a5a"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Princely Federation of India": [
+        "c07a8a"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Russian State": [
+        "8a5a4a"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Shanxi Clique": [
+        "7d8f5a"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Socialist Republic of Italy": [
+        "b03838"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "bf6040"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Sweden": [
+        "5a7a9a"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Tibet": [
+        "c8c0a0"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukrainian State": [
+        "c9a05a"
+      ],
+      "Union of Britain": [
+        "a03030"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Baltic Duchy": [
+        "8a7a9a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "White Ruthenia": [
+        "8d6236"
+      ],
+      "Xinjiang Clique": [
+        "6f8f7a"
+      ],
+      "Yunnan Clique": [
+        "6a9a6a"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "korea-1950": {
+      "Allied-occupied Austria": [
+        "b8b8c8"
+      ],
+      "Allied-occupied Japan": [
+        "b23b3b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Armenian SSR": [
+        "b06a4a"
+      ],
+      "Azerbaijan SSR": [
+        "c08a5a"
+      ],
+      "Belgian Congo": [
+        "8a9a3a"
+      ],
+      "Belgium": [
+        "b0902e"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "British Central Africa": [
+        "a89a7a"
+      ],
+      "British East Africa": [
+        "b08a5a"
+      ],
+      "British Empire": [
+        "c0507a"
+      ],
+      "British West Africa": [
+        "c09a6a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burma": [
+        "b0a04a"
+      ],
+      "Byelorussian SSR": [
+        "8d5236"
+      ],
+      "Ceylon": [
+        "8fae7a"
+      ],
+      "Commonwealth of Australia": [
+        "d07a5a"
+      ],
+      "Czechoslovakia": [
+        "5b7fae"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of Vietnam": [
+        "b5453a"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "Dominion of New Zealand": [
+        "b06a7a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Estonian SSR": [
+        "7a6a8a"
+      ],
+      "Federal Republic of Germany": [
+        "8a8a9a"
+      ],
+      "French Equatorial Africa": [
+        "4a6fb0"
+      ],
+      "French Indochina": [
+        "6a8fd0"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "French West Africa": [
+        "5a7fc0"
+      ],
+      "Georgian SSR": [
+        "c07a4a"
+      ],
+      "German Democratic Republic": [
+        "7a5a5a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "d08a4a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Italy": [
+        "4f7942"
+      ],
+      "Jordan": [
+        "b09a5a"
+      ],
+      "Kazakh SSR": [
+        "8f6b3c"
+      ],
+      "Kirghiz SSR": [
+        "9c7a44"
+      ],
+      "Latvian SSR": [
+        "8a7a9a"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuanian SSR": [
+        "9a8aaa"
+      ],
+      "Moldavian SSR": [
+        "b08a7a"
+      ],
+      "Mongolian People's Republic": [
+        "a85454"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Netherlands": [
+        "e08a2e"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "7a9ac0"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Republic of China": [
+        "4a6db5"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Russian SFSR": [
+        "a03c28"
+      ],
+      "Saar Protectorate": [
+        "6a7fb0"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "Soviet Union": [
+        "8b1a1a"
+      ],
+      "Spain": [
+        "d0a02e"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tajik SSR": [
+        "a87c46"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Tibet": [
+        "c8c0a0"
+      ],
+      "Turkmen SSR": [
+        "b08a4a"
+      ],
+      "Ukrainian SSR": [
+        "b9603a"
+      ],
+      "Union of South Africa": [
+        "a87a5a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbek SSR": [
+        "c99a52"
+      ],
+      "Yugoslavia": [
+        "6a8caf"
+      ]
+    },
+    "magna-1444": {
+      "Adal Sultanate": [
+        "923659"
+      ],
+      "Ahom Assam": [
+        "9a133a"
+      ],
+      "Ajuran Sultanate": [
+        "fff8ff"
+      ],
+      "Aq Qoyunlu": [
+        "595780",
+        "b08a5a"
+      ],
+      "Ashikaga Japan": [
+        "9293b9",
+        "a85454"
+      ],
+      "Ayutthaya": [
+        "4a7ab0",
+        "618f5e"
+      ],
+      "Aztec Triple Alliance": [
+        "194d33",
+        "8a3a3a"
+      ],
+      "Bahmani Sultanate": [
+        "68a4ae",
+        "6b7a5a"
+      ],
+      "Bahrain": [
+        "0062b1"
+      ],
+      "Bengal Sultanate": [
+        "6680ad",
+        "7a9a6a"
+      ],
+      "Beylik of Candar": [
+        "a36593"
+      ],
+      "Beylik of Dulkadir": [
+        "e7ffdb"
+      ],
+      "Beylik of Ramazan": [
+        "9c0d0d"
+      ],
+      "Bishopric of Münster": [
+        "ce8346"
+      ],
+      "Bishopric of Würzburg": [
+        "c8b265"
+      ],
+      "Borana": [
+        "dfaa4e"
+      ],
+      "Burgundian State": [
+        "8a3a5a",
+        "913430"
+      ],
+      "Byzantine Empire": [
+        "7a5aa0",
+        "890685"
+      ],
+      "Cajamarca": [
+        "a77d57"
+      ],
+      "Calchaquí": [
+        "654a77"
+      ],
+      "Carib": [
+        "1c5f3d"
+      ],
+      "Chachapoya": [
+        "94aebe"
+      ],
+      "Champa": [
+        "6e9c9f",
+        "8a9a3e"
+      ],
+      "Charca": [
+        "eba5f6"
+      ],
+      "Charrúa": [
+        "987d7a"
+      ],
+      "Circassia": [
+        "3d9b18"
+      ],
+      "Clanricarde": [
+        "dfff8e"
+      ],
+      "Colla": [
+        "c9d2a5"
+      ],
+      "County of Oldenburg": [
+        "936c6c"
+      ],
+      "County of Provence": [
+        "c8c0d3"
+      ],
+      "County of Württemberg": [
+        "a1ce69"
+      ],
+      "Crimean Khanate": [
+        "47b869",
+        "b8a04a"
+      ],
+      "Crown of Aragon": [
+        "86302d",
+        "c88a2e"
+      ],
+      "Crown of Castile": [
+        "bda400",
+        "d0a02e"
+      ],
+      "Dai Viet": [
+        "4a9a5a",
+        "866e60"
+      ],
+      "Delhi Sultanate": [
+        "969b4e",
+        "c87a3e"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Duchies of Silesia": [
+        "75b922"
+      ],
+      "Duchy of Athens": [
+        "11a259"
+      ],
+      "Duchy of Bavaria": [
+        "bbbac9"
+      ],
+      "Duchy of Brittany": [
+        "16a5a5",
+        "6a8fb0"
+      ],
+      "Duchy of Brunswick": [
+        "8b4e2d"
+      ],
+      "Duchy of Cleves": [
+        "ffeb66"
+      ],
+      "Duchy of Holstein": [
+        "fff3a3"
+      ],
+      "Duchy of Lüneburg": [
+        "115b97"
+      ],
+      "Duchy of Mecklenburg": [
+        "aeaddb"
+      ],
+      "Duchy of Milan": [
+        "6f9fd8",
+        "f44e3b"
+      ],
+      "Duchy of Pomerania": [
+        "619226"
+      ],
+      "Duchy of Savoy": [
+        "009ce0",
+        "9a7ab0"
+      ],
+      "Earldom of Desmond": [
+        "e57272"
+      ],
+      "Earldom of Kildare": [
+        "87a8dd"
+      ],
+      "Electorate of Saxony": [
+        "7b7d93"
+      ],
+      "Emirate of Granada": [
+        "3e7d5a",
+        "fff29e"
+      ],
+      "Empire of Trebizond": [
+        "35d6cb",
+        "9a6a8a"
+      ],
+      "Ethiopian Empire": [
+        "7595c6",
+        "8a7a2e"
+      ],
+      "Free Frisia": [
+        "c45100"
+      ],
+      "Grand Duchy of Lithuania": [
+        "8b9a54",
+        "a72f91"
+      ],
+      "Grand Duchy of Moscow": [
+        "8b5a3e",
+        "ffe07a"
+      ],
+      "Great Horde": [
+        "a0803e",
+        "c1b37f"
+      ],
+      "Guaraní": [
+        "905349"
+      ],
+      "Habsburg Austria": [
+        "cccccc",
+        "d8c878"
+      ],
+      "Hafsid Sultanate": [
+        "6b7208",
+        "7d9a5a"
+      ],
+      "Haixi Jurchens": [
+        "cabee1"
+      ],
+      "Hanthawaddy Pegu": [
+        "9fb79a"
+      ],
+      "Holy Roman Empire": [
+        "b8b8a0"
+      ],
+      "Huaylas": [
+        "417054"
+      ],
+      "Ichma": [
+        "611b24"
+      ],
+      "Imerina": [
+        "217d4f"
+      ],
+      "Inca Empire": [
+        "b8862e",
+        "c25454"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Jaunpur Sultanate": [
+        "716271"
+      ],
+      "Jharkhand": [
+        "8f926b"
+      ],
+      "Jianzhou Jurchens": [
+        "4d2a33"
+      ],
+      "Joseon": [
+        "571aff",
+        "5b7fae"
+      ],
+      "Kalmar Union": [
+        "4068bf",
+        "f44e3b"
+      ],
+      "Karamanids": [
+        "6b8a7a",
+        "73caef"
+      ],
+      "Khanate of Kazan": [
+        "665c64",
+        "7a9a4a"
+      ],
+      "Khmer Kingdom": [
+        "5a9a7a",
+        "a4dd00"
+      ],
+      "Kilwa Sultanate": [
+        "c45100"
+      ],
+      "Kingdom of Ava": [
+        "7a9a4a",
+        "7f8873"
+      ],
+      "Kingdom of Benin": [
+        "c19a57"
+      ],
+      "Kingdom of Bohemia": [
+        "b8b86a",
+        "e27300"
+      ],
+      "Kingdom of Bosnia": [
+        "6a7a9a",
+        "ffc8ad"
+      ],
+      "Kingdom of Chimor": [
+        "476f71"
+      ],
+      "Kingdom of England": [
+        "9f0500",
+        "c05a5a"
+      ],
+      "Kingdom of France": [
+        "3800d1",
+        "3f5fd0"
+      ],
+      "Kingdom of Georgia": [
+        "6a9a6a",
+        "be2325"
+      ],
+      "Kingdom of Hormuz": [
+        "f44e3b"
+      ],
+      "Kingdom of Hungary": [
+        "8e3d2e",
+        "e8d878"
+      ],
+      "Kingdom of Kongo": [
+        "5a7a8a",
+        "b4bc49"
+      ],
+      "Kingdom of Kotte": [
+        "738e6c"
+      ],
+      "Kingdom of Leinster": [
+        "40d642"
+      ],
+      "Kingdom of Mewar": [
+        "a18c4b"
+      ],
+      "Kingdom of Mrauk U": [
+        "a69678"
+      ],
+      "Kingdom of Naples": [
+        "653294"
+      ],
+      "Kingdom of Navarre": [
+        "a0522e",
+        "fff38e"
+      ],
+      "Kingdom of Poland": [
+        "c0507a",
+        "ea6b5d"
+      ],
+      "Kingdom of Portugal": [
+        "194d33",
+        "2e7d6b"
+      ],
+      "Kingdom of Scotland": [
+        "4a6a9a",
+        "fcdc00"
+      ],
+      "Kingdom of Thomond": [
+        "8db8bc"
+      ],
+      "Kingdom of Tripura": [
+        "a75e55"
+      ],
+      "Lan Xang": [
+        "c3564e"
+      ],
+      "Landgraviate of Hesse": [
+        "af0d3e"
+      ],
+      "League of Lezhë": [
+        "8a4a4a",
+        "e5001a"
+      ],
+      "Majapahit": [
+        "9a8a4a"
+      ],
+      "Malacca Sultanate": [
+        "4a8f7a"
+      ],
+      "Mali Empire": [
+        "c8b83e"
+      ],
+      "Mamluk Sultanate": [
+        "c8a03e",
+        "ffe747"
+      ],
+      "Marehan": [
+        "47527b"
+      ],
+      "Margraviate of Baden": [
+        "a4c6a6"
+      ],
+      "Margraviate of Brandenburg": [
+        "a44737"
+      ],
+      "Marquisate of Ferrara": [
+        "437406"
+      ],
+      "Maya Kingdoms": [
+        "3d0f75",
+        "5a8a5a"
+      ],
+      "Ming Empire": [
+        "b23b3b",
+        "ca9887"
+      ],
+      "Moldavia": [
+        "b09a5e",
+        "d4c24e"
+      ],
+      "Muisca Confederation": [
+        "f4de52"
+      ],
+      "Mushasha": [
+        "96748a"
+      ],
+      "Nabhani Oman": [
+        "694d30"
+      ],
+      "Northern Yuan": [
+        "747952"
+      ],
+      "Novgorod Republic": [
+        "5a8a9a",
+        "88af34"
+      ],
+      "Oirat Confederation": [
+        "ebc7bc"
+      ],
+      "Ottoman Empire": [
+        "5a8a6a",
+        "9f0500"
+      ],
+      "Oyo": [
+        "c8a66a"
+      ],
+      "Pacajes": [
+        "908eab"
+      ],
+      "Papal States": [
+        "e8e0c0",
+        "f5b342"
+      ],
+      "Phagmodrupa Tibet": [
+        "776f8b"
+      ],
+      "Potiguara": [
+        "cccccc"
+      ],
+      "Purépecha Empire": [
+        "7a5a3a"
+      ],
+      "Qara Qoyunlu": [
+        "5e7178",
+        "8a6a4a"
+      ],
+      "Qatar": [
+        "653294"
+      ],
+      "Quito": [
+        "aa7474"
+      ],
+      "Rasulid Yemen": [
+        "8b2623"
+      ],
+      "Republic of Florence": [
+        "c8a86a",
+        "d33115"
+      ],
+      "Republic of Genoa": [
+        "7a8fb8",
+        "fff842"
+      ],
+      "Republic of Lucca": [
+        "873bce"
+      ],
+      "Republic of Ragusa": [
+        "d0b87a"
+      ],
+      "Republic of Siena": [
+        "a0ab4f"
+      ],
+      "Republic of Venice": [
+        "16a5a5",
+        "4a8f8f"
+      ],
+      "Samma Sindh": [
+        "741a1a"
+      ],
+      "Serbian Despotate": [
+        "080075",
+        "7a6a9a"
+      ],
+      "Shan States": [
+        "a581b7"
+      ],
+      "Sharifate of Hejaz": [
+        "73d8ff"
+      ],
+      "Shirvan": [
+        "93b5c7"
+      ],
+      "Sidamo": [
+        "653294"
+      ],
+      "Sligo": [
+        "edc2fc"
+      ],
+      "Sultanate of Brunei": [
+        "0062b1"
+      ],
+      "Sultanate of Morocco": [
+        "662b00",
+        "9a5a3e"
+      ],
+      "Swiss Confederacy": [
+        "9aa8c8",
+        "ff7161"
+      ],
+      "Tapuia": [
+        "fbdb8c"
+      ],
+      "Teutonic Order": [
+        "4a4a4a",
+        "666666"
+      ],
+      "Timurid Empire": [
+        "b07a3e",
+        "d50027"
+      ],
+      "Tupinambá": [
+        "b66e5f"
+      ],
+      "Tyrone": [
+        "b58a75"
+      ],
+      "Uzbek Khanate": [
+        "696d73",
+        "8a8a3e"
+      ],
+      "Vijayanagara": [
+        "d8b83e",
+        "ffdb64"
+      ],
+      "Wallachia": [
+        "a08a3e",
+        "fcc400"
+      ],
+      "Wanka": [
+        "c1a98a"
+      ],
+      "Warsangeli Sultanate": [
+        "531c87"
+      ],
+      "Zayyanid Tlemcen": [
+        "0062b1"
+      ]
+    },
+    "medieval-1200": {
+      "Abbasid Caliphate": [
+        "6b8e23"
+      ],
+      "Almohad Caliphate": [
+        "2e7d4f"
+      ],
+      "Angevin Empire": [
+        "b23b3b"
+      ],
+      "Ayyubid Sultanate": [
+        "3f8f8f"
+      ],
+      "Bulgarian Empire": [
+        "8a5a3a"
+      ],
+      "Byzantine Empire": [
+        "7d3fb2"
+      ],
+      "Chola Empire": [
+        "c07a4a"
+      ],
+      "Cilician Armenia": [
+        "d98cae"
+      ],
+      "Crown of Aragon": [
+        "d23c3c"
+      ],
+      "Crown of Castile": [
+        "d2a02e"
+      ],
+      "Crusader States": [
+        "e04545"
+      ],
+      "Dai Viet": [
+        "4a8a5a"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Duchy of Poland": [
+        "d23ca0"
+      ],
+      "Ghurid Empire": [
+        "8a5a8a"
+      ],
+      "Goryeo": [
+        "5a9a7a"
+      ],
+      "Grand Principality of Serbia": [
+        "9a4f9a"
+      ],
+      "Holy Roman Empire": [
+        "caa64a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Jin Dynasty": [
+        "b87333"
+      ],
+      "Kamakura Japan": [
+        "c0507a"
+      ],
+      "Khmer Empire": [
+        "c2a23a"
+      ],
+      "Khwarazmian Empire": [
+        "8b6f47"
+      ],
+      "Kievan Rus'": [
+        "9a6b2f"
+      ],
+      "Kingdom of Dali": [
+        "6aae8a"
+      ],
+      "Kingdom of Denmark": [
+        "c9385d"
+      ],
+      "Kingdom of France": [
+        "2f5fd0"
+      ],
+      "Kingdom of Georgia": [
+        "5a9ac0"
+      ],
+      "Kingdom of Hungary": [
+        "3f9d9d"
+      ],
+      "Kingdom of Navarre": [
+        "5fae5f"
+      ],
+      "Kingdom of Norway": [
+        "5b8ec9"
+      ],
+      "Kingdom of Pagan": [
+        "b08a3a"
+      ],
+      "Kingdom of Polonnaruwa": [
+        "5a9a8a"
+      ],
+      "Kingdom of Portugal": [
+        "2e7d6b"
+      ],
+      "Kingdom of Scotland": [
+        "6a6a9a"
+      ],
+      "Kingdom of Sicily": [
+        "c97a2e"
+      ],
+      "Kingdom of Sweden": [
+        "4a78c0"
+      ],
+      "Papal States": [
+        "e6d27a"
+      ],
+      "Republic of Venice": [
+        "8a7d3f"
+      ],
+      "Southern Song": [
+        "c97a5a"
+      ],
+      "Srivijaya": [
+        "6a7ab0"
+      ],
+      "Sultanate of Rum": [
+        "c25a3a"
+      ],
+      "Tibet": [
+        "b0a0c0"
+      ],
+      "Volga Bulgaria": [
+        "7a8a4a"
+      ],
+      "Western Xia": [
+        "d0b060"
+      ],
+      "Zagwe Ethiopia": [
+        "4a8f6a"
+      ]
+    },
+    "millennium-2000": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "FR Yugoslavia": [
+        "5b6fae"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Islamic Emirate of Afghanistan": [
+        "6b6b5a"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libyan Arab Jamahiriya": [
+        "3e7d5a"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "40b7bf"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Northern Mariana Islands": [
+        "40bfb5"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "bf4091"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Puerto Rico": [
+        "b540bf"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "bf6040"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "b08a3e"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Taiwan": [
+        "bf406c"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "UN Administration in East Timor": [
+        "7ab0d4"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Virgin Islands, U.S.": [
+        "bf8240"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "modern-2020": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Autonomous Administration of North and East Syria": [
+        "c0a05a"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belarus": [
+        "8d6236"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Brazil": [
+        "5a9a5a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "Donetsk People's Republic": [
+        "8a4a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Ethiopia": [
+        "8a9a5a"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Germany": [
+        "8a8a9a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Government of National Accord": [
+        "5a8a9a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Islamic Republic of Afghanistan": [
+        "8a8a5a"
+      ],
+      "Islamic Republic of Iran": [
+        "5a8a6a"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libyan National Army": [
+        "a08a5a"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Luhansk People's Republic": [
+        "7a4040"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "40b7bf"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "bf4091"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Republic of Yemen": [
+        "b0a05a"
+      ],
+      "Russian Federation": [
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Saudi Arabia": [
+        "7a9a6a"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "bf6040"
+      ],
+      "South Sudan": [
+        "bf408c"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "4057bf"
+      ],
+      "Supreme Political Council": [
+        "a05a4a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Syrian Arab Republic": [
+        "9a7a5a"
+      ],
+      "Syrian Salvation Government": [
+        "6a7a4a"
+      ],
+      "Taiwan": [
+        "4a6db5"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Türkiye": [
+        "c05a4a"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukraine": [
+        "3f7fd0"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "modern-2026": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belarus": [
+        "8d6236"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Brazil": [
+        "5a9a5a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Germany": [
+        "8a8a9a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Islamic Emirate of Afghanistan": [
+        "7a7a5a"
+      ],
+      "Islamic Republic of Iran": [
+        "5a8a6a"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libya": [
+        "ac40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "8a9a4a"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "7a9a5a"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Poland": [
+        "b0705a"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Russian Federation": [
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Saudi Arabia": [
+        "7a9a6a"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "a87a5a"
+      ],
+      "South Sudan": [
+        "bf408c"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "b0a05a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Syrian Arab Republic": [
+        "9a7a5a"
+      ],
+      "Taiwan": [
+        "4a6db5"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Türkiye": [
+        "c05a4a"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukraine": [
+        "3f7fd0"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "mongol-1300": {
+      "Bulgarian Empire": [
+        "8a5a3a"
+      ],
+      "Byzantine Empire": [
+        "7d3fb2"
+      ],
+      "Chagatai Khanate": [
+        "8a5aa0"
+      ],
+      "Cilician Armenia": [
+        "d98cae"
+      ],
+      "Crown of Aragon": [
+        "d23c3c"
+      ],
+      "Crown of Castile": [
+        "d2a02e"
+      ],
+      "Dai Viet": [
+        "4a8a5a"
+      ],
+      "Delhi Sultanate": [
+        "3a7d4f"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Emirate of Granada": [
+        "2e7d4f"
+      ],
+      "Ethiopian Empire": [
+        "4a8f6a"
+      ],
+      "Galicia-Volhynia": [
+        "a05a7a"
+      ],
+      "Golden Horde": [
+        "b06a2e"
+      ],
+      "Goryeo": [
+        "5a9a7a"
+      ],
+      "Grand Duchy of Lithuania": [
+        "6b8e23"
+      ],
+      "Hafsid Sultanate": [
+        "4f7d2e"
+      ],
+      "Holy Roman Empire": [
+        "caa64a"
+      ],
+      "Hoysala Kingdom": [
+        "6f8f3f"
+      ],
+      "Ilkhanate": [
+        "34869a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Kakatiya Kingdom": [
+        "8f5f8f"
+      ],
+      "Kamakura Japan": [
+        "c0507a"
+      ],
+      "Khmer Empire": [
+        "c97a5a"
+      ],
+      "Kingdom of Cyprus": [
+        "e07a7a"
+      ],
+      "Kingdom of Denmark": [
+        "b0486a"
+      ],
+      "Kingdom of England": [
+        "b23b3b"
+      ],
+      "Kingdom of France": [
+        "2f5fd0"
+      ],
+      "Kingdom of Georgia": [
+        "5a9ac0"
+      ],
+      "Kingdom of Hungary": [
+        "3f9d9d"
+      ],
+      "Kingdom of Naples": [
+        "c97a2e"
+      ],
+      "Kingdom of Navarre": [
+        "5fae5f"
+      ],
+      "Kingdom of Norway": [
+        "5b8ec9"
+      ],
+      "Kingdom of Poland": [
+        "d23ca0"
+      ],
+      "Kingdom of Portugal": [
+        "2e7d6b"
+      ],
+      "Kingdom of Scotland": [
+        "6a6a9a"
+      ],
+      "Kingdom of Serbia": [
+        "9a4f9a"
+      ],
+      "Kingdom of Sweden": [
+        "4a78c0"
+      ],
+      "Kingdom of Trinacria": [
+        "c9385d"
+      ],
+      "Majapahit": [
+        "6a7ab0"
+      ],
+      "Makuria": [
+        "9a6a3a"
+      ],
+      "Mali Empire": [
+        "c2a23a"
+      ],
+      "Mamluk Sultanate": [
+        "3f8f5f"
+      ],
+      "Marinid Sultanate": [
+        "2e5d8f"
+      ],
+      "Ottoman Beylik": [
+        "6b4f2e"
+      ],
+      "Pandya Empire": [
+        "c07a4a"
+      ],
+      "Papal States": [
+        "e6d27a"
+      ],
+      "Rasulid Yemen": [
+        "6a8a3a"
+      ],
+      "Republic of Venice": [
+        "8a7d3f"
+      ],
+      "Russian Principalities": [
+        "7a94b8"
+      ],
+      "Sukhothai": [
+        "d0b060"
+      ],
+      "Teutonic Order": [
+        "aab4c4"
+      ],
+      "Yadava Kingdom": [
+        "b8604a"
+      ],
+      "Yuan Dynasty": [
+        "c9a227"
+      ],
+      "Zayyanid Kingdom": [
+        "7d6b2e"
+      ]
+    },
+    "napoleonic-1804": {
+      "Andorra": [
+        "40bf82"
+      ],
+      "Austrian Empire": [
+        "e8d878"
+      ],
+      "Batavian Republic": [
+        "7a8fd8"
+      ],
+      "Denmark-Norway": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Durrani Empire": [
+        "6b7a5a"
+      ],
+      "Electorate of Hanover": [
+        "b8909a"
+      ],
+      "Emirate of Bukhara": [
+        "bf40bd"
+      ],
+      "Emirate of Diriyah": [
+        "9a8a4a"
+      ],
+      "French Empire": [
+        "3f5fd0"
+      ],
+      "Haiti": [
+        "8a3a5a"
+      ],
+      "Holy Roman Empire": [
+        "b8b8a0"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Italian Republic": [
+        "6f9fd8"
+      ],
+      "Joseon": [
+        "5b7fae"
+      ],
+      "Khanate of Khiva": [
+        "bf40bd"
+      ],
+      "Kingdom of Etruria": [
+        "c8a86a"
+      ],
+      "Kingdom of Prussia": [
+        "4a6a8a"
+      ],
+      "Kingdom of Sardinia": [
+        "7a6a9a"
+      ],
+      "Konbaung Burma": [
+        "7a9a4a"
+      ],
+      "Maratha Confederacy": [
+        "c87a3e"
+      ],
+      "Naples and Sicily": [
+        "a06a4a"
+      ],
+      "Nguyen Vietnam": [
+        "5a9a7a"
+      ],
+      "Omani Empire": [
+        "8c40bf"
+      ],
+      "Ottoman Empire": [
+        "5a8a6a"
+      ],
+      "Papal States": [
+        "e8e0c0"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Prince-Bishopric of Montenegro": [
+        "40bf9d"
+      ],
+      "Qajar Persia": [
+        "b07a3e"
+      ],
+      "Qing Empire": [
+        "b23b3b"
+      ],
+      "Republic of Lucca": [
+        "66bf40"
+      ],
+      "Russian Empire": [
+        "8b9a54"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Septinsular Republic": [
+        "9540bf"
+      ],
+      "Siam": [
+        "4a7ab0"
+      ],
+      "Sikh Empire": [
+        "d8b83e"
+      ],
+      "Spanish Empire": [
+        "d0a02e"
+      ],
+      "Sultanate of Morocco": [
+        "40bf5e"
+      ],
+      "Sweden": [
+        "4068bf"
+      ],
+      "Swiss Confederation": [
+        "9aa8c8"
+      ],
+      "Tokugawa Japan": [
+        "a85454"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ]
+    },
+    "realworld-2026": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belarus": [
+        "8d6236"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Brazil": [
+        "5a9a5a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Germany": [
+        "8a8a9a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Islamic Emirate of Afghanistan": [
+        "7a7a5a"
+      ],
+      "Islamic Republic of Iran": [
+        "5a8a6a"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libya": [
+        "ac40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "8a9a4a"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "7a9a5a"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Poland": [
+        "b0705a"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Russian Federation": [
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Saudi Arabia": [
+        "7a9a6a"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "a87a5a"
+      ],
+      "South Sudan": [
+        "bf408c"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "b0a05a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Syrian Arab Republic": [
+        "9a7a5a"
+      ],
+      "Taiwan": [
+        "4a6db5"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Türkiye": [
+        "c05a4a"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukraine": [
+        "3f7fd0"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    },
+    "roman-117": {
+      "Anuradhapura": [
+        "5a9a8a"
+      ],
+      "Caledonian Tribes": [
+        "5a7a5a"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Funan": [
+        "b09a4a"
+      ],
+      "Goguryeo": [
+        "4a7a9a"
+      ],
+      "Han Dynasty": [
+        "b8860b"
+      ],
+      "Himyarite Kingdom": [
+        "6a8a3a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Kingdom of Aksum": [
+        "3f7a4f"
+      ],
+      "Kingdom of Iberia": [
+        "6a9ac0"
+      ],
+      "Kingdom of Kush": [
+        "9a6a3a"
+      ],
+      "Kushan Empire": [
+        "c07830"
+      ],
+      "Parthian Empire": [
+        "8a6d3b"
+      ],
+      "Roman Empire": [
+        "a31c1c"
+      ],
+      "Xiongnu": [
+        "7a5c8a"
+      ]
+    },
+    "tno-1962": {
+      "All-Russian Government of Amur": [
+        "7a7a9a"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Argentina": [
+        "6a9aba"
+      ],
+      "Aryan Brotherhood": [
+        "3a3a3a"
+      ],
+      "Bharatiya Commune": [
+        "b03838"
+      ],
+      "Bulgaria": [
+        "8a9a6a"
+      ],
+      "Burgundian System": [
+        "2e2e38"
+      ],
+      "Buryat Autonomous Soviet Socialist Republic": [
+        "8a5a5a"
+      ],
+      "Central Siberian Republic": [
+        "7a9a9a"
+      ],
+      "Chile": [
+        "8a6a9a"
+      ],
+      "Committee for the Liberation of the Peoples of Russia": [
+        "8a8a5a"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Dai-Nippon Teikoku": [
+        "b23b3b"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Federation of Novosibirsk and Altay": [
+        "6a9a8a"
+      ],
+      "Finland": [
+        "7a9aba"
+      ],
+      "Free Aviators": [
+        "7a8aaa"
+      ],
+      "Free State of Magadan": [
+        "6a8a9a"
+      ],
+      "French State": [
+        "8a8a9a"
+      ],
+      "Government of National Salvation": [
+        "7a6a5a"
+      ],
+      "Greece": [
+        "6a8aaa"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Großgermanische Reich": [
+        "4a4a55"
+      ],
+      "Guangdong Clique": [
+        "8a9a4a"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Hungary": [
+        "9a7a4a"
+      ],
+      "Iberian Union": [
+        "d0a02e"
+      ],
+      "Independent State of Croatia": [
+        "9a6a6a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Karakorum Government of Oyrotia": [
+        "a09a6a"
+      ],
+      "Komi Republic": [
+        "7a9a8a"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Ma Clique": [
+        "a8946a"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Manchukuo": [
+        "c9a05a"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Mengjiang": [
+        "a89a6a"
+      ],
+      "Mexico": [
+        "4a8f7a"
+      ],
+      "Military Control Commission in Gorky": [
+        "6a6a8a"
+      ],
+      "Military Governate of Shonan Marai": [
+        "9a5a5a"
+      ],
+      "Nanjing Government": [
+        "4a6db5"
+      ],
+      "Neutral State of Vologda": [
+        "8a9aaa"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Order of Saint George": [
+        "9a8a9a"
+      ],
+      "Pakistan": [
+        "5a8a6a"
+      ],
+      "People's Revolutionary Council": [
+        "9a4a4a"
+      ],
+      "Presidium of the Supreme Soviet": [
+        "a03838"
+      ],
+      "Princely Federation of India": [
+        "c07a8a"
+      ],
+      "Principality of Kemerovo": [
+        "9a6a7a"
+      ],
+      "Principality of Vyatka": [
+        "9a7a5a"
+      ],
+      "Provisional Authority of Omsk": [
+        "9a9a7a"
+      ],
+      "Provisional Government of Krasnoyarsk": [
+        "8a8a9a"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Regno d'Italia": [
+        "4f7942"
+      ],
+      "Reichskommissariat Kaukasien": [
+        "8a6a5a"
+      ],
+      "Reichskommissariat Moskowien": [
+        "5a5a6a"
+      ],
+      "Reichskommissariat Niederlande": [
+        "c07a3a"
+      ],
+      "Reichskommissariat Norwegen": [
+        "7a8a9a"
+      ],
+      "Reichskommissariat Ostafrika": [
+        "7a8a6a"
+      ],
+      "Reichskommissariat Ostland": [
+        "6a6a7a"
+      ],
+      "Reichskommissariat Südwestafrika": [
+        "8a8a6a"
+      ],
+      "Reichskommissariat Turkestan": [
+        "9a8a6a"
+      ],
+      "Reichskommissariat Ukraine": [
+        "7a7a5a"
+      ],
+      "Reichskommissariat Zentralafrika": [
+        "6a7a5a"
+      ],
+      "Republic of Bashkortostan": [
+        "6a8a5a"
+      ],
+      "Republic of Türkiye": [
+        "c05a4a"
+      ],
+      "Romania": [
+        "a08a4a"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Sakha Republic": [
+        "8a9a8a"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Shanxi Clique": [
+        "7d8f5a"
+      ],
+      "Siberian Black Army": [
+        "3a3a2e"
+      ],
+      "Siberian Black League": [
+        "2e2e2e"
+      ],
+      "Slovakia": [
+        "8a7a9a"
+      ],
+      "Soviet Pacific Fleet": [
+        "4a6a8a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Sweden": [
+        "5a7a9a"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tatar Republic": [
+        "5a8a8a"
+      ],
+      "Thailand": [
+        "b08a5a"
+      ],
+      "Thief Territory of Yugra": [
+        "5a5a5a"
+      ],
+      "Tibet": [
+        "c8c0a0"
+      ],
+      "Transbaikal Principality": [
+        "9a8a7a"
+      ],
+      "Union of South Africa": [
+        "a08a5a"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "7a5a6a"
+      ],
+      "United Malayan Anti-Japanese Front": [
+        "c04040"
+      ],
+      "United States of America": [
+        "3f6fd0"
+      ],
+      "United States of Brazil": [
+        "5a9a6a"
+      ],
+      "Ural Military District": [
+        "6a6a6a"
+      ],
+      "Vorkuta Corrective Labour Camp": [
+        "4a4a4a"
+      ],
+      "West Russian Revolutionary Front": [
+        "a03030"
+      ],
+      "West Siberian Peoples Republic": [
+        "8a9a5a"
+      ],
+      "Xinjiang Clique": [
+        "6f8f7a"
+      ],
+      "Zlatoust Republic": [
+        "8a7a6a"
+      ]
+    },
+    "victorian-1836": {
+      "Austrian Empire": [
+        "e8d878"
+      ],
+      "Belgium": [
+        "7a8a4a"
+      ],
+      "Central America": [
+        "8ab0d4"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Egypt of Muhammad Ali": [
+        "c8a03e"
+      ],
+      "Emirate of Kabul": [
+        "6b7a5a"
+      ],
+      "France": [
+        "3f5fd0"
+      ],
+      "German Confederation": [
+        "b8b8a0"
+      ],
+      "Haiti": [
+        "8a3a5a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Italian Duchies": [
+        "c8b88a"
+      ],
+      "Joseon": [
+        "5b7fae"
+      ],
+      "Kingdom of Greece": [
+        "5b8fd8"
+      ],
+      "Kingdom of Hawaii": [
+        "4a9a9a"
+      ],
+      "Kingdom of Prussia": [
+        "4a6a8a"
+      ],
+      "Kingdom of Sardinia": [
+        "9a7ab0"
+      ],
+      "Konbaung Burma": [
+        "7a9a4a"
+      ],
+      "Mexico": [
+        "6b8a3e"
+      ],
+      "Netherlands": [
+        "c87a3e"
+      ],
+      "Nguyen Vietnam": [
+        "5a9a7a"
+      ],
+      "Ottoman Empire": [
+        "5a8a6a"
+      ],
+      "Papal States": [
+        "e8e0c0"
+      ],
+      "Peru-Bolivian Confederation": [
+        "7a5aa0"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Principality of Serbia": [
+        "7a6a9a"
+      ],
+      "Qajar Persia": [
+        "b07a3e"
+      ],
+      "Qing Empire": [
+        "b23b3b"
+      ],
+      "Republic of Texas": [
+        "bf6a4a"
+      ],
+      "Russian Empire": [
+        "8b9a54"
+      ],
+      "Siam": [
+        "4a7ab0"
+      ],
+      "Sikh Empire": [
+        "d8b83e"
+      ],
+      "Spain": [
+        "d0a02e"
+      ],
+      "Sweden-Norway": [
+        "4068bf"
+      ],
+      "Tokugawa Japan": [
+        "a85454"
+      ],
+      "Two Sicilies": [
+        "a06a4a"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ]
+    },
+    "ww1-1914": {
+      "Andorra": [
+        "40bf82"
+      ],
+      "Austria-Hungary": [
+        "c9a227"
+      ],
+      "Belgian Congo": [
+        "8a9a3a"
+      ],
+      "Belgium": [
+        "b0902e"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bogd Khanate of Mongolia": [
+        "a85454"
+      ],
+      "British Central Africa": [
+        "a89a7a"
+      ],
+      "British East Africa": [
+        "b08a5a"
+      ],
+      "British Empire": [
+        "c0507a"
+      ],
+      "British Raj": [
+        "c07a8a"
+      ],
+      "British West Africa": [
+        "c09a6a"
+      ],
+      "Bulgaria": [
+        "5f8a5f"
+      ],
+      "Commonwealth of Australia": [
+        "d07a5a"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "Dominion of New Zealand": [
+        "b06a7a"
+      ],
+      "Dutch East Indies": [
+        "d08a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Emirate of Nejd": [
+        "9e8a54"
+      ],
+      "French Equatorial Africa": [
+        "4a6fb0"
+      ],
+      "French Indochina": [
+        "6a8fd0"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "French West Africa": [
+        "5a7fc0"
+      ],
+      "German Empire": [
+        "4a4a4a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Italy": [
+        "4f7942"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Montenegro": [
+        "6d5a7a"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Netherlands": [
+        "e08a2e"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Ottoman Empire": [
+        "7a9950"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "Persia": [
+        "7a6b9e"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of China": [
+        "4a6db5"
+      ],
+      "Romania": [
+        "c08a3a"
+      ],
+      "Russian Empire": [
+        "2e6b4f"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Serbia": [
+        "8b6baf"
+      ],
+      "Siam": [
+        "4068bf"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "Spain": [
+        "d0a02e"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tibet": [
+        "a8743a"
+      ],
+      "Union of South Africa": [
+        "a87a5a"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ]
+    },
+    "wwii-1935": {
+      "Andorra": [
+        "40bf82"
+      ],
+      "Austria": [
+        "b8b8c8"
+      ],
+      "Belgian Congo": [
+        "8a9a3a"
+      ],
+      "Belgium": [
+        "b0902e"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "British Central Africa": [
+        "a89a7a"
+      ],
+      "British East Africa": [
+        "b08a5a"
+      ],
+      "British Empire": [
+        "c0507a"
+      ],
+      "British Raj": [
+        "c07a8a"
+      ],
+      "British West Africa": [
+        "c09a6a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Byelorussian SSR": [
+        "8d5236"
+      ],
+      "Chinese Soviet Republic": [
+        "c03030"
+      ],
+      "Czechoslovakia": [
+        "5b7fae"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "Dominion of New Zealand": [
+        "b06a7a"
+      ],
+      "Dutch East Indies": [
+        "d08a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Ethiopia": [
+        "7a8f3a"
+      ],
+      "French Equatorial Africa": [
+        "4a6fb0"
+      ],
+      "French Indochina": [
+        "6a8fd0"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "French West Africa": [
+        "5a7fc0"
+      ],
+      "Germany": [
+        "3a3a3a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Guangdong Clique": [
+        "9aa04a"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Hyderabad": [
+        "8fae7a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Italy": [
+        "4f7942"
+      ],
+      "Jammu and Kashmir": [
+        "9f8fb5"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazak ASSR": [
+        "8f6b3c"
+      ],
+      "Kirghiz ASSR": [
+        "9c7a44"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Ma Clique": [
+        "a89a6a"
+      ],
+      "Manchukuo": [
+        "cc8844"
+      ],
+      "Mengjiang": [
+        "b0a070"
+      ],
+      "Mongolian People's Republic": [
+        "a85454"
+      ],
+      "Mysore": [
+        "7fa89a"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Netherlands": [
+        "e08a2e"
+      ],
+      "New Guangxi Clique": [
+        "8a9a4a"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Rajputana": [
+        "c9a05a"
+      ],
+      "Republic of China": [
+        "4a6db5"
+      ],
+      "Romania": [
+        "c08a3a"
+      ],
+      "Russian SFSR": [
+        "a03c28"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Shandong Clique": [
+        "9a8a5a"
+      ],
+      "Shanxi Clique": [
+        "7d8f5a"
+      ],
+      "Siam": [
+        "4068bf"
+      ],
+      "Sichuan Cliques": [
+        "8a8a6a"
+      ],
+      "Soviet Union": [
+        "8b1a1a"
+      ],
+      "Spain": [
+        "d0a02e"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tajik SSR": [
+        "a87c46"
+      ],
+      "Tibet": [
+        "c8c0a0"
+      ],
+      "Transcaucasian SFSR": [
+        "c07a4a"
+      ],
+      "Travancore and Cochin": [
+        "b0937f"
+      ],
+      "Turkmen SSR": [
+        "b08a4a"
+      ],
+      "Ukrainian SSR": [
+        "b9603a"
+      ],
+      "Union of South Africa": [
+        "a87a5a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbek SSR": [
+        "c99a52"
+      ],
+      "Xinjiang Clique": [
+        "6f8f7a"
+      ],
+      "Yugoslavia": [
+        "6a8caf"
+      ],
+      "Yunnan Clique": [
+        "6a9a6a"
+      ]
+    },
+    "wwii-1939": {
+      "Andorra": [
+        "40bf82"
+      ],
+      "Armenian SSR": [
+        "b06a4a"
+      ],
+      "Azerbaijan SSR": [
+        "c08a5a"
+      ],
+      "Belgian Congo": [
+        "8a9a3a"
+      ],
+      "Belgium": [
+        "b0902e"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "British Central Africa": [
+        "a89a7a"
+      ],
+      "British East Africa": [
+        "b08a5a"
+      ],
+      "British Empire": [
+        "c0507a"
+      ],
+      "British Raj": [
+        "c07a8a"
+      ],
+      "British West Africa": [
+        "c09a6a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Byelorussian SSR": [
+        "8d5236"
+      ],
+      "Chinese Soviet Republic": [
+        "c03030"
+      ],
+      "Commonwealth of Australia": [
+        "d07a5a"
+      ],
+      "Denmark": [
+        "8a5f6d"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominion of Canada": [
+        "c05a6a"
+      ],
+      "Dominion of New Zealand": [
+        "b06a7a"
+      ],
+      "Dutch East Indies": [
+        "d08a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "French Equatorial Africa": [
+        "4a6fb0"
+      ],
+      "French Indochina": [
+        "6a8fd0"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "French West Africa": [
+        "5a7fc0"
+      ],
+      "Georgian SSR": [
+        "c07a4a"
+      ],
+      "Germany": [
+        "3a3a3a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "Hyderabad": [
+        "8fae7a"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Iran": [
+        "bfb040"
+      ],
+      "Italy": [
+        "4f7942"
+      ],
+      "Jammu and Kashmir": [
+        "9f8fb5"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakh SSR": [
+        "8f6b3c"
+      ],
+      "Kirghiz SSR": [
+        "9c7a44"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "408abf",
+        "40bf4a"
+      ],
+      "Ma Clique": [
+        "a89a6a"
+      ],
+      "Manchukuo": [
+        "cc8844"
+      ],
+      "Mengjiang": [
+        "b0a070"
+      ],
+      "Mongolian People's Republic": [
+        "a85454"
+      ],
+      "Mysore": [
+        "7fa89a"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Netherlands": [
+        "e08a2e"
+      ],
+      "New Guangxi Clique": [
+        "8a9a4a"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "Portugal": [
+        "2e7d6b"
+      ],
+      "Rajputana": [
+        "c9a05a"
+      ],
+      "Republic of China": [
+        "4a6db5"
+      ],
+      "Romania": [
+        "c08a3a"
+      ],
+      "Russian SFSR": [
+        "a03c28"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Shanxi Clique": [
+        "7d8f5a"
+      ],
+      "Siam": [
+        "4068bf"
+      ],
+      "Sichuan Cliques": [
+        "8a8a6a"
+      ],
+      "Slovakia": [
+        "9a9a4f"
+      ],
+      "Soviet Union": [
+        "8b1a1a"
+      ],
+      "Spain": [
+        "d0a02e"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Tajik SSR": [
+        "a87c46"
+      ],
+      "Tibet": [
+        "c8c0a0"
+      ],
+      "Travancore and Cochin": [
+        "b0937f"
+      ],
+      "Turkmen SSR": [
+        "b08a4a"
+      ],
+      "Ukrainian SSR": [
+        "b9603a"
+      ],
+      "Union of South Africa": [
+        "a87a5a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbek SSR": [
+        "c99a52"
+      ],
+      "Xinjiang Clique": [
+        "6f8f7a"
+      ],
+      "Yugoslavia": [
+        "6a8caf"
+      ],
+      "Yunnan Clique": [
+        "6a9a6a"
+      ]
+    },
+    "zombie-2019": {
+      "Algeria": [
+        "40bf9b"
+      ],
+      "Andorra": [
+        "40bf82"
+      ],
+      "Angola": [
+        "bf40b5"
+      ],
+      "Antigua and Barbuda": [
+        "bf406a"
+      ],
+      "Austria": [
+        "bf7340"
+      ],
+      "Autonomous Administration of North and East Syria": [
+        "c0a05a"
+      ],
+      "Azerbaijan": [
+        "40bf9d"
+      ],
+      "Bahamas": [
+        "4068bf"
+      ],
+      "Bangladesh": [
+        "40bfb5"
+      ],
+      "Barbados": [
+        "40bf88"
+      ],
+      "Belarus": [
+        "8d6236"
+      ],
+      "Belize": [
+        "bf4051"
+      ],
+      "Benin": [
+        "40bf46"
+      ],
+      "Bhutan": [
+        "4059bf"
+      ],
+      "Bosnia and Herzegovina": [
+        "4240bf"
+      ],
+      "Botswana": [
+        "bf40ae"
+      ],
+      "Brazil": [
+        "5a9a5a"
+      ],
+      "Bulgaria": [
+        "40acbf"
+      ],
+      "Burkina Faso": [
+        "40bf6c"
+      ],
+      "Burundi": [
+        "86bf40"
+      ],
+      "Cabo Verde": [
+        "bf404f"
+      ],
+      "Cameroon": [
+        "6240bf"
+      ],
+      "Central African Republic": [
+        "4051bf"
+      ],
+      "Chad": [
+        "acbf40"
+      ],
+      "Comoros": [
+        "bf40a4"
+      ],
+      "Cook Islands": [
+        "bf40a8"
+      ],
+      "Cote d'Ivoire": [
+        "40bf62"
+      ],
+      "Croatia": [
+        "40bfbf"
+      ],
+      "Cyprus": [
+        "7740bf"
+      ],
+      "Democratic People's Republic of Korea": [
+        "a33232"
+      ],
+      "Democratic Republic of the Congo": [
+        "bf40b7"
+      ],
+      "Denmark": [
+        "a840bf"
+      ],
+      "Djibouti": [
+        "bf8a40"
+      ],
+      "Domestic: Civilians": [
+        "6b7280"
+      ],
+      "Domestic: Newspaper": [
+        "6b7280"
+      ],
+      "Dominica": [
+        "40bf40"
+      ],
+      "Donetsk People's Republic": [
+        "8a4a4a"
+      ],
+      "El Salvador": [
+        "40bf4a"
+      ],
+      "Equatorial Guinea": [
+        "40bfaa"
+      ],
+      "Eritrea": [
+        "40bf9d"
+      ],
+      "Ethiopia": [
+        "8a9a5a"
+      ],
+      "Fiji": [
+        "40bf8e"
+      ],
+      "French Republic": [
+        "3f6fd0"
+      ],
+      "Gabon": [
+        "51bf40"
+      ],
+      "Gambia": [
+        "40bf48"
+      ],
+      "Germany": [
+        "8a8a9a"
+      ],
+      "Ghana": [
+        "bf4084"
+      ],
+      "Government of National Accord": [
+        "5a8a9a"
+      ],
+      "Greece": [
+        "9540bf"
+      ],
+      "Grenada": [
+        "9740bf"
+      ],
+      "Guatemala": [
+        "bf4051"
+      ],
+      "Guinea": [
+        "bf5940"
+      ],
+      "Guinea-Bissau": [
+        "40bf8a"
+      ],
+      "Guyana": [
+        "bf8a40"
+      ],
+      "Haiti": [
+        "4057bf"
+      ],
+      "Honduras": [
+        "bf9140"
+      ],
+      "India": [
+        "d08a3a"
+      ],
+      "Indonesia": [
+        "bf406c"
+      ],
+      "Internal: Diplomatic Representative": [
+        "6b7280"
+      ],
+      "Internal: Economic Advisor": [
+        "6b7280"
+      ],
+      "Internal: Foreign Minister": [
+        "6b7280"
+      ],
+      "Internal: Head of Intelligence": [
+        "6b7280"
+      ],
+      "Internal: Head of Military": [
+        "6b7280"
+      ],
+      "Internal: Interior Minister": [
+        "6b7280"
+      ],
+      "Internal: Media Chief": [
+        "6b7280"
+      ],
+      "Internal: Religious Leader": [
+        "6b7280"
+      ],
+      "Internal: Research Director": [
+        "6b7280"
+      ],
+      "Internal: Trade Minister": [
+        "6b7280"
+      ],
+      "Islamic Republic of Afghanistan": [
+        "8a8a5a"
+      ],
+      "Islamic Republic of Iran": [
+        "5a8a6a"
+      ],
+      "Israel": [
+        "5a8fc0"
+      ],
+      "Jamaica": [
+        "40bf4d"
+      ],
+      "Japan": [
+        "b23b3b"
+      ],
+      "Kazakhstan": [
+        "bf6a40"
+      ],
+      "Kosovo": [
+        "407bbf"
+      ],
+      "Kuwait": [
+        "bf4073"
+      ],
+      "Kyrgyzstan": [
+        "4088bf"
+      ],
+      "Latvia": [
+        "40bfa4"
+      ],
+      "Lebanon": [
+        "9540bf"
+      ],
+      "Lesotho": [
+        "84bf40"
+      ],
+      "Liberia": [
+        "9d40bf"
+      ],
+      "Libyan National Army": [
+        "a08a5a"
+      ],
+      "Liechtenstein": [
+        "40bf51"
+      ],
+      "Lithuania": [
+        "40bf4a"
+      ],
+      "Luhansk People's Republic": [
+        "7a4040"
+      ],
+      "Madagascar": [
+        "4073bf"
+      ],
+      "Malawi": [
+        "86bf40"
+      ],
+      "Malaysia": [
+        "40bf93"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Malta": [
+        "46bf40"
+      ],
+      "Marshall Islands": [
+        "bf4060"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
+      "Mauritius": [
+        "bf8a40"
+      ],
+      "Micronesia": [
+        "95bf40"
+      ],
+      "Moldova": [
+        "4080bf"
+      ],
+      "Montenegro": [
+        "40bf9d"
+      ],
+      "Morocco": [
+        "40bf5e"
+      ],
+      "Mozambique": [
+        "4073bf"
+      ],
+      "Myanmar": [
+        "40bf77"
+      ],
+      "Namibia": [
+        "bf5540"
+      ],
+      "Nauru": [
+        "40b5bf"
+      ],
+      "Nepal": [
+        "4dbf40"
+      ],
+      "Niger": [
+        "40bf68"
+      ],
+      "Nigeria": [
+        "40b7bf"
+      ],
+      "North Macedonia": [
+        "aabf40"
+      ],
+      "Northern Cyprus": [
+        "bfb540"
+      ],
+      "Oman": [
+        "7340bf"
+      ],
+      "Pakistan": [
+        "4a8f5a"
+      ],
+      "Palau": [
+        "40bf46"
+      ],
+      "Palestine": [
+        "bf4091"
+      ],
+      "Papua New Guinea": [
+        "40bfa8"
+      ],
+      "Paraguay": [
+        "bf40a8"
+      ],
+      "People's Republic of China": [
+        "c0392b"
+      ],
+      "Philippines": [
+        "bf4059"
+      ],
+      "Qatar": [
+        "bf6a40"
+      ],
+      "Republic of Korea": [
+        "3a7fbf"
+      ],
+      "Republic of Yemen": [
+        "b0a05a"
+      ],
+      "Russian Federation": [
+        "a03c28"
+      ],
+      "Rwanda": [
+        "408cbf"
+      ],
+      "Saint Kitts and Nevis": [
+        "bf9140"
+      ],
+      "Saint Lucia": [
+        "bb40bf"
+      ],
+      "Saint Vincent and the Grenadines": [
+        "4086bf"
+      ],
+      "Samoa": [
+        "4071bf"
+      ],
+      "San Marino": [
+        "40bf84"
+      ],
+      "Sao Tome and Principe": [
+        "bf4f40"
+      ],
+      "Saudi Arabia": [
+        "7a9a6a"
+      ],
+      "Senegal": [
+        "6a40bf"
+      ],
+      "Serbia": [
+        "ac40bf"
+      ],
+      "Seychelles": [
+        "40bf7d"
+      ],
+      "Sierra Leone": [
+        "59bf40"
+      ],
+      "Singapore": [
+        "bf408c"
+      ],
+      "Slovakia": [
+        "b7bf40"
+      ],
+      "Solomon Islands": [
+        "60bf40"
+      ],
+      "Somalia": [
+        "4082bf"
+      ],
+      "South Africa": [
+        "bf6040"
+      ],
+      "South Sudan": [
+        "bf408c"
+      ],
+      "Sri Lanka": [
+        "40b3bf"
+      ],
+      "Sudan": [
+        "4057bf"
+      ],
+      "Supreme Political Council": [
+        "a05a4a"
+      ],
+      "Suriname": [
+        "bf9540"
+      ],
+      "Swaziland": [
+        "55bf40"
+      ],
+      "Switzerland": [
+        "84bf40"
+      ],
+      "Syrian Arab Republic": [
+        "9a7a5a"
+      ],
+      "Syrian Salvation Government": [
+        "6a7a4a"
+      ],
+      "Taiwan": [
+        "4a6db5"
+      ],
+      "Tajikistan": [
+        "b040bf"
+      ],
+      "Tanzania": [
+        "bfbd40"
+      ],
+      "Thailand": [
+        "4068bf"
+      ],
+      "The Dead": [
+        "3a3f33"
+      ],
+      "Timor-Leste": [
+        "bf4640"
+      ],
+      "Togo": [
+        "408cbf"
+      ],
+      "Tonga": [
+        "7dbf40"
+      ],
+      "Trinidad and Tobago": [
+        "4f40bf"
+      ],
+      "Tunisia": [
+        "8e40bf"
+      ],
+      "Türkiye": [
+        "c05a4a"
+      ],
+      "Turkmenistan": [
+        "bf4088"
+      ],
+      "Tuvalu": [
+        "9f40bf"
+      ],
+      "Uganda": [
+        "a8bf40"
+      ],
+      "Ukraine": [
+        "3f7fd0"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
+      ],
+      "United Kingdom": [
+        "c0507a"
+      ],
+      "United States": [
+        "4a8f7a"
+      ],
+      "Uruguay": [
+        "9dbf40"
+      ],
+      "Uzbekistan": [
+        "bf40bd"
+      ],
+      "Vanuatu": [
+        "bf9f40"
+      ],
+      "Vietnam": [
+        "40bdbf"
+      ],
+      "Western Sahara": [
+        "40a2bf"
+      ],
+      "Zambia": [
+        "bf7140"
+      ],
+      "Zimbabwe": [
+        "bf4073"
+      ]
+    }
+  }
+}

@@ -25,6 +25,7 @@ import {
 } from "../../runtime/assets.js";
 import { isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
 import { buildSpeechlessNames } from "../../runtime/speechless.js";
+import { samePalette } from "../../runtime/paletteHistory.js";
 import { assembleRules } from "../../runtime/simulationContracts.js";
 import { buildScheduledCard } from "../../runtime/scheduledCard.js";
 import { buildAuditMessage, findUnorderedPlayerActs } from "./unorderedActs.js";
@@ -4071,11 +4072,23 @@ const applySimulationResult = async ({
   // worst case is an order that stays queued and gets played out again — visible,
   // and recoverable by the player.
   await writeEventsState(nextEvents);
+  // THE PALETTE IS WRITTEN ONLY WHEN IT CHANGED, and that is not a saving of
+  // bytes. A new game has no colors.json — it is not in the seed set, so the
+  // runtime falls through to the scenario's file and a fresh campaign paints
+  // from the live board. This write resolves to the GAME's directory, so the
+  // first turn used to fork the palette permanently: recolour a board afterwards
+  // and no running campaign could ever see it. Almost no turn changes a colour —
+  // only a polityChange carrying one does — so almost every fork was a file
+  // written to repeat what it already said. It also closes a worse case: a
+  // failed palette read hands `baseColors` an empty object, and writing THAT
+  // into the game directory shadows the board with nothing and drops every
+  // country to the procedural fallback.
+  const paletteChanged = !samePalette(baseColors, nextColors);
   await Promise.all([
     writeActionsState(actionsToWrite),
     writeChatsState(chatsToWrite),
     writeGameData(nextGame),
-    writeJson(JSON_URLS.colors, nextColors, { pretty: true }),
+    paletteChanged ? writeJson(JSON_URLS.colors, nextColors, { pretty: true }) : Promise.resolve(),
     writeWorldState(nextWorld),
   ]);
 
