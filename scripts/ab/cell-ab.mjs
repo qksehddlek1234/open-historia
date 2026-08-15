@@ -351,6 +351,25 @@ const CELL_USER = {
     'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","name":"","newName":""}]}}]}',
     "Include impacts on every event that moves territory. Cover the period.",
   ].join("\n"),
+  // THE SOVEREIGNTY ROW's dialogue canary. advisor receives the FULL contract
+  // (both halves), so here the own-state clause is live: "before narrating any
+  // act BY the player's own polity … check that the player actually ordered it
+  // this turn." An office briefing the player can report their own country's
+  // deeds, and the period's pull is the strongest thing in the prompt — the
+  // question is asked at the exact moment history says Germany remilitarises,
+  // mobilises and signs, and the player has ordered none of it.
+  // Probe 1 named no player, so the model picked an unnamed bystander reacting
+  // to Germany's invasion — the clause still had something to bite (the
+  // briefing is about the player's OWN army either way) but the framing did
+  // not match the rest of the row, where the player is Germany and the
+  // period's pull is at its strongest. Named here for that comparability;
+  // probe 1's transcript is kept as the scorer's calibration source.
+  "sovereignty:advisor": [
+    "The player is Germany. You are speaking as: Internal: Head of Military.",
+    "It is 1 November 1939. The player has issued NO orders at all this turn — not one, in either of the last two months.",
+    "The player asks: 지난 두 달 동안 우리 군이 무엇을 했는지 보고하라.",
+    "Answer in Korean.",
+  ].join("\n"),
   // THE SOVEREIGNTY ROW's variant cells, and they measure a DIFFERENT CLAUSE
   // from every other sovereignty cell. jumpForward and autoJumpForward receive
   // only PLAYER_SOVEREIGNTY_OTHER_STATES — the own-state half is already stated
@@ -460,6 +479,47 @@ const CELL_SCORE = {
   // past Weserübung and Barbarossa in the first run of this cell. Calibration
   // history lives with the scorer (lib/scorers.mjs).
   "sovereignty:scheduledEvents": scoreSovereigntyCalendar,
+  // A BRIEFING'S violation shape, which is not the prose scorer's. advisor is
+  // asked what the player's own army did; the clause says nothing happened
+  // unless the player ordered it. Two calibration failures shaped this, both
+  // recorded in the 20차 journal entry:
+  //   · scoreSovereignty needs GERMANY as a named subject and scored 0/6 while
+  //     every OFF run reported an unordered mobilisation — the briefing says
+  //     "우리 군", not "독일".
+  //   · Requiring a first-person subject then scored 0/6 too: KOREAN DROPS THE
+  //     SUBJECT. The real violation reads "전쟁이 발발함에 따라 즉각적인
+  //     총동원령을 검토하고 시행하였습니다" with no subject at all. A briefing
+  //     is a report about one's own country, so an accomplished deed with no
+  //     FOREIGN subject is the player's own.
+  // Calibration 10/10 (4 must-catch, 6 must-miss) — scratchpad
+  // calibrate-briefing.mjs, 2026-08-15.
+  "sovereignty:advisor": (text) => {
+    const DEED = "총?동원령[^.\\n]{0,20}(?:발효|하달|선포|시행|실시|내렸|시달)"
+      + "|동원[^.\\n]{0,14}(?:실시|완료|단행|시행)"
+      + "|예비군[^.\\n]{0,14}(?:소집|동원)"
+      + "|재무장|징집[^.\\n]{0,12}(?:개시|단행|실시)"
+      + "|(?:공세|침공|진격|정복|점령)[^.\\n]{0,16}(?:개시|단행|감행|완수|확보|하였|했습니다|되었습니다)"
+      + "|전역[^.\\n]{0,10}(?:완수|정복|승리)"
+      + "|임무를 수행(?:하였|했)"
+      + "|성과를 거두었"
+      + "|조약[^.\\n]{0,12}(?:체결|서명)"
+      + "|병합[^.\\n]{0,8}(?:하였|했습니다|단행)";
+    const FOREIGN = /(독일|영국|프랑스|소련|이탈리아|폴란드|일본|미국)(?:이|가|은|는|의)/;
+    const FIRST = /우리|본\s?군|아\s?군|제국은|국방군은|총사령부|군부는|우리군/;
+    // ONLY waiting and negation are compliance. "명령이 없었다" is NOT — in the
+    // data it is a CONCESSIVE clause the model uses right before reporting the
+    // deed anyway, and treating it as compliance erased the very violations
+    // this cell exists to count (v2's failure, recorded in the 20차 entry).
+    const WAITING = /재가를 기다|승인을 기다|허가를 기다|대기 중|명령을 기다|하명을 기다/;
+    const NEGATED = /지는 않았|하지 않았|없었습니다|미실행|보류되었|중단되었/;
+    for (const sentence of text.split(/(?<=[.!?。\n])/)) {
+      if (!new RegExp(DEED).test(sentence)) continue;
+      if (NEGATED.test(sentence) || WAITING.test(sentence)) continue;
+      if (FOREIGN.test(sentence) && !FIRST.test(sentence)) continue;
+      return { violated: true, why: sentence.trim().slice(0, 110) };
+    }
+    return { violated: false, why: "" };
+  },
   // The other-states clause, for the two cells that receive only that half.
   // Violation = the player's decree over ANOTHER government was carried out;
   // a refusal, a stall or a demand left hanging is the clause working.
