@@ -302,6 +302,32 @@ const CELL_USER = {
     'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":""}]}',
     "Cover the period. Decide for yourself how many events that takes. Write the events in Korean.",
   ].join("\n"),
+  // THE REGION ROW's probe. The contract has five clauses; two of them are
+  // mechanically scoreable off the production impacts shape, so the scenario
+  // sets up exactly those two and asks for that shape (regionTransfers /
+  // polityChanges — what the real jump emits, gameplaySchemas.js):
+  //
+  //   CLAUSE 1 (a one-region polity is its own country) — the board's own
+  //     single-region holders are Iraq (era_12) and Saudi Arabia (SAU.3_1),
+  //     read off wwii-1939/world.json rather than invented. A won skirmish on
+  //     the Habbaniya perimeter is the test: the clause says the region moves
+  //     only when the whole country is occupied and its government has fallen.
+  //   CLAUSE 3+4 (occupation is not annexation, and it is named the same way
+  //     every time) — Poland in autumn 1939 is the case the contract's own
+  //     example list names. Painting Poland German instead of creating an
+  //     occupation polity is what the clause forbids.
+  //
+  // Both hooks are historically ordinary for the window, so neither arm is
+  // being led toward the violation — the OFF arm is free to get them right.
+  "region:jumpForward": [
+    "Simulate 1 September 1939 to 1 November 1939 for this world. The player is Germany.",
+    "Two things happen in the period besides the player's own war:",
+    "- German forces overrun western and central Poland and hold the ground.",
+    "- On the Habbaniya perimeter British and Iraqi troops clash; the British win the skirmish and stay.",
+    "",
+    'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","name":"","newName":""}]}}]}',
+    "Include impacts on every event that moves territory. Cover the period.",
+  ].join("\n"),
 };
 const CELL_SCORE = {
   // "Never appear in events … a turn's narration must not mention them at
@@ -313,6 +339,49 @@ const CELL_SCORE = {
   "voices:catalystSummary": scoreVoiceAppearance,
   "voices:jumpForward": scoreVoiceAppearance,
   "voices:autoJumpForward": scoreVoiceAppearance,
+  // Per-clause and mechanical, off the impacts the probe asks for. Reports
+  // WHICH clause broke, because "region" is four rules in a coat and a single
+  // boolean would hide which one the consumer cannot keep.
+  "region:jumpForward": (text) => {
+    const rows = [...text.matchAll(/\{[^{}]*"toCode"[^{}]*\}/g)].map((m) => m[0]);
+    const owner = (row, key) => new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`).exec(row)?.[1] ?? "";
+    // CLAUSE 1 — the board's single-region polities, by name and by region id.
+    const single = /Iraq|이라크|Saudi|사우디|era_12|SAU\.3_1/i;
+    for (const row of rows) {
+      const from = `${owner(row, "fromCode")} ${owner(row, "regionId")} ${owner(row, "regionName")}`;
+      // wholeCountry is the engine's own "this really was a total conquest"
+      // flag; a transfer that claims it is making the contract's exception,
+      // not breaking the rule, and the narration is what the reader judges.
+      if (single.test(from) && !/"wholeCountry"\s*:\s*true/.test(row)) {
+        return { violated: true, why: `single-region polity moved on a skirmish: ${owner(row, "fromCode")}` };
+      }
+    }
+    // CLAUSE 3+4 — occupied ground painted the occupier's own colour.
+    //
+    // SCORED PER ROW ON `toCode`, and both halves of that were learned from the
+    // first run (docs/analysis/ab-region-jumpForward.probe1.txt):
+    //   · The model answers with COUNTRY CODES ("GER", "SUN", "URS"), so a
+    //     test written for full names ("Germany") matched nothing and the OFF
+    //     arm scored a false 0/6 while transferring Poland to Germany in every
+    //     single run. The probe hands over a hand-written JSON shape rather
+    //     than the real schema, whose field description is what tells the model
+    //     to use names — so codes are the probe's doing, not the model's fault.
+    //   · The occupation test must read the DESTINATION, not the whole reply.
+    //     A run can write the word "occupation" in its prose and still hand the
+    //     ground to "GER"; searching the text would score that as compliant.
+    const OCCUPIER = /^(ger|deu|germany|german reich|third reich|독일|제3제국|sun|urs|sov|ussr|soviet union|소련)$/i;
+    const OCCUPATION_ENTITY = /occ|occupation|점령|generalgouvernement|general government|총독부|reichsprotektorat|vichy|mengjiang/i;
+    for (const row of rows) {
+      const from = `${owner(row, "fromCode")} ${owner(row, "regionId")} ${owner(row, "regionName")}`;
+      if (!/Poland|폴란드|POL/i.test(from)) continue;
+      const to = owner(row, "toCode").trim();
+      if (OCCUPATION_ENTITY.test(to)) continue;
+      if (OCCUPIER.test(to)) {
+        return { violated: true, why: `occupied ground painted the occupier's colour: → ${to}` };
+      }
+    }
+    return { violated: false, why: "" };
+  },
   // "They never own a region" — a sheet compiled FOR a voice may exist (4차:
   // that possibility is why the cell was never structurally cleared), but a
   // capital city or a regions list on it is the model inventing a country.

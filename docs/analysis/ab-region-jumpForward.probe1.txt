@@ -1,0 +1,857 @@
+cell: region x jumpForward | board: wwii-1939 | 6 runs per arm
+OFF 0/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a rapid blitzkrieg to seize the Danzig corridor and central Polish territories.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion, Britain and France declare war on Germany, initiating a general European conflict.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Polish territories.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "east_poland",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "SUN",
+            "note": "Soviet occupation of eastern Polish territories."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Skirmish at Habbaniya",
+      "date": "1939-09-24",
+      "description": "British and Iraqi forces successfully repulse local opposition on the Habbaniya perimeter, securing their position.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Fall of Polish Resistance",
+      "date": "1939-10-20",
+      "description": "Polish organized resistance collapses as German forces consolidate control over western and central Poland.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "west_central_poland",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German occupation of western and central Polish territories."
+          }
+        ],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- OFF 2/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a coordinated invasion of Polish territory, rapidly advancing through the western and central regions.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "west_poland",
+            "regionName": "Western Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces seize and hold the western territories of Poland."
+          },
+          {
+            "regionId": "central_poland",
+            "regionName": "Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces seize and hold the central regions of Poland."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following the invasion of Poland, Great Britain and France declare war on Germany.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Habbaniya Skirmish",
+      "date": "1939-09-15",
+      "description": "A clash occurs between British and Iraqi forces at the Habbaniya perimeter. The British successfully win the skirmish and maintain their position.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In alignment with the Molotov-Ribbentrop Pact, Soviet forces invade and seize eastern Polish territory.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "east_poland",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "SUN",
+            "note": "Soviet Union occupies and annexes eastern Polish territories."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Fall of the Polish Government",
+      "date": "1939-10-06",
+      "description": "The Polish government and military leadership flee toward the south, signaling the collapse of organized resistance in central regions.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- OFF 3/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a massive invasion of Poland, targeting the Polish Corridor and Danzig. The war begins as German divisions advance rapidly across the border.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France officially declare war on Germany, beginning a general European conflict.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland. The USSR moves to secure territory in the east.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "East_Poland",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "URS",
+            "note": "Territory transferred to the Soviet Union following the Molotov-Ribbentrop Pact."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Consolidation of Western and Central Poland",
+      "date": "1939-10-01",
+      "description": "German forces successfully overrun and establish a permanent occupation of western and central Poland, securing the territory for the Reich.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "West_Center_Poland",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces successfully hold the ground in the western and central regions."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Battle of Habbaniya",
+      "date": "1939-10-12",
+      "description": "British and Iraqi troops successfully defend the Habbaniya perimeter against an attack, maintaining their position in the region.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a coordinated invasion of Polish territory, moving to seize the Polish Corridor and western regions.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "pol_west_cent",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces begin the occupation of western and central territories."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Ultimatum Accepted: Declaration of War",
+      "date": "1939-09-03",
+      "description": "Great Britain and France formally declare war on Germany following the invasion of Poland.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": [
+          {
+            "op": "status_change",
+            "name": "United Kingdom",
+            "newName": "At War with Germany"
+          },
+          {
+            "op": "status_change",
+            "name": "France",
+            "newName": "At War with Germany"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Habbaniya Skirmish",
+      "date": "1939-09-15",
+      "description": "British and Iraqi forces successfully repulse a localized threat at the Habbaniya perimeter, successfully holding their position.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "The Soviet Union invades eastern Polish territory in accordance with the Molotov–Ribbentrop Pact.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "pol_east",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "URS",
+            "note": "Soviet Union annexes eastern Polish territories."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Fall of Warsaw and Consolidation",
+      "date": "1939-10-25",
+      "description": "Polish resistance in central regions collapses; German forces solidify their hold on all occupied western and central lands.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a multi-pronged invasion of Poland. The rapid advancement leads to the successful overrun and occupation of western and central Polish territories.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "West_Poland",
+            "regionName": "Western Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces overrun and hold the ground."
+          },
+          {
+            "regionId": "Central_Poland",
+            "regionName": "Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces overrun and hold the ground."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France officially declare war on Germany.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of East Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, the Soviet Union invades eastern Poland.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "East_Poland",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "SUN",
+            "note": "Soviet Union takes control of the eastern territories."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Habbaniya Skirmish",
+      "date": "1939-09-28",
+      "description": "British and Iraqi forces engage in a skirmish at the Habbaniya perimeter. The British successfully win the engagement and maintain their position.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- OFF 6/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a massive multi-pronged invasion into Polish territory, rapidly advancing through the western and central regions to dismantle Polish defenses.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "west_poland",
+            "regionName": "Western Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces seize and hold territory in the western sector."
+          },
+          {
+            "regionId": "central_poland",
+            "regionName": "Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces seize and hold territory in the central sector."
+          }
+        ],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "In response to the invasion of Poland, Great Britain and France formally declare war on Germany.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Habbaniya Skirmish",
+      "date": "1939-09-12",
+      "description": "British and Iraqi forces successfully repel a Japanese air raid at the Habbaniya perimeter. The British maintain their position in Iraq.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Consolidation of Polish Front",
+      "date": "1939-10-01",
+      "description": "German forces establish firm control over the occupied western and central Polish regions, establishing a stable front as the conflict intensifies.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a multi-pronged invasion of Poland, quickly overrunning and establishing control over the Western and Central regions.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "Poland_West_Central",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "Occupied by German forces."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "rename",
+            "name": "Poland_West_Central",
+            "newName": "German Occupation of Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion and subsequent Polish resistance, Great Britain and France formally declare war on Germany.",
+      "impacts": {}
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov–Ribbentrop Pact, Soviet forces invade eastern Poland.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "Poland_East",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "SUN",
+            "note": "Occupied by Soviet forces."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "rename",
+            "name": "Poland_East",
+            "newName": "Soviet Occupation of Eastern Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Battle of Habbaniya",
+      "date": "1939-09-25",
+      "description": "British and Iraqi forces clash at the Habbaniya perimeter. British forces successfully repel the assault and maintain their position.",
+      "impacts": {}
+    }
+  ]
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the border into Poland, initiating a multi-pronged invasion to seize territory and demand the creation of the Polish Corridor.",
+      "impacts": {}
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France declare war on the German Reich, beginning the Second World War.",
+      "impacts": {}
+    },
+    {
+      "title": "Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Polish territories to establish a sphere of influence.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "east_poland_01",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "SOV_OCC_POL",
+            "note": "Territory seized by the Soviet Union in accordance with the Molotov-Ribbentrop Pact."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "create",
+            "name": "Soviet Occupation of Poland",
+            "newName": "Soviet Occupation of Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Consolidation of the Polish Front",
+      "date": "1939-10-20",
+      "description": "German forces successfully overrun and establish defensive lines across western and central Poland, securing these regions for the Reich.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "west_cent_pol_01",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER_OCC_POL",
+            "note": "German forces seize and hold the western and central regions of Poland."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "create",
+            "name": "German Occupation of Poland",
+            "newName": "German Occupation of Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Skirmish at Habbaniya",
+      "date": "1939-10-28",
+      "description": "British and Iraqi forces clash on the Habbaniya perimeter. British forces successfully repulse the attack and maintain their defensive positions.",
+      "impacts": {}
+    }
+  ]
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a massive invasion of Poland, moving across the Polish Corridor and into central territories. The blitzkrieg tactics rapidly overwhelm Polish defenses.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "pol_west_cent",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER_OCC_POL",
+            "note": "German forces seize the heartland of Poland."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "create",
+            "name": "German Occupation of Poland",
+            "newName": "German Occupation of Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion, Great Britain and France declare war on Germany, initiating a general European conflict.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Polish territories.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "pol_east",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "SOV_OCC_POL",
+            "note": "Soviet forces seize the eastern territories of Poland."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "create",
+            "name": "Soviet Occupation of Poland",
+            "newName": "Soviet Occupation of Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Habbaniya Perimeter Clash",
+      "date": "1939-09-25",
+      "description": "British and Iraqi forces successfully repel a challenge at the Habbaniya perimeter. The British maintain their position in the region.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a multi-pronged invasion of Poland, quickly overwhelming the Polish defenses in the western and central regions.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "western_central_poland",
+            "regionName": "Western and Central Poland",
+            "fromCode": "POL",
+            "toCode": "GER",
+            "note": "German forces seize control of Western and Central Polish territories."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "replace",
+            "name": "Poland",
+            "newName": "German Occupation of Western and Central Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Great Britain and France formally declare war on Germany following the invasion of Polish territory.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "The Soviet Union invades eastern Poland in accordance with the Molotov-Ribbentrop Pact.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "eastern_poland",
+            "regionName": "Eastern Poland",
+            "fromCode": "POL",
+            "toCode": "URS",
+            "note": "Soviet forces occupy the eastern Polish territory."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "replace",
+            "name": "German Occupation of Western and Central Poland",
+            "newName": "Soviet Occupation of Eastern Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Skirmish at Habbaniya",
+      "date": "1939-09-26",
+      "description": "British and Iraqi forces clash on the Habbaniya perimeter; British forces successfully repel the engagement and maintain their position.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a multi-pronged invasion of Poland, targeting Western and Central regions.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "POL_WEST_CENTRAL",
+            "regionName": "Western and Central Poland",
+            "fromCode": "Poland",
+            "toCode": "German Occupation of Western and Central Poland",
+            "note": "German forces successfully overrun and secure these regions."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "create",
+            "name": "German Occupation of Western and Central Poland",
+            "newName": ""
+          }
+        ]
+      }
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Great Britain and France officially declare war on Germany following the invasion of Poland.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade and occupy the eastern territories of Poland.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "POL_EAST",
+            "regionName": "Eastern Poland",
+            "fromCode": "Poland",
+            "toCode": "Soviet Occupation of Eastern Poland",
+            "note": "Soviet forces move into the territory as part of the agreed partition."
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "create",
+            "name": "Soviet Occupation of Eastern Poland",
+            "newName": ""
+          }
+        ]
+      }
+    },
+    {
+      "title": "Habbaniya Perimeter Skirmish",
+      "date": "1939-09-25",
+      "description": "British and Iraqi forces engage in a skirmish at the Habbaniya perimeter. British forces emerge victorious and maintain their position.",
+      "impacts": {
+        "regionTransfers": [],
+        "polityChanges": []
+      }
+    }
+  ]
+}
+```
+
+-- ON  6/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-03",
+      "description": "German forces successfully overrun and establish control over the western and central regions of Poland.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "GP",
+            "regionName": "Greater Poland",
+            "fromCode": "POL",
+            "toCode": "GER_OCC_W_C",
+            "note": "German Occupation of Western and Central Poland"
+          },
+          {
+            "regionId": "SL",
+            "regionName": "Silesia",
+            "fromCode": "POL",
+            "toCode": "GER_OCC_W_C",
+            "note": "German Occupation of Western and Central Poland"
+          },
+          {
+            "regionId": "LB",
+            "regionName": "Lublin",
+            "fromCode": "POL",
+            "toCode": "GER_OCC_W_C",
+            "note": "German Occupation of Western and Central Poland"
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "add",
+            "name": "Western and Central Polish Territory",
+            "newName": "German Occupation of Western and Central Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade and occupy eastern Polish territories.",
+      "impacts": {
+        "regionTransfers": [
+          {
+            "regionId": "LV",
+            "regionName": "Lviv",
+            "fromCode": "POL_REM",
+            "toCode": "SOV_OCC_E",
+            "note": "Soviet Occupation of Eastern Poland"
+          },
+          {
+            "regionId": "VL",
+            "regionName": "Vilnius",
+            "fromCode": "POL_REM",
+            "toCode": "SOV_OCC_E",
+            "note": "Soviet Occupation of Eastern Poland"
+          }
+        ],
+        "polityChanges": [
+          {
+            "op": "add",
+            "name": "Eastern Polish Territory",
+            "newName": "Soviet Occupation of Eastern Poland"
+          }
+        ]
+      }
+    },
+    {
+      "title": "Habbaniya Skirmish",
+      "date": "1939-10-24",
+      "description": "British and Iraqi forces successfully defend the Habbaniya perimeter against a local threat, maintaining their position in the region.",
+      "impacts": {}
+    }
+  ]
+}
+```
