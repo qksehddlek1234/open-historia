@@ -84,10 +84,43 @@ export default {
   // `East Germany`·`West Germany`·`Poland`·`Czechoslovakia`·`Yugoslavia`가
   // 있다. 1960을 쓰는 이유는 1945가 아직 4개 점령지구를 그리기 때문이다 —
   // 두 독일은 1949년에 생겼고 이 보드는 1950년이다.
+  // faceOwners는 1차 빌드의 미매칭 로스터를 읽고 붙였다(그쪽 절차 그대로).
+  // 오른쪽이 폴리티 코드가 아니라 **리터럴 이름**인 줄들이 있는데, 그건
+  // 이 보드가 그 나라의 주권을 현대 그대로 두기 때문이다(1939 스펙이
+  // 이라크에 쓴 것과 같은 처리) — 로스터에 없는 나라를 억지로 만들지 않는다.
   eraGeometry: {
     date: "1950-01-01",
     window: [-10, 25, 132, 71],
     file: "scripts/ohm/out/era-borders-1950-01-01-z4-hybrid.geojson",
+    faceOwners: {
+      // ── 유럽 인민공화국들: 주권국이고 이 보드는 현대 주권을 그대로 쓴다 ──
+      "Magyar Népköztársaság": "Hungary",
+      "Народна република България": "Bulgaria",
+      "Republika Popullore e Shqipërisë": "Albania",
+
+      // ── 리비아: 1951년 12월까지 아직 나라가 아니다 ────────────────────────
+      // 유엔 결의로 독립이 예정돼 있을 뿐, 1950년 1월에는 세 조각이 각자
+      // 군정 아래 있다 — 트리폴리타니아·키레나이카는 영국, 페잔은 프랑스.
+      // 그래서 한 나라로 묶지 않고 관리국에 각각 붙인다.
+      "British Military Administration of Libya": "GBR",
+      "Emirate of Cyrenaica": "GBR", // 1949년 자치 선언, 그러나 영국 군정 아래
+      "Fezzan-Ghadames Military Territory": "FRA",
+
+      // ── 가자: 전팔레스타인 정부는 이집트 관리 아래 있었다 ─────────────────
+      "حكومة عموم فلسطين": "Egypt",
+
+      // ── 1939·1935 스펙이 같은 이름으로 이미 해결해 둔 식민지 면들 ─────────
+      "Algérie française": "FRA",
+      "Protectorat français de Tunisie": "FRA",
+      "Tangier International Zone": "FRA",
+      "British Cyprus": "GBR",
+      "Colony of Malta": "GBR",
+      "Protectorate of Kuwait": "GBR",
+      "Sultanate of Muscat and Oman": "GBR",
+      "África Occidental Española": "ESP",
+      "葡屬澳門 Portuguese Macau": "POR",
+      "المملكة العراقية الهاشمية": "Iraq", // 1932년부터 독립국
+    },
   },
 
   polities: {
