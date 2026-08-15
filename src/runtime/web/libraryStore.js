@@ -484,7 +484,14 @@ const readRuntimeJsonAsset = async (assetKey) => {
     // The scenario owns its geometry; migrate it as its OWN record.
     if (scenario && ensureOwnerSchema(scenario, "scenario")) await idbPut(STORES.scenarios, scenario);
     let value = scenario?.geojson?.[assetKey];
-    if (value === undefined && assetKey === "regionsGeojson" && scenario && scenario.id !== DEFAULT_SCENARIO_ID) {
+    // The border file follows the MAP: only a scenario borrowing Modern Day's
+    // geometry may borrow Modern Day's outline. A scenario with its own map and
+    // no border of its own gets nothing, and keeps drawing GADM level 0 — the
+    // server mirror of this rule (libraryStore.js) explains why handing it the
+    // modern border instead would be the one unacceptable answer.
+    const borrowsDefaultMap = assetKey === "regionsGeojson"
+      || (assetKey === "bordersGeojson" && scenario?.geojson?.regionsGeojson === undefined);
+    if (value === undefined && borrowsDefaultMap && scenario && scenario.id !== DEFAULT_SCENARIO_ID) {
       // Borrowing the Modern Day map. Migrate it as DEFAULT'S record, never this
       // scenario's: those owners live in default's owner-space, so resolving them
       // against this world's polities would name Russia after whatever this
@@ -931,7 +938,7 @@ const exportScenarioBundle = async (id, mode = "light") => {
   assets.colors = record.colors !== undefined
     ? { data: parseJsonValue(record.colors, {}), fileName: "colors.json", mode: "embedded" }
     : { fileName: "colors.json", mode: "default" };
-  for (const [key, fileName] of [["regionsGeojson", "regions.geojson"], ["citiesGeojson", "cities.geojson"], ["backgroundData", "background.json"]]) {
+  for (const [key, fileName] of [["regionsGeojson", "regions.geojson"], ["citiesGeojson", "cities.geojson"], ["bordersGeojson", "borders.geojson"], ["backgroundData", "background.json"]]) {
     assets[key] = record.geojson?.[key] !== undefined
       ? { contentType: "application/json", data: bytesToBase64(new TextEncoder().encode(serializeJsonValue(record.geojson[key]))), encoding: "base64", fileName, mode: "embedded" }
       : { fileName, mode: "default" };

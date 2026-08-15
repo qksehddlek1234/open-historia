@@ -105,7 +105,11 @@ test("the extension rides the CACHE KEY, because the anchor is baked geometry", 
 test("the map draws the line under the labels and fades it with them", () => {
   assert.match(NATIONS, /id="country-leader-lines"/);
   assert.match(NATIONS, /leaderExtension: labelLineExtension/);
-  // Same 5 → 8 ramp as labelLayerPaint: the line must never outlive its text.
+  // The LINE still fades out by z8 — a leader is punctuation for a label that
+  // has been moved off its country, and once the country fills the screen it
+  // has nothing left to point at. The label itself no longer fades (see
+  // labelLayerPaint), so the invariant this pin holds — the line never outlives
+  // its text — is now satisfied with room to spare.
   const paint = NATIONS.slice(NATIONS.indexOf("const leaderLinePaint"), NATIONS.indexOf("const labelLayerPaint"));
   assert.match(paint, /5, 0\.38,/);
   assert.match(paint, /8, 0,/);
@@ -130,10 +134,21 @@ test("A LEADER LABEL YIELDS TO COLLISION, a country's own never does", () => {
     "the leader layer submits to collision unconditionally");
   assert.doesNotMatch(NATIONS, /"text-allow-overlap": \["case"/,
     "no data expression may return to this property");
-  // And the filters route each feature to exactly one of the two layers.
+  // And the filters route each feature to exactly one layer. A THIRD rank has
+  // since joined them (country-labels-minor, an owner's outlying clusters), so
+  // the country layer's filter is now a conjunction rather than the bare leader
+  // test this pin was written against. The invariant is unchanged and is what is
+  // pinned: no layer but the leader one may draw a leader label.
   const source = NATIONS.slice(NATIONS.indexOf('id="country-point-label-source"'));
-  assert.match(source, /id="country-labels"\n\s*type="symbol"\n\s*filter=\{\["!=", \["get", "leader"\], 1\]\}/);
-  assert.match(source, /id="country-labels-leaders"\n\s*type="symbol"\n\s*filter=\{\["==", \["get", "leader"\], 1\]\}/);
+  const filterOf = (id) => {
+    const at = source.indexOf(`id="${id}"`);
+    assert.notEqual(at, -1, `${id} must be its own layer`);
+    const from = source.indexOf("filter={", at);
+    return source.slice(from, source.indexOf("layout=", from));
+  };
+  assert.match(filterOf("country-labels"), /\["!=", \["get", "leader"\], 1\]/);
+  assert.match(filterOf("country-labels-minor"), /\["!=", \["get", "leader"\], 1\]/);
+  assert.match(filterOf("country-labels-leaders"), /\["==", \["get", "leader"\], 1\]/);
 });
 
 test("and the setting is in the panel with the rest of the rendering dials", () => {

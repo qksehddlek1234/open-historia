@@ -305,6 +305,13 @@ const SCENARIO_GEOJSON_ASSET_FILES = {
   // Era-accurate custom cities (points). When world.customCities is set the game
   // renders these instead of the modern cities.pmtiles labels.
   citiesGeojson: "cities.geojson",
+  // The board's own national border — the line where OWNERSHIP changes, built
+  // from the region geometry at preset-build time (scripts/presets/lib/
+  // ownerBorders.mjs). Same idea as the cities above: era-accurate geometry
+  // shipped beside the map, drawn instead of the modern countries.pmtiles
+  // outline. A scenario without one keeps drawing GADM level 0, exactly as
+  // before — absent is safe here, wrong is not.
+  bordersGeojson: "borders.geojson",
   // A custom map background uploaded in the editor (an image placed by extent, or
   // a vector overlay). Small descriptor lives in world.background; this holds the
   // heavy payload ({ dataUrl } for images, { geojson } for vector) so world.json
@@ -2283,7 +2290,18 @@ const readRuntimeJsonAsset = (assetKey) => {
       // geometry, so EVERY scenario renders with the custom map style (the
       // scenario's ownership overrides still recolor it). Cities stay absent
       // unless the scenario ships its own set.
-      if (assetKey === "regionsGeojson" && scenario.id !== DEFAULT_SCENARIO_ID) {
+      //
+      // The border file follows the MAP, not the scenario: it is the outline of
+      // the geometry being drawn, so it may only be borrowed by a scenario that
+      // is also borrowing the geometry. A scenario with its own regions.geojson
+      // and no borders of its own must get nothing here — handing it Modern
+      // Day's border is drawing the 2026 map over its world, which is the exact
+      // fault this asset exists to end. Nothing means "keep drawing level 0",
+      // which is what that board did yesterday.
+      const borrowsDefaultMap = assetKey === "regionsGeojson"
+        || (assetKey === "bordersGeojson"
+          && !fs.existsSync(getScenarioUploadPath(scenario.id, "regionsGeojson")));
+      if (borrowsDefaultMap && scenario.id !== DEFAULT_SCENARIO_ID) {
         // Borrowing the Modern Day map. Migrate it as DEFAULT'S record, not this
         // scenario's: the file's owners live in default's owner-space, so
         // resolving them against this scenario's polities would name Russia after
@@ -2538,6 +2556,10 @@ const exportScenarioBundle = (scenarioId, { mode = "light" } = {}) => {
       regions: buildScenarioBundleAsset(scenarioId, "regions", mode),
       regionsGeojson: buildScenarioBundleAsset(scenarioId, "regionsGeojson", mode),
       citiesGeojson: buildScenarioBundleAsset(scenarioId, "citiesGeojson", mode),
+      // The national border travels with the geometry it outlines — a shared map
+      // that arrives without it falls back to the modern outline and looks wrong
+      // in exactly the way the author fixed.
+      bordersGeojson: buildScenarioBundleAsset(scenarioId, "bordersGeojson", mode),
       // The custom map background travels with the scenario (always embedded, like
       // the geometry) so a shared/imported custom map isn't blank.
       backgroundData: buildScenarioBundleAsset(scenarioId, "backgroundData", mode),

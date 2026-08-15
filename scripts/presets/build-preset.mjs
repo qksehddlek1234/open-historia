@@ -25,6 +25,7 @@ import { OWNER_SCHEMA } from "../../server/ownerMigration.js";
 import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf, decimateFaceMp,
 } from "./lib/eraGeometry.mjs";
+import { buildOwnerBorders } from "./lib/ownerBorders.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
@@ -579,6 +580,35 @@ writeFileSync(
   JSON.stringify({ type: "FeatureCollection", features: regionFeaturesFinal }),
   "utf8",
 );
+
+// The board's own national border (lib/ownerBorders.mjs says why level 0 could
+// not stay). Written for every board, including the modern ones where it agrees
+// with GADM — a board that says nothing about its borders is a board the game
+// has to guess about, and guessing is what put the 2026 map over the Reich.
+{
+  const t0 = Date.now();
+  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal);
+  writeFileSync(path.join(scenarioDir, "borders.geojson"), JSON.stringify(collection), "utf8");
+  console.log(
+    `[borders] 국경 세그먼트 ${stats.segments.frontier} → ${stats.parts}줄 · ` +
+    `내부 ${stats.segments.interior} · 해안 ${stats.segments.exterior} · ` +
+    `현대 윤곽 유지 ${stats.intact.length}/${stats.intactOf}개국 · ${Date.now() - t0}ms`,
+  );
+  if (stats.segments.overCounted > 0) {
+    // A segment with three regions on it has no two sides to compare, so the
+    // third and beyond are dropped — counted here rather than swallowed.
+    //
+    // On a plain GADM board this should be zero and a non-zero number means the
+    // seed stopped sharing vertices exactly, which is the assumption the whole
+    // method rests on (measured over the full seed: 2,533,136 distinct segments,
+    // every one appearing exactly once or exactly twice). On a board with era
+    // geometry grafted in it is expected and small — an authored face meets seed
+    // regions that still share their old edge — medieval-1200 carries 59 against
+    // 69,477 border segments. Large here, or non-zero without a graft, is the
+    // signal worth chasing.
+    console.warn(`[borders] 세 번 이상 등장한 세그먼트 ${stats.segments.overCounted}개 — 세 번째 이후는 버렸다`);
+  }
+}
 
 if (cityCollection) {
   writeJson(path.join(scenarioDir, "cities.geojson"), cityCollection);

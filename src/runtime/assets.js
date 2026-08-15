@@ -74,6 +74,7 @@ export const JSON_URLS = {
   prompts: "",
   regionsGeojson: "",
   citiesGeojson: "",
+  bordersGeojson: "",
   backgroundData: "",
   world: "",
 };
@@ -169,7 +170,8 @@ const jsonLoadedUrls = new Set();
 // judge it cacheable, and pin a copy under a URL nothing can reach or sweep
 // again — resurrecting the exact leak, on the scenario-switch path.
 const isNoStoreJsonUrl = (url) =>
-  url === JSON_URLS.regionsGeojson || url === JSON_URLS.citiesGeojson;
+  url === JSON_URLS.regionsGeojson || url === JSON_URLS.citiesGeojson
+  || url === JSON_URLS.bordersGeojson;
 
 const pmtilesProtocol = new Protocol();
 let pmtilesProtocolReady = false;
@@ -282,6 +284,7 @@ export const setRuntimeAssetEndpoints = ({ token = "" } = {}) => {
   JSON_URLS.snapshots = withRuntimeToken("/api/runtime/json/snapshots");
   JSON_URLS.regionsGeojson = withRuntimeToken("/api/runtime/json/regionsGeojson");
   JSON_URLS.citiesGeojson = withRuntimeToken("/api/runtime/json/citiesGeojson");
+  JSON_URLS.bordersGeojson = withRuntimeToken("/api/runtime/json/bordersGeojson");
   JSON_URLS.backgroundData = withRuntimeToken("/api/runtime/json/backgroundData");
   JSON_URLS.world = withRuntimeToken("/api/runtime/json/world");
 

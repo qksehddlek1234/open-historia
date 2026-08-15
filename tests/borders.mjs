@@ -283,4 +283,115 @@ test("the replacement sentence survives being translated whole", () => {
   assert.ok(line.trim().endsWith("."), "and must be a whole sentence");
 });
 
+
+console.log("\nLevel 0 draws only where level 0 is still true");
+
+test("countries-outline is filtered to the board's intact countries", () => {
+  const at = NATIONS.indexOf("const countriesOutlineFilter");
+  assert.notEqual(at, -1, "the modern outline must be filtered, not mounted whole");
+  const block = NATIONS.slice(at, at + 400);
+  assert.match(block, /ownerBordersReady/, "the filter has to key on the board actually shipping one");
+  assert.match(block, /"GID_0"/, "level 0 is filtered by country code");
+  // A board built before borders.geojson existed must draw exactly what it drew
+  // yesterday — an empty intact list would erase every border it has.
+  assert.match(block, /:\s*\["all"\]/, "no border file means no filter, not an empty one");
+  assert.match(NATIONS, /id="countries-outline"[\s\S]{0,200}filter=\{countriesOutlineFilter\}/);
+});
+
+test("the board's own border is drawn at the national weight, not a weight of its own", () => {
+  const at = NATIONS.indexOf('<Source id="owner-border-source"');
+  assert.notEqual(at, -1, "the frontier layer must be mounted");
+  const block = NATIONS.slice(at, at + 400);
+  assert.match(block, /paint=\{countriesOutlinePaint\}/,
+    "a border is a border — same curve, same player setting");
+});
+
+test("a conquest's line sits above the line the board shipped with", () => {
+  const fills = NATIONS.indexOf('<Source id="custom-regions-source"');
+  const frontier = NATIONS.indexOf('<Source id="owner-border-source"');
+  const diverged = NATIONS.indexOf('<Source id="diverged-borders-source"');
+  const labels = NATIONS.indexOf('<Source id="country-curved-label-source"');
+  assert.ok(frontier > fills, "the frontier must come after the fills it divides");
+  assert.ok(diverged > frontier, "in-play changes must draw over the board's own border");
+  assert.ok(frontier < labels, "and all of it stays under the labels");
+});
+
+console.log("\nA possession's label is not the country's label");
+
+test("the two ranks are two layers, and the minor one is drawn second", () => {
+  const major = NATIONS.indexOf('id="country-labels"');
+  const minor = NATIONS.indexOf('id="country-labels-minor"');
+  assert.notEqual(minor, -1, "the second rank must exist as its own layer");
+  assert.ok(major < minor, "the possession's repeat is the one that yields on collision");
+});
+
+test("a feature with no tier is a full-rank label — the stock set has only one rank", () => {
+  assert.match(NATIONS, /const LABEL_TIER = \["coalesce", \["get", "tier"\], 0\]/,
+    "absent must read as 0, never as minor");
+  assert.match(NATIONS, /id="country-labels"[\s\S]{0,240}\["!=", LABEL_TIER, 1\]/);
+  assert.match(NATIONS, /id="country-labels-minor"[\s\S]{0,240}\["==", LABEL_TIER, 1\]/);
+});
+
+test("every label rank is its own layer — allow-overlap cannot be an expression", () => {
+  // MapLibre takes text-allow-overlap as a layout property only, and only as a
+  // constant: a data expression there is rejected on every style pass and every
+  // label silently falls back to false. One case expression would have taken the
+  // country labels down with the ranks that are supposed to be cullable.
+  for (const layer of ["country-labels", "country-labels-leaders", "country-labels-minor"]) {
+    assert.ok(NATIONS.includes(`id="${layer}"`), `${layer} must be its own layer`);
+  }
+  for (const layout of ["pointLabelLayerLayout", "leaderLabelLayerLayout", "minorPointLabelLayerLayout"]) {
+    const at = NATIONS.indexOf(`const ${layout}`);
+    assert.notEqual(at, -1, `${layout} not found`);
+    const overlap = NATIONS.slice(at, at + 420).match(/"text-allow-overlap":\s*(\w+)/);
+    assert.ok(overlap && /^(true|false)$/.test(overlap[1]),
+      `${layout} must set allow-overlap to a literal, got ${overlap?.[1]}`);
+  }
+});
+
+test("the country's own name never yields to a possession or a leader line", () => {
+  // Only the two subordinate ranks are cullable.
+  const major = NATIONS.slice(NATIONS.indexOf("const pointLabelLayerLayout"), NATIONS.indexOf("const leaderLabelLayerLayout"));
+  assert.match(major, /"text-allow-overlap": true/);
+});
+
+test("the minor rank is smaller, thinner-haloed, and cullable", () => {
+  const at = NATIONS.indexOf("const minorPointLabelLayerLayout");
+  assert.notEqual(at, -1);
+  const layout = NATIONS.slice(at, at + 600);
+  assert.match(layout, /buildCountryTextSize\(MINOR_LABEL_SCALE, isGlobe\)/);
+  assert.match(layout, /"text-allow-overlap": false/,
+    "an archipelago prints one repeat per island group; they must be allowed to lose");
+  const paintAt = NATIONS.indexOf("const minorLabelLayerPaint");
+  assert.match(NATIONS.slice(paintAt, paintAt + 300), /"text-halo-width": 0\.5/);
+  const scale = Number(NATIONS.match(/const MINOR_LABEL_SCALE = ([\d.]+)/)?.[1]);
+  assert.ok(scale > 0 && scale < 1, `the minor rank must actually be smaller (got ${scale})`);
+});
+
+test("a possession may not out-print the seat it belongs to", () => {
+  // British Australia is larger than the British Isles, so area alone drew the
+  // repeat bigger than the country. The seat's own scale is the ceiling.
+  const at = NATIONS.indexOf("const seatScale");
+  assert.notEqual(at, -1, "the seat's scale must be computed before the loop");
+  const block = NATIONS.slice(at, at + 1400);
+  assert.match(block, /areaScale: index === 0 \? ownScale : Math\.min\(ownScale, seatScale\)/);
+  assert.match(block, /tier: index === 0 \? 0 : 1/);
+});
+
+
+test("a country label outranks a city label at the zoom a player reads at", () => {
+  // Measured against the original at z ~6.8 (Riga to Moscow, 13.5 deg of
+  // longitude in ~1060 CSS px): it draws country names solid there. The old
+  // ramp — 0.75 at z5 falling to 0 at z8 — was at 0.30, so the country's own
+  // name was three times fainter than the city names beside it, which never
+  // faded. That inversion is what "province and country labels are the same
+  // weight" described.
+  const at = NATIONS.indexOf("const labelLayerPaint");
+  assert.notEqual(at, -1);
+  const paint = NATIONS.slice(at, NATIONS.indexOf("}), [labelHaloColor", at));
+  assert.match(paint, /"text-opacity": 0\.75/, "the country label must not fade with zoom");
+  assert.doesNotMatch(paint, /"text-opacity": \[/, "no zoom ramp may return to this property");
+  assert.match(paint, /"text-letter-spacing": [\d.]+/, "tracking is what makes it read as the top rank");
+});
+
 console.log(`\n${pass} passed\n`);

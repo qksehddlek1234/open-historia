@@ -62,49 +62,85 @@ export default {
   // excludeFaces·faceOwners·faceKeepOut은 **비워 둔다** — 면 목록을 실제로
   // 보기 전에 채우는 건 추측이고, 이 파일의 규칙에 어긋난다. 1차 빌드의
   // 재배정·절단 로스터를 읽고 붙인다(1444·1200·1300·117과 같은 절차).
-  //
-  // PC 추출 완료(2026-08-15), 그리고 **하이브리드를 가리킨다.** rung-1 단독
-  // 조립은 38면을 냈지만 독일이 그 안에 없다 — 서·중부 유럽이 한 덩어리로
-  // 뭉쳐 바다 가드에 걸렸고(12폴리티·육지비 7%), 그건 이 보드의 실패가
-  // 아니라 파이프라인의 정상 상태다(배포 중인 1939도 rung-1은 26면뿐).
-  // 사다리 3단(aourednik world_1930)을 얹은 하이브리드가 73면이고 거기에
-  // `Germany`와 **`East Prussia`가 별개 폴리곤으로** 들어 있다 — 폴란드
-  // 회랑으로 갈라진 1935년의 그 모양이고, 지적된 defect의 해결책이다.
-  //
-  // 연대 선택은 역사 판단이다: world_1938을 쓰면 **아직 일어나지 않은**
-  // 안슐루스와 주데텐란트가 그려진다(2년 반 앞선 국경). 1930은 독일과
-  // 오스트리아를 따로 주므로 이 날짜에 맞다.
-  // faceOwners/excludeFaces는 1차 빌드의 미매칭 로스터를 읽고 붙였다(그쪽이
-  // 남긴 절차 그대로 — 면 목록을 보기 전에 채우는 건 추측이다). 식민지 면들은
-  // wwii-1939 스펙이 **같은 이름들을 이미 해결해 둔 것**을 그대로 따랐고,
-  // 1935에만 있는 판단 둘만 여기 적는다.
   eraGeometry: {
     date: "1935-12-01",
     window: [-10, 35, 45, 71],
+    // The HYBRID, not the bare rung-1 assembly. Rung 1 alone gave this window 38
+    // faces and no Germany at all — measured, and normal: the sea guard rejects
+    // western and central Europe as one unclosed blob (12 polities, 7% land), so
+    // the deployed 1939 board scores worse on the same metric (26 faces). The
+    // historical-basemaps backfill fills exactly that hole, and on this date it
+    // draws the one thing the board was reported for: Germany and East Prussia as
+    // two faces with the Polish Corridor between them.
     file: "scripts/ohm/out/era-borders-1935-12-01-z4-hybrid.geojson",
-    // world_1930(rung 3)이 1935에 존재하지 않는 나라들을 들고 온다. 오스만
-    // 술탄국은 1922년에 끝났고, 헤자즈와 하일은 1925·1921년에 정복돼 1932년
-    // 사우디아라비아로 합쳐졌다. 미매칭으로 두면 조용히 버려지는 게 아니라
-    // 매 빌드 로스터에 찍히므로, 여기 적어 **의도된 제외**임을 남긴다.
+
+    // Three fences, each on a border that a treaty had already closed and that
+    // did not move again before this board's date. Everything else the graft
+    // reassigned is left alone.
     excludeFaces: [
+      // The Gulf protectorates are ONE colour on this board by design — the
+      // country list puts Bahrain, Qatar, the Trucial States and Kuwait all
+      // under the British Empire, and Kuwait's and Oman's faces find no polity
+      // to attach to. Letting Qatar alone break out would leave a single
+      // protectorate painted as a country while its neighbours stayed imperial,
+      // and would mint a polity with no colour in the spec — which is how a
+      // procedural fallback colour ends up differing between the two clones.
+      "Qatar",
+      // ── world_1930이 1935에 없는 나라를 들고 온다 (rung-3의 대가) ─────────
+      // 오스만 술탄국은 1922년에 끝났고, 헤자즈와 하일은 1925·1921년에
+      // 정복돼 1932년 사우디아라비아로 합쳐졌다. 미매칭으로 두면 매 빌드
+      // 로스터에 찍히므로 여기 적어 **의도된 제외**임을 남긴다.
       "Ottoman Sultanate",
       "Hejaz",
       "Hail",
       "Emirate of Bin Shal'an",
       "Mesopotamia (GB)", // 이라크는 1932년에 독립했다 — 위임통치 이름은 낡았다
+      // **"White Russia"는 벨라루스가 아니라 소련 전체다.** 처음엔 이름만
+      // 보고 BYE(벨로루시 SSR)에 붙였는데, 절단 로스터가 벨라루스를 카자흐·
+      // 투르크멘·우즈벡·아프간 국경에서 자르고 있길래 면을 재어 봤다:
+      // bbox가 **경도 -180~180 · 위도 35~77**이다. basemap이 소련 한 덩어리를
+      // 그렇게 이름 붙였을 뿐이고(저장소 스스로 학술용이 아니라고 경고한다),
+      // 이 보드는 소련을 SOV + SSR들로 이미 제대로 모델링한다. 통짜 면은
+      // 그것보다 나쁘므로 버린다 — 이름만 보고 붙이면 안 된다는 실측 사례.
+      "White Russia",
     ],
-    faceOwners: {
-      // ── 1935에만 있는 판단 ────────────────────────────────────────────────
-      // 동프로이센은 폴란드 회랑으로 본토와 갈라져 있을 뿐 독일 영토다
-      // (이 파일 아래쪽도 "East Prussia is German until 1945"라고 적는다).
-      // rung-3이 별개 폴리곤으로 주는 이유는 basemap이 비연속 영토를 따로
-      // 그리기 때문이지 별개 나라라서가 아니다. **지적된 defect의 핵심이
-      // 이 한 줄이다** — 이게 없으면 회랑 동쪽이 빈 채로 남는다.
-      "East Prussia": "GER",
-      // world_1930의 "White Russia" = 벨로루시 SSR.
-      "White Russia": "BYE",
 
+    faceKeepOut: {
+      // LAUSANNE, 1923. Turkey's Anatolian and Thracian borders were settled
+      // then and stood untouched through 1939. The rung-3 Italy face reached
+      // into Anatolia anyway and took nine provinces outright — the Sèvres
+      // zone Italy was promised in 1920 and never held. Italy's real Aegean
+      // holding in 1935 is the Dodecanese, which GADM files under GRC, so
+      // fencing TUR costs the board nothing it should have.
+      Italy: ["TUR"],
+      // KARS, 1921. Kars and Ardahan went to Turkey and stayed there; the three
+      // Transcaucasian faces were pulling twelve eastern provinces back over a
+      // line that had been fixed for fourteen years.
+      Georgia: ["TUR"],
+      Armenia: ["TUR"],
+      Azerbaijan: ["TUR"],
+      // Liechtenstein was sovereign in 1935 and is its own polity on this board.
+      // The rung-3 Austria face swallowed both of its regions.
+      Austria: ["LIE"],
+      // THE SAAR CAME HOME IN MARCH 1935 and this board opens in December. The
+      // basemap this face comes from is world_1930, five years before the
+      // plebiscite, so it still holds Saarland (DEU.DEC0) for France. France's
+      // real German-facing gain of the period is Alsace-Lorraine, which GADM
+      // files under FRA, so nothing France should hold is behind this fence.
+      France: ["DEU"],
+    },
+
+    faceOwners: {
+      // The face is named for the province and the province was German — it is
+      // the eastern half of the shape the board was reported for, the one the
+      // Polish Corridor separates from the rest of the Reich. Left unmatched it
+      // painted nothing and Königsberg stayed Soviet on a 1935 map.
+      "East Prussia": "GER",
+      // 국제연맹 관할이라 독일도 폴란드도 아니다 — 폴리티 선언부의 긴 주석 참조.
+      "Freie Stadt Danzig": "DZG",
       // ── 아래는 wwii-1939 스펙과 같은 해결 (같은 면 이름, 같은 보유국) ────
+      // 1차 빌드의 미매칭 로스터를 읽고 붙였다. 이 블록이 없으면 면 매칭이
+      // 65/73에서 44/73으로 떨어진다(실측 — 한 번 덮여서 그 값을 봤다).
       "Algérie française": "FRA",
       "Protectorat français de Tunisie": "FRA",
       "République Libanaise": "FRA",
@@ -118,18 +154,21 @@ export default {
       "Colony of Malta": "GBR",
       "Protectorate of Kuwait": "GBR",
       "Sultanate of Muscat and Oman": "GBR", // rung 1
-      // rung-3(world_1930)은 같은 해안을 두 면으로 나눠 준다 — 첫 시도에서
-      // 빌드 로그의 쉼표 목록을 한 이름으로 착각해 "Trucial Oman, Muscat and
-      // Oman"이라고 적었고, 그래서 안 걸렸다. 로그의 쉼표는 구분자다.
+      // rung-3(world_1930)은 같은 해안을 두 면으로 나눠 준다 — 빌드 로그의
+      // 쉼표는 구분자다(한 이름으로 읽고 매핑했다가 안 걸린 적이 있다).
       "Trucial Oman": "GBR",
       "Muscat and Oman": "GBR",
       "Mandatory Palestine (GB)": "GBR",
       "Colonia del Rio de Oro": "ESP",
       "Saguía el Hamra": "ESP",
       "Territorio de Ifni": "ESP",
-      // 1932년부터 독립국이고 이 스펙에 폴리티가 없다 — 이름을 그대로 쓴다
-      // (1939 스펙의 같은 처리).
+      // 1932년부터 독립국이고 이 스펙에 폴리티가 없다 — 이름을 그대로 쓴다.
       "المملكة العراقية الهاشمية": "Iraq",
+      // 1935에 독립국이다(이탈리아 병합은 1939년 4월). 로스터에 폴리티가
+      // 없으므로 리터럴 이름으로 현대 주권을 그대로 쓴다.
+      "Mbretnija Shqiptare": "Albania",
+      // 1922년부터 자유국이고 1937년에 에이레가 된다 — 영국령이 아니다.
+      "Saorstát Éireann / Irish Free State": "Ireland",
     },
   },
 
@@ -206,6 +245,23 @@ export default {
     DEI: { name: "Dutch East Indies", color: "#d08a4a", aliases: ["네덜란드령 동인도", "Nederlands-Indië", "Dutch East Indies", "Indonesia"] },
     BCO: { name: "Belgian Congo", color: "#8a9a3a", aliases: ["벨기에령 콩고", "Congo belge", "Belgian Congo"] },
     GER: { name: "Germany", color: "#3a3a3a", aliases: ["독일", "나치 독일", "Third Reich", "German Reich", "Nazi Germany", "Deutsches Reich"] },
+    // ── 단치히 자유시: 어느 나라도 아니다 ──────────────────────────────────
+    // OHM이 이 날짜에 `Freie Stadt Danzig` 면을 주는데 보드에 받을 폴리티가
+    // 없어 매 빌드 미매칭으로 떨어졌다. 독일에 붙이면 **1939년 9월 병합을
+    // 4년 앞당기는 것**이고, 폴란드에 붙이면 주권을 잘못 말한다 — 베르사유
+    // 조약이 만든 국제연맹 관할체이고, 폴란드가 가진 것은 위임된 권한
+    // (외교 대표·관세·항만·군 주둔)뿐이지 주권이 아니었다. 고등판무관이
+    // 분쟁을 재결하고 상소는 연맹으로만 갔다.
+    //
+    // **원본도 이 나라를 폴리티로 둔다** — 수확한 1935 팔레트에
+    // `Free City of Danzig #AEA1FF`가 있다(docs/analysis/palette-wwii-1935
+    // .json). 색까지 원본을 따른다.
+    //
+    // 1935년 12월의 실상은 나치가 이미 시의회를 쥔 자유시다(1933년 집권,
+    // 1935년 선거에서 72석 중 43석, 주민 95%가 독일계). 그래서 이 보드에서
+    // 단치히는 "독일 땅"이 아니라 **독일이 그해에 삼키려 하는 별개의 나라**
+    // 이고, 그게 이 보드가 다루는 이야기 자체다.
+    DZG: { name: "Free City of Danzig", color: "#AEA1FF", aliases: ["단치히 자유시", "단치히", "Danzig", "Gdańsk", "Freie Stadt Danzig", "Wolne Miasto Gdańsk"] },
     // **코드 충돌 수리**: 이 줄은 원래 `AUS`였고, 위에서 선언한 호주 연방을 조용히
     // 덮었다. 결과는 "오스트리아라는 이름으로 호주와 파푸아뉴기니를 다스리는 나라"
     // 였다(빌드 로그의 `PNG→Austria`가 그 흔적). ISO대로 AUS는 호주, AUT는 오스트리아.
@@ -324,6 +380,24 @@ export default {
     "CHN.19_1": "MGL",  // 내몽골 — 더왕의 자치운동
     // 허베이·차하르는 11월 기동방공자치정부 이후 일본의 그늘에 있다 —
     // 명목은 국민정부, 실질은 완충지대(룰에서 다룬다).
+    // GERMANY'S EASTERN BORDER IS THE VERSAILLES LINE, NOT THE ODER-NEISSE.
+    //
+    // The board was drawing 1945 here: every voivodeship of modern Poland was
+    // Polish, so Breslau, Stettin, Allenstein and Oppeln — German towns for
+    // centuries and German until the war ended — sat on the Polish side of a
+    // line that would not be drawn for another ten years. That is the same
+    // fault as the Corridor being missing, on the other side of it.
+    //
+    // Split provinces are left with Poland rather than guessed at: Śląskie is
+    // mostly the eastern Upper Silesia that the 1921 plebiscite and the third
+    // uprising put in Polish hands, and Pomorskie IS the Corridor. Danzig is a
+    // Free City inside Pomorskie and has no polity here, so it stays Polish —
+    // named, not silently rounded off.
+    "POL.1_1": "GER",   // Dolnośląskie — Niederschlesien (Breslau)
+    "POL.5_1": "GER",   // Lubuskie — Ostbrandenburg (Landsberg)
+    "POL.8_1": "GER",   // Opolskie — Oberschlesien, the part that stayed German
+    "POL.14_1": "GER",  // Warmińsko-Mazurskie — southern East Prussia (Allenstein)
+    "POL.16_1": "GER",  // Zachodniopomorskie — Pommern (Stettin)
     // East Prussia is German until 1945.
     "RUS.21_1": "GER",  // Kaliningrad = Königsberg
     // Memel is still LITHUANIAN in 1935 (annexed March 1939) — no override.

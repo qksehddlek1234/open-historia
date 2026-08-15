@@ -63,6 +63,16 @@ const buildCountryTextSize = (multiplier = 1, correctForGlobe = false) => {
   ];
 };
 
+// The second rank of label — an owner's outlying clusters (countryLabels.js
+// explains what tier is). Not a number invented for this: 0.6 is the measured
+// floor of the curved-label size scale in countryLabels.js, the smallest this
+// codebase already treats as a legible country label at map scale. A repeat of a
+// name the map carries elsewhere is exactly what belongs at that floor.
+const MINOR_LABEL_SCALE = 0.6;
+// Features with no tier at all are the STOCK label set, which has one rank and
+// must keep drawing at full weight — so absent reads as 0, never as minor.
+const LABEL_TIER = ["coalesce", ["get", "tier"], 0];
+
 const buildFallbackColorExpression = () => ([
   "rgb",
   ["+", 64, ["*", ["index-of", ["slice", ["get", "GID_0"], 0, 1], "ABCDEFGHIJKLMNOPQRSTUVWXYZ"], 5]],
@@ -435,19 +445,35 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       ? `Disputed (${DISPUTED_TERRITORY_CLAIMANT[owner]})`
       : polityOverrides?.[owner]?.name || countryNameByCode.get(owner) || owner;
     const name = String(nameResolver ? nameResolver(rawName, owner) : rawName).toUpperCase();
+    // Clusters are sorted largest first, so index 0 is the seat and everything
+    // after it is an outlying possession printing a name the map already carries
+    // once. That distinction had no expression here: every cluster emitted the
+    // same feature, so the label over a colony drew at full country weight — 75
+    // of them on wwii-1935 (British Empire ×14, Dutch East Indies ×9, French
+    // Republic ×8), 37 on medieval-1200, 13 on roman-117. A player reading that
+    // map sees two ranks of place printed as one rank of type.
+    //
+    // `tier` is that rank, and Nations.jsx draws the two from separate layers.
+    const seatScale = Math.sqrt(clusters[0]?.area ?? 0) * 17500;
     for (let index = 0; index < clusters.length; index += 1) {
       const cluster = clusters[index];
       // Every owner keeps its largest cluster (tiny states still get a label);
       // additional clusters must clear the size bar.
       if (index > 0 && cluster.area < MIN_CLUSTER_AREA) continue;
+      const ownScale = Math.sqrt(cluster.area) * 17500;
       features.push({
         type: "Feature",
         id: `owner-label-${id++}`,
         geometry: { type: "Point", coordinates: [cluster.cx, cluster.cy] },
         properties: {
           name,
-          areaScale: Math.sqrt(cluster.area) * 17500,
+          // A possession may not out-print the seat. Area alone let it: British
+          // Australia is larger than the British Isles, so the repeat drew bigger
+          // than the country. Capping at the seat's own scale costs nothing where
+          // the possession is smaller anyway, which is nearly always.
+          areaScale: index === 0 ? ownScale : Math.min(ownScale, seatScale),
           rotation: 0,
+          tier: index === 0 ? 0 : 1,
           // See GLOBE_LAT_CORRECTION — same globe text-size fix (issue #6).
           lat: cluster.cy,
         },
@@ -494,6 +520,7 @@ const WorldMap = ({ isGlobe = false }) => {
   const [curvedLabelData, setCurvedLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [leaderLineData, setLeaderLineData] = useState(EMPTY_FEATURE_COLLECTION);
   const [customRegionData, setCustomRegionData] = useState(EMPTY_FEATURE_COLLECTION);
+  const [ownerBorderData, setOwnerBorderData] = useState(EMPTY_FEATURE_COLLECTION);
   const countriesUrl = PMTILES_PROTOCOL_URLS.countries;
   const regionsUrl = PMTILES_PROTOCOL_URLS.regions;
   // The seas are ALWAYS on the map now — command of a strait, a blockade, a
@@ -553,6 +580,7 @@ const WorldMap = ({ isGlobe = false }) => {
   // Re-read on each render so a runtime token change (switching games/scenarios)
   // refetches the geometry, mirroring the live-URL world poll below.
   const regionsGeojsonUrl = JSON_URLS.regionsGeojson;
+  const bordersGeojsonUrl = JSON_URLS.bordersGeojson;
   // Countries owning at least one region here — used to hide labels for nations
   // that don't exist in this scenario (e.g. modern states over medieval land).
   const ownedCountryCodes = useMemo(() => {
@@ -934,6 +962,31 @@ const WorldMap = ({ isGlobe = false }) => {
     };
   }, [customFlag, regionsGeojsonUrl]);
 
+  // The board's own national border, built beside its geometry (scripts/presets/
+  // lib/ownerBorders.mjs). Static per scenario like the regions themselves, and
+  // ~1.4MB against their 67MB. A board that ships none leaves this empty and the
+  // GADM level-0 outline below keeps drawing exactly as it did before.
+  useEffect(() => {
+    let cancelled = false;
+    if (!customFlag) {
+      setOwnerBorderData(EMPTY_FEATURE_COLLECTION);
+      return undefined;
+    }
+    readJson(bordersGeojsonUrl, { defaultValue: EMPTY_FEATURE_COLLECTION, force: true })
+      .then((data) => {
+        if (cancelled) return;
+        setOwnerBorderData(data && Array.isArray(data.features) ? data : EMPTY_FEATURE_COLLECTION);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error("Error loading owner borders:", error);
+        setOwnerBorderData(EMPTY_FEATURE_COLLECTION);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [customFlag, bordersGeojsonUrl]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -1284,6 +1337,29 @@ const WorldMap = ({ isGlobe = false }) => {
     // that a national border draws on every map kind.
     "line-opacity": worldKnown ? 1 : 0,
   };
+  // ...BUT LEVEL 0 IS THE MODERN WORLD, AND MOST BOARDS ARE NOT IT.
+  //
+  // Everything above is true only where this board's ownership happens to follow
+  // GADM. Where it does not, the layer draws 2026 over the past: the 1935 board
+  // wore the modern Germany-Poland line straight through the Reich, and 1200 wore
+  // the entire modern grid over a world that had none of it. Both were reported.
+  //
+  // The board now says which countries it leaves intact — one polity holding all
+  // of that country's land and nothing outside it — and level 0 is filtered to
+  // exactly those. Japan in 1200 is still Japan-shaped, so JPN keeps drawing,
+  // coast and all; the Angevin king held England and Anjou both, so GBR and FRA
+  // stop. Everywhere level 0 stops, the frontier layer below is the border.
+  //
+  // No board file, no filter: a scenario built before this asset existed draws
+  // exactly what it drew yesterday.
+  const ownerBorderMeta = ownerBorderData?.meta;
+  const ownerBordersReady = Array.isArray(ownerBorderData?.features) && ownerBorderData.features.length > 0;
+  const countriesOutlineFilter = useMemo(
+    () => (ownerBordersReady
+      ? ["in", ["get", "GID_0"], ["literal", Array.isArray(ownerBorderMeta?.intact) ? ownerBorderMeta.intact : []]]
+      : ["all"]),
+    [ownerBordersReady, ownerBorderMeta],
+  );
   // Region hairlines serve both map kinds, but nothing renders pre-worldKnown.
   // Tile hairlines only fade in alongside the tile FILLS (z5.5-6.5): below
   // that the fills come from the seed geometry, and hairlines from the
@@ -1376,6 +1452,22 @@ const WorldMap = ({ isGlobe = false }) => {
     [pointLabelLayoutBase],
   );
 
+  // The minor rank — an owner's outlying clusters (countryLabels.js explains
+  // what tier is). Same face and colour, one size down, and it takes the leader
+  // labels' side of the split above: an archipelago prints its owner's name once
+  // per island group (Srivijaya x10, the Dutch East Indies x9) and with overlap
+  // allowed they stack into a smear over Indonesia. A possession losing its
+  // label where it cannot fit is correct; the country's own name is drawn from
+  // the layer above and is never the one culled.
+  const minorPointLabelLayerLayout = useMemo(
+    () => ({
+      ...pointLabelLayoutBase,
+      "text-size": buildCountryTextSize(MINOR_LABEL_SCALE, isGlobe),
+      "text-allow-overlap": false,
+    }),
+    [isGlobe, pointLabelLayoutBase],
+  );
+
   const curvedLabelLayerLayout = useMemo(() => ({
     "text-field": ["get", "glyph"],
     "text-font": labelFontStack,
@@ -1405,12 +1497,38 @@ const WorldMap = ({ isGlobe = false }) => {
     "text-color": labelTextColor || "#FFFFFF",
     "text-halo-color": labelHaloColor || "rgba(0, 0, 0, 0.5)",
     "text-halo-width": 1,
-    "text-opacity": [
-      "interpolate", ["linear"], ["zoom"],
-      5, 0.75,
-      8, 0,
-    ],
+    // A COUNTRY LABEL DOES NOT FADE OUT AS YOU ZOOM IN.
+    //
+    // This used to ramp 0.75 at z5 down to 0 at z8, so the closer the player
+    // got the fainter the country's own name became — and the city names beside
+    // it did not fade at all. Measured against the original at the same view
+    // (Riga to Moscow across the window, 13.5° of longitude in ~1060 CSS px,
+    // so z ≈ 6.8): the original draws LATVIA, LITHUANIA and BYELORUSSIAN SSR
+    // solid, while this curve was at 0.30 there — three times fainter than the
+    // thing it is supposed to outrank. That inversion IS the reported "province
+    // and country labels are the same weight": by the zoom a player reads at,
+    // the country label had faded into the city labels' range.
+    //
+    // Flat, because the original is flat. The guard against a label smearing
+    // across the screen at deep zoom is the 254 cap already inside
+    // buildCountryTextSize, which is measured; a second guard that dimmed the
+    // label was doing a size job with an opacity dial.
+    "text-opacity": 0.75,
+    // Tracking, matched by eye to the original's screenshots — its country names
+    // are widely letterspaced, which is most of what makes them read as a map's
+    // top rank rather than as large city labels. One dial, easy to tune.
+    "text-letter-spacing": 0.12,
   }), [labelHaloColor, labelTextColor]);
+
+  // Halo is the other half of weight. A 1px halo around a name set 40% smaller
+  // is proportionally twice the outline, which is what makes a shrunken heavy
+  // face read as a bolder blob rather than a quieter label — the exact thing
+  // reported ("province and country labels are the same weight"). Halving it
+  // keeps the halo the same fraction of the glyph it wraps.
+  const minorLabelLayerPaint = useMemo(() => ({
+    ...labelLayerPaint,
+    "text-halo-width": 0.5,
+  }), [labelLayerPaint]);
 
   return (
     <>
@@ -1579,6 +1697,26 @@ const WorldMap = ({ isGlobe = false }) => {
           id="countries-outline"
           type="line"
           source-layer="countries"
+          filter={countriesOutlineFilter}
+          paint={countriesOutlinePaint}
+        />
+      </Source>
+
+      {/* The board's OWN national border, wherever level 0 above went quiet.
+          Same weight curve and the same player setting, because it is the same
+          line — only drawn where ownership changes instead of where the modern
+          world does. Built at preset time by a segment dissolve over the region
+          geometry; scripts/presets/lib/ownerBorders.mjs carries the measurements.
+
+          What it cannot know is a province taken DURING the campaign: the file
+          is the board as it opened. That is the gap diverged-borders fills, at
+          this same weight — and why it is mounted AFTER this layer, so a line
+          drawn by a conquest sits above the line the board shipped with. */}
+      <Source id="owner-border-source" type="geojson" data={ownerBorderData}>
+        <Layer
+          id="owner-borders"
+          type="line"
+          layout={{ "line-cap": "round", "line-join": "round" }}
           paint={countriesOutlinePaint}
         />
       </Source>
@@ -1619,10 +1757,21 @@ const WorldMap = ({ isGlobe = false }) => {
       </Source>
 
       <Source id="country-point-label-source" type="geojson" data={activePointLabelData}>
+        {/* THREE LAYERS, ONE SOURCE — and none of the three splits could be a
+            case expression inside one. text-allow-overlap is layout-only and
+            constant-only (see the note above the layouts), and text-size and
+            halo are per-layer too, so each rank of label has to be its own
+            layer filtered on the property that names it.
+
+            leader and tier never co-occur — leader labels belong to the stock
+            set and tier to the owner set, and a world draws one or the other —
+            but the filters are written as if they could, because a filter that
+            is only correct by accident stops being correct when the accident
+            does. */}
         <Layer
           id="country-labels"
           type="symbol"
-          filter={["!=", ["get", "leader"], 1]}
+          filter={["all", ["!=", ["get", "leader"], 1], ["!=", LABEL_TIER, 1]]}
           layout={pointLabelLayerLayout}
           paint={labelLayerPaint}
         />
@@ -1632,6 +1781,15 @@ const WorldMap = ({ isGlobe = false }) => {
           filter={["==", ["get", "leader"], 1]}
           layout={leaderLabelLayerLayout}
           paint={labelLayerPaint}
+        />
+        {/* Drawn last so that when a possession's repeat collides with the name
+            of the country itself, the repeat is the one that yields. */}
+        <Layer
+          id="country-labels-minor"
+          type="symbol"
+          filter={["all", ["!=", ["get", "leader"], 1], ["==", LABEL_TIER, 1]]}
+          layout={minorPointLabelLayerLayout}
+          paint={minorLabelLayerPaint}
         />
       </Source>
     </>
