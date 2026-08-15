@@ -5697,8 +5697,32 @@
       "Angevin Empire": [
         "b23b3b"
       ],
+      "Archbishopric of Cologne": [
+        "c45a5a"
+      ],
+      "Archbishopric of Mainz": [
+        "d4a05a"
+      ],
+      "Archbishopric of Salzburg": [
+        "c47ac4"
+      ],
+      "Archbishopric of Trier": [
+        "a05ad4"
+      ],
       "Ayyubid Sultanate": [
         "3f8f8f"
+      ],
+      "Banate of Bosnia": [
+        "4a6ab0"
+      ],
+      "Bishopric of Trent": [
+        "a8d4c4"
+      ],
+      "Bishopric of Utrecht": [
+        "8a5a3a"
+      ],
+      "Brunswick-Lüneburg": [
+        "c48a5a"
       ],
       "Bulgarian Empire": [
         "8a5a3a"
@@ -5706,11 +5730,59 @@
       "Byzantine Empire": [
         "7d3fb2"
       ],
+      "Chaulukya of Gujarat": [
+        "c46a8a"
+      ],
       "Chola Empire": [
         "c07a4a"
       ],
       "Cilician Armenia": [
         "d98cae"
+      ],
+      "Commune of Bologna": [
+        "d47a3a"
+      ],
+      "Commune of Florence": [
+        "d43ac4"
+      ],
+      "Commune of Lucca": [
+        "7ad43a"
+      ],
+      "Commune of Milan": [
+        "d43a3a"
+      ],
+      "Commune of Modena": [
+        "3a8a5a"
+      ],
+      "Commune of Piacenza": [
+        "8a3a7a"
+      ],
+      "Commune of Siena": [
+        "a87a3a"
+      ],
+      "Commune of Verona": [
+        "3a5ad4"
+      ],
+      "County of Flanders": [
+        "3ac4a0"
+      ],
+      "County of Guelders": [
+        "c43a7a"
+      ],
+      "County of Holland": [
+        "d45a8a"
+      ],
+      "County of Holstein": [
+        "5ac4a8"
+      ],
+      "County of Luxembourg": [
+        "5a8ac4"
+      ],
+      "County of Savoy": [
+        "d4d4a8"
+      ],
+      "County of Tyrol": [
+        "8ac4c4"
       ],
       "Crown of Aragon": [
         "d23c3c"
@@ -5721,6 +5793,9 @@
       "Crusader States": [
         "e04545"
       ],
+      "Cuman–Kipchak Confederation": [
+        "c9a86a"
+      ],
       "Dai Viet": [
         "4a8a5a"
       ],
@@ -5730,8 +5805,35 @@
       "Domestic: Newspaper": [
         "6b7280"
       ],
+      "Duchy of Austria": [
+        "e0e0e0"
+      ],
+      "Duchy of Bavaria": [
+        "3a7ac4"
+      ],
+      "Duchy of Brabant": [
+        "c4a83a"
+      ],
+      "Duchy of Carinthia": [
+        "7ac48a"
+      ],
       "Duchy of Poland": [
         "d23ca0"
+      ],
+      "Duchy of Saxony": [
+        "8a8ac4"
+      ],
+      "Duchy of Swabia": [
+        "c4c45a"
+      ],
+      "Duchy of Zähringen": [
+        "a8a87a"
+      ],
+      "Eastern Ganga Dynasty": [
+        "7a5a3a"
+      ],
+      "Frisian Freedom": [
+        "3a8ac4"
       ],
       "Ghurid Empire": [
         "8a5a8a"
@@ -5744,6 +5846,12 @@
       ],
       "Holy Roman Empire": [
         "caa64a"
+      ],
+      "Hoysala Empire": [
+        "4a9ac4"
+      ],
+      "Icelandic Commonwealth": [
+        "7fb6d6"
       ],
       "Internal: Diplomatic Representative": [
         "6b7280"
@@ -5778,8 +5886,23 @@
       "Jin Dynasty": [
         "b87333"
       ],
+      "Judicate of Arborea": [
+        "6a3f9a"
+      ],
+      "Judicate of Cagliari": [
+        "a03f6a"
+      ],
+      "Kakatiya Dynasty": [
+        "a08a3a"
+      ],
+      "Kalachuri of Ratanpur": [
+        "6a8a5a"
+      ],
       "Kamakura Japan": [
         "c0507a"
+      ],
+      "Kamarupa": [
+        "5a7a9a"
       ],
       "Khmer Empire": [
         "c2a23a"
@@ -5790,11 +5913,17 @@
       "Kievan Rus'": [
         "9a6b2f"
       ],
+      "Kingdom of Bohemia": [
+        "5a3a8a"
+      ],
       "Kingdom of Dali": [
         "6aae8a"
       ],
       "Kingdom of Denmark": [
         "c9385d"
+      ],
+      "Kingdom of Desmond": [
+        "b06a2e"
       ],
       "Kingdom of France": [
         "2f5fd0"
@@ -5802,8 +5931,14 @@
       "Kingdom of Georgia": [
         "5a9ac0"
       ],
+      "Kingdom of Gwynedd": [
+        "3f7a4a"
+      ],
       "Kingdom of Hungary": [
         "3f9d9d"
+      ],
+      "Kingdom of Makuria": [
+        "3f9a8a"
       ],
       "Kingdom of Navarre": [
         "5fae5f"
@@ -5829,11 +5964,56 @@
       "Kingdom of Sweden": [
         "4a78c0"
       ],
+      "Kingdom of Thomond": [
+        "d0a24a"
+      ],
+      "Landgraviate of Thuringia": [
+        "9a3a5a"
+      ],
+      "Margraviate of Brandenburg": [
+        "5a5a8a"
+      ],
+      "Margraviate of Meissen": [
+        "7a9a3a"
+      ],
+      "Marquisate of Montferrat": [
+        "5ad4d4"
+      ],
+      "Nepal Mandala": [
+        "9ac45a"
+      ],
       "Papal States": [
         "e6d27a"
       ],
+      "Paramara of Malwa": [
+        "8a5ac4"
+      ],
+      "Patriarchate of Aquileia": [
+        "c4a8d4"
+      ],
+      "Powys Wenwynwyn": [
+        "7aa83f"
+      ],
+      "Prince-Bishopric of Liège": [
+        "a8c45a"
+      ],
+      "Qara Khitai": [
+        "9a9a3f"
+      ],
+      "Republic of Genoa": [
+        "c4d43a"
+      ],
+      "Republic of Pisa": [
+        "3ad4c4"
+      ],
       "Republic of Venice": [
         "8a7d3f"
+      ],
+      "Sena Dynasty": [
+        "c47a5a"
+      ],
+      "Seuna Yadava": [
+        "b05a3a"
       ],
       "Southern Song": [
         "c97a5a"
@@ -5846,6 +6026,9 @@
       ],
       "Tibet": [
         "b0a0c0"
+      ],
+      "Venad": [
+        "3aa07a"
       ],
       "Volga Bulgaria": [
         "7a8a4a"
@@ -9334,7 +9517,6 @@
         "40bf51"
       ],
       "Lithuania": [
-        "408abf",
         "40bf4a"
       ],
       "Ma Clique": [

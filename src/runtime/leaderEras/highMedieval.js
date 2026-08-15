@@ -535,6 +535,263 @@ export const REFERENCE = {
       { name: "만사 무사 1세", from: "1312-01-01", until: "1337-01-01" },
     ],
   },
+
+  // ── medieval-1200 확장 1이 데려온 열 자리 ──────────────────────────────
+  // 라구사 교리: 재위를 짚을 수 있으면 사람, 계보가 흔들리면 기관. 아래 다섯은
+  // 사람이 확실하고(귀네드·포위스·칼리아리·보스니아·서요), 나머지는 왕가나
+  // 회의체다 — 없는 사람을 지어내는 것이 가장 나쁜 답이다.
+  "Kingdom of Gwynedd": {
+    // 1200년은 흐이웰린이 사촌들을 밀어내고 귀네드를 단독으로 쥔 해다.
+    leader: [{ name: "대공 흐이웰린 압 이오르웨르스 (대왕)", from: "1195-01-01", until: "1240-04-11" }],
+  },
+  "Powys Wenwynwyn": {
+    leader: [{ name: "공 그웬윈윈 압 오와인", from: "1195-01-01", until: "1216-01-01" }],
+  },
+  "Kingdom of Desmond": {
+    // 12세기 말 맥카시가는 왕위를 두고 갈라져 있었고 어느 계보를 정통으로
+    // 볼지가 사료마다 다르다 — 사람을 고르는 대신 왕가를 앉힌다.
+    leader: [{ name: "맥카시 왕가 (데스몬드 왕위)" }],
+  },
+  "Kingdom of Thomond": {
+    // 도널 모르 우아 브리언 사후(1194)의 계승 분쟁 — 같은 이유로 왕가.
+    leader: [{ name: "우아 브리언 왕가 (토몬드 왕위)" }],
+  },
+  "Icelandic Commonwealth": {
+    // 아이슬란드에는 왕이 없다. 그게 이 나라의 정의다 — 알싱기와 법률연설자가
+    // 통치의 전부이고, 국가원수 자리는 비어 있는 것이 옳다.
+    leader: [{ name: "알싱기 (법률연설자 주재)" }],
+    headOfState: [{ name: "(없음 — 왕을 두지 않는 자유국)" }],
+  },
+  "Judicate of Cagliari": {
+    leader: [{ name: "판관 굴리엘모 1세 디 마사", from: "1188-01-01", until: "1214-01-01" }],
+  },
+  "Judicate of Arborea": {
+    // 12세기 말 아르보레아 판관 계보는 사료가 엇갈린다.
+    leader: [{ name: "아르보레아 판관 (계보 이설)" }],
+  },
+  "Banate of Bosnia": {
+    leader: [{ name: "반 쿨린", from: "1180-01-01", until: "1204-01-01" }],
+  },
+  "Qara Khitai": {
+    leader: [{ name: "구르칸 예뤼 즈루구", from: "1197-01-01", until: "1211-01-01" }],
+  },
+  "Cuman–Kipchak Confederation": {
+    // 데시티키프차크에 단일 군주는 없다 — 서로 다른 칸들의 연합이고, 한 사람을
+    // 앉히면 그 사실이 지워진다.
+    leader: [{ name: "쿠만 칸들의 연합 (단일 군주 없음)" }],
+    headOfState: [{ name: "(없음 — 부족 칸 연합)" }],
+  },
+
+  // ── medieval-1200 확장 2: 인도 아대륙 열한 자리 ───────────────────────
+  // 1200년 전후로 왕위가 실제로 바뀐 자리가 셋이나 된다(야다바 1200, 카카티야
+  // 1199, 네팔 1200) — 보드 날짜가 그 경계 위에 앉아 있으므로 구간을 그대로
+  // 적는다. 계보가 흔들리는 둘은 라구사 교리대로 왕조로 남겼다.
+  "Chaulukya of Gujarat": {
+    leader: [{ name: "국왕 비마 2세", from: "1178-01-01", until: "1240-01-01" }],
+  },
+  "Paramara of Malwa": {
+    leader: [
+      { name: "국왕 빈디야바르만", from: "1175-01-01", until: "1194-01-01" },
+      { name: "국왕 수바타바르만", from: "1194-01-01", until: "1209-01-01" },
+    ],
+  },
+  "Kalachuri of Ratanpur": {
+    // 라탄푸르 분가의 12세기 말 계보는 비문마다 어긋난다.
+    leader: [{ name: "라탄푸르 칼라추리 왕가" }],
+  },
+  "Seuna Yadava": {
+    leader: [
+      { name: "국왕 자이투기 1세", from: "1191-01-01", until: "1200-01-01" },
+      { name: "국왕 신하나 2세", from: "1200-01-01", until: "1247-01-01" },
+    ],
+  },
+  "Hoysala Empire": {
+    // 1189년 서찰루키아가 무너지고 발랄라 2세가 데칸을 가져간다.
+    leader: [{ name: "국왕 비라 발랄라 2세", from: "1173-01-01", until: "1220-01-01" }],
+  },
+  "Venad": {
+    // 쿨라셰카라 붕괴(1102) 이후 케랄라는 베나드·코지코드·코치로 갈렸고,
+    // 그중 한 사람을 케랄라 전체의 왕으로 앉힐 근거가 없다.
+    leader: [{ name: "베나드의 왕들 (케랄라 분립기)" }],
+  },
+  "Kakatiya Dynasty": {
+    leader: [
+      { name: "국왕 마하데바", from: "1195-01-01", until: "1199-01-01" },
+      { name: "국왕 가나파티데바", from: "1199-01-01", until: "1262-01-01" },
+    ],
+  },
+  "Eastern Ganga Dynasty": {
+    leader: [{ name: "국왕 아낭가비마 2세", from: "1198-01-01", until: "1211-01-01" }],
+  },
+  "Sena Dynasty": {
+    // 박티야르 킬지의 습격은 1203~04년 — 1200년의 벵골은 아직 세나의 것이다.
+    leader: [{ name: "국왕 락슈마나 세나", from: "1178-01-01", until: "1206-01-01" }],
+  },
+  "Kamarupa": {
+    // 카마루파 후기 왕들의 계보는 단편적이다.
+    leader: [{ name: "카마루파의 왕들 (계보 단편)" }],
+  },
+  // ── medieval-1200 확장 3: 제국의 제후 스물다섯 자리 ──────────────────
+  // 1200년은 이중 선거(1198) 한복판이라 "황제"라는 한 사람에게 제국을 맡길 수
+  // 없는 해다. 세 자리는 보드 날짜 그 해에 주인이 바뀐다 — **마인츠·잘츠부르크·
+  // 리에주** — 그래서 구간으로 적었다.
+  "Duchy of Saxony": {
+    leader: [{ name: "공작 베른하르트 3세 (아스카니아)", from: "1180-01-01", until: "1212-02-09" }],
+  },
+  "Brunswick-Lüneburg": {
+    // 사자공 하인리히의 아들. 1198년부터 대립왕이고, 1209년에 황제가 된다.
+    leader: [{ name: "공작 오토 4세 (벨프 — 대립왕)", from: "1198-06-09", until: "1218-05-19" }],
+  },
+  "Margraviate of Brandenburg": {
+    leader: [{ name: "변경백 오토 2세", from: "1184-01-01", until: "1205-07-04" }],
+  },
+  "Margraviate of Meissen": {
+    leader: [{ name: "변경백 디트리히 1세 (베틴)", from: "1197-01-01", until: "1221-02-17" }],
+  },
+  "Landgraviate of Thuringia": {
+    // 루도빙거는 튀링겐과 헤센을 한 손에 쥔다.
+    leader: [{ name: "방백 헤르만 1세", from: "1190-01-01", until: "1217-04-25" }],
+  },
+  "Duchy of Bavaria": {
+    leader: [{ name: "공작 루트비히 1세 (비텔스바흐)", from: "1183-01-01", until: "1231-09-15" }],
+  },
+  "Duchy of Swabia": {
+    // 슈바벤 공작 필리프는 1198년부터 스스로를 로마인의 왕이라 부른다.
+    leader: [{ name: "공작 필리프 폰 슈바벤 (대립왕)", from: "1196-01-01", until: "1208-06-21" }],
+  },
+  "County of Holstein": {
+    leader: [{ name: "백작 아돌프 3세 폰 샤우엔부르크", from: "1164-01-01", until: "1203-01-01" }],
+  },
+  "Archbishopric of Cologne": {
+    // 1180년부터 베스트팔렌 공작을 겸한다.
+    leader: [{ name: "대주교 아돌프 폰 알테나", from: "1193-01-01", until: "1205-01-01" }],
+  },
+  "Archbishopric of Mainz": {
+    leader: [
+      { name: "대주교 콘라트 폰 비텔스바흐", from: "1183-01-01", until: "1200-10-25" },
+      { name: "대주교 지크프리트 2세", from: "1200-10-25", until: "1230-09-09" },
+    ],
+  },
+  "Archbishopric of Trier": {
+    leader: [{ name: "대주교 요한 1세", from: "1189-01-01", until: "1212-07-15" }],
+  },
+  "Duchy of Austria": {
+    // 게오르겐베르크 협약(1192)으로 슈타이어마르크가 바벤베르크에 붙었다.
+    leader: [{ name: "공작 레오폴트 6세", from: "1198-01-01", until: "1230-07-28" }],
+  },
+  "Duchy of Carinthia": {
+    leader: [{ name: "공작 울리히 2세 (스판하임)", from: "1181-01-01", until: "1202-08-10" }],
+  },
+  "Archbishopric of Salzburg": {
+    leader: [
+      { name: "대주교 아달베르트 3세", from: "1183-01-01", until: "1200-04-08" },
+      { name: "대주교 에버하르트 2세", from: "1200-04-08", until: "1246-12-01" },
+    ],
+  },
+  "County of Tyrol": {
+    leader: [{ name: "백작 알베르트 3세", from: "1190-01-01", until: "1253-01-01" }],
+  },
+  "Kingdom of Bohemia": {
+    // 1198년의 세습 왕관 — 제국 안이되 제 왕국이다.
+    leader: [{ name: "국왕 오타카르 1세 (프르셰미슬)", from: "1197-01-01", until: "1230-12-15" }],
+  },
+  "Duchy of Brabant": {
+    leader: [{ name: "공작 하인리히 1세", from: "1183-01-01", until: "1235-09-05" }],
+  },
+  "County of Flanders": {
+    // 1202년에 4차 십자군을 이끌고 떠나 라틴 제국의 첫 황제가 된다.
+    leader: [{ name: "백작 보두앵 9세", from: "1195-01-01", until: "1205-01-01" }],
+  },
+  "Prince-Bishopric of Liège": {
+    leader: [
+      { name: "주교 알베르 드 퀴크", from: "1194-01-01", until: "1200-02-01" },
+      { name: "주교 위그 드 피에르퐁", from: "1200-02-01", until: "1229-04-12" },
+    ],
+  },
+  "County of Luxembourg": {
+    // 1190년대 말 룩셈부르크 백작위 계승은 사료가 엇갈린다.
+    leader: [{ name: "룩셈부르크 백작가" }],
+  },
+  "County of Holland": {
+    leader: [{ name: "백작 디르크 7세", from: "1190-01-01", until: "1203-11-04" }],
+  },
+  "Bishopric of Utrecht": {
+    leader: [{ name: "주교 디르크 판 아레", from: "1197-01-01", until: "1212-01-01" }],
+  },
+  "Frisian Freedom": {
+    // 영주를 두지 않은 것이 이 땅의 정체성이다 — 아이슬란드와 같은 이유로
+    // 국가원수 자리를 비운다.
+    leader: [{ name: "프리지아 자유민 회의 (영주 없음)" }],
+    headOfState: [{ name: "(없음 — 영주를 두지 않는 자유)" }],
+  },
+  "County of Guelders": {
+    leader: [{ name: "백작 오토 1세", from: "1182-01-01", until: "1207-01-01" }],
+  },
+  "Duchy of Zähringen": {
+    // 부르고뉴 왕국의 제국 총독. 1218년 그의 죽음으로 가문이 끊긴다.
+    leader: [{ name: "공작 베르톨트 5세", from: "1186-01-01", until: "1218-02-18" }],
+  },
+  // ── medieval-1200 확장 4: 이탈리아 코뮌 열넷 ──────────────────────────
+  // 여기서 기관을 앉히는 건 자료가 없어서가 아니다. **코뮌은 사람이 아니라
+  // 제도가 다스린다** — 집정관단은 여럿이 함께, 포데스타는 외지에서 데려와
+  // 임기 1년이다. 한 사람을 왕처럼 앉히면 그 도시가 어떤 곳이었는지가 지워진다.
+  // 라구사의 "렉토르 (월례 윤번제)"와 같은 자리다. 군주 넷만 사람이다.
+  "Commune of Milan": {
+    leader: [{ name: "밀라노 집정관단 (롬바르디아 동맹 맹주)" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Verona": {
+    leader: [{ name: "베로나 코뮌 포데스타 (임기 1년)" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Republic of Genoa": {
+    leader: [{ name: "제노바 집정관단 (코뮌 총회 선출)" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Republic of Pisa": {
+    leader: [{ name: "피사 집정관단" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Florence": {
+    leader: [{ name: "피렌체 코뮌 포데스타 (임기 1년)" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Siena": {
+    leader: [{ name: "시에나 코뮌 포데스타" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Lucca": {
+    leader: [{ name: "루카 코뮌 집정관단" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Bologna": {
+    leader: [{ name: "볼로냐 코뮌 포데스타 (법학 도시의 자치)" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Modena": {
+    leader: [{ name: "모데나 코뮌 포데스타" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Commune of Piacenza": {
+    leader: [{ name: "피아첸차 코뮌 포데스타 (롬바르디아 동맹)" }],
+    headOfState: [{ name: "(없음 — 코뮌)" }],
+  },
+  "Marquisate of Montferrat": {
+    // 2년 뒤 제4차 십자군을 이끌고, 그 뒤 테살로니키 왕이 된다.
+    leader: [{ name: "후작 보니파초 1세", from: "1192-01-01", until: "1207-09-04" }],
+  },
+  "County of Savoy": {
+    leader: [{ name: "백작 토마 1세", from: "1189-01-01", until: "1233-03-01" }],
+  },
+  "Bishopric of Trent": {
+    leader: [{ name: "주교 콘라트 2세 폰 베제노", from: "1188-01-01", until: "1205-01-01" }],
+  },
+  "Patriarchate of Aquileia": {
+    leader: [{ name: "총대주교 펠레그리노 2세", from: "1195-01-01", until: "1204-08-13" }],
+  },
+  "Nepal Mandala": {
+    leader: [{ name: "국왕 아리말라", from: "1200-01-01", until: "1216-01-01" }],
+  },
 };
 
 // A scenario's own spelling for the same seat.

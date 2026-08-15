@@ -1,0 +1,266 @@
+cell: region x gameMaster | board: wwii-1939 | 3 runs per arm
+OFF 3/3 | ON 0/3
+
+-- OFF 1/3 — VIOLATED (occupied ground painted the occupier's colour: → GER)
+```json
+{
+  "summary": "The map has been updated to reflect the partition of Poland as of 1 November 1939, with German forces occupying the western and central regions and Soviet forces occupying the eastern territories.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "West_Prussia",
+        "regionName": "West Prussia",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "Annexed by Germany."
+      },
+      {
+        "regionId": "Danzig",
+        "regionName": "Danzig",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "Incorporated into the Reich."
+      },
+      {
+        "regionId": "Silesia",
+        "regionName": "Silesia",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "Annexed by Germany."
+      },
+      {
+        "regionId": "Lublin",
+        "regionName": "Lublin",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "Occupied/Central Polish zone."
+      },
+      {
+        "regionId": "Warsaw_District",
+        "regionName": "Warsaw District",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "Held by German forces."
+      },
+      {
+        "regionId": "East_Galicia",
+        "regionName": "East Galicia",
+        "fromCode": "POL",
+        "toCode": "SUR",
+        "note": "Annexed by Soviet Union."
+      },
+      {
+        "regionId": "Volhynia",
+        "regionName": "Volhynia",
+        "fromCode": "POL",
+        "toCode": "SUR",
+        "note": "Annexed by Soviet Union."
+      },
+      {
+        "regionId": "Brest_Litovsk",
+        "regionName": "Brest-Litovsk",
+        "fromCode": "POL",
+        "toCode": "SUR",
+        "note": "Annexed by Soviet Union."
+      },
+      {
+        "regionId": "Bialystok",
+        "regionName": "Bialystok",
+        "fromCode": "POL",
+        "toCode": "SUR",
+        "note": "Annexed by Soviet Union."
+      }
+    ],
+    "polityChanges": [
+      {
+        "op": "status_change",
+        "code": "POL",
+        "name": "Occupied Poland",
+        "color": "#FFFFFF",
+        "note": "Polish sovereignty collapsed; territory divided between GER and SUR."
+      }
+    ]
+  }
+}
+```
+
+-- OFF 2/3 — VIOLATED (occupied ground painted the occupier's colour: → GER)
+```json
+{
+  "summary": "Territorial division of Poland: Western and Central regions are recognized as under German occupation, while Eastern territories are annexed by the Soviet Union.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Poland_West",
+        "regionName": "Western and Central Poland",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "German occupation of western/central territories."
+      },
+      {
+        "regionId": "Poland_East",
+        "regionName": "Eastern Poland",
+        "fromCode": "POL",
+        "toCode": "URS",
+        "note": "Soviet annexation of eastern territories."
+      }
+    ],
+    "polityChanges": []
+  }
+}
+```
+
+-- OFF 3/3 — VIOLATED (occupied ground painted the occupier's colour: → GER)
+```json
+{
+  "summary": "The map has been updated to reflect the geopolitical reality of November 1, 1939. Poland has been partitioned: German forces now occupy and control Western and Central Poland, while Soviet forces have occupied Eastern Poland in accordance with the Molotov-Ribbentrop Pact.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Western_Central_Poland",
+        "regionName": "Western and Central Poland",
+        "fromCode": "POL",
+        "toCode": "GER",
+        "note": "Occupied by German forces following the invasion of Poland."
+      },
+      {
+        "regionId": "Eastern_Poland",
+        "regionName": "Eastern Poland",
+        "fromCode": "POL",
+        "toCode": "URS",
+        "note": "Occupied by Soviet forces in accordance with the Molotov-Ribbentrop Pact."
+      }
+    ],
+    "polityChanges": []
+  }
+}
+```
+
+-- ON  1/3 — ok
+```json
+{
+  "summary": "The partition of Poland is now reflected on the map. The territory has been divided into two zones: the western and central regions are under German occupation (General Government), and the eastern territories have been occupied by Soviet forces.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Lublin",
+        "regionName": "Lublin",
+        "fromCode": "POL",
+        "toCode": "GER_OCC_POL",
+        "note": "Included in the German Occupation of Poland (Western/Central zone)."
+      },
+      {
+        "regionId": "Krakow",
+        "regionName": "Krakow",
+        "fromCode": "POL",
+        "toCode": "GER_OCC_POL",
+        "note": "Included in the German Occupation of Poland (Western/Central zone)."
+      },
+      {
+        "regionId": "Warsaw",
+        "regionName": "Warsaw",
+        "fromCode": "POL",
+        "toCode": "GER_OCC_POL",
+        "note": "Included in the German Occupation of Poland (Western/Central zone)."
+      },
+      {
+        "regionId": "Lviv",
+        "regionName": "Lviv",
+        "fromCode": "POL",
+        "toCode": "SOV_OCC_POL",
+        "note": "Included in the Soviet Occupation of Poland (Eastern zone)."
+      },
+      {
+        "regionId": "Vilnius",
+        "regionName": "Vilnius",
+        "fromCode": "POL",
+        "toCode": "SOV_OCC_POL",
+        "note": "Included in the Soviet Occupation of Poland (Eastern zone)."
+      }
+    ],
+    "polityChanges": [
+      {
+        "op": "add",
+        "code": "GER_OCC_POL",
+        "name": "German Occupation of Poland",
+        "color": "gray",
+        "note": "Western and central regions of the Polish territory."
+      },
+      {
+        "op": "add",
+        "code": "SOV_OCC_POL",
+        "name": "Soviet Occupation of Poland",
+        "color": "red",
+        "note": "Eastern territories occupied by Soviet forces."
+      }
+    ]
+  }
+}
+```
+
+-- ON  2/3 — ok
+```json
+{
+  "summary": "The partition of Polish territory between Germany and the Soviet Union as of 1 November 1939 has been codified. The western and central regions are now under German administration (German Occupation of Poland), while the eastern territories have been transferred to the Soviet-aligned Polish Democratic Republic.",
+  "impacts": {
+    "regionTransfers": [
+      {
+        "regionId": "Poland_West",
+        "regionName": "Western and Central Poland",
+        "fromCode": "POL",
+        "toCode": "GER_OCC_POL",
+        "note": "Transfer of western/central Polish territory to German administration."
+      },
+      {
+        "regionId": "Poland_East",
+        "regionName": "Eastern Poland",
+        "fromCode": "POL",
+        "toCode": "POL_DEM_REP",
+        "note": "Transfer of eastern Polish territory to the Polish Democratic Republic."
+      }
+    ],
+    "polityChanges": [
+      {
+        "op": "add",
+        "code": "GER_OCC_POL",
+        "name": "German Occupation of Poland",
+        "color": "#303030",
+        "note": "Includes the General Government and annexed regions."
+      },
+      {
+        "op": "add",
+        "code": "POL_DEM_REP",
+        "name": "Polish Democratic Republic",
+        "color": "#cc0000",
+        "note": "Soviet-aligned puppet state in eastern Poland."
+      }
+    ]
+  }
+}
+```
+
+-- ON  3/3 — ok
+```json
+{
+  "summary": "The Polish territory has been partitioned into German and Soviet occupation zones following the 1939 invasions.",
+  "impacts": {
+    "regionTransfers": [],
+    "polityChanges": [
+      {
+        "op": "add",
+        "code": "GER_OCC_POL",
+        "name": "German Occupation of Poland",
+        "color": "#3498db",
+        "note": "Established as the administration for Western and Central Poland."
+      },
+      {
+        "op": "add",
+        "code": "SOV_OCC_POL",
+        "name": "Soviet Occupation of Poland",
+        "color": "#e74c3c",
+        "note": "Established as the administration for Eastern Poland."
+      }
+    ]
+  }
+}
+```

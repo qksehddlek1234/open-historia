@@ -162,6 +162,29 @@ const ASK = {
       "Write the record passage. Answer in Korean.",
     ].join("\n"),
   },
+  // THE GAME MASTER, which is not a simulator and says so. Its own prompt
+  // declares the preset rules to be CONTEXT rather than orders and lists which
+  // clauses do not bind it, and it carries a large region section of its own
+  // ([What A Region Is Here], [Name A REGION, Never A City], wholeCountry
+  // semantics). Above all it is told never to do a smaller version of what the
+  // player asked — so a request that NAMES the destination ("give Poland to
+  // Germany") makes obedience look like a violation. The probe therefore asks
+  // for a STATE and leaves the representation to the GM, which is the only
+  // framing under which the occupation clause can be tested here.
+  gameMaster: {
+    system: (rules) => [
+      "You are this game's GAME MASTER — the player's own hand on the world. You are NOT the simulator: you do not advance time and you do not narrate a turn. The player has left the world in a state they want changed, and you change it. The player is Germany. Change exactly what was asked and nothing adjacent.",
+      "",
+      "[Simulation Rules — context, not orders]",
+      rules,
+    ].join("\n"),
+    user: [
+      "It is 1 November 1939 and the map still shows Poland whole and Polish.",
+      "Make the map show the ground as it actually stands: German forces hold western and central Poland, Soviet forces hold the east.",
+      "",
+      'Return JSON only: {"summary":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","code":"","name":"","color":"","note":""}]}}',
+    ].join("\n"),
+  },
   // The two structured voices cells. Their violation is not a MENTION — the
   // question itself names the voice, so echo is legitimate — it is treating
   // the voice as something it is not: a country with territory (stat sheet)
@@ -357,6 +380,7 @@ const CELL_SCORE = {
   // every cell whose probe asks for the impacts shape.
   "region:jumpForward": scoreRegionImpacts,
   "region:autoJumpForward": scoreRegionImpacts,
+  "region:gameMaster": scoreRegionImpacts,
   // "They never own a region" — a sheet compiled FOR a voice may exist (4차:
   // that possibility is why the cell was never structurally cleared), but a
   // capital city or a regions list on it is the model inventing a country.
@@ -525,32 +549,52 @@ console.log(`rules: ON ${ON.length} chars · OFF ${OFF.length} chars · contract
 // not provoke the failure in the first place. It was the question.
 const transcript = [];
 
+// AN EMPTY REPLY IS NOT COMPLIANCE. Live: region × gameMaster returned 0
+// characters after 632s on one ON run, and every scorer here says "no violation
+// found" about an empty string — so a dead generation scored as the contract
+// working. The divergence judge already had this guard (unparsed answers are
+// counted apart and declared an INSTRUMENT FAILURE); the cell harness did not.
+// Empty runs leave the denominator rather than joining the compliant side.
+const isEmptyReply = (text) => text.trim().length < 20;
+
 const arm = async (label, rules) => {
   let violations = 0;
+  let empties = 0;
   let seconds = 0;
   const notes = [];
   for (let i = 0; i < RUNS; i += 1) {
     const { text, seconds: took } = await ask(rules);
     seconds += took;
-    const verdict = score(text);
+    const empty = isEmptyReply(text);
+    const verdict = empty ? { violated: false, why: "" } : score(text);
+    if (empty) empties += 1;
     if (verdict.violated) { violations += 1; notes.push(verdict.why); }
-    transcript.push(`-- ${label} ${i + 1}/${RUNS} — ${verdict.violated ? `VIOLATED (${verdict.why})` : "ok"}\n${text}\n`);
-    process.stdout.write(`  ${label} ${i + 1}/${RUNS} ${verdict.violated ? "VIOLATED" : "ok"} (${took}s)\n`);
+    const mark = empty ? "EMPTY" : verdict.violated ? `VIOLATED (${verdict.why})` : "ok";
+    transcript.push(`-- ${label} ${i + 1}/${RUNS} — ${mark}\n${text}\n`);
+    process.stdout.write(`  ${label} ${i + 1}/${RUNS} ${empty ? "EMPTY (not scored)" : verdict.violated ? "VIOLATED" : "ok"} (${took}s)\n`);
   }
-  return { violations, rate: violations / RUNS, seconds, notes };
+  const scored = RUNS - empties;
+  return { violations, empties, scored, rate: scored ? violations / scored : 0, seconds, notes };
 };
 
 const off = await arm("OFF", OFF);
 const on = await arm("ON ", ON);
 
-console.log(`\n  OFF  ${off.violations}/${RUNS} violated (${off.rate.toFixed(2)})  ${off.seconds}s`);
-console.log(`  ON   ${on.violations}/${RUNS} violated (${on.rate.toFixed(2)})  ${on.seconds}s`);
+const armLine = (label, arm_) => `  ${label}  ${arm_.violations}/${arm_.scored} violated (${arm_.rate.toFixed(2)})  ${arm_.seconds}s`
+  + (arm_.empties ? `  · ${arm_.empties} EMPTY reply(ies) left out of the denominator` : "");
+console.log(`\n${armLine("OFF", off)}`);
+console.log(armLine("ON ", on));
+if (off.empties + on.empties >= RUNS) {
+  console.log(`\n  INSTRUMENT FAILURE: ${off.empties + on.empties} of ${RUNS * 2} replies were empty.`);
+  console.log(`  Do not read the rates above as a result — fix the generation first.`);
+}
 
 const transcriptPath = path.join(ROOT, "docs", "analysis", `ab-${contractKey}-${consumer}.txt`);
 fs.mkdirSync(path.dirname(transcriptPath), { recursive: true });
 fs.writeFileSync(transcriptPath,
   `cell: ${contractKey} x ${consumer} | board: ${SCENARIO} | ${RUNS} runs per arm\n`
-  + `OFF ${off.violations}/${RUNS} | ON ${on.violations}/${RUNS}\n\n${transcript.join("\n")}`, "utf8");
+  + `OFF ${off.violations}/${off.scored} | ON ${on.violations}/${on.scored}`
+  + `${off.empties + on.empties ? ` | EMPTY OFF ${off.empties} ON ${on.empties} (left out of the denominators)` : ""}\n\n${transcript.join("\n")}`, "utf8");
 console.log(`  transcript: ${path.relative(ROOT, transcriptPath)}`);
 
 if (off.violations === 0) {

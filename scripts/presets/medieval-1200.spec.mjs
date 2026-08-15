@@ -47,22 +47,15 @@ export default {
     excludeFaces: [
       // ── rung 1 제외 (OHM 조립면 26 중) ──
       "Imperium Romanum Orientale", // 라벨 거짓말: 콘스탄티노플·테살로니키·아테네 out / 스미르나·코니아·트레비존드 IN — 아나톨리아 덩어리다. BYZ에 주면 럼 술탄국(수작업 SELJ)을 통째로 삼킨다
-      "Archiepiscopatus Rigensis", // 리가 대주교령은 1201년 창건 — 1200-01-01엔 아직 없고 로스터에도 없다(발트는 미배정 설계)
-      "Iudicatus Karalitanus", "Judicate of Arborea", // 사르데냐 유디카투스 — 로스터 밖, 스펙의 ITA.14→HRE 근사 유지
-      "Powys Wenwynwyn", "Teyrnas Gwynedd", // 웨일스 공국들 — 로스터 밖(GBR→ENG_A 기반선)
-      "Deasmhumhain", "Tuamhain", // 게일 아일랜드 — 1444와 같은 이유로 로스터 밖
-      "Þjóðveldið Ísland", // 아이슬란드 자유국(1262까지 실재) — 로스터 밖, 스펙의 NOR_K:["ISL"] 근사 유지
+      "Archiepiscopatus Rigensis", // 리가 대주교령은 **1201년 창건** — 확장 1에서도 회수하지 않았다. 로스터에 없어서가 아니라 보드 날짜에 아직 존재하지 않아서다
       "Couto Misto", // 로스터 밖 미소 정체
-      "Великожупанска Србија", // 라벨 거짓말(1차 빌드 실측): 라스·니시 out / 사라예보·모스타르·브르치코·두브로브니크·포드고리차·슈코더르 IN — 세르비아 대공국 이름을 쓴 **보스니아 반국+훔+제타** 덩어리다. 1200 보드엔 보스니아 폴리티가 없고(BIH→HUNG 근사), 이 면을 SERB에 주면 쿨린 반의 보스니아와 라구사가 세르비아색이 된다
       // ── rung 3 제외 (world_1200) ──
       "Buwayhid Emirates", // 1055년 몰락 라벨이 이라크+서페르시아를 한 면에 — ABBS와 KHWA 두 폴리티에 걸쳐 분할 불가; 기반선(IRQ→ABBS, IRN→KHWA)이 담당
       "Kwarizm-Shah", // 실측: 마크란 프레임 파편(전 기준도시 out) — PAK은 GHUR 기반선 유지
-      "Kara Khitai Khaganate", // 카라 키타이 종주권은 실재하나 로스터에 없음 — UZB/TJK는 KHWA, 카자흐 스텝은 미배정(쿠만) 유지
-      "Cuman Khanates", // 스펙 설계: 쿠만 초원은 '비어있지 않은 미배정' — 색을 입히지 않는다
-      "Celtic kingdoms", // Dublin·Cork·Cardiff IN — 보드는 아일랜드·웨일스를 ENG_A(영주령)로 근사, 같은 색이라 기반선으로 충분
-      "Sardinia", // 유디카티가 로스터에 없음 — 스펙의 제국령 이탈리아 왕국 근사(ITA.14→HRE)를 탄다
-      "Makkura", // 누비아 사막 조각 — 로스터 밖
-      "Muscat", "Ibadites", "Berber Tribes", "Tuareg Nomadic Tribes", // 로스터 밖 — ALM 기반선/미배정 유지
+      "Celtic kingdoms", // Dublin·Cork·Cardiff IN — 한 면이 아일랜드와 웨일스를 함께 뭉갠 라벨이다. 확장 1이 그 땅을 GWYN·POWY·DESM·THOM 넷으로 갈랐으므로 이 면은 이제 **분해할 수 없는 중복**이다 (더블린은 앙주 영주령으로 남는다)
+      "Sardinia", // 같은 이유의 중복: 유디카티 둘을 회수했으니 사르데냐 통짜 면은 그 위를 덮을 뿐이다 — 로구도로·갈루라 잔여는 ITA.14→HRE 근사 유지
+      "Muscat", "Ibadites", // 나브하니 이맘국(1154~)은 실재하지만 두 면이 같은 오만 땅을 두고 겹친다 — 기준도시 실측 없이 어느 쪽을 채택할지 못 정한다. 다음 배치
+      "Berber Tribes", "Tuareg Nomadic Tribes", // 부족 연맹은 정치체가 아니다 — 1444 선례
       "Paleo-Siberian hunter-gatherers", "Finno-Ugric taiga hunter-gatherers", // 무국가 타이가 — 미배정 설계
       "Guanches", "Sámi", // 1444와 같은 이유
     ],
@@ -105,6 +98,18 @@ export default {
       "Britany": "FRA_K", // 서단 조각; 같은 반도의 "Kingdom of France" 동편 조각과 한 색으로(르 굴레 조약의 미묘함은 rules 텍스트가 담당)
       "Comté de Toulouse": "FRA_K", // 툴루즈 백작은 로스터에 없음 — 프랑스 왕관 근사
       "Aragón": "ARAG", // 악센트가 별칭("Aragon") 정확 일치를 깨서 명시 — 1차 빌드 미매칭 1건의 교정
+      // ── 확장 1: 회수한 열한 면 ──
+      "Teyrnas Gwynedd": "GWYN", // 1200년은 흐이웰린 압 이오르웨르스가 귀네드를 단독으로 쥔 해다
+      "Powys Wenwynwyn": "POWY", // 포위스 남반부(그웬윈윈) — 북반부 포위스 파도그는 면이 없어 ENG_A 기반선에 남는다
+      "Deasmhumhain": "DESM", // 데스몬드 — 맥카시
+      "Tuamhain": "THOM", // 토몬드 — 오브라이언. 코나흐트·얼스터·렌스터는 면이 없어 앙주 영주령 근사에 남는다(정직한 미완)
+      "Þjóðveldið Ísland": "ISLC", // 아이슬란드 자유국은 1262년까지 실재한다 — 노르웨이 왕관에 넣을 이유가 없었다
+      "Iudicatus Karalitanus": "CAGL", // 칼리아리 판관국 — 굴리엘모 1세 디 마사
+      "Judicate of Arborea": "ARBO", // 아르보레아 판관국
+      "Великожупанска Србија": "BOSN", // **기하 진실**(1차 빌드 실측): 라스·니시 out / 사라예보·모스타르·브르치코 IN — 세르비아 대공국 이름을 쓴 쿨린 반의 보스니아다. 이름이 아니라 기하(1444의 교훈). 두브로브니크·포드고리차·슈코더르 월권은 울타리로
+      "Kara Khitai Khaganate": "KKHI", // 1200년 서요는 중앙아시아 최강 종주국이다 — 카라한조·호라즘 위의 구르칸
+      "Makkura": "MAKU", // 마쿠리아는 1200년에도 동골라를 쥔 기독교 왕국이다 — "사막 조각"이 아니라 나라였다
+      "Cuman Khanates": "CUMA", // **설계 변경**: 쿠만 초원을 '비어있지 않은 미배정'으로 두던 원안을 뒤집는다. 데시티키프차크는 헝가리·루스·비잔티움이 상대하던 실체이고, 미배정으로 두면 지도에서 그 사실이 안 보인다. 아래 울타리 셋(HUNG·Galicia·CUMA)이 같은 땅을 두고 하던 합의도 이 결정에 맞춰 다시 썼다
     },
     faceKeepOut: {
       // rung-1 울타리 하나: de jure 왕국이 1187년 이후의 현실을 덮지 못하게.
@@ -120,11 +125,26 @@ export default {
       "Poland": ["CZE", "DEU", "AUT", "SVK"], // 1차 실측: 면이 보헤미아 10지역을 통째로 물었다(1198년 오타카르 1세의 왕관은 제국의 것) + 작센·바이에른 동부·오스트리아 조각 + 스피시(1412 전 헝가리)
       "Hungary": ["ROU", "CZE"], // 1444와 같은 수: 트란실바니아는 수작업 HUNG이 이미 담당(같은 색이라 잃는 것 없음), 수체아바·네암츠 등 몰다비아 방면 월권만 죽는다; 모라비아 조각(CZE.2·7)도 1444와 같은 crude 노이즈
       "Angevin Empire": ["ESP"], // 1차 실측: 사라고사·나바라에 가스코뉴 남쪽 조각 — 피레네 이남 앙주령은 없다
-      "Holy Roman Empire": ["HRV", "ITA.1", "SMR"], // 자고레 등 헝가리 크로아티아 침식(이스트리아 조각 하나는 옳지만 5개 오식과 함께 죽는다) · ITA.1은 지역 접두 울타리: 제국면은 북이탈리아(보드 설계)에선 옳고 트론토 이남 아브루초에서만 틀리다 · SMR은 1444와 같은 수(자치 코무네 — 미배정 유지)
-      "Papal States": ["ITA.1"], // 같은 아브루초 — 교황령 면도 테라모 방면을 물었다(1200 국경은 트론토)
+      // 확장 3의 울타리 — **이게 없으면 제후 분할이 통째로 무효다.** 그래프트는
+      // regionAssignments 다음에 칠하므로, 독일을 덮는 제국 면이 방금 나눈 제후들을
+      // 도로 한 색으로 되돌린다 — 1차 빌드 실측으로 브라운슈바이크·마이센·튀링겐·
+      // 바이에른·쾰른·마인츠·트리어가 **0지역**으로 나왔다. 제국 면은 이제 이탈리아
+      // 왕국에서만 칠한다. 1200년의 제국이 실제로 그랬듯이.
+      "Sacrum Imperium Romanum": ["DEU", "AUT", "CHE", "NLD", "BEL", "LUX", "CZE", "SVN"],
+      // 확장 4: 같은 이유로 북이탈리아에서도 막는다. 크레모나·파비아만 아래에서
+      // 다시 황제에게 준다 — 기벨린 코뮌은 실제로 제국 편이었다.
+      "Holy Roman Empire": ["DEU", "AUT", "CHE", "NLD", "BEL", "LUX", "CZE", "SVN", "HRV", "SMR",
+        "ITA.1", "ITA.6", "ITA.7", "ITA.9", "ITA.10", "ITA.13", "ITA.16", "ITA.17", "ITA.19", "ITA.20"], // 자고레 등 헝가리 크로아티아 침식(이스트리아 조각 하나는 옳지만 5개 오식과 함께 죽는다) · ITA.1은 지역 접두 울타리: 제국면은 북이탈리아(보드 설계)에선 옳고 트론토 이남 아브루초에서만 틀리다 · SMR은 1444와 같은 수(자치 코무네 — 미배정 유지)
+      "Status Ecclesiasticus": ["ITA.6.1"], // rung-1 교황령 면도 볼로냐를 문다 — 아래 rung-3 면과 **둘 다** 막아야 코뮌이 산다
+      "Papal States": ["ITA.1", "ITA.6.1"], // 같은 아브루초 — 교황령 면도 테라모 방면을 물었다(1200 국경은 트론토). ITA.6.1은 확장 4가 붙였다: 면이 **볼로냐까지** 물어 코뮌을 0지역으로 만들었는데, 1200년 볼로냐는 제 포데스타를 세우는 자치 코뮌이다. 라벤나·리미니(로마냐)는 교황령이 맞아 통과시킨다
       "Principality of Galicia-Volhynia": ["MDA", "ROU"], // 실측: 키시너우·이아시·수체아바 IN — 몰도바 38지역 전부를 루스로 칠했다; 보드 설계는 쿠만 스텝 미배정
       "Principality of Novgorod": ["EST"], // 실측: 나르바 IN — 십자군 전의 에스토니아는 미배정 설계(페이푸스 선은 rung-1이 오면 되돌아온다)
       "Aragón": ["AND"], // 2차 실측(면이 매칭되자마자 안도라를 물었다): 우르헬-푸아 공동 영주령 — 1444와 같은 수, 미배정 유지
+      // ── 확장 1이 데려온 울타리 넷 (전부 재배정·절단 로스터 실측) ──
+      "Великожупанска Србија": ["SRB", "MNE", "ALB", "HRV.3"], // 면이 보스니아를 넘어 **몬테네그로 22지역 전부**(제타는 부칸 네만치의 것) · 마치바·콜루바라·즐라티보르(라슈카 본토) · 알바니아 · 두브로브니크까지 물었다. 쿨린 반의 보스니아는 드리나 서안이다. 라구사는 그의 것이 아니라 그와 **조약을 맺은 상대**였다(1189 헌장) — 자치 코무네 폴리티는 다음 배치 후보
+      "Kara Khitai Khaganate": ["TKM", "IRN", "AFG", "UZB.7"], // 사마르칸트·나보이(카라한조 봉신)는 옳다. **호라즘(UZB.7)은 아니다** — 호라즘샤는 1207년까지 공납을 바쳤을 뿐 서요의 땅이 아니었고, 투르크멘·호라산·아프간은 호라즘/구르의 것이다
+      "Cuman Khanates": ["GEO", "AZE"], // 타마르 여왕이 킵차크를 이주시킨 것과 킵차크가 조지아를 소유한 것은 다른 이야기다 — 면이 조지아 4지역과 시르반까지 칠하려 들었다
+      "Makkura": ["EGY"], // 마쿠리아 본토는 동골라(SDN)다. 아스완 이북은 아이유브령 — 면이 홍해 연안·신계곡 오아시스까지 물었다
       "Almohad Caliphate": ["ESP.4.5", "ESP.4.4", "ESP.4.3"], // 지역 접두 울타리 — 알라르코스(1195) 이후의 진짜 선: 라만차 남부(알바세테·시우다드레알)는 알모하드가 맞지만 톨레도(1085년부터 기독교, 함락된 적 없음)·과달라하라(타호 이북)·쿠엥카(1177년부터)는 도시가 버텼다
     },
   },
@@ -181,6 +201,98 @@ export default {
     GORY:  { name: "Goryeo", color: "#5a9a7a", aliases: ["Korea", "Goryeo"] },
     KHMER: { name: "Khmer Empire", color: "#c2a23a", aliases: ["Angkor", "Khmer"] },
     ETHIO: { name: "Zagwe Ethiopia", color: "#4a8f6a", aliases: ["Abyssinia", "Zagwe"] },
+
+    // ── 확장 1: 배제하던 면을 로스터로 회수 ────────────────────────────────
+    // 위 excludeFaces 스물여덟 중 열하나는 "라벨이 틀려서"가 아니라 **"로스터에
+    // 없어서"** 배제돼 있었다 — 기하는 이미 그려져 있는데 줄 사람이 없었다는
+    // 뜻이다. 1444를 65→157로 채운 것과 같은 작업이고, 여기서는 새 데이터를
+    // 만들 필요조차 없다. 채택하지 않은 열일곱 건은 이유를 붙여 excludeFaces에
+    // 그대로 남겼다.
+    GWYN:  { name: "Kingdom of Gwynedd", color: "#3f7a4a", aliases: ["Gwynedd", "Teyrnas Gwynedd"] },
+    POWY:  { name: "Powys Wenwynwyn", color: "#7aa83f", aliases: ["Powys"] },
+    DESM:  { name: "Kingdom of Desmond", color: "#b06a2e", aliases: ["Desmond", "Deasmhumhain", "MacCarthy"] },
+    THOM:  { name: "Kingdom of Thomond", color: "#d0a24a", aliases: ["Thomond", "Tuamhain", "O'Brien"] },
+    ISLC:  { name: "Icelandic Commonwealth", color: "#7fb6d6", aliases: ["Iceland", "Þjóðveldið Ísland", "Alþingi"] },
+    CAGL:  { name: "Judicate of Cagliari", color: "#a03f6a", aliases: ["Cagliari", "Iudicatus Karalitanus", "Càlari"] },
+    ARBO:  { name: "Judicate of Arborea", color: "#6a3f9a", aliases: ["Arborea", "Arborèa"] },
+    BOSN:  { name: "Banate of Bosnia", color: "#4a6ab0", aliases: ["Bosnia", "Ban Kulin's Bosnia", "Bosna"] },
+    KKHI:  { name: "Qara Khitai", color: "#9a9a3f", aliases: ["Kara Khitai", "Western Liao", "Gurkhanate"] },
+    MAKU:  { name: "Kingdom of Makuria", color: "#3f9a8a", aliases: ["Makuria", "Makkura", "Dongola", "Nubia"] },
+    CUMA:  { name: "Cuman–Kipchak Confederation", color: "#c9a86a", aliases: ["Cumans", "Kipchaks", "Polovtsy", "Desht-i Qipchaq"] },
+
+    // ── 확장 2: 인도 아대륙 ────────────────────────────────────────────────
+    // **구르 감사 결과부터**: 구르 244지역은 과대 커버가 아니었다. 191개가
+    // 인도 지역인데 그건 스펙이 준 북부 7개 주(델리·하리아나·펀자브·찬디가르·
+    // UP·비하르·라자스탄)의 하위 지구 수다 — 1192 타라인 이후의 갠지스 평원과
+    // 정확히 같다. 문제는 구르가 넓은 게 아니라 **나머지 인도가 비어 있던 것**.
+    //
+    // 시대 지오메트리 창은 [-15,30,50,72]라 아대륙에는 면이 한 장도 없다.
+    // 여기는 전부 GADM 주 단위 수작업이고, 그래서 경계는 주 경계로 반올림된다 —
+    // 아래 근사는 전부 이름을 붙여 뒀다.
+    CHAU:  { name: "Chaulukya of Gujarat", color: "#c46a8a", aliases: ["Solanki", "Anhilwara", "Gujarat"] },
+    PARA:  { name: "Paramara of Malwa", color: "#8a5ac4", aliases: ["Paramaras", "Malwa", "Dhara"] },
+    KALA:  { name: "Kalachuri of Ratanpur", color: "#6a8a5a", aliases: ["Kalachuris", "Ratanpur", "Dakshina Kosala"] },
+    YADA:  { name: "Seuna Yadava", color: "#b05a3a", aliases: ["Yadavas", "Devagiri", "Seuna"] },
+    HOYS:  { name: "Hoysala Empire", color: "#4a9ac4", aliases: ["Hoysalas", "Dwarasamudra", "Halebidu"] },
+    VENA:  { name: "Venad", color: "#3aa07a", aliases: ["Kerala", "Kulasekhara successors", "Quilon"] },
+    KAKA:  { name: "Kakatiya Dynasty", color: "#a08a3a", aliases: ["Kakatiyas", "Warangal", "Orugallu"] },
+    GANG:  { name: "Eastern Ganga Dynasty", color: "#7a5a3a", aliases: ["Gangas", "Kalinga", "Utkala"] },
+    SENA:  { name: "Sena Dynasty", color: "#c47a5a", aliases: ["Senas", "Bengal", "Gauda", "Lakhnauti"] },
+    KAMA:  { name: "Kamarupa", color: "#5a7a9a", aliases: ["Kamrup", "Pragjyotisha", "Assam"] },
+    NEPA:  { name: "Nepal Mandala", color: "#9ac45a", aliases: ["Nepal", "Kathmandu Valley", "Thakuri"] },
+
+    // ── 확장 3: 제국을 제후들에게 돌려준다 ─────────────────────────────────
+    // 1444에서 회색 하나가 제후 열일곱으로 갈라진 그 작업의 1200판. 그리고
+    // 1200년은 그걸 하기에 **가장 옳은 해**다 — 필리프(슈바벤)와 오토 4세(벨프)의
+    // 이중 선거가 1198년에 났고, 제국이 한 색일 수 없다는 사실 자체가 이 보드의
+    // 이야기다. 잔여 HRE는 이제 이탈리아 왕국과 남은 직속령이다(1444와 같은 모양).
+    //
+    // 경계는 GADM 주 경계로 반올림된다. 접은 것들은 전부 아래 배정에 이름을 붙였다.
+    SAXO:  { name: "Duchy of Saxony", color: "#8a8ac4", aliases: ["Saxony", "Ascanian Saxony", "Sachsen"] },
+    BRUN:  { name: "Brunswick-Lüneburg", color: "#c48a5a", aliases: ["Welf lands", "Braunschweig", "Guelph duchy"] },
+    BRAN:  { name: "Margraviate of Brandenburg", color: "#5a5a8a", aliases: ["Brandenburg", "Nordmark"] },
+    MEIS:  { name: "Margraviate of Meissen", color: "#7a9a3a", aliases: ["Meissen", "Wettin lands", "Mark Meißen"] },
+    THUR:  { name: "Landgraviate of Thuringia", color: "#9a3a5a", aliases: ["Thuringia", "Ludowingians", "Hesse"] },
+    BAVA:  { name: "Duchy of Bavaria", color: "#3a7ac4", aliases: ["Bavaria", "Wittelsbach Bavaria", "Bayern"] },
+    SWAB:  { name: "Duchy of Swabia", color: "#c4c45a", aliases: ["Swabia", "Hohenstaufen lands", "Schwaben"] },
+    HOLS:  { name: "County of Holstein", color: "#5ac4a8", aliases: ["Holstein", "Schauenburg"] },
+    COLO:  { name: "Archbishopric of Cologne", color: "#c45a5a", aliases: ["Cologne", "Köln", "Duchy of Westphalia"] },
+    MAIN:  { name: "Archbishopric of Mainz", color: "#d4a05a", aliases: ["Mainz", "Mayence"] },
+    TRIE:  { name: "Archbishopric of Trier", color: "#a05ad4", aliases: ["Trier", "Trèves"] },
+    AUST:  { name: "Duchy of Austria", color: "#e0e0e0", aliases: ["Austria", "Babenberg Austria", "Styria"] },
+    CARI:  { name: "Duchy of Carinthia", color: "#7ac48a", aliases: ["Carinthia", "Kärnten", "Carniola"] },
+    SALZ:  { name: "Archbishopric of Salzburg", color: "#c47ac4", aliases: ["Salzburg"] },
+    TIRO:  { name: "County of Tyrol", color: "#8ac4c4", aliases: ["Tyrol", "Tirol"] },
+    BOHE:  { name: "Kingdom of Bohemia", color: "#5a3a8a", aliases: ["Bohemia", "Přemyslid Bohemia", "Moravia"] },
+    BRAB:  { name: "Duchy of Brabant", color: "#c4a83a", aliases: ["Brabant", "Louvain"] },
+    FLAN:  { name: "County of Flanders", color: "#3ac4a0", aliases: ["Flanders", "Vlaanderen"] },
+    LIEG:  { name: "Prince-Bishopric of Liège", color: "#a8c45a", aliases: ["Liège", "Luik", "Hainaut"] },
+    LUXE:  { name: "County of Luxembourg", color: "#5a8ac4", aliases: ["Luxembourg", "Lützelburg"] },
+    HOLL:  { name: "County of Holland", color: "#d45a8a", aliases: ["Holland", "Zeeland"] },
+    UTRE:  { name: "Bishopric of Utrecht", color: "#8a5a3a", aliases: ["Utrecht", "Oversticht"] },
+    FRIS:  { name: "Frisian Freedom", color: "#3a8ac4", aliases: ["Frisia", "Friesland", "Free Frisians"] },
+    GELD:  { name: "County of Guelders", color: "#c43a7a", aliases: ["Guelders", "Gelre", "Gelderland"] },
+    ZAHR:  { name: "Duchy of Zähringen", color: "#a8a87a", aliases: ["Zähringen", "Burgundy rectorate", "Bern"] },
+
+    // ── 확장 4: 이탈리아 코뮌 ──────────────────────────────────────────────
+    // 롬바르디아 동맹은 1198년에 **재결성됐다**. 이 보드의 북이탈리아가 제국
+    // 한 색이던 것은 바로 그 사실을 지우는 그림이었다. 코뮌은 사람이 아니라
+    // 제도가 다스린다(집정관단·포데스타, 임기 1년) — 지도자 자리에 왕가 대신
+    // 회의체가 들어가는 게 여기서는 근사가 아니라 정확한 답이다.
+    MILA:  { name: "Commune of Milan", color: "#d43a3a", aliases: ["Milan", "Milano", "Lombard League"] },
+    VERO:  { name: "Commune of Verona", color: "#3a5ad4", aliases: ["Verona", "Mantua", "Veronese march"] },
+    GENO:  { name: "Republic of Genoa", color: "#c4d43a", aliases: ["Genoa", "Genova", "Ligurian republic"] },
+    PISA:  { name: "Republic of Pisa", color: "#3ad4c4", aliases: ["Pisa", "Pisan republic"] },
+    FLOR:  { name: "Commune of Florence", color: "#d43ac4", aliases: ["Florence", "Firenze"] },
+    SIEN:  { name: "Commune of Siena", color: "#a87a3a", aliases: ["Siena"] },
+    LUCC:  { name: "Commune of Lucca", color: "#7ad43a", aliases: ["Lucca"] },
+    BOLO:  { name: "Commune of Bologna", color: "#d47a3a", aliases: ["Bologna"] },
+    MODE:  { name: "Commune of Modena", color: "#3a8a5a", aliases: ["Modena", "Reggio"] },
+    PIAC:  { name: "Commune of Piacenza", color: "#8a3a7a", aliases: ["Piacenza", "Parma"] },
+    MONF:  { name: "Marquisate of Montferrat", color: "#5ad4d4", aliases: ["Montferrat", "Monferrato"] },
+    SAVO:  { name: "County of Savoy", color: "#d4d4a8", aliases: ["Savoy", "Savoia", "Aosta"] },
+    TREN:  { name: "Bishopric of Trent", color: "#a8d4c4", aliases: ["Trent", "Trento", "Brixen"] },
+    AQUI:  { name: "Patriarchate of Aquileia", color: "#c4a8d4", aliases: ["Aquileia", "Friuli", "Patria del Friuli"] },
   },
 
   countryAssignments: {
@@ -221,6 +333,10 @@ export default {
     DAIV:  ["VNM"],
     SRIV:  ["IDN", "MYS"],
     POLO:  ["LKA"],
+    LUXE:  ["LUX"],                        // 확장 3: 룩셈부르크 백작령
+    // 확장 2: 벵골 삼각주와 카트만두 분지 — 면이 없는 구역이라 국가 단위로.
+    SENA:  ["BGD"],                        // 세나의 동벵골(비크람푸르)
+    NEPA:  ["NPL"],                        // 네팔 만달라 — 1200년은 아리말라가 말라 왕조를 여는 해다
     ETHIO: ["ETH"],
   },
 
@@ -272,6 +388,94 @@ export default {
     // The Chola heartland on the Tamil coast (declining but standing).
     "IND.31_1": "CHOL", "IND.27_1": "CHOL",
 
+    // ── 확장 4: 북이탈리아의 코뮌들 ──
+    // 위 울타리가 제국 면을 북이탈리아에서 막았으므로 여기 배정이 최종이다.
+    "ITA.10.8_1": "MILA", "ITA.10.9_1": "MILA", "ITA.10.5_1": "MILA", "ITA.10.12_1": "MILA",
+    "ITA.10.3_1": "MILA", "ITA.10.6_1": "MILA", "ITA.10.11_1": "MILA",
+    "ITA.10.1_1": "MILA", "ITA.10.2_1": "MILA", // 베르가모·브레시아는 제 코뮌이지만 동맹 맹주에 접었다(명시적 근사)
+    "CHE.21_1": "MILA",                          // 티치노 — 확장 3에서 미뤄 둔 것: 코모·밀라노권
+    "ITA.10.4_1": "HRE", "ITA.10.10_1": "HRE",  // **크레모나·파비아는 황제 편 코뮌이다.** 북이탈리아에서 제국이 실제로 딛고 선 땅이고, 이게 없으면 황제가 이탈리아에서 사라진다
+    "ITA.20.6_1": "VERO", "ITA.20.7_1": "VERO", "ITA.20.4_1": "VERO", "ITA.20.1_1": "VERO",
+    "ITA.20.2_1": "VERO", "ITA.10.7_1": "VERO", // 파도바·만토바는 제 코뮌이나 베로나권에 접었다. **베네치아는 1200년에 본토가 없다** — 테라페르마는 15세기다
+    "ITA.9.1_1": "GENO", "ITA.9.2_1": "GENO", "ITA.9.3_1": "GENO", "ITA.9.4_1": "GENO", // 사보나는 제노바의 경쟁자였지만 접었다
+    "ITA.16.7_1": "PISA", "ITA.16.4_1": "PISA", "ITA.16.6_1": "PISA",
+    "ITA.16.2_1": "FLOR", "ITA.16.9_1": "FLOR", "ITA.16.8_1": "FLOR", "ITA.16.1_1": "FLOR",
+    "ITA.16.10_1": "SIEN", "ITA.16.3_1": "SIEN",
+    "ITA.16.5_1": "LUCC",                        // 1444의 교훈 그대로: 토스카나를 주 단위로 주면 루카·시에나가 묻힌다
+    "ITA.6.1_1": "BOLO",                         // 1200년 볼로냐는 자치 코뮌이다 — 교황령 편입은 한참 뒤
+    "ITA.6.4_1": "MODE", "ITA.6.8_1": "MODE",
+    "ITA.6.6_1": "PIAC", "ITA.6.5_1": "PIAC",
+    "ITA.13.1_1": "MONF", "ITA.13.2_1": "MONF", "ITA.13.5_1": "MONF",
+    "ITA.13.8_1": "MONF", "ITA.13.3_1": "MONF", "ITA.13.7_1": "MONF", // 보니파초 1세 — 2년 뒤 4차 십자군을 이끈다
+    "ITA.19.1_1": "SAVO", "ITA.13.6_1": "SAVO", "ITA.13.4_1": "SAVO",
+    "ITA.17.2_1": "TREN", "ITA.17.1_1": "TREN", // 브릭센 주교령은 트렌토에 접었다
+    "ITA.7.1_1": "AQUI", "ITA.7.2_1": "AQUI", "ITA.7.3_1": "AQUI", "ITA.7.4_1": "AQUI",
+
+    // ── 확장 3: 제국의 제후들 (HRE 잔여는 이탈리아 왕국 + 직속령) ──
+    // 1200년의 제국은 한 색일 수 없다 — 필리프와 오토 4세가 서로를 왕이라
+    // 부르는 중이다. 아래는 전부 GADM 주 경계 반올림이고 접은 것은 이름을 붙였다.
+    "DEU.13_1": "SAXO",                        // 아스카니아 작센 — 비텐베르크·마그데부르크
+    "DEU.9_1": "BRUN", "DEU.5_1": "BRUN",     // 벨프 브라운슈바이크-뤼네부르크. 브레멘 대주교령은 별도 제후주교령이지만 한 지역뿐이라 벨프권에 접었다
+    "DEU.3_1": "BRAN", "DEU.4_1": "BRAN",     // 오토 2세의 변경백령
+    "DEU.14_1": "MEIS",                        // 베틴가 마이센 — 훗날의 작센은 여기서 자란다
+    "DEU.16_1": "THUR", "DEU.7_1": "THUR",    // 루도빙거는 튀링겐과 **헤센을 함께** 쥔다 — 근사가 아니라 사실
+    "DEU.2_1": "BAVA",                         // 비텔스바흐 바이에른
+    "DEU.1_1": "SWAB",                         // 슈타우펜 슈바벤 — 필리프 본인의 공작령
+    "DEU.15_1": "HOLS", "DEU.6_1": "HOLS",    // 홀슈타인 백작이 함부르크를 쥔다. 슐레스비히는 덴마크 공작령이지만 같은 주라 접혔다(명시적 근사)
+    "DEU.10_1": "COLO",                        // 쾰른 대주교는 1180년부터 **베스트팔렌 공작**이다
+    "DEU.11_1": "MAIN",                        // 마인츠 대주교령 + 라인 궁정백
+    "DEU.12_1": "TRIE",                        // 트리어 대주교령 — 라인란트팔츠에도 걸치지만 자를란트로 대표시켰다
+    "DEU.8_1": "DEN_K",                        // **메클렌부르크·포메른은 1200년 덴마크 종주 아래다** — 스펙이 이미 POL.16(포메른-슈테틴)에 그은 것과 같은 선이고, 보른회베트(1227)에 깨진다
+    "AUT.3_1": "AUST", "AUT.9_1": "AUST", "AUT.4_1": "AUST", "AUT.6_1": "AUST", // 레오폴트 6세 — 슈타이어마르크는 게오르겐베르크 협약(1192)으로 이미 바벤베르크의 것
+    "AUT.2_1": "CARI",                         // 스판하임 카린티아
+    "AUT.5_1": "SALZ",                         // 잘츠부르크 대주교령
+    "AUT.7_1": "TIRO",                         // 티롤 백작령 — 브릭센·트렌트 주교의 대리인에서 자립하는 중
+    "AUT.8_1": "SWAB",                         // 포어아를베르크는 몬트포르트 백작 — 슈바벤권
+    "SVN.4_1": "CARI", "SVN.1_1": "CARI", "SVN.7_1": "CARI", "SVN.3_1": "CARI",
+    "SVN.10_1": "CARI", "SVN.12_1": "CARI", "SVN.11_1": "CARI", "SVN.5_1": "CARI",
+    "SVN.2_1": "CARI", "SVN.6_1": "CARI",     // 카린티아 + 카르니올라 변경백령을 한 색으로 접었다(스판하임가가 둘 다 쥔다). 포드라브스카·포무르스카는 면 절단이 헝가리로 가른다
+    "CZE.1_1": "BOHE", "CZE.2_1": "BOHE", "CZE.3_1": "BOHE", "CZE.4_1": "BOHE",
+    "CZE.5_1": "BOHE", "CZE.6_1": "BOHE", "CZE.7_1": "BOHE", "CZE.8_1": "BOHE",
+    "CZE.9_1": "BOHE", "CZE.10_1": "BOHE", "CZE.11_1": "BOHE", "CZE.12_1": "BOHE",
+    "CZE.13_1": "BOHE", "CZE.14_1": "BOHE",   // 오타카르 1세는 1198년에 **세습 왕관**을 받았다 — 제국 안이되 제 왕국이다(faceKeepOut의 Poland 주석이 이미 그렇게 적고 있었다)
+    "BEL.2_1": "FLAN",                         // 보두앵 9세. 플란데런은 프랑스 왕관 봉토이기도 하다 — 스헬더 서안의 프랑스 몫은 면 재배정이 이미 갈라 놓았다
+    "BEL.3_1": "LIEG", "BEL.1_1": "BRAB",     // 왈로니는 리에주 주교령이 대표(나뮈르·에노는 접힘), 브뤼셀은 브라반트
+    "NLD.8_1": "BRAB", "NLD.7_1": "BRAB",     // 브라반트 공작 하인리히 1세. 림뷔르흐 공작령은 1288년까지 별개지만 한 지역이라 접었다
+    "NLD.9_1": "HOLL", "NLD.2_1": "HOLL", "NLD.6_1": "HOLL", "NLD.12_1": "HOLL", "NLD.13_1": "HOLL", // 디르크 7세 — 제일란트는 플란데런과 다투는 땅이라 홀란트로
+    "NLD.11_1": "UTRE", "NLD.10_1": "UTRE", "NLD.1_1": "UTRE", // 위트레흐트 주교의 오버스티흐트
+    "NLD.3_1": "FRIS", "NLD.5_1": "FRIS",     // **자유 프리지아** — 영주를 두지 않은 것이 이 땅의 정체성이다
+    "NLD.4_1": "GELD",                         // 겔러 백작 오토 1세
+    "CHE.6_1": "ZAHR", "CHE.7_1": "ZAHR", "CHE.24_1": "ZAHR", "CHE.19_1": "ZAHR",
+    "CHE.13_1": "ZAHR", "CHE.8_1": "ZAHR", "CHE.23_1": "ZAHR", "CHE.4_1": "ZAHR", // 체링겐 공작 베르톨트 5세 — 부르고뉴 왕국의 제국 총독. 바젤·시옹 주교령은 접었다
+    "CHE.26_1": "SWAB", "CHE.16_1": "SWAB", "CHE.20_1": "SWAB", "CHE.17_1": "SWAB",
+    "CHE.2_1": "SWAB", "CHE.3_1": "SWAB", "CHE.9_1": "SWAB", "CHE.1_1": "SWAB",
+    "CHE.12_1": "SWAB", "CHE.22_1": "SWAB", "CHE.18_1": "SWAB", "CHE.25_1": "SWAB",
+    "CHE.14_1": "SWAB", "CHE.15_1": "SWAB", "CHE.10_1": "SWAB", // 동·중부 스위스는 슈바벤 공작권. 쿠어 주교령과 훗날의 원시 3주는 여기 접혀 있다
+    // 티치노(CHE.21)는 손대지 않았다 — 코모·밀라노와 함께 이탈리아 배치에서 다룬다.
+
+    // ── 확장 2: 데칸과 남·동인도 ──
+    // 1200년 아대륙은 구르의 평원과 촐라의 해안 사이가 비어 있지 않았다.
+    // 경계는 GADM 주 경계로 반올림된다(면 데이터가 없는 구역이라 불가피).
+    "IND.11_1": "CHAU", "IND.8_1": "CHAU",   // 구자라트 — 비마 2세의 안힐와라. 다드라는 구자라트-마하라슈트라 경계의 소지역, 같은 색으로
+    "IND.19_1": "PARA",                        // 말와 — 다라의 파라마라. 다만 이 주는 분델칸드(찬델라)와 곤드와나까지 품는다: 주 단위 근사
+    "IND.7_1": "KALA",                         // 다크시나 코살라 — 라탄푸르 칼라추리
+    "IND.20_1": "YADA", "IND.10_1": "YADA",   // 데바기리의 세우나 야다바. 고아는 카담바 봉신령이라 별도 폴리티가 옳지만 한 주뿐이라 종주에 접었다(명시적 근사)
+    "IND.16_1": "HOYS",                        // 카르나타카 — 1189년 서찰루키아 붕괴 이후 발랄라 2세가 데칸을 쥔다
+    "IND.17_1": "VENA",                        // 케랄라 — 쿨라셰카라 붕괴(1102) 이후의 베나드. 코지코드·코치 추장국까지 한 색으로 접은 근사
+    "IND.32_1": "KAKA", "IND.2_1": "KAKA",    // 텔랑가나·안드라 — 가나파티데바가 1199년에 즉위해 해안까지 넓히는 중
+    "IND.26_1": "GANG",                        // 칼링가 — 아낭가비마 2세의 동갠지스
+    "IND.36_1": "SENA",                        // 벵골 서부 — 락슈마나 세나. **박티야르 킬지의 습격은 1203~04년**이라 이 보드 날짜엔 아직 세나의 것이다
+    "IND.4_1": "KAMA",                         // 아삼 — 카마루파
+    // 남긴 구멍들(전부 이유가 있다):
+    //   자르칸드(IND.15) — 나가반시 등 초타나그푸르 추장국. 비하르(구르)와
+    //     칼링가(동갠지스) 사이의 진짜 빈틈이지 누락이 아니다.
+    //   히마찰(IND.13)·우타라칸드(IND.35)·시킴(IND.30) — 캉그라·참바·카트유리·
+    //     찬드 등 구릉 라자들. 어느 하나로 묶으면 나머지를 지운다.
+    //   북동부 6주(IND.3·21·22·23·24·33) — 아홈 왕국은 **1228년**이다. 그 전은
+    //     부족 정치체이고 국가로 칠하면 거짓말이 된다.
+    //   부탄 20지구 — 통일 부탄은 1616년.
+    //   안다만(IND.1) — 외부 정치체와 접촉이 없다.
+
     // Iberia: Aragon, Navarre, and the Almohad south carved out of Castile.
     "ESP.2_1": "ARAG", "ESP.6_1": "ARAG",            // Aragón, Cataluña
     "ESP.9_1": "NAV",                                  // Navarra
@@ -282,9 +486,13 @@ export default {
     "ITA.8_1": "PAPAL", "ITA.18_1": "PAPAL", "ITA.11_1": "PAPAL",                         // Lazio, Umbria, Marche
     "ITA.1_1": "SICI", "ITA.2_1": "SICI", "ITA.3_1": "SICI", "ITA.4_1": "SICI",           // Abruzzo, Apulia, Basilicata, Calabria
     "ITA.5_1": "SICI", "ITA.12_1": "SICI", "ITA.15_1": "SICI",                            // Campania, Molise, Sicily
-    "ITA.20_1": "VEN", "ITA.7_1": "VEN",                                                  // Veneto, Friuli
-    "ITA.6_1": "HRE", "ITA.9_1": "HRE", "ITA.10_1": "HRE", "ITA.13_1": "HRE",             // Emilia, Liguria, Lombardia, Piemonte
-    "ITA.16_1": "HRE", "ITA.17_1": "HRE", "ITA.19_1": "HRE", "ITA.14_1": "HRE",           // Toscana, Trentino, Valle d'Aosta, Sardegna
+    "ITA.14_1": "HRE",                                                                     // Sardegna — 유디카티가 가르고 남는 로구도로·갈루라
+    // 확장 4가 걷어낸 줄들. ITA.20·7·6·9·10·13·16·17·19를 주 단위로 VEN/HRE에
+    // 주던 여섯 줄이 여기 있었고, **그게 코뮌 분할을 통째로 덮었다** — 객체
+    // 뒤쪽 키가 이기므로 레벨-1 한 줄이 방금 나눈 레벨-2 열 개를 도로 칠한다.
+    // 1444에서 ITA.16→FLO가 루카·시에나를 묻은 사고와 **같은 줄, 같은 파일**이다.
+    "ITA.20.5_1": "VEN",                                                                   // 베네치아 석호 — 1200년 베네치아의 본토는 여기까지다
+    "ITA.20.3_1": "PAPAL",                                                                 // 로비고(폴레시네) — 교황령 면이 이미 그렇게 칠하고 있었다
 
     // Levant: Crusader coast carved out of Ayyubid Syria/Palestine.
     "ISR.3_1": "JERU", "ISR.4_1": "JERU",            // Haifa/Acre, central coast (Jaffa)
