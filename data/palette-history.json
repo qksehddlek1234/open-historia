@@ -4889,6 +4889,9 @@
       "Ceylon": [
         "8fae7a"
       ],
+      "Chad": [
+        "acbf40"
+      ],
       "Commonwealth of Australia": [
         "d07a5a"
       ],
@@ -4947,6 +4950,7 @@
         "7a5a5a"
       ],
       "Greece": [
+        "40acbf",
         "9540bf"
       ],
       "Guatemala": [
@@ -4995,6 +4999,7 @@
         "6b7280"
       ],
       "Iran": [
+        "9740bf",
         "bfb040"
       ],
       "Israel": [
@@ -5012,6 +5017,9 @@
       "Kirghiz SSR": [
         "9c7a44"
       ],
+      "Kuwait": [
+        "bf4073"
+      ],
       "Latvian SSR": [
         "8a7a9a"
       ],
@@ -5021,11 +5029,20 @@
       "Liberia": [
         "9d40bf"
       ],
+      "Libya": [
+        "8e40bf"
+      ],
       "Liechtenstein": [
         "40bf51"
       ],
       "Lithuanian SSR": [
         "9a8aaa"
+      ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Mauritania": [
+        "bf40b9"
       ],
       "Moldavian SSR": [
         "b08a7a"
@@ -5033,11 +5050,17 @@
       "Mongolian People's Republic": [
         "a85454"
       ],
+      "Morocco": [
+        "40a2bf"
+      ],
       "Nepal": [
         "4dbf40"
       ],
       "Netherlands": [
         "e08a2e"
+      ],
+      "Niger": [
+        "40bf68"
       ],
       "Oman": [
         "7340bf"
@@ -5056,6 +5079,9 @@
       ],
       "Portugal": [
         "2e7d6b"
+      ],
+      "Qatar": [
+        "bf6a40"
       ],
       "Republic of China": [
         "4a6db5"
@@ -5104,6 +5130,9 @@
       ],
       "Union of South Africa": [
         "a87a5a"
+      ],
+      "United Arab Emirates": [
+        "40bf71"
       ],
       "United States": [
         "4a8f7a"
@@ -9267,7 +9296,8 @@
         "3a3a3a"
       ],
       "Greece": [
-        "9540bf"
+        "9540bf",
+        "9740bf"
       ],
       "Guangdong Clique": [
         "9aa04a"
@@ -9356,6 +9386,9 @@
       "Mongolian People's Republic": [
         "a85454"
       ],
+      "Morocco": [
+        "40bf5e"
+      ],
       "Mysore": [
         "7fa89a"
       ],
@@ -9376,6 +9409,9 @@
       ],
       "Portugal": [
         "2e7d6b"
+      ],
+      "Qatar": [
+        "bf6a40"
       ],
       "Rajputana": [
         "c9a05a"

@@ -76,10 +76,18 @@ export default {
   // excludeFaces·faceOwners·faceKeepOut은 **비워 둔다** — 면 목록을 실제로
   // 보기 전에 채우는 건 추측이고, 이 파일의 규칙에 어긋난다. 1차 빌드의
   // 재배정·절단 로스터를 읽고 붙인다(1444·1200·1300·117과 같은 절차).
+  //
+  // PC 추출 완료(2026-08-15), 그리고 **하이브리드를 가리킨다.** rung-1은
+  // 37면인데 그 안에 독일 둘도, 폴란드도, 체코슬로바키아도 없다 — 1935와
+  // 같은 이유로 서·중부 유럽이 한 덩어리로 뭉쳐 거부됐다(18폴리티·육지비
+  // 15%). 사다리 3단(aourednik world_1960)을 얹어 75면이 되고 거기에
+  // `East Germany`·`West Germany`·`Poland`·`Czechoslovakia`·`Yugoslavia`가
+  // 있다. 1960을 쓰는 이유는 1945가 아직 4개 점령지구를 그리기 때문이다 —
+  // 두 독일은 1949년에 생겼고 이 보드는 1950년이다.
   eraGeometry: {
     date: "1950-01-01",
     window: [-10, 25, 132, 71],
-    file: "scripts/ohm/out/era-borders-1950-01-01-z4.geojson",
+    file: "scripts/ohm/out/era-borders-1950-01-01-z4-hybrid.geojson",
   },
 
   polities: {

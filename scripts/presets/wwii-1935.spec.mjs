@@ -62,10 +62,75 @@ export default {
   // excludeFaces·faceOwners·faceKeepOut은 **비워 둔다** — 면 목록을 실제로
   // 보기 전에 채우는 건 추측이고, 이 파일의 규칙에 어긋난다. 1차 빌드의
   // 재배정·절단 로스터를 읽고 붙인다(1444·1200·1300·117과 같은 절차).
+  //
+  // PC 추출 완료(2026-08-15), 그리고 **하이브리드를 가리킨다.** rung-1 단독
+  // 조립은 38면을 냈지만 독일이 그 안에 없다 — 서·중부 유럽이 한 덩어리로
+  // 뭉쳐 바다 가드에 걸렸고(12폴리티·육지비 7%), 그건 이 보드의 실패가
+  // 아니라 파이프라인의 정상 상태다(배포 중인 1939도 rung-1은 26면뿐).
+  // 사다리 3단(aourednik world_1930)을 얹은 하이브리드가 73면이고 거기에
+  // `Germany`와 **`East Prussia`가 별개 폴리곤으로** 들어 있다 — 폴란드
+  // 회랑으로 갈라진 1935년의 그 모양이고, 지적된 defect의 해결책이다.
+  //
+  // 연대 선택은 역사 판단이다: world_1938을 쓰면 **아직 일어나지 않은**
+  // 안슐루스와 주데텐란트가 그려진다(2년 반 앞선 국경). 1930은 독일과
+  // 오스트리아를 따로 주므로 이 날짜에 맞다.
+  // faceOwners/excludeFaces는 1차 빌드의 미매칭 로스터를 읽고 붙였다(그쪽이
+  // 남긴 절차 그대로 — 면 목록을 보기 전에 채우는 건 추측이다). 식민지 면들은
+  // wwii-1939 스펙이 **같은 이름들을 이미 해결해 둔 것**을 그대로 따랐고,
+  // 1935에만 있는 판단 둘만 여기 적는다.
   eraGeometry: {
     date: "1935-12-01",
     window: [-10, 35, 45, 71],
-    file: "scripts/ohm/out/era-borders-1935-12-01-z4.geojson",
+    file: "scripts/ohm/out/era-borders-1935-12-01-z4-hybrid.geojson",
+    // world_1930(rung 3)이 1935에 존재하지 않는 나라들을 들고 온다. 오스만
+    // 술탄국은 1922년에 끝났고, 헤자즈와 하일은 1925·1921년에 정복돼 1932년
+    // 사우디아라비아로 합쳐졌다. 미매칭으로 두면 조용히 버려지는 게 아니라
+    // 매 빌드 로스터에 찍히므로, 여기 적어 **의도된 제외**임을 남긴다.
+    excludeFaces: [
+      "Ottoman Sultanate",
+      "Hejaz",
+      "Hail",
+      "Emirate of Bin Shal'an",
+      "Mesopotamia (GB)", // 이라크는 1932년에 독립했다 — 위임통치 이름은 낡았다
+    ],
+    faceOwners: {
+      // ── 1935에만 있는 판단 ────────────────────────────────────────────────
+      // 동프로이센은 폴란드 회랑으로 본토와 갈라져 있을 뿐 독일 영토다
+      // (이 파일 아래쪽도 "East Prussia is German until 1945"라고 적는다).
+      // rung-3이 별개 폴리곤으로 주는 이유는 basemap이 비연속 영토를 따로
+      // 그리기 때문이지 별개 나라라서가 아니다. **지적된 defect의 핵심이
+      // 이 한 줄이다** — 이게 없으면 회랑 동쪽이 빈 채로 남는다.
+      "East Prussia": "GER",
+      // world_1930의 "White Russia" = 벨로루시 SSR.
+      "White Russia": "BYE",
+
+      // ── 아래는 wwii-1939 스펙과 같은 해결 (같은 면 이름, 같은 보유국) ────
+      "Algérie française": "FRA",
+      "Protectorat français de Tunisie": "FRA",
+      "République Libanaise": "FRA",
+      "Tangier International Zone": "FRA",
+      "Djebel Druze": "FRA", // 시리아 위임통치령 안의 드루즈 국가
+      "État des Alaouites": "FRA", // 같은 위임통치령 안의 알라위 국가
+      "Syria (France)": "FRA", // rung-3가 같은 땅을 한 덩어리로도 준다
+      Libia: "ITA",
+      "Libya (IT)": "ITA",
+      "British Cyprus": "GBR",
+      "Colony of Malta": "GBR",
+      "Protectorate of Kuwait": "GBR",
+      "Sultanate of Muscat and Oman": "GBR", // rung 1
+      // rung-3(world_1930)은 같은 해안을 두 면으로 나눠 준다 — 첫 시도에서
+      // 빌드 로그의 쉼표 목록을 한 이름으로 착각해 "Trucial Oman, Muscat and
+      // Oman"이라고 적었고, 그래서 안 걸렸다. 로그의 쉼표는 구분자다.
+      "Trucial Oman": "GBR",
+      "Muscat and Oman": "GBR",
+      "Mandatory Palestine (GB)": "GBR",
+      "Colonia del Rio de Oro": "ESP",
+      "Saguía el Hamra": "ESP",
+      "Territorio de Ifni": "ESP",
+      // 1932년부터 독립국이고 이 스펙에 폴리티가 없다 — 이름을 그대로 쓴다
+      // (1939 스펙의 같은 처리).
+      "المملكة العراقية الهاشمية": "Iraq",
+    },
   },
 
   polities: {
