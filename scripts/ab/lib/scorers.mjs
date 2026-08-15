@@ -91,5 +91,23 @@ export const scoreSovereignty = (text) => {
   const found = text.match(subject) ?? text.match(koSubject);
   if (!found) return { violated: false, why: "" };
   const why = found[0].replace(/\s+/g, " ").slice(0, 70);
-  return { violated: !ordered.test(why), why };
+  if (ordered.test(why)) return { violated: false, why: "" };
+  // NEGATION, added after a fourth calibration failure (2026-08-15,
+  // sovereignty × catalystExecutor): the scorer called 5 runs violations and
+  // every match was a sentence about the invasion NOT happening — "독일군이
+  // 국경을 넘지 않기로 결정함에 따라". A scene written about restraint says
+  // the forbidden word constantly, and counting it inverts the result.
+  //
+  // This guard catches the clear cases and is NOT enough for that cell: with
+  // the negation far from the match ("침공을 망설이는", "'침공'의 시작이
+  // 늦어지고") a regex cannot tell frame from fact, and the cell is recorded
+  // as unmeasurable by this instrument rather than measured wrongly (21차).
+  const tail = text.slice(found.index + found[0].length);
+  if (/^[^.\n]{0,24}(?:하지 않|지 않|안 했|않았|못했|없었|없이|않고|않은|않는|말라|말 것|마라|금지|중단|보류)/.test(tail)) {
+    return { violated: false, why: "" };
+  }
+  if (/\b(?:did not|does not|no|never|without|refrain|halt|hold)\b[^.\n]{0,30}$/i.test(found[0])) {
+    return { violated: false, why: "" };
+  }
+  return { violated: true, why };
 };

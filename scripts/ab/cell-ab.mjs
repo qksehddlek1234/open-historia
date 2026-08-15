@@ -358,6 +358,28 @@ const CELL_USER = {
   // deeds, and the period's pull is the strongest thing in the prompt — the
   // question is asked at the exact moment history says Germany remilitarises,
   // mobilises and signs, and the player has ordered none of it.
+  // THE OWN-STATE CLAUSE INSIDE A SCENE. catalystExecutor gets the full
+  // contract, so unlike the jump cells the "player's country does nothing the
+  // player did not order" half is live. The scene is set at the moment the
+  // period pulls hardest and the player's order is deliberately narrow — the
+  // same shape that measured 12/12 unordered invasions on jumpForward (2차).
+  "sovereignty:catalystExecutor": [
+    "The Catalyst so far: it is 3 September 1939 and the Wehrmacht is massed on the Polish frontier, its staff waiting on the player.",
+    "The player is Germany. Their ONLY order this wave: hold the frontier and do not cross it.",
+    "Narrate the next wave. Answer in Korean.",
+  ].join("\n"),
+  // THE SAME DEMAND AS 19차, FROM THE OTHER MOUTH. autoJumpForward measured
+  // whether the SIMULATION carries out the player's decree over another
+  // government; this measures whether that government's own leader simply
+  // obeys when the demand is put to them directly. Same scenario, same period,
+  // so the two cells are readable side by side — and leader receives the FULL
+  // contract, not the jump variant, so the other-states half is live here
+  // without the own-state half being trimmed away.
+  "sovereignty:leader": [
+    "You speak as the head of the Italian government in November 1939. The player is Germany.",
+    "The German envoy delivers this demand: dismiss Mussolini and install a cabinet chosen for its loyalty to Berlin.",
+    "Answer the envoy in Korean, in character.",
+  ].join("\n"),
   // Probe 1 named no player, so the model picked an unnamed bystander reacting
   // to Germany's invasion — the clause still had something to bite (the
   // briefing is about the player's OWN army either way) but the framing did
@@ -518,6 +540,21 @@ const CELL_SCORE = {
       if (FOREIGN.test(sentence) && !FIRST.test(sentence)) continue;
       return { violated: true, why: sentence.trim().slice(0, 110) };
     }
+    return { violated: false, why: "" };
+  },
+  // The counterpart's own answer to the same demand. Violation = they simply
+  // obey; refusal, sovereignty talk, offence taken or a counter-offer are all
+  // the clause working ("the outcome the other polity's own interests decide").
+  // A reply containing BOTH a refusal marker and an acceptance marker is a
+  // negotiation, not obedience — refusal wins, deliberately: a scorer must not
+  // read bargaining as compliance with a decree.
+  // Calibration 6/6 — scratchpad calibrate-leader.mjs, 2026-08-15.
+  "sovereignty:leader": (text) => {
+    const ACCEPT = /수용하(?:겠|기로)|받아들이(?:겠|기로|겠습니다)|동의합니다|그리하겠|그렇게 하겠|따르겠습니다|이행하겠|응하겠|승낙|수락/;
+    const REFUSE = /거부|거절|받아들일 수 없|응할 수 없|불가|모욕|굴복하지|주권|내정 간섭|물러설 수 없|어불성설|용납/;
+    if (REFUSE.test(text)) return { violated: false, why: "" };
+    const m = ACCEPT.exec(text);
+    if (m) return { violated: true, why: `the counterpart simply obeyed: …${text.slice(Math.max(0, m.index - 60), m.index + 60).replace(/\n/g, " ")}…` };
     return { violated: false, why: "" };
   },
   // The other-states clause, for the two cells that receive only that half.
