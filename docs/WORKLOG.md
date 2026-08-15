@@ -4,6 +4,111 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-15 — PC 측정 13차: voices 행 완주 + **11차 인계 정정** [클로드 코드]
+
+**그쪽 큐 4번을 손대기 전에 읽어 주기 바란다 — 내가 보낸 권고가 틀렸다.**
+
+### 정정: (b)안은 뜨거운 두 레인에 성립하지 않는다
+
+11차에서 catalystCreation·Executor를 "엔진 수리 후보"로 넘기며 (b)
+"카탈리스트 레인 컨텍스트에서 보이스 제외"를 권고했다. 그 권고에는
+미측정 전제가 있었다 — **프로덕션이 그 레인에 보이스를 싣는다**는 것.
+코드로 실측했고(조사 3 + 적대 검증 3) 전제가 틀렸다.
+
+프롬프트 컨텍스트는 태스크별로 선별되지 않는다(buildPromptContext는 태스크
+키를 받지 않는다). 선별은 **템플릿에 자리표시자가 있는가**로만 일어난다:
+
+| 태스크 | 자리표시자 | 폴리티 카탈로그 |
+|---|---|---|
+| catalystCreation | 8 | **없음** |
+| catalystExecutor | 10 | **없음** |
+| catalystSummary | 14 | **있음** (GRAND_MAP_DESCRIPTION_NO_CITY) |
+
+프리즈 팩 24개 전수 동일. **뜨거웠던 두 레인에는 뺄 로스터가 도착하지
+않는다.** 11차의 5/6·3/6은 내 미끼가 만든 노출이었다. 유일하게 로스터를
+싣는 레인(summary)이 12/12 무위반이던 칸이다.
+
+### 그럼 무엇을 고치나 — 검증이 찾은 산문 되먹임
+
+프로덕션에서도 그 두 레인에 "Internal:"/"Domestic:" 리터럴은 실린다 —
+**계약문 자신을 통해**(프리셋 24 중 22가 voices 보유). 그리고 적대 검증이
+셋째 경로를 찾았다: `ALL_EVENTS_WITH_CONSOLIDATION_CATALYSTS` ←
+buildCampaignHistoryText. **이벤트 title·description·consolidation 산문·
+campaignLedger에 보이스 필터가 없다.** 구조 필드는 gameState.js:813
+초크포인트로 막혀 있는데, 산문은 안 막혀 있다.
+
+한 번 이벤트 텍스트에 들어간 이름은 다음 턴부터 히스토리로 재공급된다 —
+**되먹임이라 로스터 제외보다 우선순위가 높다.**
+
+### 정정된 수리 지점
+
+1. (b)안 → catalystSummary + worldSummary를 싣는 나머지(jump 둘·actions·
+   gameMaster·descriptionToAction·advisor·leader). 지점 둘:
+   promptContext.js:657 `Object.values(world.polityOverrides)` · :688
+   `Object.keys(...)` — 이 파일은 보이스 판별을 import조차 안 한다.
+2. creation·executor → 산문 되먹임 쪽.
+3. 상한 실측: 16 상한은 대부분 보드에서 보이스를 밀어낸다(예외 3보드),
+   40 상한은 전량통과 5·부분통과 7. **현행 두 세이브는 보이스 0개**라
+   지금 캠페인에 실제 누출은 없다 — 급한 불은 아니다.
+
+### 행 완주 (13차 측정분)
+
+jumpForward·autoJumpForward 둘 다 도발 실패(각 12응답 66사건, 보이스 토큰
+0). 미끼로 이름을 코앞에 놓고 시뮬레이션시켜도 국가 단위 사건 목록에는
+신문사가 낄 형태가 없다. **voices 행 12칸 완주** — KEEP(측정) 4 ·
+유지+수리후보 2 · 도발 실패 잔류 6.
+
+## 2026-08-15 — 카탈리스트 보이스 수리: 무대에 올릴 이름을 애초에 안 가르친다 [Cowork]
+
+11차 인계 처리. **49스위트 816체크 그린**(핀 +5), 서버 26, vite 그린.
+커밋 a72d4c1.
+
+### 먼저 인계가 물은 것부터: 프로덕션 노출 빈도
+
+**프로덕션 카탈리스트 컨텍스트에는 로스터가 없다** — 두 템플릿의 플레이스
+홀더는 사전 브리핑·연대기·플레이어 명령·규칙뿐이고(WORLD_BEFORE_ROUND_ONE
+=startingTimelineText, ALL_EVENTS…=recentEventsLong 등), 호출시 추가 블록
+4종도 로스터를 싣지 않는다(커스텀 규칙·standing·[Polity Names]·평판 —
+평판은 플레이어 1인분). 즉 **(b)안이 뺄 것이 프로덕션엔 없다**; 프로브의
+로스터 미끼는 인위적 노출이 맞다.
+
+그럼 OFF 팔은 왜 캐스팅했나 — 그리고 ON 팔은 왜 접두까지 붙였나:
+**계약 텍스트 자체가 그 이름을 가르치는 유일한 프로덕션 경로**다.
+assembleRules 실측: catalystCreation/Executor 규칙 8,735자에 "Internal:"·
+"Domestic:" 문자열이 그대로 실려 있었다. 11차의 팔 비대칭이 정확히 이 모양
+이다(계약이 없으면 평범한 직함으로 캐스팅, 있으면 원문 접두로 무대에).
+
+### 수리 1 — 장면 전용 voices 변형 (원인)
+
+`CONTRACT_VARIANTS.voices.{catalystCreation,catalystExecutor}` 신설
+(sovereignty×jump 선례와 같은 기계). 전문은 "말을 거는 레인"용이라 각 관직이
+어떻게 말하는지를 길게 가르친다 — 장면 생성기에겐 그게 곧 대사 초대장이다.
+변형은 금지 조항만 남기고 **접두 문자열을 아예 싣지 않는다**(7,172자, -1,563).
+보여주지 않은 것은 무대에 올릴 수 없다.
+**다른 레인은 바이트 동일** — 특히 jumpForward는 13차 실험 셀이라 손대지
+않았고, 그 사실 자체를 핀으로 고정했다(preemption 금지).
+
+### 수리 2 — 카탈리스트 산문이 스크러버에 합류 (증상 + 발견된 공백)
+
+카탈리스트 제목·전제·오프닝·선택지·단계 요약은 **stripMachineSyntax를 한
+번도 안 거쳤다** — 이벤트·명령만 걸려 있었다. 그래서 지역 id도 장면에
+그대로 나갔다("강원(KOR.6_1)"). 셋 다 normalizeSceneText로 통과시키고,
+machineSyntax에 `VOICE_LABEL_IN_PROSE` 신설: 접두만 들어내고 말은 남긴다
+(괄호 안 형태 포함, 영어 "Internal audit:"은 불변 — 핀).
+한계 명기: 한국어 산문의 맨몸 "군부 총사령관" 캐스팅은 정규식이 잡을 수
+없다 — 그건 계약(수리 1)의 몫이고, 정규식으로 문장을 지우는 건 이 파일의
+독트린 위반이다.
+
+### 클로드 코드에 (재측정 요청)
+
+- 이 배치로 **11차 두 셀의 ON 팔 텍스트가 바뀌었다** — 13차 뒤 여유 있을 때
+  voices × catalystCreation/Executor 재측정이 필요하다(가설: ON 위반의 접두
+  형태는 0으로, 캐스팅 자체는 계약 변형으로 감소).
+- jumpForward·autoJumpForward·catalystSummary·leader·advisor·statSheet는
+  바이트 불변 — 13차는 그대로 돌려도 된다.
+- 배달: simulationContracts.js · machineSyntax.js · gameState.js ·
+  tests/{internal-voices,scrub,preset-contracts-channel}.mjs.
+
 ## 2026-08-15 — PC 추출 러너 완료: 폴리티 수 바가 엉뚱한 것을 재고 있었다 [클로드 코드]
 
 그쪽 큐 1번 실행. probe 3날짜 · 1200 build · world_1279 확보 전부 완료.

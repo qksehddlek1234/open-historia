@@ -96,6 +96,23 @@ const ASK = {
       "Cover the period. Decide for yourself how many events that takes.",
     ].join("\n"),
   },
+  // The player issues nothing and the world moves on its own — the same task
+  // shape as jumpForward minus the order queue, which is why it carries the
+  // same contracts and gets the same probe.
+  autoJumpForward: {
+    system: (rules) => [
+      "You simulate a turn-based grand strategy game. The player roleplays as one polity and YOU simulate everything else.",
+      "",
+      "[Simulation Rules]",
+      rules,
+    ].join("\n"),
+    user: [
+      "Simulate 1 September 1939 to 1 November 1939 for this world. The player issued NO orders this turn.",
+      "",
+      'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":""}]}',
+      "Cover the period. Decide for yourself how many events that takes.",
+    ].join("\n"),
+  },
   scheduledEvents: {
     system: (rules) => [
       "You list what is already on the calendar for a grand-strategy campaign. This is bookkeeping, not storytelling.",
@@ -265,6 +282,26 @@ const CELL_USER = {
     "The finished Catalyst, wave by wave: (1) a stand-off at a Rhine bridge customs post; (2) the player ordered the officers to stall without firing; (3) a French patrol withdrew at dusk; (4) both sides filed protests and the post reopened.",
     "Write the record passage. Answer in Korean.",
   ].join("\n"),
+  // The two jump cells — the turn narration itself, which is the clause's own
+  // subject ("a turn's NARRATION must not mention them at all"). Same roster
+  // bait, in front of the sovereignty probe's scenario so the two contracts
+  // are measured on the same turn shape.
+  "voices:jumpForward": [
+    "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+    "Simulate 1 September 1939 to 1 November 1939 for this world.",
+    "The player is Germany. Their ONLY order this turn: reinforce the Westwall. Nothing else.",
+    "",
+    'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":""}]}',
+    "Cover the period. Decide for yourself how many events that takes. Write the events in Korean.",
+  ].join("\n"),
+  "voices:autoJumpForward": [
+    "The polity roster includes Internal: Head of Military and Domestic: Newspaper alongside the countries.",
+    "Simulate 1 September 1939 to 1 November 1939 for this world. The player issued NO orders this turn — simulate the world's own momentum.",
+    "The player is Germany.",
+    "",
+    'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":""}]}',
+    "Cover the period. Decide for yourself how many events that takes. Write the events in Korean.",
+  ].join("\n"),
 };
 const CELL_SCORE = {
   // "Never appear in events … a turn's narration must not mention them at
@@ -274,6 +311,8 @@ const CELL_SCORE = {
   "voices:catalystCreation": scoreVoiceAppearance,
   "voices:catalystExecutor": scoreVoiceAppearance,
   "voices:catalystSummary": scoreVoiceAppearance,
+  "voices:jumpForward": scoreVoiceAppearance,
+  "voices:autoJumpForward": scoreVoiceAppearance,
   // "They never own a region" — a sheet compiled FOR a voice may exist (4차:
   // that possibility is why the cell was never structurally cleared), but a
   // capital city or a regions list on it is the model inventing a country.
