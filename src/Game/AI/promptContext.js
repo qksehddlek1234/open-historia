@@ -3,6 +3,7 @@ import { JSON_URLS, getNationTags, loadRegionCatalog, readJson } from "../../run
 import { resolveAllCountryTags, resolveCountryTags } from "../../runtime/countryTags.js";
 import { formatPersonality, resolveCountryPersonality } from "../../runtime/countryPersonality.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
+import { isTerritorylessVoice, isTerritorylessVoiceName } from "../../runtime/internalVoices.js";
 import { getContextTokens } from "../../runtime/mapSettings.js";
 import {
   buildActionDisplayText,
@@ -654,7 +655,18 @@ export const buildWorldSummary = async (bundle, regionCatalog = null, { budgetTo
       const region = regionLookup.get(regionId);
       return `- ${region?.name || regionId}${region?.country ? ` (${region.country})` : ""} -> ${ownerCode}`;
     }).join("\n");
-  const polities = Object.values(world.polityOverrides);
+  // A ROSTER OF POWERS HAS NO ADVISORS IN IT.
+  //
+  // The voices contract says so in words — "never listed among the powers" —
+  // and this file never read the flag that decides it. Measured across the
+  // built fleet: twelve voices sit in every board's polityOverrides, and on
+  // millennium-2000 ELEVEN OF THE SIXTEEN roster slots below were theirs, with
+  // thirteen of twenty-two boards leaking into the forty-name profile list.
+  // That is not a tidy-up: on those boards the catalogue of powers the model
+  // reads is mostly the player's own cabinet, which is exactly the material a
+  // scene generator casts from (PC 11차). The cap keeps its budget; what it
+  // spends the budget on is countries.
+  const polities = Object.values(world.polityOverrides).filter((entry) => !isTerritorylessVoice(entry));
   const politySummary = polities.length === 0
     ? "No dynamic polity overrides are currently recorded."
     : polities.slice(0, 16).map((entry) =>
@@ -680,6 +692,10 @@ export const buildWorldSummary = async (bundle, regionCatalog = null, { budgetTo
   // truncating one list — "- SOV: socialist," reads as corrupt data to the model.
   const baseTags = await getNationTags().catch(() => ({}));
   const tagged = resolveAllCountryTags(baseTags, world);
+  // Chat partners come from the panel, where the player talks to their own
+  // advisors as often as to a foreign court — so this list carries voices too,
+  // and a voice reaching the profile list gets printed with a personality
+  // vector, as though it had an army and a temperament.
   const chatPartners = normalizeArray(bundle.chats).flatMap((chat) =>
     normalizeArray(chat?.countries).map((country) => toCountryName(normalizeString(country?.code))).filter(Boolean));
   const profilePriority = [
@@ -687,7 +703,7 @@ export const buildWorldSummary = async (bundle, regionCatalog = null, { budgetTo
     ...chatPartners,
     ...Object.keys(world.polityOverrides ?? {}),
     ...Object.keys(world.countryPersonalities ?? {}),
-  ].filter(Boolean);
+  ].filter(Boolean).filter((name) => !isTerritorylessVoiceName(name));
   const profileCountries = [...new Set([...profilePriority, ...Object.keys(tagged)])].slice(0, 40);
   const profileSummary = profileCountries.length === 0
     ? "No countries have defining tags or profiles."
@@ -864,7 +880,10 @@ export const buildPromptContext = async (bundle, {
   // built around these rather than around world population rankings.
   const focusCountries = [...new Set([
     ...Object.values(normalizeWorldState(bundle.world).regionOwnershipOverrides || {}),
-    ...Object.values(normalizeWorldState(bundle.world).polityOverrides || {}).map((entry) => entry?.code),
+    // Voices out here too: they hold no ground, so a city list built around
+    // them would spend its budget on nobody's country.
+    ...Object.values(normalizeWorldState(bundle.world).polityOverrides || {})
+      .filter((entry) => !isTerritorylessVoice(entry)).map((entry) => entry?.code),
     ...normalizeArray(bundle.chats).flatMap((chatEntry) =>
       normalizeArray(chatEntry?.countries).map((country) => country?.code || country?.name)),
   ].map((value) => normalizeString(value)).filter(Boolean))];

@@ -30,6 +30,52 @@ export default {
   // Player starts as Rome. game.country MUST equal the owner code.
   game: { country: "ROM", startDate: "0117-01-01", gameDate: "0117-01-01" },
 
+  // ── Plan F: 시대 경계 그래프트 — rung-3 단독 하이브리드 (2026-08-15) ──
+  // 함대의 **마지막 미선언 날짜**. 창 후보를 전부 재 봤더니 지중해권은
+  // z4에서 유럽창과 같은 16타일이라 **창 선택이 공짜였다** — 그래서
+  // 유럽창을 쓰지 않고 로마 세계에 맞췄다: **[-12,18,52,58]**. 서쪽으로
+  // 이베리아 대서양안, 동쪽으로 페르시아만(트라야누스가 116년에 닿은
+  // 카락스), 북쪽으로 하드리아누스 성벽 너머 칼레도니아, 남쪽으로 시에네
+  // 아래 메로에까지. 유럽창이었다면 이집트 상류도 메소포타미아도 창 밖이다.
+  //
+  // rung 3 원천은 world_200(08-13 매핑 실측: 다키아가 로마령으로 그려져
+  // 106년 정복 이후가 확실 — world_100은 트라야누스 이전이라 탈락).
+  // rung-1(OHM 0117 조립)은 아직 없다. probe 15폴리티로 함대에서 가장 얇고,
+  // 클로드 코드의 부록대로 **폴리티 수는 수율의 예측자가 아니므로** 실제
+  // 수율은 추출해 봐야 안다 — 도착하면 1200처럼 파일만 갈아끼운다.
+  // 전 판정 2026-08-15 포인트 테스트 실측.
+  eraGeometry: {
+    date: "0117-01-01",
+    window: [-12, 18, 52, 58],
+    file: "scripts/ohm/out/rung3-base-0117-01-01-z4-hybrid.geojson",
+    excludeFaces: [
+      "Dumonii", // 두므노니(브리튼 남서) — 117년엔 이미 로마 속주다(엑서터 IN·런던 out). 로스터 밖이고 ROM 기반선이 맞다
+      "Boihaenum", // 보이오하이뭄(마르코만니의 보헤미아) — 제국 밖, 로스터 밖
+      "Heruli", // 유틀란트 미세면, 로스터 밖
+      "Bosporian Kingdom", // 판티카파이온·세바스토폴 IN — 로마 의뢰왕국이지 속주가 아니다(로스터 밖)
+      "Blemmyes", // 누비아 사막 유목민 — 두 기준점 모두 out인 미세면
+      "Hadramaut", // 두 기준점 모두 out(무칼라 동쪽) — 로스터 밖
+      "Saka Kingdom", // 카라치 IN — 인도-스키타이/서사트라프. 보드는 PAK을 쿠샨에 근사하고, 그 근사를 이 면이 더 낫게 만들지 못한다
+      "Suren Kingdom", // 자란지·칸다하르 IN — 사카스탄(파르티아 봉신). 보드의 AFG→KUSH와 어긋나지만 나라 하나를 반으로 가르느니 기반선 유지
+      "Guanches", "Sámi", "Paleo-Siberian hunter-gatherers", "Finno-Ugric taiga hunter-gatherers", // 미배정 설계
+      "Khoiasan", "West African cereal farmers", // 동일 — 무국가 사회
+    ],
+    faceOwners: {
+      "Roman Empire": "ROM", // 로마·런던·안티오키아·사르미제게투사(다키아!)·페트라·아스완 IN. 알렉산드리아·비잔티온·카르타고·탕헤르가 out인 것은 라벨 거짓말이 아니라 **대륙 스케일 해안선이 도시보다 내륙에 있기 때문**이다 — 그래프트는 점이 아니라 지역 겹침으로 판정하므로 속주는 그대로 덮인다
+      "Parthian Empire": "PART", // 크테시폰·엑바타나·수사 IN / 메르브·안티오키아 out
+      "Armenia": "ROM", // **117년의 아르메니아는 트라야누스가 114년에 만든 속주다**(스펙 ROM 목록에 ARM이 있는 이유). 아르타샤트·예레반 IN — 다만 트빌리시까지 물어 카르틀리(IBER)는 울타리로
+      "Meroe": "MERO", // 메로에·하르툼 IN / 아스완 out(로마 국경) — 정합
+      "Axum": "AKSM",
+      "Himyarite Kingdom": "HIMY", // 사나 IN — 다만 메카까지 물어 헤자즈는 울타리로
+    },
+    faceKeepOut: {
+      "Armenia": ["GEO"], // 트빌리시 IN — 카르틀리는 이 보드가 IBER로 따로 그린다(로마 의뢰왕국)
+      "Himyarite Kingdom": ["SAU", "OMN"], // 메카 IN — 117년 헤자즈는 나바테아(106년부터 로마령 아라비아)와 부족들의 땅이고, 사막 내지는 미배정 설계다
+      "Parthian Empire": ["IRQ", "SYR", "TUR"], // **117년은 트라야누스의 메소포타미아 원정 직후**다(115~117, 크테시폰 함락 116) — 스펙이 IRQ를 ROM에 준 그 판단이 이 보드의 전제이고, 조야한 파르티아면이 그걸 되돌리게 두지 않는다. 하드리아누스가 물러나는 것은 이 보드의 첫 해에 플레이어가 내릴 결정이지 지도의 기정사실이 아니다
+      "Roman Empire": ["SAU"], // 로마면 남동단이 아라비아 사막으로 번진다 — 나바테아(요르단)까지가 로마고 그 너머는 미배정
+    },
+  },
+
   // No air power in antiquity; "armor" is heavy cavalry (cataphracts), "artillery"
   // is siege engines (ballistae, onagers).
   allowedUnitTypes: ["infantry", "armor", "artillery", "naval", "garrison"],

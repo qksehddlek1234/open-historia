@@ -100,26 +100,42 @@ test("a board whose date OHM cannot express is COUNTED, not dropped", () => {
 });
 
 test("A DATE IT WILL NOT RUN IS NAMED, with the reason", () => {
-  // Arrange the one skip path that needs a fixture, and arrange it the way it
-  // will actually occur: mongol-1300 is a real board, --probe will give it a
-  // polity dump, and nobody has chosen its window yet. (This role belonged
-  // to ww1-1914 until the 2026-08-12 date batch declared 1914's window, then
-  // to magna-1444, then to medieval-1200 as each declared its own — the
-  // fixture date must always be one still undeclared, and it migrates forward
-  // each time a board graduates.) Taken away again whatever happens — a date
-  // no board wants would not be planned for at all.
-  const date = "1300-01-01";
+  // THE PIN OUTLIVED ITS TENANTS. This skip path needs a board with an ISO
+  // date, a polity dump, and no declared window — and it was always held by
+  // whichever real board had not yet chosen one: ww1-1914, then magna-1444,
+  // then medieval-1200, then mongol-1300, then roman-117. On 2026-08-15 the
+  // last of them declared, so no real spec can reach this branch any more.
+  //
+  // The branch still exists, and the next board added to the fleet will land
+  // in it on its first day. So the fixture becomes a whole BOARD rather than a
+  // date: a spec file written into the fleet for the length of this test and
+  // removed again, exactly as its polity dump already was. Both are taken away
+  // in the finally, and a leftover would be visible immediately — every other
+  // suite reads this directory too.
+  const date = "1517-10-31";
+  const specPath = path.join(ROOT, "scripts", "presets", "zz-planner-fixture.spec.mjs");
   const fixture = path.join(OUT, `era-polities-${date}.json`);
   fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(specPath, `export default { id: "zz-planner-fixture", game: { startDate: "${date}" }, polities: {} };\n`);
   fs.writeFileSync(fixture, JSON.stringify({ polities: Array.from({ length: 300 }, (_, i) => ({ id: i })) }));
   try {
     const { out } = run(["--build", "--min-polities", "1", "--only", date]);
-    assert.match(out, /skipped — noWindow: 1300-01-01/, "the date has to be named, not just counted");
+    assert.match(out, new RegExp(`skipped — noWindow: ${date}`), "the date has to be named, not just counted");
     assert.match(out, /a window is a judgment/, "and told what would unblock it");
     assert.doesNotMatch(out, /will run at z4[\s\S]*extract/, "and nothing may be extracted for it");
   } finally {
     fs.rmSync(fixture, { force: true });
+    fs.rmSync(specPath, { force: true });
   }
+});
+
+test("…AND EVERY REAL BOARD THAT CAN DECLARE A WINDOW HAS", () => {
+  // The other half of the sentence above, and the reason the fixture had to
+  // become synthetic: as of 2026-08-15 every ISO-dated board on the fleet
+  // carries eraGeometry.window. This fails the day one is added without one,
+  // which is exactly when someone should be reading the planner's output.
+  const { out } = run([]);
+  assert.doesNotMatch(out, /noWindow/, "no real board is waiting on a window judgement");
 });
 
 test("A DATE ALREADY CUT IS NOT RE-CUT", () => {

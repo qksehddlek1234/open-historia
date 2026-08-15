@@ -316,5 +316,26 @@ test("THE FEEDBACK LOOP IS CLOSED: a voice named in prose is not re-supplied as 
   assert.equal(world.campaignLedger[0].fact, "Head of Intelligence의 보고");
 });
 
+test("THE ROSTER OF POWERS CARRIES NO ADVISORS — measured on the board that leaked worst", async () => {
+  // millennium-2000 ships seventeen polities, twelve of them voices: eleven of
+  // the sixteen roster slots and twelve of the forty profile slots were the
+  // player's own cabinet. Thirteen of twenty-two built boards leaked into the
+  // forty-cap. The contract said "never listed among the powers" and this file
+  // did not read the flag.
+  const { buildWorldSummary } = await import("../src/Game/AI/promptContext.js");
+  for (const id of ["millennium-2000", "wwii-1939"]) {
+    const worldPath = new URL(`../server/data/scenarios/${id}/world.json`, import.meta.url);
+    if (!fs.existsSync(worldPath)) continue;
+    const world = JSON.parse(fs.readFileSync(worldPath, "utf8"));
+    const summary = await buildWorldSummary(
+      { world, game: { country: "", gameDate: "" }, chats: [], events: [], actions: [] },
+      [],
+      { budgetTokens: 4000 },
+    );
+    assert.doesNotMatch(summary, /Internal:|Domestic:/, `${id}: a voice reached the powers roster`);
+    assert.match(summary, /\S/, `${id}: the summary is still built`);
+  }
+});
+
 
 console.log(`\n${pass} passed\n`);

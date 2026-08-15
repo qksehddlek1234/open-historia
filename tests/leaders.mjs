@@ -267,8 +267,12 @@ await (async () => {
   for (const file of specs) {
     const spec = (await import(new URL(file, dir))).default;
     const date = spec.game?.startDate ?? "";
-    // 기록은 1444년부터가 설계 범위다 — 그 이전 프리셋은 정직한 공백.
-    if (!/^\d{4}-/.test(date) || Number(date.slice(0, 4)) < 1444) continue;
+    // 기록의 설계 범위는 **가장 이른 시대팩의 시작**이다 — 2026-08-15에
+    // highMedieval(1000~1443)이 서면서 1444에서 1000으로 내려왔고, 그로써
+    // medieval-1200·mongol-1300도 이 핀의 사정권에 들어온다(그 두 보드는
+    // 각각 2/56·3/64로 거의 전 왕좌가 모델의 창작 영역이었다). 그보다 이른
+    // roman-117과 ISO가 아닌 bronze-1200bc는 여전히 정직한 공백이다.
+    if (!/^\d{4}-/.test(date) || Number(date.slice(0, 4)) < 1000) continue;
     await ensureReferenceEra(date);
     for (const polity of Object.values(spec.polities ?? {})) {
       // A thing with no voice has no officeholder, and inventing one for it

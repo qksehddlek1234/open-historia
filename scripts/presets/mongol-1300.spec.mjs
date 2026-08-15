@@ -32,6 +32,86 @@ export default {
   // Player starts as the Yuan Great Khanate. game.country MUST equal the owner code.
   game: { country: "YUAN", startDate: "1300-01-01", gameDate: "1300-01-01" },
 
+  // ── Plan F: 시대 경계 그래프트 — rung-3 단독 하이브리드 (2026-08-15) ──
+  // **창 선언이 이 보드의 진짜 결정이다.** 함대 표준창은 유럽
+  // [-15,30,50,72](z4 16타일)인데, 몽골 보드의 주제는 그 창의 동쪽 밖에
+  // 전부 있다 — 칸발리크·카라코룸·사라이·타브리즈·사마르칸트 어느 것도
+  // 유럽창에 들어오지 않는다. 그래서 유라시아창 [-15,10,130,72]을 선언한다:
+  // 대서양에서 태평양까지, 사하라·아라비아·인도에서 북극까지. **z4 35타일**
+  // (유럽창의 2.2배, 추출기 상한 1024의 3.4%, 전세계창 256의 14%) —
+  // 가격이 매겨진 판단이지 추측이 아니다.
+  //
+  // 원천 선택도 실측으로 갈랐다(클로드 코드 부록: 폴리티 수가 아니라 면
+  // 수율로 판단할 것). 같은 창에서 world_1300 → 74면, world_1279 → 75면
+  // 으로 사실상 동률이라, 결정은 날짜 충실도로 넘어갔다: **1300을 쓴다**
+  // (오스만 베이릭이 1299년에 서고, 원이 최대판도이며, 1279는 21년 이르다).
+  // 1279가 유일하게 우세했던 마그레브 분리(Merinides/Abdelouadides)는
+  // 이 보드가 이미 국가 단위로 나눠 갖고 있어(MAR→MARI·DZA→ZAYY·TUN→HAFS)
+  // 손해가 없다 — 실측: world_1300의 "Morocco"면은 페즈·마라케시만 물고
+  // 틀렘센·오랑·알제는 놓는다. 진짜 모로코다.
+  //
+  // rung-1(OHM 1300 조립)은 아직 없다. probe 83폴리티(1939 기준선의 41%)로
+  // 러너 대기 중이며, 도착하면 1200과 똑같이 파일만 갈아끼운다.
+  // 전 판정 2026-08-15 포인트 테스트(도시 ∈ 면) 실측 — 추정 없음.
+  eraGeometry: {
+    date: "1300-01-01",
+    window: [-15, 10, 130, 72],
+    file: "scripts/ohm/out/rung3-base-1300-01-01-z4-hybrid.geojson",
+    excludeFaces: [
+      "Trebizond", // 실측: 트라브존·시노프 둘 다 out — 자리를 잃은 미세면(보드에 트레비존드 폴리티도 없다)
+      "Siberians", "Samis", "Bantou", "West African cereal farmers", "Islamic city-states", // 무국가·로스터 밖 — 미배정 설계
+      "minor Hindu kingdoms", "minor Hindu and Buddhist kingdoms", "Luva", "Aceh", "Hainan", // 집합 라벨·로스터 밖
+      "Guanches", "Muscat", "Hadramaut", "Alwa", "Shoa", "Benin", "Bornu-Kanem", "Kashmir and Ladakh", "Orissa", // 로스터 밖
+      "Sinhalese kingdom", // LKA는 이 보드 로스터에 없다
+      "Pagan", // 1차 빌드 실측: 이 면이 버마 9지역 + 인도 북동부(마니푸르·미조람·나갈랜드 등)까지 문다. 1287년 원의 침입으로 파간은 무너졌고 1300 버마는 먀인사잉 삼형제의 분열기다 — 수코타이에 통째로 주느니 **미배정**(보드 철학: 지배받지 않은 땅)
+      "Srivijaya Empire", // 1300엔 이미 껍데기 — 보드는 IDN을 MAJA(마자파힛, 1293 건국)에 준다
+      "Corsica", "Sardinia", // 제노바·아라곤 분쟁지, 로스터 밖 — 기반선 유지
+    ],
+    faceOwners: {
+      // ── 네 울루스와 그 이웃 (전부 포인트 테스트) ──
+      "Great Khanate": "YUAN", // 베이징·항저우·카라코룸 IN / 라싸·카슈가르 out — 원 본체
+      "Khanate of the Golden Horde": "GHOR", // 사라이·아스트라한·부쿠레슈티 IN / 키예프·모스크바 out — 스텝 본체
+      "Chagatai Khanate": "CHAG", // 사마르칸트·부하라·카슈가르·카불·알마티 IN
+      "Ilkhanate": "ILKH", // 타브리즈·바그다드·이스파한·헤라트 IN / 코니아 out
+      "Seljuk Caliphate": "ILKH", // 코니아·앙카라·시바스 IN — 1300 룸 술탄국은 일한국 봉신(스펙 주석 그대로)
+      "Tibet": "YUAN", // 라싸·시가체 IN — 1300 티베트는 사캬-원 체제 아래(보드에 티베트 폴리티 없음)
+      // ── 루스 삼면 → 단일 RUSP (보드 설계) ──
+      "Novgorod": "RUSP", "Ryazan": "RUSP", "Grand Duchy of Moscow": "RUSP",
+      // ── 별칭이 안 닿는 것들 ──
+      "English territory": "ENG_K", // 런던·더블린·카디프 IN + **보르도 IN**(에드워드 1세의 가스코뉴) / 에든버러·루앙 out
+      "Britany": "FRA_K", // 브르타뉴 공국 — 로스터 밖, 프랑스 왕관 근사
+      "Raška": "SERB", // 라스·포드고리차 IN / 스코페·베오그라드 out — 밀루틴의 세르비아(사라예보 IN은 울타리로)
+      "Bulgar Khanate": "BULG", // **또 다뉴브다**: 터르노보·소피아 IN / 카잔·볼가르 out — 1444에서 배운 그대로 이름이 아니라 기하
+      "Morocco": "MARI", // 페즈·마라케시 IN / 틀렘센·오랑·알제 out — 진짜 마린조
+      "Mamluke Sultanate": "MAML", // 카이로·다마스쿠스·예루살렘·**메카** IN — 맘루크의 헤자즈 종주권까지 정합
+      "Hafsid Caliphate": "HAFS",
+      "Sultanate of Delhi": "DELH", // 델리·라호르·카라치 IN / 데바기리 out(야다바는 별도 폴리티)
+      "Pandya state": "PAND", "Chola state": "PAND", // 촐라는 1279년에 끝났다 — 그 땅은 판디아의 것
+      "Champa": "DAIV", // 참파는 로스터 밖 — 보드의 VNM→DAIV 기반선과 같은 색
+      "Sicily": "SICI", // **2폴리곤 실측**: 섬(팔레르모 IN)과 본토 덩어리(살레르노·코센차·포텐차 IN)를 함께 쥔 **베스프리 이전의 옛 레뇨**다. 1282년 이후 섬은 아라곤(SICI)·본토는 앙주(NAPL)로 갈렸으니 섬만 주고 본토는 울타리로
+      "Ethiopia": "ETHIO", "Makkura": "MAKU", "Teutonic Knights": "TEUT", "Navarre": "NAV",
+      "Cyprus": "CYPR", "Aragón": "ARAG",
+      "Shogun Japan (Kamakura)": "JAP_K",
+    },
+    faceKeepOut: {
+      // 조야한 대륙 스케일 면이 보드의 분리 왕관을 밀지 못하게 — 전부 실측.
+      "Great Khanate": ["KOR", "PRK", "VNM", "MMR"], // 서울 IN — 고려는 원의 부마국이지만 보드가 GORY로 따로 그린다; 동남아 조공국도 마찬가지
+      "Chagatai Khanate": ["IRN", "PAK"], // 서쪽으로 호라산·인더스까지 번지는 조야면 — 그쪽은 ILKH·DELH의 것
+      "Khanate of the Golden Horde": ["POL", "LTU", "BLR", "HUN"], // 서쪽 22°E까지 — 1241년 습격은 정복이 아니다
+      "Raška": ["BIH", "HRV"], // 사라예보 IN — 보드는 BIH를 헝가리 왕관에 준다
+      "Sultanate of Delhi": ["IND.16", "IND.20", "IND.32"], // 데칸 술탄 원정(1296~)은 약탈이지 지배가 아니다 — 야다바·카카티야·호이살라는 별도 폴리티
+      "Mamluke Sultanate": ["TUR"], // 아나톨리아 남단으로 번지는 조각 — 킬리키아 아르메니아(ARM_C)와 룸의 것
+      // ── 1차 빌드(재배정 519 전량 검독)가 잡아낸 것들 ──
+      "Hafsid Caliphate": ["DZA"], // **1444와 같은 병**: 하프스면이 알제리 34지역을 통째로 먹었다(자이얀 왕국이 이 보드엔 폴리티로 있는데도) — DZA는 ZAYY의 것
+      "Byzantine Empire": ["MKD", "XKO"], // 비잔티움면이 마케도니아+코소보 84지역을 삼켰다 — 1282년 밀루틴이 스코페를 가져갔고 스펙 주석도 그렇게 적혀 있다
+      "Sicily": ["ITA.1", "ITA.2", "ITA.3", "ITA.4", "ITA.5", "ITA.12"], // 옛 레뇨 본토(아브루초·풀리아·바실리카타·칼라브리아·캄파니아·몰리세) — 베스프리 이후 앙주 나폴리의 것
+      "Ilkhanate": ["GEO", "ARM", "AFG", "TUR.58", "TUR.1", "TUR.64"], // 트빌리시 IN(조지아는 일한 봉신이나 보드가 GEOR로 그린다) · 아프가니스탄 전역을 차가타이에서 빼앗고 · **킬리키아(메르신·아다나·오스마니예)까지** 물었다(ARM_C도 별도 폴리티). 호라산/TKM은 일한령이 맞아 통과. **키 하나로 병합** — 두 번 선언했다가 뒤 키가 앞 키를 덮어 조지아 3지역이 새는 것을 no-dupe-keys 검사가 잡았다
+      "Đại Việt": ["LAO"], // 라오스 6지역 — 란상은 1353년이고 1300 라오는 크메르권이다
+      "Holy Roman Empire": ["ITA.6"], // 에밀리아-로마냐 9지역 — 1278년 루돌프가 로마냐를 교황에게 양도했다(1200 보드와 같은 지점, 반대 방향)
+      "Ryazan": ["MDA", "UKR", "ROU"], // 랴잔면 bbox가 21°E까지 뻗는 메가면이다 — 몰도바 10지역을 호드에서 빼앗고 갈리치아-볼히니아(보드 GALI) 4지역까지 루스로 칠했다
+    },
+  },
+
   // No air power in 1300; "armor" is heavy cavalry, "artillery" is siege engines
   // (trebuchets, and the first Chinese gunpowder siege weapons).
   allowedUnitTypes: ["infantry", "armor", "artillery", "naval", "garrison"],

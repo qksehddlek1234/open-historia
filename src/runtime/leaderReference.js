@@ -3737,6 +3737,7 @@ const inWindow = (entry, time) => {
 // Each pack may carry ALIASES ("Joseon" ← a scenario's own spelling) mapping
 // scenario polity names onto its keys.
 const ERA_PACK_LOADERS = [
+  { key: "high-medieval", from: "1000-01-01", until: "1443-12-31", load: () => import("./leaderEras/highMedieval.js") },
   { key: "early-modern", from: "1444-01-01", until: "1749-12-31", load: () => import("./leaderEras/earlyModern.js") },
   { key: "revolutions", from: "1750-01-01", until: "1899-12-31", load: () => import("./leaderEras/revolutions.js") },
   { key: "world-wars", from: "1900-01-01", until: "2005-12-31", load: () => import("./leaderEras/worldWars.js") },
