@@ -328,6 +328,18 @@ const CELL_USER = {
     'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","name":"","newName":""}]}}]}',
     "Include impacts on every event that moves territory. Cover the period.",
   ].join("\n"),
+  // Same two hooks, same shape — the only difference is the one that defines
+  // this consumer: nobody ordered anything, so the world moves on its own.
+  // Keeping everything else identical is what makes the two cells comparable.
+  "region:autoJumpForward": [
+    "Simulate 1 September 1939 to 1 November 1939 for this world. The player is Germany and issued NO orders this turn.",
+    "Two things happen in the period:",
+    "- German forces overrun western and central Poland and hold the ground.",
+    "- On the Habbaniya perimeter British and Iraqi troops clash; the British win the skirmish and stay.",
+    "",
+    'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","name":"","newName":""}]}}]}',
+    "Include impacts on every event that moves territory. Cover the period.",
+  ].join("\n"),
 };
 const CELL_SCORE = {
   // "Never appear in events … a turn's narration must not mention them at
@@ -341,8 +353,45 @@ const CELL_SCORE = {
   "voices:autoJumpForward": scoreVoiceAppearance,
   // Per-clause and mechanical, off the impacts the probe asks for. Reports
   // WHICH clause broke, because "region" is four rules in a coat and a single
-  // boolean would hide which one the consumer cannot keep.
-  "region:jumpForward": (text) => {
+  // boolean would hide which one the consumer cannot keep. One copy, shared by
+  // every cell whose probe asks for the impacts shape.
+  "region:jumpForward": scoreRegionImpacts,
+  "region:autoJumpForward": scoreRegionImpacts,
+  // "They never own a region" — a sheet compiled FOR a voice may exist (4차:
+  // that possibility is why the cell was never structurally cleared), but a
+  // capital city or a regions list on it is the model inventing a country.
+  // NA-markers are the honest fill for fields a press office does not have.
+  "voices:countryStatSheet": (text) => {
+    // Prefix-matched, not anchored: the first run answered "N/A (Internal
+    // System)" — an honest NA with an annotation — and an anchored pattern
+    // counted it as an invented capital. A scorer must not manufacture
+    // violations (recount recorded in the 12차 journal entry).
+    const na = /^(없음|해당|N\/?A|-|—|null|none|미보유|없다)/i;
+    const capital = /"capital"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim() ?? "";
+    const regions = /"regions"\s*:\s*\[([^\]]*)\]/.exec(text)?.[1]?.trim() ?? "";
+    if (capital && !na.test(capital)) return { violated: true, why: `a capital for a voice: "${capital}"` };
+    if (regions) return { violated: true, why: `regions for a voice: [${regions.slice(0, 60)}]` };
+    return { violated: false, why: "" };
+  },
+  // "They belong to THE PLAYER'S OWN GOVERNMENT" — talking to one is not
+  // diplomacy. A chat aimed AT a voice treats the player's own office as a
+  // foreign counterpart; the correct conversion of the probe's order is a
+  // domestic ACTION (echoing the voice names inside the action text is fine).
+  "voices:descriptionToAction": (text) => {
+    const type = /"type"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim().toLowerCase() ?? "";
+    const to = /"to"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim() ?? "";
+    const voiceTarget = /(Internal|Domestic)\s*:|Head of Military|Newspaper|국방부|신문/i.test(to);
+    if (type === "chat" && voiceTarget) return { violated: true, why: `diplomatic chat aimed at a voice: to="${to}"` };
+    return { violated: false, why: "" };
+  },
+  // Calendar-shaped sovereignty: the prose scorer needs SELF + finite verb and
+  // calendar rows carry the act as a noun in separate JSON fields — it walked
+  // past Weserübung and Barbarossa in the first run of this cell. Calibration
+  // history lives with the scorer (lib/scorers.mjs).
+  "sovereignty:scheduledEvents": scoreSovereigntyCalendar,
+};
+
+function scoreRegionImpacts(text) {
     const rows = [...text.matchAll(/\{[^{}]*"toCode"[^{}]*\}/g)].map((m) => m[0]);
     const owner = (row, key) => new RegExp(`"${key}"\\s*:\\s*"([^"]*)"`).exec(row)?.[1] ?? "";
     // CLAUSE 1 — the board's single-region polities, by name and by region id.
@@ -380,41 +429,8 @@ const CELL_SCORE = {
         return { violated: true, why: `occupied ground painted the occupier's colour: → ${to}` };
       }
     }
-    return { violated: false, why: "" };
-  },
-  // "They never own a region" — a sheet compiled FOR a voice may exist (4차:
-  // that possibility is why the cell was never structurally cleared), but a
-  // capital city or a regions list on it is the model inventing a country.
-  // NA-markers are the honest fill for fields a press office does not have.
-  "voices:countryStatSheet": (text) => {
-    // Prefix-matched, not anchored: the first run answered "N/A (Internal
-    // System)" — an honest NA with an annotation — and an anchored pattern
-    // counted it as an invented capital. A scorer must not manufacture
-    // violations (recount recorded in the 12차 journal entry).
-    const na = /^(없음|해당|N\/?A|-|—|null|none|미보유|없다)/i;
-    const capital = /"capital"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim() ?? "";
-    const regions = /"regions"\s*:\s*\[([^\]]*)\]/.exec(text)?.[1]?.trim() ?? "";
-    if (capital && !na.test(capital)) return { violated: true, why: `a capital for a voice: "${capital}"` };
-    if (regions) return { violated: true, why: `regions for a voice: [${regions.slice(0, 60)}]` };
-    return { violated: false, why: "" };
-  },
-  // "They belong to THE PLAYER'S OWN GOVERNMENT" — talking to one is not
-  // diplomacy. A chat aimed AT a voice treats the player's own office as a
-  // foreign counterpart; the correct conversion of the probe's order is a
-  // domestic ACTION (echoing the voice names inside the action text is fine).
-  "voices:descriptionToAction": (text) => {
-    const type = /"type"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim().toLowerCase() ?? "";
-    const to = /"to"\s*:\s*"([^"]*)"/.exec(text)?.[1]?.trim() ?? "";
-    const voiceTarget = /(Internal|Domestic)\s*:|Head of Military|Newspaper|국방부|신문/i.test(to);
-    if (type === "chat" && voiceTarget) return { violated: true, why: `diplomatic chat aimed at a voice: to="${to}"` };
-    return { violated: false, why: "" };
-  },
-  // Calendar-shaped sovereignty: the prose scorer needs SELF + finite verb and
-  // calendar rows carry the act as a noun in separate JSON fields — it walked
-  // past Weserübung and Barbarossa in the first run of this cell. Calibration
-  // history lives with the scorer (lib/scorers.mjs).
-  "sovereignty:scheduledEvents": scoreSovereigntyCalendar,
-};
+  return { violated: false, why: "" };
+}
 const userText = CELL_USER[`${contractKey}:${consumer}`] ?? question.user;
 
 // Streamed like the rest of the family (trim-ab, gm-voices-ab, divergence-ab):
