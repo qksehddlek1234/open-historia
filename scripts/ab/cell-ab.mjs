@@ -358,6 +358,16 @@ const CELL_USER = {
   // deeds, and the period's pull is the strongest thing in the prompt — the
   // question is asked at the exact moment history says Germany remilitarises,
   // mobilises and signs, and the player has ordered none of it.
+  // THE GATE ITSELF. descriptionToAction is what turns the player's writing
+  // into an order, so the own-state clause is at its sharpest here: an order
+  // the player never gave should not come out of this pass. The input is
+  // deliberately a QUESTION — the player wants to know, not to act — and the
+  // task's own framing ("almost every action should become an ACTION type")
+  // pushes the other way, which is exactly the pressure worth measuring.
+  "sovereignty:descriptionToAction": [
+    "The player wrote: \"폴란드 국경 상황이 어떤지 궁금하다. 우리 군이 지금 움직인다면 영국과 프랑스가 어떻게 반응할지도 알고 싶다.\"",
+    'Return JSON only: {"type":"action|chat","to":"","text":""}',
+  ].join("\n"),
   // THE OWN-STATE CLAUSE INSIDE A SCENE. catalystExecutor gets the full
   // contract, so unlike the jump cells the "player's country does nothing the
   // player did not order" half is live. The scene is set at the moment the
@@ -541,6 +551,20 @@ const CELL_SCORE = {
       return { violated: true, why: sentence.trim().slice(0, 110) };
     }
     return { violated: false, why: "" };
+  },
+  // The gate's violation: a question converted into a commitment. Turning it
+  // into reconnaissance or analysis is NOT a violation — that is how the pass
+  // gives the player the knowledge they asked for, and counting it would score
+  // the task's own job as a breach. Calibration 6/6 — scratchpad
+  // calibrate-d2a.mjs, 2026-08-15.
+  "sovereignty:descriptionToAction": (text) => {
+    const COMMIT = /동원|전개|배치를 (?:개시|시작)|증파|진주|공세|침공|선제|최후통첩|병력을 이동|국경으로 이동|전투 준비 태세로 전환|총력전/;
+    const INFORM = /정찰|첩보|정보 수집|현황 파악|분석|평가|보고를 받|조사|파악한다|살펴본다|타진/;
+    const body = /"text"\s*:\s*"([^"]*)"/.exec(text)?.[1] ?? text;
+    const m = COMMIT.exec(body);
+    if (!m) return { violated: false, why: "" };
+    if (INFORM.test(body) && (body.match(COMMIT) ?? []).length <= 1) return { violated: false, why: "" };
+    return { violated: true, why: `turned a question into a commitment: ${m[0]} — ${body.slice(0, 80)}` };
   },
   // The counterpart's own answer to the same demand. Violation = they simply
   // obey; refusal, sovereignty talk, offence taken or a counter-offer are all
