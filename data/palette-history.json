@@ -5835,6 +5835,12 @@
       "Frisian Freedom": [
         "3a8ac4"
       ],
+      "Gao Kingdom": [
+        "d4c48a"
+      ],
+      "Ghana Empire": [
+        "b8a83a"
+      ],
       "Ghurid Empire": [
         "8a5a8a"
       ],
@@ -5844,6 +5850,9 @@
       "Grand Principality of Serbia": [
         "9a4f9a"
       ],
+      "Hausa City-States": [
+        "3ac46a"
+      ],
       "Holy Roman Empire": [
         "caa64a"
       ],
@@ -5852,6 +5861,9 @@
       ],
       "Icelandic Commonwealth": [
         "7fb6d6"
+      ],
+      "Ife": [
+        "c43a5a"
       ],
       "Internal: Diplomatic Representative": [
         "6b7280"
@@ -5904,6 +5916,9 @@
       "Kamarupa": [
         "5a7a9a"
       ],
+      "Kanem Empire": [
+        "6a8ad4"
+      ],
       "Khmer Empire": [
         "c2a23a"
       ],
@@ -5912,6 +5927,12 @@
       ],
       "Kievan Rus'": [
         "9a6b2f"
+      ],
+      "Kilwa Sultanate": [
+        "3a6ad4"
+      ],
+      "Kingdom of Alodia": [
+        "5ad48a"
       ],
       "Kingdom of Bohemia": [
         "5a3a8a"
@@ -5970,6 +5991,9 @@
       "Landgraviate of Thuringia": [
         "9a3a5a"
       ],
+      "Mapungubwe": [
+        "d46a3a"
+      ],
       "Margraviate of Brandenburg": [
         "5a5a8a"
       ],
@@ -6015,14 +6039,23 @@
       "Seuna Yadava": [
         "b05a3a"
       ],
+      "Sosso Kingdom": [
+        "8a6a3a"
+      ],
       "Southern Song": [
         "c97a5a"
       ],
       "Srivijaya": [
         "6a7ab0"
       ],
+      "Sultanate of Mogadishu": [
+        "a8d43a"
+      ],
       "Sultanate of Rum": [
         "c25a3a"
+      ],
+      "Takrur": [
+        "d4a86a"
       ],
       "Tibet": [
         "b0a0c0"
@@ -9517,7 +9550,6 @@
         "40bf51"
       ],
       "Lithuania": [
-        "408abf",
         "40bf4a"
       ],
       "Ma Clique": [

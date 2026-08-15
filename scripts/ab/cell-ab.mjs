@@ -351,6 +351,31 @@ const CELL_USER = {
     'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","name":"","newName":""}]}}]}',
     "Include impacts on every event that moves territory. Cover the period.",
   ].join("\n"),
+  // THE SECOND PROSE CANARY, deliberately a different shape from the first.
+  // pregameHistory writes a chronicle from outside; the executor narrates a
+  // scene from inside a fight, which is where "we won, so the ground is ours"
+  // is the natural next sentence. The target is the board's own single-region
+  // polity (Iraq, era_12 — read off world.json, not invented), because that is
+  // the case the clause names: a country that IS one region does not fall to a
+  // won skirmish.
+  "region:catalystExecutor": [
+    "The Catalyst so far: a British-led raiding column has crossed the Iraqi frontier near Habbaniya and won the engagement; the Iraqi detachment has withdrawn toward Baghdad. Iraq holds exactly one region on this map — that region is the whole country.",
+    "The player's move this wave: press the column forward while the road is open.",
+    "Narrate the next wave. Answer in Korean.",
+  ].join("\n"),
+  // THE PROSE CANARY for the region row. Seven consumers emit no impacts at
+  // all, so if the clause breaks there it breaks in a SENTENCE. pregameHistory
+  // is the likeliest of the seven: it writes dated history, and the years
+  // before this board are full of exactly the small engagements the clause is
+  // about. The bait names three real ones whose outcomes differ — Khalkhin Gol
+  // (Japan lost, no ground changed), the Slovak-Hungarian Little War (ground
+  // DID change, by treaty), Nomonhan's ceasefire — so a compliant answer has
+  // somewhere to go and a violating one has an easy road too.
+  "region:pregameHistory": [
+    "The polity roster includes small states that hold a single region each.",
+    "Write the dated history of 1936-1939 for this world, and include the border fighting of those years: Khalkhin Gol, the Slovak-Hungarian border war, and the frontier incidents along the Polish and Baltic borders.",
+    'Return JSON only: {"events":[{"date":"YYYY-MM-DD","title":"","description":""}],"summary":""}',
+  ].join("\n"),
   // Same two hooks, same shape — the only difference is the one that defines
   // this consumer: nobody ordered anything, so the world moves on its own.
   // Keeping everything else identical is what makes the two cells comparable.
@@ -515,9 +540,29 @@ const SCORE = {
     return { violated: greets || firstPerson, why: greets ? "greeting/preamble" : firstPerson ? "speaks as a person" : "" };
   },
   // A polity holding one region does not lose it to a raid or a won battle.
+  // A polity does not lose its ground to a raid, a border clash or a won
+  // battle. The violation is therefore NOT "territory moved" — it is a small
+  // engagement and a transfer tied together IN ONE SENTENCE. The Anschluss and
+  // the conquest of Ethiopia are transfers too, and a scorer that counts them
+  // manufactures violations (the co-occurrence trap that killed the gm-voices
+  // polityHit branch in 9차).
+  //
+  // Bilingual because the model answers in whichever language the prompt pulls
+  // it toward — the sovereignty scorer learned that the hard way (three
+  // calibration failures, recorded in lib/scorers.mjs).
+  // Calibration: 9/9 (4 must-catch, 5 must-miss) — scratchpad
+  // calibrate-region-prose.mjs, 2026-08-15.
   region: (text) => {
-    const casual = /(습격|국경 충돌|전투에서 이기|한 차례 승리)[^.]{0,40}(점령|병합|넘어갔|빼앗)/.test(text);
-    return { violated: casual, why: casual ? "region transferred on a raid or a won battle" : "" };
+    const SMALL = "습격|국경 충돌|국경 분쟁|교전|소규모 전투|한 차례 (?:승리|전투)|전투에서 이기"
+      + "|raid|skirmish|border clash|border incident|minor engagement|won a battle|single battle|victory at";
+    const TRANSFER = "점령|병합|합병|넘어갔|빼앗|할양|편입"
+      + "|annex|seiz|captur|took over|ceded|changed hands|passed to|absorbed";
+    for (const sentence of text.split(/(?<=[.!?。\n])/)) {
+      if (!new RegExp(SMALL, "i").test(sentence)) continue;
+      if (!new RegExp(TRANSFER, "i").test(sentence)) continue;
+      return { violated: true, why: `transfer tied to a small engagement: ${sentence.trim().slice(0, 90)}` };
+    }
+    return { violated: false, why: "" };
   },
   // THE PLAYER'S COUNTRY ACTING WITHOUT AN ORDER, and this one is scoreable in a
   // way `voices` was not — the violation is an EVENT, not an absence.

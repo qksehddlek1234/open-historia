@@ -293,6 +293,24 @@ export default {
     SAVO:  { name: "County of Savoy", color: "#d4d4a8", aliases: ["Savoy", "Savoia", "Aosta"] },
     TREN:  { name: "Bishopric of Trent", color: "#a8d4c4", aliases: ["Trent", "Trento", "Brixen"] },
     AQUI:  { name: "Patriarchate of Aquileia", color: "#c4a8d4", aliases: ["Aquileia", "Friuli", "Patria del Friuli"] },
+
+    // ── 확장 5: 사하라 이남 아프리카 ──────────────────────────────────────
+    // 창 밖이라 면이 없고, 무엇보다 **기록이 다르게 남았다.** 유럽 제후는 재위
+    // 연월일까지 짚히는데 여기는 왕명부가 단편이거나 구전이다. 그래서 아래 열하나
+    // 중 열이 기관인데, 이탈리아 코뮌과 이유가 정반대다 — 거긴 제도가 다스려서
+    // 기관이 정답이었고, 여긴 **사람이 다스렸는데 이름이 안 남아서**다. 없는
+    // 이름을 지어내지 않는 것이 이 파일의 첫 번째 규칙이다.
+    TAKR:  { name: "Takrur", color: "#d4a86a", aliases: ["Tekrur", "Senegal valley"] },
+    GHAN:  { name: "Ghana Empire", color: "#b8a83a", aliases: ["Wagadou", "Ghana", "Soninke empire"] },
+    SOSS:  { name: "Sosso Kingdom", color: "#8a6a3a", aliases: ["Kaniaga", "Susu", "Sumanguru's realm"] },
+    GAO:   { name: "Gao Kingdom", color: "#d4c48a", aliases: ["Kawkaw", "Za dynasty", "Songhai"] },
+    KANE:  { name: "Kanem Empire", color: "#6a8ad4", aliases: ["Kanem", "Sayfawa", "Bornu"] },
+    HAUS:  { name: "Hausa City-States", color: "#3ac46a", aliases: ["Hausa", "Kano", "Katsina", "Hausa Bakwai"] },
+    IFE:   { name: "Ife", color: "#c43a5a", aliases: ["Ile-Ife", "Yorubaland", "Oduduwa"] },
+    ALOD:  { name: "Kingdom of Alodia", color: "#5ad48a", aliases: ["Alwa", "Soba", "Alodia"] },
+    KILW:  { name: "Kilwa Sultanate", color: "#3a6ad4", aliases: ["Kilwa", "Swahili coast", "Zanj"] },
+    MOGA:  { name: "Sultanate of Mogadishu", color: "#a8d43a", aliases: ["Mogadishu", "Benadir"] },
+    MAPU:  { name: "Mapungubwe", color: "#d46a3a", aliases: ["Mapungubwe", "Limpopo kingdom"] },
   },
 
   countryAssignments: {
@@ -387,6 +405,43 @@ export default {
 
     // The Chola heartland on the Tamil coast (declining but standing).
     "IND.31_1": "CHOL", "IND.27_1": "CHOL",
+
+    // ── 확장 5: 사하라 이남 아프리카 ──
+    // 해안·강 유역만 준다. 여기서 나라 단위로 칠하면 **거의 전부가 과장**이 된다 —
+    // 킬와는 해안 도시 연합이지 탕가니카 내륙의 주인이 아니었다.
+    "SEN.9_1": "TAKR", "SEN.10_1": "TAKR", "SEN.8_1": "TAKR", "SEN.2_1": "TAKR",
+    "SEN.1_1": "TAKR", "SEN.13_1": "TAKR", "SEN.3_1": "TAKR", "SEN.5_1": "TAKR", "SEN.4_1": "TAKR",
+    "MRT.5_1": "TAKR", "MRT.3_1": "TAKR", "MRT.13_1": "TAKR", "MRT.6_1": "TAKR", // 세네갈강 유역. 카자망스(콜다·세디우·지긴쇼르)는 삼림 정치체 — 미배정
+    "MRT.7_1": "GHAN", "MRT.8_1": "GHAN", "MRT.2_1": "GHAN", "MRT.11_1": "GHAN", "MLI.3_1": "GHAN", // 1200년의 와가두는 **소소의 봉신으로 쪼그라든 잔존 왕국**이다
+    "MLI.5_1": "SOSS", "MLI.1_1": "SOSS", "MLI.7_1": "SOSS", "MLI.8_1": "SOSS",
+    "GIN.4_1": "SOSS", "GIN.3_1": "SOSS", "GIN.6_1": "SOSS", "GIN.7_1": "SOSS",
+    "GIN.5_1": "SOSS", "GIN.1_1": "SOSS",     // 수만구루의 대장장이 왕국 — **말리 제국은 1235년(키리나)이라 이 보드에 없다**
+    "MLI.2_1": "GAO", "MLI.9_1": "GAO", "MLI.6_1": "GAO", "MLI.4_1": "GAO",
+    "NER.7_1": "GAO", "NER.5_1": "GAO", "NER.3_1": "GAO", // 니제르 만곡부 — 자 왕조의 가오
+    "TCD.9_1": "KANE", "TCD.10_1": "KANE", "TCD.4_1": "KANE", "TCD.8_1": "KANE",
+    "TCD.22_1": "KANE", "TCD.2_1": "KANE", "TCD.1_1": "KANE", "TCD.3_1": "KANE",
+    "TCD.21_1": "KANE", "NER.2_1": "KANE", "NER.8_1": "KANE",
+    "NGA.8_1": "KANE", "NGA.36_1": "KANE",   // 차드호 사이파와 왕조. 보르누 이거는 14세기라 아직 카넴이 본거지다
+    "NGA.20_1": "HAUS", "NGA.21_1": "HAUS", "NGA.18_1": "HAUS", "NGA.19_1": "HAUS",
+    "NGA.37_1": "HAUS", "NGA.34_1": "HAUS", "NGA.22_1": "HAUS", "NGA.5_1": "HAUS",
+    "NGA.16_1": "HAUS", "NGA.32_1": "HAUS", "NGA.27_1": "HAUS", // 하우사 바크와이 — **단일 군주가 없는 도시국가 무리**다
+    "NGA.30_1": "IFE", "NGA.31_1": "IFE", "NGA.29_1": "IFE", "NGA.13_1": "IFE",
+    "NGA.28_1": "IFE", "NGA.25_1": "IFE", "NGA.12_1": "IFE", "NGA.24_1": "IFE", // 이페 전성기. 베냉(에도)은 이페에서 갈라져 나오는 중이라 같은 색으로 접었다
+    "SDN.10_1": "MAKU", "SDN.12_1": "MAKU", // **동골라를 마쿠리아에 준다** — 확장 1이 회수한 면은 사막 조각뿐이라 왕국이 1지역이었다
+    "SDN.7_1": "ALOD", "SDN.1_1": "ALOD", "SDN.18_1": "ALOD", "SDN.3_1": "ALOD",
+    "SDN.13_1": "ALOD", "SDN.9_1": "ALOD", "SDN.15_1": "ALOD", "SDN.17_1": "ALOD", "SDN.2_1": "ALOD", // 소바의 알와 — 누비아 기독교 왕국 둘 중 남쪽
+    "TZA.10_1": "KILW", "TZA.15_1": "KILW", "TZA.20_1": "KILW", "TZA.2_1": "KILW",
+    "TZA.27_1": "KILW", "TZA.18_1": "KILW", "TZA.19_1": "KILW", "TZA.28_1": "KILW", "TZA.29_1": "KILW",
+    "MOZ.1_1": "KILW", "MOZ.7_1": "KILW",     // 스와힐리 해안과 섬만. **탄자니아 내륙 19지역은 미배정** — 킬와가 다스린 적 없다
+    "SOM.3_1": "MOGA", "SOM.15_1": "MOGA", "SOM.14_1": "MOGA", "SOM.9_1": "MOGA", "SOM.10_1": "MOGA", // 베나디르 해안. 내륙 씨족 연합은 미배정
+    "ZWE.9_1": "MAPU", "ZWE.7_1": "MAPU", "ZWE.10_1": "MAPU", "ZAF.5_1": "MAPU", "BWA.11_1": "MAPU", // 림포포 합류점. **그레이트 짐바브웨는 1220년경부터**라 아직 마풍구브웨의 시대다
+    // 남긴 것들:
+    //   우간다 58지구 — 치웨지 왕조는 **구전 전설**이고 문헌으로 확인되는 국가가
+    //     없다. 부뇨로-키타라는 뒤에 온다. 큰 빈칸이지만 지어내는 것보다 낫다.
+    //   콩고분지·앙골라 — 콩고 왕국은 14세기, 루바·룬다는 15세기다.
+    //   케냐 내륙·남아공 대부분·칼라하리 — 목축·수렵 사회.
+    //   서아프리카 삼림(라이베리아·시에라리온·코트디부아르) — 부족 정치체.
+    //   마다가스카르 — 통일 국가 없음.
 
     // ── 확장 4: 북이탈리아의 코뮌들 ──
     // 위 울타리가 제국 면을 북이탈리아에서 막았으므로 여기 배정이 최종이다.

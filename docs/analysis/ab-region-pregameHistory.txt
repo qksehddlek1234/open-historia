@@ -1,0 +1,715 @@
+cell: region x pregameHistory | board: wwii-1939 | 6 runs per arm
+OFF 0/6 | ON 0/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-07",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward revisionist expansion in Central Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "Spanish Republicans and Nationalists begin full-scale conflict; German and Italian forces provide extensive support to Franco's Nationalist side, testing new military technologies."
+    },
+    {
+      "date": "1937-08-12",
+      "title": "Escalation of the Second Sino-Japanese War",
+      "description": "Following the Marco Polo Bridge Incident, Japan launches a full-scale invasion of Northern China, establishing a grinding war of attrition against Chinese forces."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "The Anschluss",
+      "description": "Germany annexes Austria into the German Reich, significantly expanding its territory and influence in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France agree to the German annexation of the Sudetenland, a move intended to appease Hitler but which leaves Czechoslovakia's sovereignty in jeopardy."
+    },
+    {
+      "date": "1939-03-14",
+      "title": "Occupation of the Czech Lands",
+      "description": "Following the Munich Agreement, German forces occupy the remainder of the Czechoslovakian state, effectively ending its independence."
+    },
+    {
+      "date": "1939-05-21",
+      "title": "Declaration of Slovak Independence",
+      "description": "Slovakia declares itself a sovereign state within the crumbling Czechoslovak federation, leading to immediate tensions on the Hungarian border."
+    },
+    {
+      "date": "1939-07-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including a secret protocol to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-08-14",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces decisively defeat the Japanese army on the Mongolian border, halting Japanese expansion toward Siberia and securing Soviet interests in Mongolia."
+    },
+    {
+      "date": "1939-08-20",
+      "title": "Slovak-Hungarian Border Conflicts",
+      "description": "Tensions boil over into localized skirmishes along the southern border as Hungary seeks to reclaim territories lost in the Treaty of Trianon."
+    },
+    {
+      "date": "1939-08-25",
+      "title": "Polish and Baltic Frontier Incidents",
+      "description": "Standoffs escalate along the Polish Corridor and near Danzig. Friction increases on the Baltic borders as Lithuania, Latvia, and Estonia face mounting pressure from both German and Soviet interests."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany launches a massive invasion of Poland, triggering the formal declarations of war by Great Britain and France."
+    }
+  ],
+  "summary": "The years 1936–1939 were defined by the rapid collapse of the post-WWI order. Germany systematically dismantled the Treaty of Versailles through the remilitarization of the Rhineland, the annexation of Austria, and the partition of Czechoslovakia. To the East, Japan consolidated its hold on Manchuria and occupied China, while the Soviet Union engaged in a decisive military victory over Japanese forces at Khalkhin Gol to secure its Siberian frontier. The period culminated in the Molotov-Ribbentrop Pact, which paved the way for the invasion of Poland and the commencement of global hostilities."
+}
+```
+
+-- OFF 2/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a major shift in European security."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for new military technologies and ideologies, involving intervention from various European powers."
+    },
+    {
+      "date": "1937-07-13",
+      "title": "Marco Polo Bridge Incident",
+      "description": "A skirmish between Japanese and Chinese forces escalates into a full-scale invasion of Northern China by the Imperial Japanese Army."
+    },
+    {
+      "date": "1938-03-30",
+      "title": "Annexation of Austria (Anschluss)",
+      "description": "Germany annexes Austria, significantly expanding its territory and influence in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "The Munich Agreement",
+      "description": "Britain and France permit Germany to annex the Sudetenland, aiming to avoid war but failing to halt German expansionism."
+    },
+    {
+      "date": "1939-05-20",
+      "title": "Battle of Khalkhin Gol Begins",
+      "description": "Soviet and Japanese forces engage in heavy fighting on the Mongolian border; Soviet forces eventually repel a Japanese advance, establishing a tense status quo."
+    },
+    {
+      "date": "1939-07-15",
+      "title": "Slovak-Hungarian Border Skirmishes",
+      "description": "Tensions flare along the border as Hungary seeks to reclaim lost territories; small-scale armed clashes occur in the disputed mountain regions."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact Signed",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including a secret protocol to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-08-15",
+      "title": "Polish Corridor and Baltic Border Tensions",
+      "description": "Increased military maneuvers by German and Soviet forces lead to a series of provocative incidents and localized frontier clashes in the Polish Corridor and near the Baltic States."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany launches a full-scale invasion of Poland, initiating the formal beginning of the Second World War."
+    }
+  ],
+  "summary": "The years 1936–1939 were characterized by the rapid disintegration of the post-WWI international order. Germany systematically dismantled treaty obligations to expand its borders in Central Europe, while Japan solidified its hold on occupied Chinese territories and engaged in a decisive military standoff with the Soviet Union at Khalkhin Gol. The period was marked by escalating tensions along the Polish and Baltic frontiers as the Molotov-Ribbentrop Pact paved the way for the invasion of Poland, fundamentally altering the geopolitical landscape of Eurasia."
+}
+```
+
+-- OFF 3/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and emboldening the Third Reich's expansionist ambitions in Western Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for modern military tactics, aviation, and heavy weaponry by both Nazi Germany and the Soviet Union."
+    },
+    {
+      "date": "1936-11-26",
+      "title": "Signing of the Anti-Comintern Pact",
+      "description": "Germany and Japan formalize their opposition to the Communist International, solidifying an ideological and strategic axis between the two powers."
+    },
+    {
+      "date": "1937-07-08",
+      "title": "Escalation of the Second Sino-Japanese War",
+      "description": "Japan intensifies its invasion of China, moving beyond Manchuria to occupy heavy industrial and coastal regions, sparking a long-term war of attrition."
+    },
+    {
+      "date": "1938-03-30",
+      "title": "The Anschluss",
+      "description": "Austria is annexed by Germany, consolidating the German people under one flag and removing a major hurdle for the Reich's expansion into Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "The Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland, a move intended to appease Hitler but which instead emboldens his appetite for further expansion."
+    },
+    {
+      "date": "1939-08-15",
+      "title": "Slovak-Hungarian Border War",
+      "description": "A series of skirmishes and border clashes (the 'Little War') erupt between Hungary and the Slovak Republic as both nations jockey for territory in the Carpathian region."
+    },
+    {
+      "date": "1939-08-20",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Georgy Zhukov decisively defeat Japanese forces in Mongolia, halting Japanese expansion toward Siberia and establishing a bloody frontier."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Nazi Germany sign a non-aggression pact, including a secret protocol to divide Eastern Europe and the Baltic States into spheres of influence."
+    },
+    {
+      "date": "1939-08-24",
+      "title": "Tensions on the Polish and Baltic Borders",
+      "description": "Heightened military presence from both Germany and the USSR creates a volatile atmosphere in the Polish Corridor, East Prussia, and the Baltic states of Estonia, Latvia, and Lithuania."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland using 'Blitzkrieg' tactics, prompting Britain and France to issue mobilization orders as the world slides into total war."
+    }
+  ],
+  "summary": "The period from 1936 to 1939 was defined by the rapid erosion of the post-WWI international order. The years were marked by localized conflicts that served as precursors to a global conflagration: the testing grounds of Spain, the expansion of Japanese influence in China and Mongolia (culminating in the decisive clash at Khalkhin Gol), and the territorial maneuvering between Hungary and Slovakia. By 1939, the geopolitical landscape was dominated by the aggressive expansion of the Axis powers and the uneasy pact between Berlin and Moscow. The invasion of Poland on September 1st marks the definitive end of the peace era and the beginning of World War II."
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the Rhineland, defying the Treaty of Versailles and signaling a major escalation in German defiance of international treaties."
+    },
+    {
+      "date": "1937-07-13",
+      "title": "Marco Polo Bridge Incident",
+      "description": "A skirmish between Japanese and Chinese forces leads to a full-scale invasion by the Empire of Japan, beginning years of bloody conflict in China."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "Annexation of Austria (Anschluss)",
+      "description": "German forces move into Austria, leading to its formal annexation and the consolidation of German power in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit Germany to annex the Sudetenland, a move intended to appease Hitler but which instead emboldened German expansionism."
+    },
+    {
+      "date": "1939-04-15",
+      "title": "Slovak-Hungarian Border Skirmishes",
+      "description": "Tensions flare along the southern border as Hungarian revisionist forces and Slovak defenders engage in several localized border wars over disputed territories."
+    },
+    {
+      "date": "1939-08-12",
+      "title": "Polish and Baltic Frontier Incidents",
+      "description": "Increased friction occurs along the Polish Corridor and within the territory of the Baltic States as both Germany and the USSR increase military presence on their borders."
+    },
+    {
+      "date": "1939-08-20",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Zhukov decisively defeat Japanese forces in Mongolia, establishing a firm Soviet presence in the region and halting Japanese expansion toward Siberia."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland using Blitzkrieg tactics, prompting Britain and France to declare war on the Third Reich within 48 hours."
+    }
+  ],
+  "summary": "The period from 1936 to 1939 was defined by the collapse of the post-WWI international order. The rise of Nazi Germany led to the dismantling of treaty obligations in Central Europe, while Imperial Japan's expansion into China and the Soviet Union's consolidation of influence in Mongolia created a multi-front crisis. The 'Policy of Appeasement' failed to contain German ambitions, leading directly to the invasion of Poland and the ignition of World War II. Concurrent local conflicts on the Slovak-Hungarian border and the fierce clashes at Khalkhin Gol highlighted the sharpening of borders and the immediate readiness of regional powers for total war."
+}
+```
+
+-- OFF 5/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized zone, signaling a direct defiance of the Treaty of Versailles and escalating tensions with France and Great Britain."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for modern military technology, particularly in aviation and armored warfare, involving volunteers and matériel from several major powers."
+    },
+    {
+      "date": "1937-07-07",
+      "title": "Marco Polo Bridge Incident",
+      "description": "A skirmish between Chinese and Japanese forces leads to a full-scale Japanese invasion of China, establishing a long-term military presence in Manchuria and the northern plains."
+    },
+    {
+      "date": "1938-03-20",
+      "title": "The Anschluss",
+      "description": "Austria is annexed by Germany, expanding the Reich's territory and influence in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland, aiming to avoid war while creating a significant shift in the balance of power in Czechoslovakia."
+    },
+    {
+      "date": "1939-03-14",
+      "title": "Occupation of Czechoslovakia",
+      "description": "German forces occupy the remainder of the Czech lands following the collapse of the Munich guarantees, effectively ending Czechoslovakian independence."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "A non-aggression pact is signed between Nazi Germany and the Soviet Union, establishing spheres of influence in Eastern Europe and Poland."
+    },
+    {
+      "date": "1939-08-25",
+      "title": "Frontier Escalation (Poland/Baltics)",
+      "description": "Heightened military activity and border incidents occur along the Polish Corridor and the borders of Estonia, Latvia, and Lithuania as tensions between Germany and the East reach a breaking point."
+    },
+    {
+      "date": "1939-08-31",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Zhukov decisively defeat Japanese forces on the Mongolian border, establishing a firm boundary and halting Japanese expansion toward Siberia."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces cross into Poland, marking the formal commencement of the Second World War."
+    },
+    {
+      "date": "1939-10-06",
+      "title": "Slovak-Hungarian Border War",
+      "description": "Following the reorganization of Central Europe, a brief and violent conflict (the 'Little War') occurs on the Slovak-Hungarian border over territorial disputes."
+    }
+  ],
+  "summary": "The period between 1936 and 1939 was defined by the rapid collapse of the post-WWI international order. The expansion of Nazi Germany in Western Europe, the consolidation of Japanese control over Chinese territories, and the sharpening of Soviet interests in the East created a tinderbox of conflicting ambitions. Key military engagements like Khalkhin Gol solidified new frontiers in Asia, while the repeated violations of treaties by revisionist powers culminated in the invasion of Poland on September 1, 1939, sparking a global conflagration."
+}
+```
+
+-- OFF 6/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward aggressive expansionism in Central Europe."
+    },
+    {
+      "date": "1937-07-17",
+      "title": "Outbreak of Spanish Civil War",
+      "description": "Civil conflict erupts in Spain, serving as a testing ground for modern military tactics, aircraft, and armored warfare by both Axis and Allied powers."
+    },
+    {
+      "date": "1938-03-15",
+      "title": "Anschluss of Austria",
+      "description": "Germany annexes Austria, expanding its territory and influence into Central Europe with little international opposition."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland, an attempt to appease Hitler by satisfying his demands for the Czech borderlands."
+    },
+    {
+      "date": "1938-12-05",
+      "title": "Slovak-Hungarian Border Skirmishes",
+      "description": "As Slovakia moves toward autonomy from Czechoslovakia, military tensions and border clashes escalate between Slovak and Hungarian forces over disputed territories."
+    },
+    {
+      "date": "1939-02-15",
+      "title": "Polish Corridor and Baltic Frontier Incidents",
+      "description": "Increased friction occurs along the Polish Corridor and Danzig, while Soviet pressure on the Baltic States (Estonia, Latvia, Lithuania) intensifies regarding transit rights."
+    },
+    {
+      "date": "1939-08-09",
+      "title": "Battle of Khalkhin Gol Begins",
+      "description": "Soviet forces under Zhukov engage Japanese forces in Mongolia. The resulting Soviet victory halts Japanese expansion toward Siberia and solidifies the border."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Germany sign a non-aggression pact, including a secret protocol to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland, triggering the formal commencement of the Second World War as Britain and France move toward a declaration of war."
+    }
+  ],
+  "summary": "The years 1936-1939 were defined by the collapse of the post-WWI order. From the remilitarization of the Rhineland to the annexation of the Sudetenland, Germany systematically dismantled international treaties. Simultaneously, regional flashpoints emerged: the Slovak-Hungarian border became a zone of friction during the transition of Czech lands, and the Soviet-Japanese conflict at Khalkhin Gol defined the borders of East Asia. The period culminated in the Molotov-Ribbentrop Pact and the invasion of Poland, transitioning the world from diplomatic crisis to total global war."
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward aggressive expansion in Western Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for new military technologies and ideologies, with Germany and Italy supporting the Nationalists and Soviet-backed Republicans."
+    },
+    {
+      "date": "1937-07-07",
+      "title": "Marco Polo Bridge Incident",
+      "description": "A skirmish between Japanese and Chinese forces leads to a full-scale Japanese invasion of China, establishing the current state of war in East Asia."
+    },
+    {
+      "date": "1938-03-30",
+      "title": "Annexation of Austria (Anschluss)",
+      "description": "Germany formally annexes Austria, expanding its territory and influence within Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain, France, and Germany (with Italy) agree to the German annexation of the Sudetenland, ostensibly to maintain peace but causing significant alarm in Poland."
+    },
+    {
+      "date": "1939-05-07",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "Germany and the Soviet Union sign a non-aggression pact, including secret protocols to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-08-20",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Zhukov decisively defeat the Japanese at the border, halting Japanese expansion into Mongolia and Mongolia's push toward Siberia."
+    },
+    {
+      "date": "1939-02-15",
+      "title": "Slovak-Hungarian Border Skirmishes",
+      "description": "Heightened tensions and minor armed clashes occur on the border between Hungary and the Slovak Republic as internal pressures for Hungarian expansion grow."
+    },
+    {
+      "date": "1939-07-01",
+      "title": "Polish and Baltic Frontier Incidents",
+      "description": "A series of minor border skirmishes and diplomatic incidents occur along the Polish-German, Polish-Soviet, and Baltic borders as tensions peak before the invasion."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany launches a full-scale invasion of Poland, signaling the immediate collapse of the peace of the 1930s and the beginning of the Second World War."
+    }
+  ],
+  "summary": "The period from 1936 to 1939 was defined by the rapid expansionist policies of the Axis powers and the crumbling of collective security in Europe. The League of Nations proved unable to check German aggression in the Rhineland, Austria, and the Sudetenland. Simultaneously, Japan's expansion in China solidified its hold on Manchuria and coastal regions. A critical moment occurred at Khalkhin Gol where Soviet forces checked Japanese ambitions in Mongolia. As 1939 dawned, the Molotov-Ribbentrop Pact removed the threat of a two-front war for Germany, while localized border conflicts in Slovakia, Poland, and the Baltics signaled that the continent was on the brink of total mobilization."
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-07",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a direct challenge to the League of Nations' authority."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for modern military tactics and aviation, with both the Republic and Nationalist forces receiving support from various international actors."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "Annexation of Austria (Anschluss)",
+      "description": "Germany formally annexes Austria, expanding its territory and influence in Central Europe while testing the resolve of the Western Allies."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "The Munich Agreement",
+      "description": "Britain and France agree to let Germany annex the Sudetenland, a move intended to appease Hitler but which ultimately emboldens German expansionism."
+    },
+    {
+      "date": "1938-12-01",
+      "title": "Slovak-Hungarian Border Conflict",
+      "description": "Following the creation of the Slovak state, localized border skirmishes and tensions erupt between Slovakia and Hungary over contested territories."
+    },
+    {
+      "date": "1939-01-01",
+      "title": "Polish and Baltic Frontier Tensions",
+      "description": "Heightened friction occurs along the Polish Corridor and at the borders of Estonia, Latvia, and Lithuania as Germany and the USSR press their claims on Danzig and the Baltic states."
+    },
+    {
+      "date": "1939-05-20",
+      "title": "Battle of Khalkhin Gol Begins",
+      "description": "Soviet forces engage Japanese forces in Mongolia. The conflict results in a significant Soviet victory, forcing Japan to reconsider its expansionist goals on the mainland for the time being."
+    },
+    {
+      "date": "1939-08-20",
+      "title": "Conclusion of Khalkhin Gol",
+      "description": "The Soviet Union successfully repels Japanese advances at Khalkhin Gol, securing its northern frontier and establishing a buffer against Japanese expansion."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Nazi Germany sign a non-aggression pact, including secret protocols to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland using the 'Blitzkrieg' tactic, marking the formal beginning of the Second World War."
+    }
+  ],
+  "summary": "The period between 1936 and 1939 was defined by the rapid erosion of the post-WWI international order. The rise of revisionist powers—Germany, Italy, and Japan—led to a series of provocations that dismantled the League of Nations' ability to maintain peace. In Europe, the remilitarization of the Rhineland, the Anschluss, and the Munich Agreement signaled Germany's ascent. Simultaneously, the Soviet Union and Imperial Japan engaged in high-stakes brinkmanship on their eastern frontiers, culminating in the clash at Khalkhin Gol. The secret Molotov-Ribbentrop Pact finalized the partition of Eastern Europe, and by September 1st, 1939, the tensions over the Polish Corridor and the Baltic borders exploded into a global conflict."
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the Rhinelands, defying the Treaty of Versailles and signaling a major escalation in defiance of the League of Nations."
+    },
+    {
+      "date": "1936-07-16",
+      "title": "Outbreak of Spanish Civil War",
+      "description": "The conflict begins in Spain, serving as a testing ground for new military technologies and doctrines by various European powers."
+    },
+    {
+      "date": "1938-03-20",
+      "title": "Annexation of Austria",
+      "description": "Germany annexes Austria in the 'Anschluss', expanding its territory and influence toward the East."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain, France, and Germany agree to the German annexation of the Sudetenland, aiming to appease Hitler and avoid war."
+    },
+    {
+      "date": "1938-11-25",
+      "title": "Slovak-Hungarian Border Conflict",
+      "description": "Following Slovak independence, Hungarian forces seize territory in southern Slovakia, leading to a localized border war and territorial disputes."
+    },
+    {
+      "date": "1939-01-01",
+      "title": "Polish and Baltic Frontier Incidents",
+      "description": "A series of skirmishes and tense standoffs occur along the Polish Corridor and the borders of Estonia, Latvia, and Lithuania as regional powers jockey for position."
+    },
+    {
+      "date": "1939-08-15",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet and Mongolian forces decisively defeat the Japanese army at Khalkhin Gol, halting Japanese expansion into Mongolia and establishing a tense standoff on the border."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Nazi Germany sign a non-aggression pact, including secret protocols for the division of Eastern Europe and the Baltic States."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany invades Poland from the west, triggering the formal declarations of war by Great Britain and France."
+    }
+  ],
+  "summary": "The years 1936-1939 marked the rapid collapse of the post-WWI international order. The period was characterized by the expansionist ambitions of the Axis powers, the territorial disputes between Hungary and Slovakia, the bloody transition of power in the East during the Khalkhin Gol skirmishes, and the escalating tensions on the Polish and Baltic frontiers. These events culminated in the Molotov-Ribbentrop Pact and the invasion of Poland, effectively initiating a global conflagration."
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, signaling a direct challenge to the Treaty of Versailles and the League of Nations' authority."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict in Spain becomes a testing ground for modern military tactics, aviation, and heavy weaponry by both Axis and Allied-leaning factions."
+    },
+    {
+      "date": "1937-09-01",
+      "title": "Japanese Escalation in China",
+      "description": "Japan intensifies its occupation of Chinese territories, establishing a foothold in the northern plains and along the eastern coast."
+    },
+    {
+      "date": "1938-03-27",
+      "title": "The Anschluss",
+      "description": "Austria is annexed by the German Reich, expanding German territory and influence toward the east."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "The Sudetenland is ceded to Germany following negotiations between Britain, France, Germany, and Italy, aiming to avoid war but failing to stop German expansion."
+    },
+    {
+      "date": "1939-03-15",
+      "title": "Occupation of Bohemia and Moravia",
+      "description": "Germany occupies the remainder of Czechoslovakia, effectively ending any hope for a Czechoslovakian buffer state."
+    },
+    {
+      "date": "1939-05-19",
+      "title": "Slovak-Hungarian Border War",
+      "description": "Following the creation of the Slovak State, skirmishes erupt along the border with Hungary as both nations contest territorial claims."
+    },
+    {
+      "date": "1939-06-22",
+      "title": "Baltic and Polish Frontier Tensions",
+      "description": "Increased Soviet pressure on Estonia, Latvia, and Lithuania, combined with border incidents along the Polish frontier, heightens regional instability."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Germany sign a non-aggression pact, including a secret protocol to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-05-14",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Zhukov engage and defeat Japanese forces in Mongolia, establishing a hard line against Japanese expansion toward Siberia."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "Germany launches a full-scale invasion of Poland, prompting the immediate mobilization of the European powers and the start of the Second World War."
+    }
+  ],
+  "summary": "The years between 1936 and 1939 were defined by the steady erosion of international treaties and the rise of aggressive expansionism. Germany systematically dismantled the post-WWI order in Central Europe, while Japan solidified its grip on China and faced a decisive military check at Khalkhin Gol. The Soviet Union's strategic maneuvering through the Molotov-Ribbentrop Pact and its pressure on the Baltic states created a volatile atmosphere in Eastern Europe. These tensions culminated on September 1, 1939, as the invasion of Poland transformed regional conflicts into a global conflagration."
+}
+```
+
+-- ON  5/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward expansionist policy in Central Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "Fighting begins in Spain, providing a testing ground for new military technologies and doctrines for both the Axis and Allied powers."
+    },
+    {
+      "date": "1938-03-15",
+      "title": "Annexation of Austria (Anschluss)",
+      "description": "Germany formally annexes Austria, expanding its influence into Central Europe and alarming neighboring states."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland, a move intended to appease Hitler but which instead emboldens his ambitions."
+    },
+    {
+      "date": "1939-05-12",
+      "title": "Battle of Khalkhin Gol Begins",
+      "description": "Soviet and Japanese forces engage in heavy fighting in Mongolia. Soviet forces successfully check the Japanese advance, halting their expansion into Siberia."
+    },
+    {
+      "date": "1939-06-15",
+      "title": "Conclusion of Battle of Khalkhin Gol",
+      "description": "The Soviet Union secures a decisive victory over Japan at Khalkhin Gol, establishing a clear military boundary in the Mongolian frontier."
+    },
+    {
+      "date": "1939-08-14",
+      "title": "Slovak-Hungarian Border Tensions",
+      "description": "Following the declaration of Slovak independence, localized border skirmishes and tensions erupt between Hungarian and Slovak forces over contested territories."
+    },
+    {
+    "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Germany sign a non-aggression pact, including a secret protocol to divide spheres of influence in Eastern Europe."
+    },
+    {
+      "date": "1939-08-25",
+      "title": "Polish Corridor and Baltic Escalation",
+      "description": "Tensions peak along the Polish Corridor and across the Baltic states as Germany demands Danzig and the removal of Polish sovereignty over the corridor."
+    },
+    {
+      "date": "1939-09-01",
+      "title": "Invasion of Poland",
+      "description": "German forces launch a full-scale invasion of Poland, triggering the formal declarations of war by Britain and France 48 hours later."
+    }
+  ],
+  "summary": "The period from 1936 to 1939 was defined by the collapse of the post-WWI order. The failure of collective security allowed Germany to expand its borders through both intimidation and diplomacy. In the East, the Soviet Union successfully checked Japanese expansion at Khalkhin Gol, while internal tensions in the Balkans spiked. The Molotov-Ribbentrop Pact removed the final barrier to German expansion into Poland, culminating in the invasion on September 1, 1939, which ignited a global conflagration."
+}
+```
+
+-- ON  6/6 — ok
+```json
+{
+  "events": [
+    {
+      "date": "1936-03-12",
+      "title": "Remilitarization of the Rhineland",
+      "description": "German troops enter the demilitarized Rhineland zone, defying the Treaty of Versailles and signaling a shift toward aggressive expansion in Western Europe."
+    },
+    {
+      "date": "1936-07-17",
+      "title": "Outbreak of the Spanish Civil War",
+      "description": "The conflict begins in Spain, serving as a testing ground for new military technologies and tactics for both Axis and Allied powers."
+    },
+    {
+      "date": "1937-06-01",
+      "title": "Escalation of Tensions in Mongolia",
+      "description": "Soviet and Japanese forces increase maneuvers along the Mongolian border, leading to heightened tensions regarding influence in Inner Asia."
+    },
+    {
+      "date": "1938-03-12",
+      "title": "The Anschluss",
+      "description": "Austria is annexed by Nazi Germany, expanding the Reich's territory and consolidating German power in Central Europe."
+    },
+    {
+      "date": "1938-09-30",
+      "title": "Munich Agreement",
+      "description": "Britain and France permit the German annexation of the Sudetenland, aiming to appease Hitler while maintaining the policy of appeasement."
+    },
+    {
+      "date": "1938-12-01",
+      "title": "Slovak-Hungarian Border Conflicts",
+      "description": "Tensions and small-scale border skirmishes erupt between Hungary and Slovakia over disputed territories in the southern regions, fueled by Hungarian revisionist claims."
+    },
+    {
+      "date": "1939-03-15",
+      "title": "Occupation of Czechoslovakia",
+      "description": "Following the failure of the Munich Agreement to satisfy German demands, Germany occupies the remainder of the Czech lands (Bohemia and Moravia)."
+    },
+    {
+      "date": "1939-08-23",
+      "title": "Molotov-Ribbentrop Pact",
+      "description": "The Soviet Union and Nazi Germany sign a non-aggression pact, including secret protocols to divide Eastern Europe into spheres of influence."
+    },
+    {
+      "date": "1939-09-14",
+      "title": "Battle of Khalkhin Gol",
+      "description": "Soviet forces under Georgy Zhukov decisively defeat the Japanese Imperial Army in Mongolia, halting their eastward expansion and securing the Soviet flank."
+    },
+    {
+      "date": "1939-01-01",
+      "title": "Polish and Baltic Frontier Incidents",
+      "description": "A series of escalating tensions occur along the Polish Corridor and at the borders of Lithuania, Latvia, and Estonia as both Germany and the USSR demand concessions on transit rights and maritime access."
+    }
+  ],
+  "summary": "The period from 1936 to 1939 was defined by the collapse of the post-WWI order. The era saw the aggressive expansion of Nazi Germany through the Rhineland, Austria, and Czechoslovakia, while the Soviet Union consolidated its influence in the East. Regional conflicts, such as those on the Slovak-Hungarian border and the pivotal Battle of Khalkhin Gol against Japanese interests, highlighted the fracturing of international stability. By late 1939, the Molotov-Ribbentrop Pact and the mounting pressure on Poland and the Baltic states set the stage for a global conflagration."
+}
+```
