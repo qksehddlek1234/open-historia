@@ -22,10 +22,34 @@
 // The distinction is the whole point of this file. "Don't lose everything
 // because of one thing" cuts both ways: don't keep the wreckage, and don't
 // discard the writing that was tangled up in it.
+import { VOICE_PREFIXES } from "./internalVoices.js";
+
 const normalizeString = (value) => String(value ?? "").trim();
 
 // A quote followed by structural punctuation and an optional key, at the END.
 export const TRAILING_SCAR = /["'`]\s*[,[\]{}:]+\s*(?:[A-Za-z_][A-Za-z0-9_]*)?\s*$/;
+
+// AN ADVISOR'S SYSTEM LABEL, ON STAGE.
+//
+// "Internal:" and "Domestic:" are the engine's marker for a polity that is an
+// office inside the player's own government rather than a country — the NAME is
+// the flag (runtime/internalVoices.js). The measured failure (PC 11차, voices ×
+// catalyst): asked to write a branching scene, the model casts those offices as
+// characters, and with the voices contract loaded it stages them under the raw
+// prefix — "Internal: Head of Military이 지도를 짚었다". Four of that arm's six
+// violations carried the prefix verbatim.
+//
+// The prefix is machine syntax by every definition this file uses: it is OUR
+// string, it means something to the engine and nothing to a reader, and it is
+// printed in the middle of the player's prose. So it comes out and the words
+// stay — the same trade as a region id in brackets. What it deliberately does
+// NOT do is decide whether an advisor belongs in a scene at all: that is a
+// judgement about fiction, it lives in the contract text, and a regex that
+// tried to enforce it would delete real sentences.
+export const VOICE_LABEL_IN_PROSE = new RegExp(
+  `(^|[\\s(（"'‘“\\[「『])(?:${VOICE_PREFIXES.map((prefix) => prefix.replace(/:$/, "")).join("|")})\\s*:\\s*`,
+  "g",
+);
 
 // A region id in brackets — "강원(KOR.6_1)" — which means nothing to a reader.
 // Also the LIST form the live save turned out to hold: "강원과 경상도(KOR.9_1,
@@ -87,6 +111,22 @@ export const repairHalfRomanized = (value) =>
     (whole, stem, suffix) => `${stem}${ROMANIZED_SUFFIX[suffix.toLowerCase()] ?? ""}` || whole,
   );
 
+// The voice rule ALONE, for prose the full scrubber does not own.
+//
+// Event titles and descriptions, consolidation summaries and ledger facts are
+// not put through stripMachineSyntax (that is the ACTION path), and changing
+// that wholesale is a different decision than this one. But they are the
+// feedback loop the PC lane found: whatever lands in an event's prose is
+// re-fed to every later prompt as history, so a voice named once is named
+// forever. This closes that loop without touching how region ids are handled
+// in event text, which stays an open question with its own measurement.
+export const stripVoiceLabels = (value) => {
+  const before = normalizeString(value);
+  if (!before) return before;
+  const next = before.replace(VOICE_LABEL_IN_PROSE, "$1").replace(/\s{2,}/g, " ").trim();
+  return next || before;
+};
+
 export const stripMachineSyntax = (value) => {
   const before = normalizeString(value);
   if (!before) return before;
@@ -95,6 +135,7 @@ export const stripMachineSyntax = (value) => {
       .replace(REGION_ID_WITH_NAME, "$1")
       .replace(TRAILING_SCAR, "")
       .replace(REGION_ID_IN_PROSE, "")
+      .replace(VOICE_LABEL_IN_PROSE, "$1")
       .replace(SEPARATED_BARE_ID, " "),
   )
     .replace(/\s{2,}/g, " ")

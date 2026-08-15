@@ -1,4 +1,5 @@
 /*! Open Historia — what is true now, as a ledger © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
+import { stripVoiceLabels } from "./machineSyntax.js";
 // THE STORY SO FAR GREW AND NEVER SHRANK.
 //
 // Every few rounds the engine asks the model to write a prose summary of the
@@ -75,7 +76,10 @@ export const normalizeLedgerEntry = (entry) => {
   return {
     key,
     topic: ledgerKey(entry.topic) || topicFromKey(key),
-    fact: fact.slice(0, MAX_FACT_CHARS),
+    // Same feedback path as an event's prose: a ledger fact is quoted back
+    // into every later prompt (gameState.js), so a staged advisor label would
+    // be re-supplied forever. See machineSyntax.stripVoiceLabels.
+    fact: stripVoiceLabels(fact).slice(0, MAX_FACT_CHARS),
     since: normalizeString(entry.since),
     updated: normalizeString(entry.updated || entry.date || entry.since),
   };

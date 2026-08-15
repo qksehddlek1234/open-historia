@@ -7,7 +7,7 @@ import { resolveFeatureKind } from "./featureKinds.js";
 import { normalizeLedger } from "./campaignLedger.js";
 import { normalizeDiplomaticRelations } from "./diplomacy.js";
 import { normalizeActionOutcome } from "./difficulty.js";
-import { gluedRecordProse, mergeRecoveredProse, repairGluedAction, repairGluedRecord, stripMachineSyntax } from "./machineSyntax.js";
+import { gluedRecordProse, mergeRecoveredProse, repairGluedAction, repairGluedRecord, stripMachineSyntax, stripVoiceLabels } from "./machineSyntax.js";
 import { applyCanonRenames, setCanonRenames } from "./nameCanon.js";
 import { isTerritorylessVoiceName } from "./internalVoices.js";
 import { toCountryName } from "./ownerNames.js";
@@ -541,9 +541,20 @@ export const normalizeActions = (actions) => {
     });
 };
 
+// CATALYST PROSE IS PROSE TOO.
+//
+// Events and orders have been scrubbed since the salvage stack started
+// manufacturing JSON debris (stripMachineSyntax above); a catalyst's title,
+// premise, opening, choices and step summaries never were, although they are
+// written by the same salvage-wrapped model and read by the same player. Two
+// shapes reach the screen through this gap: a region id in the middle of a
+// scene, and — measured on the voices × catalyst cells (PC 11차) — an advisor's
+// raw "Internal:" label staged as a character. Both come out here.
+const normalizeSceneText = (value) => stripMachineSyntax(normalizeTextLike(value));
+
 const normalizeCatalystChoice = (entry, index = 0) => {
   if (typeof entry === "string") {
-    const text = normalizeString(entry);
+    const text = stripMachineSyntax(entry);
     if (!text) {
       return null;
     }
@@ -559,7 +570,7 @@ const normalizeCatalystChoice = (entry, index = 0) => {
     return null;
   }
 
-  const text = normalizeTextLike(entry.text || entry.title || entry.label || entry.name);
+  const text = normalizeSceneText(entry.text || entry.title || entry.label || entry.name);
   if (!text) {
     return null;
   }
@@ -567,14 +578,14 @@ const normalizeCatalystChoice = (entry, index = 0) => {
   return {
     ...cloneValue(entry),
     id: normalizeOptionalString(entry.id) || generateId(`catalyst-choice-${index}`),
-    result: normalizeTextLike(entry.result || entry.summary || entry.outcome || entry.effect || entry.description),
+    result: normalizeSceneText(entry.result || entry.summary || entry.outcome || entry.effect || entry.description),
     text,
   };
 };
 
 const normalizeCatalystHistoryEntry = (entry, index = 0) => {
   if (typeof entry === "string") {
-    const summary = normalizeString(entry);
+    const summary = stripMachineSyntax(entry);
     if (!summary) {
       return null;
     }
@@ -589,8 +600,8 @@ const normalizeCatalystHistoryEntry = (entry, index = 0) => {
     return null;
   }
 
-  const choice = normalizeTextLike(entry.choice || entry.text || entry.title || entry.name);
-  const summary = normalizeTextLike(entry.summary || entry.result || entry.outcome || entry.description);
+  const choice = normalizeSceneText(entry.choice || entry.text || entry.title || entry.name);
+  const summary = normalizeSceneText(entry.summary || entry.result || entry.outcome || entry.description);
 
   if (!choice && !summary) {
     return null;
@@ -608,9 +619,9 @@ const normalizeCatalyst = (value) => {
     return null;
   }
 
-  const title = normalizeTextLike(value.title || value.name);
-  const premise = normalizeTextLike(value.premise || value.summary || value.description);
-  const opening = normalizeTextLike(value.opening || value.text || premise);
+  const title = normalizeSceneText(value.title || value.name);
+  const premise = normalizeSceneText(value.premise || value.summary || value.description);
+  const opening = normalizeSceneText(value.opening || value.text || premise);
   const choices = normalizeArray(value.choices)
     .map((entry, index) => normalizeCatalystChoice(entry, index))
     .filter(Boolean);
@@ -1349,7 +1360,10 @@ export const normalizeEventEntry = (entry, index = 0) => {
     logFusionRepairOnce(`[events] repaired an event whose description had "${fusedDescription.keys.join('", "')}" fused into it.`);
     rawDescription = mergeRecoveredProse(fusedDescription.head, gluedRecordProse(fusedDescription));
   }
-  const title = applyCanonRenames(rawTitle);
+  // An advisor's system label in an event's prose is the FEEDBACK path (see
+  // machineSyntax.stripVoiceLabels): the chronicle rides in every later prompt,
+  // so a voice staged once is re-supplied to the model as history forever.
+  const title = applyCanonRenames(stripVoiceLabels(rawTitle));
 
   if (!title) {
     return null;
@@ -1358,7 +1372,7 @@ export const normalizeEventEntry = (entry, index = 0) => {
   return {
     createdAt: normalizeOptionalString(entry.createdAt) || new Date().toISOString(),
     date: normalizeOptionalString(entry.date),
-    description: applyCanonRenames(rawDescription),
+    description: applyCanonRenames(stripVoiceLabels(rawDescription)),
     id: normalizeOptionalString(entry.id) || generateId(`event-${index}`),
     impacts: normalizeEventImpacts(entry.impacts),
     importance: normalizeOptionalString(entry.importance) || "minor",
@@ -1468,7 +1482,7 @@ const normalizeActionSuggestions = (value) =>
 const normalizeConsolidatedHistory = (value) => normalizeArray(value)
   .map((entry) => {
     if (!entry || typeof entry !== "object") return null;
-    const summary = normalizeTextLike(entry.summary);
+    const summary = stripVoiceLabels(normalizeTextLike(entry.summary));
     if (!summary) return null;
     return {
       chatIds: normalizeActionParticipants(entry.chatIds),

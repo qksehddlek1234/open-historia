@@ -31,19 +31,30 @@ export default {
   // Player starts as the Holy Roman Empire. game.country MUST equal the owner code.
   game: { country: "HRE", startDate: "1200-01-01", gameDate: "1200-01-01" },
 
-  // ── Plan F: 시대 경계 그래프트 — rung-3 단독 하이브리드 (2026-08-14) ──
-  // OHM 1200 추출(rung 1)은 PC 전용 네트워크 작업이라 아직 없다. 이 선언은
-  // historical-basemaps world_1200(rung 3, 대륙 스케일, GPL-3.0 개인 이용)
-  // 단독이며, 실제 조립이 도착하면 rung3-base를 그 위로 재백필해 파일만
-  // 갈아끼우면 된다(지역 단위 rung-1 우선 규칙이 자동으로 양보시킨다).
-  // world_1200의 라벨은 시대착오가 많아(파티마 1171 몰락, 부와이흐 1055
-  // 몰락, 가즈나 1186 몰락…) 전부 2026-08-14 포인트 테스트로 기하를 실측해
-  // 1200-01-01의 실제 보유자에게 붙였다. 추정 항목 없음.
+  // ── Plan F: 시대 경계 그래프트 — 중세 하이브리드 rung 1+3 (2026-08-15 승격) ──
+  // 08-14엔 조립이 없어 rung-3 단독으로 세웠고, PC 추출 러너가 실조립을
+  // 내놓자 예고대로 파일만 갈아끼웠다: OHM 1200 조립(rung 1, 면 26) 위에
+  // world_1200 백필(rung 3, 대륙 스케일, GPL-3.0 개인 이용) 50면.
+  // 백필 문턱 0.9가 실조립에서 그대로 작동했다 — 카스티야 100%·브르타뉴
+  // 97%·포르투갈 97%·앙주 97%·크로아티아 92%가 rung-1 커버로 스킵됐다.
+  // 두 계층 모두 라벨이 거짓말을 한다: world_1200은 시대착오(파티마 1171
+  // 몰락, 부와이흐 1055, 가즈나 1186), OHM 조립은 de jure 이름(아래 셋).
+  // 전부 포인트 테스트(도시 ∈ 면) 실측으로 붙였다 — 추정 없음.
   eraGeometry: {
     date: "1200-01-01",
     window: [-15, 30, 50, 72],
-    file: "scripts/ohm/out/rung3-base-1200-01-01-z4-hybrid.geojson",
+    file: "scripts/ohm/out/era-borders-1200-01-01-z4-hybrid.geojson",
     excludeFaces: [
+      // ── rung 1 제외 (OHM 조립면 26 중) ──
+      "Imperium Romanum Orientale", // 라벨 거짓말: 콘스탄티노플·테살로니키·아테네 out / 스미르나·코니아·트레비존드 IN — 아나톨리아 덩어리다. BYZ에 주면 럼 술탄국(수작업 SELJ)을 통째로 삼킨다
+      "Archiepiscopatus Rigensis", // 리가 대주교령은 1201년 창건 — 1200-01-01엔 아직 없고 로스터에도 없다(발트는 미배정 설계)
+      "Iudicatus Karalitanus", "Judicate of Arborea", // 사르데냐 유디카투스 — 로스터 밖, 스펙의 ITA.14→HRE 근사 유지
+      "Powys Wenwynwyn", "Teyrnas Gwynedd", // 웨일스 공국들 — 로스터 밖(GBR→ENG_A 기반선)
+      "Deasmhumhain", "Tuamhain", // 게일 아일랜드 — 1444와 같은 이유로 로스터 밖
+      "Þjóðveldið Ísland", // 아이슬란드 자유국(1262까지 실재) — 로스터 밖, 스펙의 NOR_K:["ISL"] 근사 유지
+      "Couto Misto", // 로스터 밖 미소 정체
+      "Великожупанска Србија", // 라벨 거짓말(1차 빌드 실측): 라스·니시 out / 사라예보·모스타르·브르치코·두브로브니크·포드고리차·슈코더르 IN — 세르비아 대공국 이름을 쓴 **보스니아 반국+훔+제타** 덩어리다. 1200 보드엔 보스니아 폴리티가 없고(BIH→HUNG 근사), 이 면을 SERB에 주면 쿨린 반의 보스니아와 라구사가 세르비아색이 된다
+      // ── rung 3 제외 (world_1200) ──
       "Buwayhid Emirates", // 1055년 몰락 라벨이 이라크+서페르시아를 한 면에 — ABBS와 KHWA 두 폴리티에 걸쳐 분할 불가; 기반선(IRQ→ABBS, IRN→KHWA)이 담당
       "Kwarizm-Shah", // 실측: 마크란 프레임 파편(전 기준도시 out) — PAK은 GHUR 기반선 유지
       "Kara Khitai Khaganate", // 카라 키타이 종주권은 실재하나 로스터에 없음 — UZB/TJK는 KHWA, 카자흐 스텝은 미배정(쿠만) 유지
@@ -56,7 +67,22 @@ export default {
       "Guanches", "Sámi", // 1444와 같은 이유
     ],
     faceOwners: {
-      // 시대착오 라벨 → 1200-01-01의 실제 보유자 (전부 실측)
+      // ── rung 1 (OHM 조립면 → 보드 코드; de jure 이름의 실측 교정 셋) ──
+      "Reaume de France": "ENG_A", // **기하 진실**: 앙제·르망·푸아티에·리모주·캉·루앙·보르도·바욘·렌 IN / 파리·오를레앙·부르주·랭스·디종 out — 프랑스 왕국 이름을 쓴 앙주 대륙령이다. 스펙 머리말이 "그릴 수 없다"던 바로 그것(노르망디·앙주·아키텐)을 실데이터가 그린다
+      "Reino de León": "POR_K", // **기하 진실**: 포르투·코임브라·브라가·리스본·파루 IN / 레온·사모라·살라망카·바다호스 out — 레온 이름을 쓴 포르투갈이다
+      "Kingdom of England": "ENG_A", // 요크·엑서터·노리치 IN(칼라일·스완지 out) — 잉글랜드 본토
+      "Reino de Castilla": "CAST", // 톨레도·부르고스·쿠엥카 IN, 세비야 out(알모하드) — 실측 정합
+      "Aragonum et Catalonie": "ARAG", // 사라고사·바르셀로나·페르피냥 IN, 발렌시아 out(알모하드) — 정합
+      "Regnum Hungariae": "HUNG", // 에스테르곰·자그레브·스플리트·클루지·브라티슬라바 IN — 1200 달마티아는 헝가리 왕관(베네치아 점령은 1420년대)
+      "Sacrum Imperium Romanum": "HRE", // 쾰른·아헨만 IN — 라인란트 부분면(1444와 같은 부분-실재)
+      "Status Ecclesiasticus": "PAPAL", // 로마·페루자·안코나 IN / 나폴리·피렌체 out — 교황령 정합
+      "Rìoghachd na h-Alba": "SCOT",
+      "Новгородская республика": "RUS_K", // 노브고로드·아르한겔스크 IN, 모스크바·프스코프 out — 북방 공화국
+      "Principality of Murom-Ryazan": "RUS_K", // 랴잔·무롬 IN — 분열 루스는 단일 RUS_K(보드 설계)
+      "Regnum Hierosolymitanum": "JERU", // 아크레·티레·하이파 IN — 다만 예루살렘·나블루스·가자까지 무는 de jure 왕국이라 내륙은 울타리로(1187년 이후 그 땅은 살라딘의 것)
+      "Principatus Antiochenus": "JERU", // 안티오키아 — 보드는 십자군 국가들을 한 색으로
+      "Comitatus Tripolitanus": "JERU", // 트리폴리 백국 — 동일
+      // ── rung 3 (world_1200): 시대착오 라벨 → 1200-01-01의 실제 보유자 (전부 실측)
       "Fatimid Caliphate": "AYY", // 카이로·다마스쿠스·예루살렘 IN — 살라딘 사후의 아이유브 영역; 튀니스·십자군 해안 월권은 울타리로
       "Ghaznavid Emirate": "GHUR", // Herat·Kandahar IN — 1186년부터 구르 왕조의 것
       "Dutchy of Benevento": "SICI", // Benevento·Palermo IN — 노르만 시칠리아 왕국(어린 프리드리히 2세)
@@ -81,7 +107,9 @@ export default {
       "Aragón": "ARAG", // 악센트가 별칭("Aragon") 정확 일치를 깨서 명시 — 1차 빌드 미매칭 1건의 교정
     },
     faceKeepOut: {
-      // 전부 실측 울타리 — 1·2차 빌드의 재배정/절단 로스터를 전량 읽고 친
+      // rung-1 울타리 하나: de jure 왕국이 1187년 이후의 현실을 덮지 못하게.
+      "Regnum Hierosolymitanum": ["PSE", "ISR.6", "ISR.5", "ISR.1", "ISR.2", "JOR"], // 예루살렘·나블루스·가자 IN, 그리고 1차 빌드 실측으로 **케라크·페트라·아카바(울트레주르뎅) 3지역까지** — 전부 하틴(1187) 직후 살라딘이 가져간 땅이다. 보드도 해안(ISR.3/4·LBN)만 수작업으로 십자군에 준다; 타르투스(성전기사단)·베이루트(1197 탈환)·아카르는 실측 정합이라 통과시킨다
+      // 나머지는 rung-3(world_1200) 울타리 — 1·2차 빌드의 재배정/절단 로스터를 전량 읽고 친
       // 것들. 옳았던 월권(앙주 노르망디·아키텐 절취, 스코네→덴마크, 로도피
       // →비잔티움, 라만차→알모하드(알라르코스 이후), 알자스·프랑슈콩테·
       // 사부아→제국, 이스트리아 조각, 슐레스비히→덴마크)은 치지 않았다.

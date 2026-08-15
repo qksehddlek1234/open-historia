@@ -68,10 +68,19 @@ const CLEARED = {
 // difference.
 const TRIMMED = new Set(["jumpForward", "autoJumpForward"]);
 
+// AND TWO MORE ARE TRIMMED ON A DIFFERENT CONTRACT — the catalyst lanes take a
+// scene-only variant of `voices` (simulationContracts.js). Measured, PC 11차 +
+// the production trace that followed it: those two templates carry no polity
+// roster, so the full contract's own text was the only thing teaching a scene
+// generator the strings "Internal:" and "Domestic:" — which it then staged as
+// character names. They keep the prohibition and lose the cast list.
+const TRIMMED_VOICES = new Set(["catalystCreation", "catalystExecutor"]);
+const EXCLUDED = new Set([...TRIMMED, ...TRIMMED_VOICES]);
+
 test("every consumer but the cleared and trimmed ones reassembles identically", () => {
   if (!fs.existsSync(SCENARIOS)) { console.log("      (not built — skipped)"); return; }
-  const others = RULES_CONSUMERS.filter((consumer) => !(consumer in CLEARED) && !TRIMMED.has(consumer));
-  assert.equal(others.length, 9, "one cleared, two trimmed, nine identical");
+  const others = RULES_CONSUMERS.filter((consumer) => !(consumer in CLEARED) && !EXCLUDED.has(consumer));
+  assert.equal(others.length, 7, "one cleared, two trimmed on sovereignty, two on voices, seven identical");
   for (const id of fs.readdirSync(SCENARIOS)) {
     const worldPath = path.join(SCENARIOS, id, "world.json");
     if (!fs.existsSync(worldPath)) continue;
@@ -107,7 +116,7 @@ test("…and the cleared two differ by exactly the contracts named, nothing else
 test("…and the trimmed two differ by exactly the own-state half, nothing else", async () => {
   if (!fs.existsSync(SCENARIOS)) { console.log("      (not built — skipped)"); return; }
   const { PLAYER_SOVEREIGNTY_OWN_STATE } = await import("../scripts/presets/lib/playerSovereignty.mjs");
-  const reference = RULES_CONSUMERS.find((consumer) => !(consumer in CLEARED) && !TRIMMED.has(consumer));
+  const reference = RULES_CONSUMERS.find((consumer) => !(consumer in CLEARED) && !EXCLUDED.has(consumer));
   for (const id of fs.readdirSync(SCENARIOS)) {
     const worldPath = path.join(SCENARIOS, id, "world.json");
     if (!fs.existsSync(worldPath)) continue;
@@ -385,4 +394,27 @@ test("a save that agrees on both is current and nothing happens", async () => {
 
 
 await Promise.all(pending);
+test("…and the catalyst two differ by exactly the voices swap, nothing else", async () => {
+  if (!fs.existsSync(SCENARIOS)) { console.log("      (not built — skipped)"); return; }
+  const { INTERNAL_VOICE_CONTRACT } = await import("../scripts/presets/lib/internalVoices.mjs");
+  const { contractTextFor } = await import("../src/runtime/simulationContracts.js");
+  const reference = RULES_CONSUMERS.find((consumer) => !(consumer in CLEARED) && !EXCLUDED.has(consumer));
+  for (const id of fs.readdirSync(SCENARIOS)) {
+    const worldPath = path.join(SCENARIOS, id, "world.json");
+    if (!fs.existsSync(worldPath)) continue;
+    const world = JSON.parse(fs.readFileSync(worldPath, "utf8"));
+    const declared = new Set(world.contracts ?? []);
+    const full = assembleRules(world, reference);
+    for (const consumer of TRIMMED_VOICES) {
+      let expected = full;
+      if (declared.has("voices")) {
+        assert.ok(expected.includes(INTERNAL_VOICE_CONTRACT), `${id}: the full voices text was in the assembly`);
+        expected = expected.replace(INTERNAL_VOICE_CONTRACT, contractTextFor("voices", consumer));
+      }
+      assert.equal(assembleRules(world, consumer), expected,
+        `${id}/${consumer}: differs from the full assembly by something other than the voices swap`);
+    }
+  }
+});
+
 console.log(`\n${pass} passed\n`);

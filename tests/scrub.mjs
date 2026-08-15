@@ -189,4 +189,33 @@ test("the ones still without an effect are narrative beats, not missing work", (
   ]);
 });
 
+// ---- the advisor label that reached a stage --------------------------------------
+
+test("A VOICE'S SYSTEM PREFIX COMES OUT OF PROSE AND THE OFFICE STAYS", async () => {
+  // Measured shape (PC 11차, voices × catalystCreation ON arm): four of four
+  // violations staged the advisor under the engine's own marker.
+  const { stripMachineSyntax } = await import("../src/runtime/machineSyntax.js");
+  assert.equal(
+    stripMachineSyntax("Internal: Head of Military이 지도를 짚었다"),
+    "Head of Military이 지도를 짚었다",
+  );
+  assert.equal(
+    stripMachineSyntax("참석자: Internal: Head of Military, Domestic: Newspaper 편집장"),
+    "참석자: Head of Military, Newspaper 편집장",
+  );
+  assert.equal(
+    stripMachineSyntax("내부 감사(Internal: Head of Intelligence)가 보고했다"),
+    "내부 감사(Head of Intelligence)가 보고했다",
+    "inside brackets too — that is where a cast list puts it",
+  );
+});
+
+test("…but ORDINARY WRITING THAT STARTS WITH THOSE WORDS IS NOT TOUCHED", async () => {
+  const { stripMachineSyntax } = await import("../src/runtime/machineSyntax.js");
+  // The word, then a colon that belongs to the sentence — no prefix, no strip.
+  assert.equal(stripMachineSyntax("Internal audit: the ledger is clean"),
+    "Internal audit: the ledger is clean");
+  assert.equal(stripMachineSyntax("국내(Domestic) 생산이 늘었다"), "국내(Domestic) 생산이 늘었다");
+});
+
 console.log(`\n${pass} passed`);

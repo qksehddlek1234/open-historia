@@ -22,6 +22,7 @@ const { INTERNAL_VOICES, INTERNAL_VOICE_CONTRACT, voicePolities } =
   await import("../scripts/presets/lib/internalVoices.mjs");
 const { isTerritorylessVoiceName, isTerritorylessVoice } =
   await import("../src/runtime/internalVoices.js");
+const { contractTextFor } = await import("../src/runtime/simulationContracts.js");
 
 const BUILD = read("scripts/presets/build-preset.mjs");
 const GAMEPLAY = read("src/Game/AI/gameplay.js");
@@ -241,6 +242,78 @@ test("the builder carries the flag now, and only for the polity that set it", ()
   assert.equal(flagged.length, 1, "exactly one polity on this board is speechless");
   assert.equal(flagged[0].name, "The Dead");
   assert.ok(flagged[0].aliases.includes("죽은 자"), "and it carries its aliases with it");
+});
+
+// ---- 4. the catalyst lane: the stage a voice must never reach ------------------------
+
+// PC 11차 measured both arms hot on voices × catalyst: the model casts advisors
+// as scene characters, and with the contract loaded it stages them under the raw
+// prefix. The handover asked whether production actually exposes voices there.
+// It does not — via a roster. It exposes them via the CONTRACT, and these pins
+// hold both halves of that repair.
+
+test("THE CATALYST LANES GET THE PROHIBITION WITHOUT THE MACHINE PREFIXES", () => {
+  for (const lane of ["catalystCreation", "catalystExecutor"]) {
+    const text = contractTextFor("voices", lane);
+    assert.notEqual(text, INTERNAL_VOICE_CONTRACT, `${lane} takes the scene variant`);
+    assert.doesNotMatch(text, /Internal:|Domestic:/,
+      `${lane} must not be taught the strings it then stages`);
+    assert.match(text, /NEVER put one in a scene/, "and it is told the one thing it needs");
+    assert.ok(text.length < INTERNAL_VOICE_CONTRACT.length, "shorter than the talking-lane text");
+  }
+});
+
+test("…and EVERY OTHER LANE IS UNTOUCHED — a pending measurement is not preempted", () => {
+  // voices × jumpForward is 13차's cell on the PC lane. Changing what that lane
+  // sees here would silently rewrite the experiment before it ran.
+  for (const lane of ["jumpForward", "autoJumpForward", "catalystSummary", "leader", "advisor", "countryStatSheet"]) {
+    assert.equal(contractTextFor("voices", lane), INTERNAL_VOICE_CONTRACT, `${lane} keeps the full text`);
+  }
+});
+
+test("A STAGED VOICE LABEL IS SCRUBBED OUT OF CATALYST PROSE, and the words stay", async () => {
+  const { normalizeWorldState } = await import("../src/runtime/gameState.js");
+  const world = normalizeWorldState({
+    activeCatalyst: {
+      title: "Internal: Head of Military의 긴급 보고",
+      premise: "참석자: Internal: Head of Military, Domestic: Newspaper 편집장",
+      opening: "작전실에서 Internal: Head of Intelligence가 지도를 짚었다",
+      choices: ["Domestic: Civilians의 요구를 듣는다", "강원(KOR.6_1)으로 병력을 보낸다"],
+      history: [{ choice: "Internal: Economic Advisor에게 묻는다", summary: "Internal: Economic Advisor가 국고를 열었다" }],
+    },
+  });
+  const catalyst = world.activeCatalyst;
+  const everything = [
+    catalyst.title, catalyst.premise, catalyst.opening,
+    ...catalyst.choices.map((choice) => choice.text),
+    catalyst.history[0].choice, catalyst.history[0].summary,
+  ].join(" | ");
+  assert.doesNotMatch(everything, /Internal:|Domestic:/, "no machine prefix survives to the screen");
+  assert.match(catalyst.title, /Head of Military의 긴급 보고/, "the sentence itself is untouched");
+  assert.match(catalyst.premise, /Newspaper 편집장/);
+  assert.equal(catalyst.choices[1].text, "강원으로 병력을 보낸다", "and the scene joins the rest of the scrubber's cover");
+});
+
+test("THE FEEDBACK LOOP IS CLOSED: a voice named in prose is not re-supplied as history", async () => {
+  // The PC lane's correction to 11차: the two hot catalyst lanes never receive a
+  // roster, but they DO receive the chronicle — and event prose, consolidation
+  // summaries and ledger facts had no voice filter, so a name staged once came
+  // back as history every turn afterwards. Structured fields were already
+  // guarded (the two console lines above); this is the prose half.
+  const { normalizeEvents, normalizeWorldState } = await import("../src/runtime/gameState.js");
+  const [event] = normalizeEvents([{
+    title: "Internal: Head of Military의 경고",
+    description: "작전실에서 Domestic: Newspaper가 1면을 실었다",
+    date: "1200-01-01",
+  }]);
+  assert.equal(event.title, "Head of Military의 경고");
+  assert.doesNotMatch(event.description, /Internal:|Domestic:/);
+  const world = normalizeWorldState({
+    consolidatedHistory: [{ summary: "Internal: Economic Advisor가 국고를 열었다" }],
+    campaignLedger: [{ key: "x", fact: "Internal: Head of Intelligence의 보고", updated: "1200-01-01" }],
+  });
+  assert.equal(world.consolidatedHistory[0].summary, "Economic Advisor가 국고를 열었다");
+  assert.equal(world.campaignLedger[0].fact, "Head of Intelligence의 보고");
 });
 
 

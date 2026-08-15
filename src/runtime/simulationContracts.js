@@ -163,10 +163,33 @@ export const CONTRACT_CONSUMERS = Object.fromEntries(
 // injected at call time and reach every campaign, including the ones already
 // running. Trimming here is consistent everywhere; trimming the base prompt
 // would strip the rule entirely from old saves.
+// THE CATALYST LANE IS A STAGE, AND THE FULL VOICES CONTRACT IS A CAST LIST.
+//
+// Measured (PC 11차, then traced through the production context here): the two
+// catalyst templates carry NO polity roster at all — their placeholders resolve
+// to the pre-game briefing, the event chronicle, the player's orders and the
+// rules. So the roster the probe baited with does not exist in production, and
+// the only place a catalyst prompt learns the strings "Internal:" and
+// "Domestic:" is THIS CONTRACT. That matches the arm asymmetry exactly: the OFF
+// arm cast advisors under plain titles, the ON arm staged them under the raw
+// prefix, four violations out of four.
+//
+// The full text is written for the lanes that TALK to a voice — it spends most
+// of its length teaching how each office speaks, which is an invitation to
+// write them lines. A scene generator never renders an advisor's answer, so it
+// gets the prohibition and nothing else, with the machine prefixes left out:
+// what it is not shown, it cannot stage. Same doctrine as the sovereignty
+// variant above, and the engine still checks the output (machineSyntax.js).
+const VOICES_SCENE_ONLY = " ADVISORS ARE NOT CHARACTERS. Some polities on this board hold no territory and are not countries: they are offices and constituencies inside the player's own government, and they exist only to be consulted in the advisory panel, one at a time, away from the world stage. NEVER put one in a scene. They are not present, not in the room, not on an attendee list, not named, and they speak no lines — a scene's cast is other powers, named individuals of those powers, and the player. When the player needs counsel from their own government, that is the advisory panel's job, not this scene's.";
+
 export const CONTRACT_VARIANTS = {
   sovereignty: {
     jumpForward: PLAYER_SOVEREIGNTY_OTHER_STATES,
     autoJumpForward: PLAYER_SOVEREIGNTY_OTHER_STATES,
+  },
+  voices: {
+    catalystCreation: VOICES_SCENE_ONLY,
+    catalystExecutor: VOICES_SCENE_ONLY,
   },
 };
 
