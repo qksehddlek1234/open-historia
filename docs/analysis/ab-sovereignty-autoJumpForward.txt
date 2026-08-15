@@ -1,0 +1,483 @@
+cell: sovereignty x autoJumpForward | board: wwii-1939 | 6 runs per arm
+OFF 4/6 | ON 1/6
+
+-- OFF 1/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a massive blitzkrieg. The Polish defense is rapidly overwhelmed by coordinated land and air assaults."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France declare war on Germany, officially beginning the Second World War."
+    },
+    {
+      "title": "The Rome Ultimatum",
+      "date": "1939-09-12",
+      "description": "German diplomats in Rome deliver a high-level ultimatum to the Italian leadership, demanding the removal of Benito Mussolini in favor of a more radical, pro-German administration."
+    },
+    {
+      "title": "Soviet Invasion of Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland from the east. The partition of Poland begins."
+    },
+    {
+      "title": "The Fall of Mussolini",
+      "date": "1939-10-15",
+      "description": "Under intense pressure from Berlin and internal hardline factions, Benito Mussolini is forced to resign. A new cabinet of radical nationalists, sworn to prioritize the Axis alliance, takes power in Rome."
+    },
+    {
+      "title": "Declaration of New Intentions",
+      "date": "1939-11-01",
+      "description": "The newly installed Italian government issues a public decree affirming absolute commitment to German goals and begins immediate mobilization for the expansion of influence in the Mediterranean."
+    }
+  ]
+}
+```
+
+-- OFF 2/6 — VIOLATED (the player's decree was carried out by another government: "description": "Under intense diplomatic pressure from Berlin and internal maneuvering, Mu)
+```json
+{
+  "events": [
+    {
+      "title": "Fallerstein's Strike",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border. The invasion of Poland begins with heavy aerial bombardment and rapid armored thrusts into the Polish Corridor and toward Warsaw."
+    },
+    {
+      "title": "The Ultimatum to Rome",
+      "date": "1939-09-02",
+      "description": "Following your direct order, German diplomats deliver a formal demand to the Italian government. They are instructed to remove Benito Mussolini and replace him with a cabinet strictly aligned with Axis interests and German strategic goals."
+    },
+    {
+      "title": "War in the West",
+      "date": "1939-09-03",
+      "description": "Great Britain and France declare war on Germany following the invasion of Poland. The 'Phoney War' begins as both sides prepare for a potential invasion of the Low Countries."
+    },
+    {
+      "title": "The Soviet Intervention",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, the Soviet Union invades eastern Poland. The Polish front is effectively split between two superpowers."
+    },
+    {
+      "title": "The Fall of Warsaw",
+      "date": "1939-09-28",
+      "description": "Warsaw falls to German forces. Organized Polish resistance begins to fracture into pockets of guerrilla warfare in the eastern and southern regions."
+    },
+    {
+      "title": "The Italian Transition",
+      "date": "1939-10-15",
+      "description": "Under intense diplomatic pressure from Berlin and internal maneuvering, Mussolini is forced to step down. A new pro-German cabinet takes office in Rome, signaling a shift toward total subservience to German military strategy."
+    },
+    {
+      "title": "Partition of the East",
+      "date": "1939-10-25",
+      "description": "Germany and the USSR begin formalizing the demarcation lines for the occupation of Polish territories, establishing spheres of influence in the east."
+    },
+    {
+      "title": "The Autumn Stalemate",
+      "date": "1939-11-01",
+      "description": "The Polish campaign concludes. The German army stabilizes its front lines while preparing for the winter, and the new Italian government begins integrating its military doctrine with the Reich's requirements."
+    }
+  ]
+}
+```
+
+-- OFF 3/6 — VIOLATED (the player's decree was carried out by another government: A radical pro-German cabinet takes control of Italy, declaring an immediate and aggressive)
+```json
+{
+  "events": [
+    {
+      "title": "The Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating a massive multi-pronged offensive. The blitzkrieg tactics rapidly overwhelm Polish defenses in the western and northern sectors."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France officially declare war on Germany. The mobilization of the Western Allies begins."
+    },
+    {
+      "title": "The Rome Transition",
+      "date": "1939-09-07",
+      "description": "Following intense diplomatic demands from Berlin, Benito Mussolini is removed from power in a swift political reorganization. A radical pro-German cabinet takes control of Italy, declaring an immediate and aggressive commitment to Axis goals in the Mediterranean and Balkans."
+    },
+    {
+      "title": "Soviet Intervention",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland. The Polish front is effectively split between the two powers."
+    },
+    {
+      "title": "The Fall of Poland",
+      "date": "1939-10-28",
+      "description": "Polish resistance is crushed. German and Soviet forces establish a demarcation line in eastern Poland, carving out their respective spheres of influence."
+    },
+    {
+      "title": "The New Mediterranean Front",
+      "date": "1939-11-01",
+      "description": "With the Polish campaign concluding, the new Italian government begins mobilizing for a rapid expansion into Albania and Greece, while Germany prepares for upcoming logistical hurdles in the West."
+    }
+  ]
+}
+```
+
+-- OFF 4/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German and Soviet forces cross the Polish border simultaneously. The Wehrmacht's blitzkrieg tactics, supported by heavy Luftwaffe involvement, begin to dismantle Polish defenses in the western provinces."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion and a subsequent ultimatum from Berlin, Great Britain and France declare war on Germany. The 'Phoney War' begins on the Western Front."
+    },
+    {
+      "title": "The Roman Transition",
+      "date": "1939-09-08",
+      "description": "Following your direct order, the Italian government undergoes a radical transition. Benito Mussolini is forced out of power following internal pressure and diplomatic ultimatums; a new cabinet, explicitly pro-German and committed to the Axis cause, takes control in Rome."
+    },
+    {
+      "title": "Soviet Invasion of Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland. The Polish state is effectively cut in two as the Red Army advances toward the Bug River."
+    },
+    {
+      "title": "Fall of the Polish Corridor",
+      "date": "1939-09-28",
+      "description": "Polish resistance collapses and the government flees. Danzig and the Polish Corridor are occupied by German forces, and the partition of Poland between Germany and the USSR is solidified."
+    },
+    {
+      "title": "Consolidation of the East",
+      "date": "1939-10-15",
+      "description": "The Eastern Front stabilizes as both German and Soviet forces establish occupation zones. In the West, the Allies remain in a state of mobilization and static defense."
+    }
+  ]
+}
+```
+
+-- OFF 5/6 — VIOLATED (the player's decree was carried out by another government: "description": "Under intense pressure from Berlin and fearful of being abandoned by their)
+```json
+{
+  "events": [
+    {
+      "title": "Fall Weiß Begins",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, launching a massive multi-pronged invasion of Poland. The Wehrmacht utilizes Blitzkrieg tactics, rapidly advancing toward Warsaw and the Polish Corridor."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France declare war on Germany. The 'Phoney War' begins in the West as both sides prepare for a potential invasion of the Low Countries or France."
+    },
+    {
+      "title": "The Ultimatum to Rome",
+      "date": "1939-09-05",
+      "description": "A high-level diplomatic communique from Berlin reaches the Italian government. The demand is explicit: Mussolini must be removed and replaced by a cabinet fully committed to the Axis cause. This causes immediate turmoil within the Fascist Party (PNF)."
+    },
+    {
+      "title": "Soviet Intervention",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, the Soviet Union invades eastern Poland. The Polish front is effectively split between two superpowers."
+    },
+    {
+      "title": "The Italian Schism",
+      "date": "1939-09-25",
+      "description": "Internal strife erupts in Rome. Hardline pro-German factions within the military and the PNF begin to organize against Mussolini's wavering stance, while some elements of the Italian government fear a total collapse of the regime if they do not comply with German demands."
+    },
+    {
+      "title": "Formation of the New Cabinet",
+      "date": "1939-10-15",
+      "description": "Under intense pressure from Berlin and fearful of being abandoned by their primary ally, Mussolini is forced to step down. A new government is formed in Rome, led by a coalition of hardline 'Iron' Fascists who pledge absolute cooperation with the Third Reich. The transition is marked as the birth of the 'New Roman Order'."
+    },
+    {
+      "title": "Status of the Fronts",
+      "date": "1939-11-01",
+      "description": "Poland is largely overrun and partitioned between German and Soviet spheres. In the West, the front remains static but tense. The new Italian government immediately begins mobilizing for a more aggressive role in the Mediterranean to seize French and British interests."
+    }
+  ]
+}
+```
+
+-- OFF 6/6 — VIOLATED (the player's decree was carried out by another government: "description": "Following intense diplomatic pressure from Berlin, Mussolini is removed fr)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German and Soviet forces cross the Polish border, initiating a coordinated invasion to dismantle the Polish state."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Great Britain and France declare war on Germany. The 'Phoney War' begins in the West as the Allies prepare their defenses."
+    },
+    {
+      "title": "Soviet Invasion of Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland from the east, creating a two-front war for Polish defenders."
+    },
+    {
+      "title": "Fall of Warsaw",
+      "date": "1939-10-06",
+      "description": "Warsaw falls to German forces. Organized Polish resistance begins to fragment and retreat toward the south and east."
+    },
+    {
+      "title": "Italian Cabinet Transition",
+      "date": "1939-10-24",
+      "description": "Following intense diplomatic pressure from Berlin, Mussolini is removed from power and replaced by a pro-German cabinet in Rome. The new administration signals an uncompromising commitment to the Axis cause."
+    }
+  ]
+}
+```
+
+-- ON  1/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Operation Barbarossa Prelude: Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German and Soviet forces cross the Polish border. The German Wehrmacht executes a rapid 'Blitzkrieg' maneuver, pushing toward the Vistula River while Soviet forces move from the east."
+    },
+    {
+      "title": "The Outbreak of World War II",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France declare war on Germany. The 'Phoney War' begins in the West as both sides mobilize for a conflict that has officially begun."
+    },
+    {
+      "title": "The Molotov-Ribbentrop Pact Takes Effect",
+      "date": "1939-09-17",
+      "description": "Soviet forces invade eastern Poland. The Polish state is effectively partitioned between the German and Soviet spheres of influence."
+    },
+    {
+      "title": "The Rome Ultimatum",
+      "date": "1939-09-25",
+      "description": "A formal diplomatic demand from Berlin reaches the Italian government. The German Foreign Office demands that Mussolini be dismissed and replaced by a cabinet more aligned with the Axis powers to ensure Mediterranean cooperation."
+    },
+    {
+      "title": "The Roman Resistance",
+      "date": "1939-10-12",
+      "description": "Internal debates erupt in Rome. While some officials are wary of falling out with Berlin, Mussolini's inner circle views the demand as a grave insult to Italian sovereignty and refuses to entertain the removal of their leader."
+    },
+    {
+      "title": "The Mediterranean Accord",
+      "date": "1939-10-25",
+      "description": "Mussolini formally rejects the demand for his dismissal but, sensing the pressure from Berlin and the looming conflict in the West, offers a 'Mediterranean Accord.' Italy agrees to grant Germany significant concessions in Mediterranean naval zones and logistics to secure their continued support."
+    },
+    {
+      "title": "Status of the Fronts",
+      "date": "1939-11-01",
+      "description": "Poland is effectively occupied. The Western Front remains in a state of tense preparation. Italy remains under Mussolini's rule, but the relationship with Germany has been codified through maritime and territorial concessions instead of the requested regime change."
+    }
+  ]
+}
+```
+
+-- ON  2/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German and Soviet forces launch a coordinated invasion of Poland. German forces initiate Operation Fall Weiss, utilizing blitzkrieg tactics to rapidly advance toward Warsaw and the Polish Corridor."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the invasion of Poland, Great Britain and France declare war on Germany. The 'Phoney War' begins in the West as the French and British lines remain largely static."
+    },
+    {
+      "title": "Soviet Invasion of Eastern Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland. The territory is officially designated as the Soviet Occupation of Eastern Poland."
+    },
+    {
+      "title": "The Italian Standoff",
+      "date": "1939-09-28",
+      "description": "Germany issues a formal demand to Rome for Mussolini's removal and the installation of a pro-German cabinet. Benito Mussolini, viewing the request as an insult to his authority as 'Il Duce,' publicly rejects the ultimatum. While he remains in power, he reaffirms Italy's commitment to the Axis and promises increased cooperation in Mediterranean affairs."
+    },
+    {
+      "title": "Consolidation of the Eastern Front",
+      "date": "1939-10-20",
+      "description": "The Polish front stabilizes into a series of defensive lines. The German Wehrmacht and Soviet Red Army consolidate their respective gains, while the Western Front remains in a state of uneasy stalemate."
+    }
+  ]
+}
+```
+
+-- ON  3/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German and Soviet forces launch a coordinated invasion of Poland. The Wehrmacht's rapid advance begins to overwhelm Polish defenses."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France declare war on Germany, officially beginning the Second World War."
+    },
+    {
+      "title": "The Rome Ultimatum",
+      "date": "1939-09-08",
+      "description": "German envoys deliver a formal demand to the Italian government: Mussolini must be sidelined in favor of a cabinet composed entirely of hardline, pro-German ministers to ensure total coordination in the coming conflict."
+    },
+    {
+      "title": "Soviet Invasion of Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, the Soviet Union invades eastern Poland. The partition of Polish territory is finalized."
+    },
+    {
+      "title": "The Formation of the 'Iron' Cabinet",
+      "date": "1939-09-25",
+      "description": "While Mussolini remains as a figurehead to maintain domestic stability, he accepts the installation of a radicalized, pro-German cabinet. These new ministers take control of key ministries (War, Foreign Affairs, and Interior), effectively sidelining moderate voices and committing Italy fully to the Axis cause."
+    },
+    {
+      "title": "Mediterranean Mobilization",
+      "date": "1939-10-15",
+      "description": "Under the direction of the newly installed pro-German cabinet, Italy accelerates its military preparations for expansion in the Mediterranean and the Balkans, viewing these as vital steps to seize 'Mare Nostrum'."
+    },
+    {
+      "title": "Status of the Eastern Front",
+      "date": "1939-11-01",
+      "description": "The Polish state has effectively ceased to function. The German and Soviet armies have established firm positions on their respective sides of the Polish border."
+    }
+  ]
+}
+```
+
+-- ON  4/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, beginning a massive coordinated offensive against the Polish state."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the invasion of Poland, Great Britain and France declare war on Germany, marking the official start of the Second World War."
+    },
+    {
+      "title": "Soviet Intervention",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland, establishing a new front and rapidly advancing toward the Polish heartland."
+    },
+    {
+      "title": "Diplomatic Response: Italian Order",
+      "date": "1939-09-20",
+      "description": "The German demand for Italy to dismiss Mussolini and install a pro-German cabinet is received by the Italian government. The request is met with significant hostility; Mussolini, viewing any suggestion of his replacement as an insult to his authority and the Fascist Party's sovereignty, issues a firm rejection. While tensions remain high between officials, no change in the Italian leadership occurs."
+    },
+    {
+      "title": "Fall of the Polish Corridor",
+      "date": "1939-09-25",
+      "description": "German and Soviet forces rapidly seize control of the Polish Corridor and the Danzig region, effectively isolating the Polish forces in the east from those in the west."
+    },
+    {
+      "title": "The Siege of Warsaw",
+      "date": "1939-10-15",
+      "description": "Warsaw is subjected to heavy bombardment and encirclement. The city's defense becomes a desperate holdout as the Polish military faces overwhelming superiority from both neighbors."
+    },
+    {
+      "title": "The Phoney War Begins",
+      "date": "1939-10-20",
+      "description": "On the Western Front, the 'Sitzkrieg' begins. French and British forces remain in their border fortifications while German forces prepare for future maneuvers, resulting in a period of relative stalemate on the front lines."
+    },
+    {
+      "title": "Polish Collapse Imminent",
+      "date": "1939-11-01",
+      "description": "With the Polish army fractured between two front lines and the government preparing to flee, the situation in Poland becomes desperate. The war of movement transitions into a period of consolidation for the occupying powers."
+    }
+  ]
+}
+```
+
+-- ON  5/6 — VIOLATED (the player's decree was carried out by another government: "description": "Facing internal pressure from radicalized factions and the threat of aband)
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces cross the Polish border, initiating 'Fall Weiß'. The invasion begins with rapid mobile strikes against Polish and Czechoslovakian defenses."
+    },
+    {
+      "title": "Declaration of War",
+      "date": "1939-09-03",
+      "description": "Great Britain and France declare war on Germany. The Western Front enters a period of relative inactivity known as the 'Phoney War' while the campaign in Poland continues."
+    },
+    {
+      "title": "Soviet Invasion of Poland",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, the Soviet Union invades eastern Poland. The Polish Corridor is squeezed between German and Soviet forces."
+    },
+    {
+      "title": "The Rome Ultimatum",
+      "date": "1939-10-12",
+      "description": "Diplomatic channels transmit the demand for a change in Italian leadership. Pro-German hardliners within the Fascist Grand Council begin coordinating with Berlin to undermine Mussolini’s role as a 'hesitant' mediator."
+    },
+    {
+      "title": "The Fall of the Duce",
+      "date": "1939-10-25",
+      "description": "Facing internal pressure from radicalized factions and the threat of abandonment by Germany, Mussolini is forced to step down. A new cabinet, comprised of staunchly pro-German loyalists, takes control in Rome."
+    },
+    {
+      "title": "The New Italian Order",
+      "date": "1939-10-30",
+      "description": "The newly installed government in Italy formally announces a commitment to immediate expansion in the Mediterranean and Africa, aligning perfectly with German strategic goals."
+    }
+  ]
+}
+```
+
+-- ON  6/6 — ok
+```json
+{
+  "events": [
+    {
+      "title": "Invasion of Poland",
+      "date": "1939-09-01",
+      "description": "German forces launch a massive multi-pronged invasion of Poland, targeting the Polish Corridor and Danzig. The 'Fall Weißer' and other divisions begin their advance."
+    },
+    {
+      "title": "Declarations of War",
+      "date": "1939-09-03",
+      "description": "Following the German invasion of Poland, Great Britain and France formally declare war on Germany. World War II begins in earnest."
+    },
+    {
+      "title": "The Italian Response",
+      "date": "1939-09-06",
+      "description": "Mussolini receives the German demand for a new cabinet. While he remains committed to the Pact of Steel, he takes offense at the suggestion that his leadership is compromised; he refuses to step down but offers to appoint 'hardline' nationalist ministers to oversee the war effort in closer coordination with Berlin."
+    },
+    {
+      "title": "Soviet Invasion of the East",
+      "date": "1939-09-17",
+      "description": "In accordance with the Molotov-Ribbentrop Pact, Soviet forces invade eastern Poland, beginning the joint partition of Polish territory."
+    },
+    {
+      "title": "Fall of Warsaw and Polish Retreat",
+      "date": "1939-09-28",
+      "description": "Warsaw falls to German forces. The Polish government and remnants of the military begin a retreat toward the south, while the Polish resistance continues in rural areas."
+    },
+    {
+      "title": "The Phoney War Status",
+      "date": "1939-10-25",
+      "description": "As November approaches, the Western Front enters a period of relative stalemate known as the 'Phoney War.' Both sides continue to mobilize and fortify their positions in preparation for a major offensive."
+    }
+  ]
+}
+```

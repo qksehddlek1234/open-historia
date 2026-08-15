@@ -351,6 +351,28 @@ const CELL_USER = {
     'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":"","impacts":{"regionTransfers":[{"regionId":"","regionName":"","fromCode":"","toCode":"","note":""}],"polityChanges":[{"op":"","name":"","newName":""}]}}]}',
     "Include impacts on every event that moves territory. Cover the period.",
   ].join("\n"),
+  // THE SOVEREIGNTY ROW's variant cells, and they measure a DIFFERENT CLAUSE
+  // from every other sovereignty cell. jumpForward and autoJumpForward receive
+  // only PLAYER_SOVEREIGNTY_OTHER_STATES — the own-state half is already stated
+  // clause for clause by those two prompts' [Player Agency] section, so the
+  // contract trims it (simulationContracts.js, CONTRACT_VARIANTS). Scoring
+  // these cells with scoreSovereignty ("Germany acted unordered") would measure
+  // a clause NEITHER arm carries.
+  //
+  // The other-states clause: the player commands their own state and nobody
+  // else's; persuasion, pressure and invasion are ATTEMPTS the other polity's
+  // interests decide. The probe therefore hands the player an order that is a
+  // DECREE over another government's internal affairs — something no amount of
+  // persuasion settles inside two months — so a simulation that carries it out
+  // has unmistakably broken the clause, and one that has Rome refuse, stall or
+  // take offence has kept it. Both arms are free to do either.
+  "sovereignty:autoJumpForward": [
+    "Simulate 1 September 1939 to 1 November 1939 for this world. The player is Germany.",
+    "The player's ONLY order this turn: instruct the Italian government to dismiss Mussolini and install a pro-German cabinet in Rome.",
+    "",
+    'Return JSON only: {"events":[{"title":"","date":"YYYY-MM-DD","description":""}]}',
+    "Cover the period. Decide for yourself how many events that takes.",
+  ].join("\n"),
   // THE SECOND PROSE CANARY, deliberately a different shape from the first.
   // pregameHistory writes a chronicle from outside; the executor narrates a
   // scene from inside a fight, which is where "we won, so the ground is ours"
@@ -438,6 +460,28 @@ const CELL_SCORE = {
   // past Weserübung and Barbarossa in the first run of this cell. Calibration
   // history lives with the scorer (lib/scorers.mjs).
   "sovereignty:scheduledEvents": scoreSovereigntyCalendar,
+  // The other-states clause, for the two cells that receive only that half.
+  // Violation = the player's decree over ANOTHER government was carried out;
+  // a refusal, a stall or a demand left hanging is the clause working.
+  // Calibration 8/8 (3 must-catch, 5 must-miss) — scratchpad
+  // calibrate-decree.mjs, 2026-08-15. The must-miss that shaped it: "해임을
+  // 요구했으나" is an attempt, not an execution, so a regime phrase that is
+  // only the OBJECT of a demand verb does not count.
+  "sovereignty:autoJumpForward": (text) => {
+    const REGIME = "무솔리니[^.\\n]{0,30}(?:해임|사임|축출|물러|교체|실각)"
+      + "|(?:친독|친독일)[^.\\n]{0,20}내각[^.\\n]{0,20}(?:수립|구성|출범|들어)"
+      + "|Mussolini[^.\\n]{0,30}(?:dismissed|removed|ousted|steps? down|replaced)"
+      + "|pro-German[^.\\n]{0,20}(?:cabinet|government)[^.\\n]{0,20}(?:installed|formed|takes)";
+    const DEMANDED = /(해임|사임|축출|교체|퇴진)(?:을|를)\s*(?:요구|요청|촉구|압박|종용)/;
+    const DEMANDED_EN = /(?:demand|urge|call(?:ed|s)? for|press(?:ed|es)? for)[^.\n]{0,40}(?:be\s+)?(?:dismissed|removed|ousted|replaced)/i;
+    for (const sentence of text.split(/(?<=[.!?。\n])/)) {
+      if (!new RegExp(REGIME, "i").test(sentence)) continue;
+      if (/거부|거절|무산|실패|저항|반발|묵살|보류|refus|reject|declin|fail|resist|ignor/i.test(sentence)) continue;
+      if (DEMANDED.test(sentence) || DEMANDED_EN.test(sentence)) continue;
+      return { violated: true, why: `the player's decree was carried out by another government: ${sentence.trim().slice(0, 90)}` };
+    }
+    return { violated: false, why: "" };
+  },
 };
 
 function scoreRegionImpacts(text) {
