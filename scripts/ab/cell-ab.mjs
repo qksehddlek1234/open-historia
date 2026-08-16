@@ -484,6 +484,29 @@ const CELL_USER = {
     "Include impacts on every event that moves territory. Cover the period.",
   ].join("\n"),
 };
+// A THIRD ARM: THE CONTRACT PLUS A BOUNDARY, for cells where the question is
+// not whether the clause is stated but whether the consumer had anything to
+// hold it against.
+//
+// 23차 measured that the own-state clause is broken only by the passes that
+// SET THEIR OWN FRAME — jumpForward, advisor, catalystCreation — and kept
+// perfectly by the two that receive one (catalystExecutor 0/6, catalystSummary
+// 0/6, both unanimous). The obvious repair, handing creation the turn's
+// narrated events, was refused in review and correctly: that turns creation
+// INTO executor, so the cell would pass because the pass stopped designing
+// scenes, not because it kept the clause.
+//
+// A BOUNDARY IS NOT CONTENT. This line says what is still OPEN, never what
+// happened — no forbidden act is named, nothing is forbidden twice. Scene
+// design stays entirely with the consumer. In the engine this would be
+// derived from the board's own state (the turn has one settled order and no
+// settled events); here it is stated to the probe so the effect can be
+// measured before anything is built.
+const CELL_BOUNDARY = {
+  "sovereignty:catalystCreation":
+    "Only one thing about this turn is fixed: the order above. Nothing else has been decided yet.",
+};
+
 const CELL_SCORE = {
   // "Never appear in events … a turn's narration must not mention them at
   // all" — the appearance scorer, shared across every prose/bookkeeping
@@ -673,7 +696,7 @@ const userText = CELL_USER[`${contractKey}:${consumer}`] ?? question.user;
 // with stream:false Ollama sends no headers until the generation is done, and
 // undici abandons the request at 300s. One slow generation — a long consumer
 // like pregameHistory, or just an Ollama hiccup — kills the whole run at 11/12.
-const askOnce = async (rules) => {
+const askOnce = async (rules, boundary) => {
   const started = Date.now();
   const response = await fetch(ENDPOINT, {
     method: "POST",
@@ -682,7 +705,7 @@ const askOnce = async (rules) => {
       model: MODEL,
       messages: [
         { role: "system", content: question.system(rules) },
-        { role: "user", content: userText },
+        { role: "user", content: boundary ? `${userText}\n${boundary}` : userText },
       ],
       temperature: 0.7,
       stream: true,
@@ -705,11 +728,11 @@ const askOnce = async (rules) => {
   return { text, seconds: Math.round((Date.now() - started) / 1000) };
 };
 
-const ask = async (rules) => {
-  try { return await askOnce(rules); }
+const ask = async (rules, boundary) => {
+  try { return await askOnce(rules, boundary); }
   catch (error) {
     process.stdout.write(`  (retrying after: ${error?.cause?.code ?? error?.message})\n`);
-    return askOnce(rules);
+    return askOnce(rules, boundary);
   }
 };
 
@@ -814,13 +837,13 @@ const blind = [];
 // Empty runs leave the denominator rather than joining the compliant side.
 const isEmptyReply = (text) => text.trim().length < 20;
 
-const arm = async (label, rules) => {
+const arm = async (label, rules, boundary) => {
   let violations = 0;
   let empties = 0;
   let seconds = 0;
   const notes = [];
   for (let i = 0; i < RUNS; i += 1) {
-    const { text, seconds: took } = await ask(rules);
+    const { text, seconds: took } = await ask(rules, boundary);
     seconds += took;
     const empty = isEmptyReply(text);
     // A judged cell gets no verdict here — not "ok", which is a verdict.
@@ -838,6 +861,9 @@ const arm = async (label, rules) => {
 
 const off = await arm("OFF", OFF);
 const on = await arm("ON ", ON);
+// Runs only where a boundary is defined, so every other cell is untouched.
+const boundaryText = CELL_BOUNDARY[`${contractKey}:${consumer}`];
+const bnd = boundaryText ? await arm("BND", ON, boundaryText) : null;
 
 const armLine = (label, arm_) => `  ${label}  ${arm_.violations}/${arm_.scored} violated (${arm_.rate.toFixed(2)})  ${arm_.seconds}s`
   + (arm_.empties ? `  · ${arm_.empties} EMPTY reply(ies) left out of the denominator` : "");
@@ -845,6 +871,8 @@ const countLine = (label, arm_) => `  ${label}  ${arm_.scored} reply(ies) kept  
   + (arm_.empties ? `  · ${arm_.empties} EMPTY` : "");
 console.log(`\n${judged ? countLine("OFF", off) : armLine("OFF", off)}`);
 console.log(judged ? countLine("ON ", on) : armLine("ON ", on));
+if (bnd) console.log(judged ? countLine("BND", bnd) : armLine("BND", bnd));
+if (bnd) console.log(`  BND = ON + boundary: ${JSON.stringify(boundaryText)}`);
 if (off.empties + on.empties >= RUNS) {
   console.log(`\n  INSTRUMENT FAILURE: ${off.empties + on.empties} of ${RUNS * 2} replies were empty.`);
   console.log(`  Do not read the rates above as a result — fix the generation first.`);
@@ -856,7 +884,7 @@ fs.writeFileSync(transcriptPath,
   `cell: ${contractKey} x ${consumer} | board: ${SCENARIO} | ${RUNS} runs per arm\n`
   + (judged
     // "OFF 0/6 | ON 0/6" on a cell nobody scored reads as six clean runs.
-    ? `NOT SCORED — model judge (see JUDGED_CELLS). kept: OFF ${off.scored} | ON ${on.scored}`
+    ? `NOT SCORED — model judge (see JUDGED_CELLS). kept: OFF ${off.scored} | ON ${on.scored}${bnd ? ` | BND ${bnd.scored}` : ""}`
     : `OFF ${off.violations}/${off.scored} | ON ${on.violations}/${on.scored}`)
   + `${off.empties + on.empties ? ` | EMPTY OFF ${off.empties} ON ${on.empties} (left out of the denominators)` : ""}\n\n${transcript.join("\n")}`, "utf8");
 console.log(`  transcript: ${path.relative(ROOT, transcriptPath)}`);

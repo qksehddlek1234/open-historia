@@ -162,12 +162,69 @@ export const buildOwnerBorders = (features) => {
   for (let index = 0; index < features.length; index += 1) {
     if (land[index] && codes[index] && !DISPUTED_CODE.test(codes[index])) present.add(codes[index]);
   }
-  for (const segment of segments.values()) {
-    if (segment.j === -1) continue;                                   // coast: never a lie
-    const [ci, cj] = [codes[segment.i], codes[segment.j]];
-    if (ci === cj) continue;                                          // level 0 draws nothing here
+  // NEIGHBOURS ARE FOUND ON A GRID, NOT BY SHARED SEGMENTS — corrected 2026-08-16.
+  //
+  // This test used to walk `segments` and read the pairs that share one. That is
+  // how the frontier is built and it is right there; it is wrong here, because
+  // GADM does not share vertices between countries consistently. Measured on the
+  // untouched seed: 266 country pairs share at least one segment — ARG|CHL 2,480,
+  // NOR|SWE 2,237, ESP|FRA 570 — and these share NOTHING AT ALL:
+  //
+  //   CHN|MNG 0 · FIN|RUS 0 · DEU|POL 0 · CHE|FRA 0
+  //
+  // Where nothing is shared the pair was invisible, so a code whose only false
+  // line ran along such a border passed as intact. Both reported symptoms are
+  // exactly that: Qing China kept its modern MONGOLIAN border and the Russian
+  // Empire its FINNISH one, each drawn by a level-0 outline this rule cleared.
+  //
+  // What was measured when this was written was segment PARITY — every segment
+  // appears once or twice, never three times. That proves the dissolve does not
+  // double-count. It says nothing about whether every neighbour is visible to
+  // this test, and the invisible ones are precisely the pairs digitised apart.
+  //
+  // The grid is the codebase's own answer to the same problem: buildRegionAdjacency
+  // hashes every vertex to 1e-4° (~11m) because "the seed simplifies each region
+  // on its own, so mid-border vertices don't always match between neighbours".
+  // Same constant, same reason. It finds CHN|MNG (107 vertex hits) and FIN|RUS
+  // (190) where exact matching found none.
+  //
+  // AND LOOSER HERE THAN THERE, deliberately. buildRegionAdjacency runs at 11m
+  // because it is deciding which regions form one contiguous territory, where a
+  // false join merges two labels. This test only ever asks "do these two touch",
+  // and loosening it is MONOTONE SAFE: a pair the grid joins whose owners differ
+  // hits the `owners[i] !== owners[j]` line and changes nothing, so a coarser
+  // grid can only find false lines, never invent them. 11m missed DEU|POL
+  // entirely (0 hits) — on this board Prussia holds both sides, so the German
+  // outline was still drawing a border through its own territory. At 111m the
+  // pair appears and Germany drops out of `intact` with the rest.
+  //
+  // 111m is nowhere near a strait: the Bosphorus is ~700m at its narrowest and
+  // the Øresund four kilometres, so no water crossing is joined by this.
+  const GRID = 1e3;
+  const firstAt = new Map();
+  const touching = new Set();
+  for (let index = 0; index < features.length; index += 1) {
+    if (!land[index]) continue;
+    for (const ring of ringsOf(features[index]?.geometry)) {
+      if (!ring) continue;
+      for (const point of ring) {
+        const key = Math.round((point[0] + 180) * GRID) * 4194304 + Math.round((point[1] + 90) * GRID);
+        const seen = firstAt.get(key);
+        if (seen === undefined) firstAt.set(key, index);
+        else if (seen !== index) touching.add(seen < index ? `${seen},${index}` : `${index},${seen}`);
+      }
+    }
+  }
+  const neighbourCodes = new Set();
+  for (const pair of touching) {
+    const cut = pair.indexOf(",");
+    const i = Number(pair.slice(0, cut));
+    const j = Number(pair.slice(cut + 1));
+    const [ci, cj] = [codes[i], codes[j]];
+    if (!ci || !cj || ci === cj) continue;                            // level 0 draws nothing here
+    neighbourCodes.add(ci < cj ? `${ci}|${cj}` : `${cj}|${ci}`);
     if (DISPUTED_CODE.test(ci) || DISPUTED_CODE.test(cj)) continue;   // see DISPUTED_CODE
-    if (owners[segment.i] !== owners[segment.j]) continue;            // a real border, drawn by both
+    if (owners[i] !== owners[j]) continue;                            // a real border, drawn by both
     drawsFalseLine.add(ci);
     drawsFalseLine.add(cj);
   }
@@ -182,6 +239,11 @@ export const buildOwnerBorders = (features) => {
       // below is the border.
       intact,
       intactOf: present.size,
+      // How many country pairs the grid could see at all. Printed by the build
+      // so a board that loses a border to an unseen pair has a number to point
+      // at rather than a screenshot — the rule is better than it was and is
+      // still not complete (DEU|POL needs ~111m; this grid is 11m).
+      neighbourPairs: neighbourCodes.size,
       segments: { frontier: frontier.length, interior, exterior, overCounted },
       parts: parts.length,
     },

@@ -14,6 +14,9 @@ import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
 import { loadRegionCatalog, buildCountryRegionIndex } from "./lib/regionCatalog.mjs";
 import COUNTRY_NAMES from "../../src/runtime/generated/countryNames.js";
+
+// A GADM level-1 key, which is the only shape countries.pmtiles carries.
+const LEVEL_1_ID = /^[A-Z]{3}\.\d+_\d+$/;
 import { eraOwnerName, JUNK_GID0, UNCLAIMED } from "./lib/eraSovereignty.mjs";
 import { isRegionReference } from "./lib/regionRef.mjs";
 import { CONTRACTS } from "../../src/runtime/simulationContracts.js";
@@ -431,6 +434,26 @@ for (const feature of seedFc.features ?? []) {
       name: props.name ? String(props.name) : "",
       // No `country`: owner IS the country's name.
       typeId: "land",
+      // CAN THE STOCK TILES DRAW THIS ONE? Above z6.5 the map hands the fills to
+      // countries.pmtiles, which carries GADM LEVEL 1 and keys on GID_1. A region
+      // subdivided past level 1 — "ITA.6.5_1", or the HASC-shaped "DEU.DE71" —
+      // has no GID_1 there, so the tiles cannot paint it and nothing else was:
+      // Nations.jsx routed by "does the id contain a dot", and both of those do.
+      // Below z6.5 the GeoJSON paints and the map looks right, which is why this
+      // only ever showed as colour dropping out on the way IN.
+      //
+      // Reported 2026-08-16 as China, Greece, all of Italy, all of Germany,
+      // France and Spain going blank at full zoom. Measured across the fleet:
+      // ~1,450 regions on EVERY board, `default` included — 29% of the map, and
+      // there since the level-2 expansion was added. China, Greece, France and
+      // Spain have no level-1 regions left at all, which is why they go whole.
+      // Six more countries have the same fault and were not reported: India
+      // (9,475 regions fleet-wide), South Africa, the United Kingdom, Pakistan,
+      // Finland, Belgium, plus every disputed Z-code.
+      //
+      // False means "GeoJSON draws this at every zoom", which is what the
+      // authored branch already does for hand-drawn shapes.
+      ...(LEVEL_1_ID.test(gid1) ? {} : { tiled: false }),
     },
   });
 }

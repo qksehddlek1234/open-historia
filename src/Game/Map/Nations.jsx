@@ -246,8 +246,15 @@ const GADM_GEOMETRY_FILTER = [">=", ["index-of", ".", ["get", "id"]], 0];
 // the reshaped area. A plain unedited GADM region carries no `edited`, so
 // ["==", ["get","edited"], true] is false for it and these fall back exactly to the
 // dot test — stock and author-only maps render identically to before.
-const AUTHORED_GEOMETRY_FILTER = ["any", CUSTOM_GEOMETRY_FILTER, ["==", ["get", "edited"], true]];
-const STOCK_GEOMETRY_FILTER = ["all", GADM_GEOMETRY_FILTER, ["!=", ["get", "edited"], true]];
+// `tiled: false` is the build saying countries.pmtiles has no key for this
+// region — a level-2 id ("ITA.6.5_1") or a HASC one ("DEU.DE71"), neither of
+// which is a GID_1. The dot test above cannot tell those from a level-1 key, so
+// they were routed to the tiles and the tiles could not paint them: colour
+// dropped out above z6.5 across ~1,450 regions on every board. They belong with
+// the hand-drawn shapes, which the GeoJSON draws at every zoom.
+const NOT_IN_TILES = ["==", ["get", "tiled"], false];
+const AUTHORED_GEOMETRY_FILTER = ["any", CUSTOM_GEOMETRY_FILTER, ["==", ["get", "edited"], true], NOT_IN_TILES];
+const STOCK_GEOMETRY_FILTER = ["all", GADM_GEOMETRY_FILTER, ["!=", ["get", "edited"], true], ["!", NOT_IN_TILES]];
 // Crossfade bands. Detail now steps UP twice on the way in, and each step is a
 // crossfade so no border ever pops: the grid-snapped tier (coarseGeometry.js) holds
 // world view, the seed geometry takes over through the middle, and the stock vector
@@ -1889,8 +1896,27 @@ const WorldMap = ({ isGlobe = false }) => {
               8, 0.6 * borderScale,
               12, 1.0 * borderScale,
             ],
+            // A PROVINCE LINE HAS NO BUSINESS AT WORLD ZOOM, and this lane was
+            // the one place still drawing one. Its stock twin above is silenced
+            // outright (line-opacity 0) with the reason written next to it: at
+            // the zoom where a player reads which country is which, internal
+            // subdivisions are noise, and the original draws a country as one
+            // mass. The tile hairlines were pushed back to z7.5 for the same
+            // reason. This curve was still coming up at z4 and holding 0.35
+            // across the whole world view — the reported "zoomed out and the
+            // province lines are all there", and it fades neither in nor out.
+            //
+            // Worse from 2026-08-16: the tiled:false routing moved ~1,462
+            // regions a board into THIS lane, so China, India, Italy, France
+            // and Spain would have arrived here drawn in full province detail
+            // at world zoom. Fixing the fill without this would have traded one
+            // reported defect for a louder one.
+            //
+            // Now it comes up where the tiles' own hairlines do — nothing below
+            // 6.5, full by 8 — so the two lanes fade in together and the line
+            // appears as you zoom into it rather than being there all along.
             "line-opacity": customActive
-              ? ["interpolate", ["linear"], ["zoom"], 3, 0, 4, 0.35, 8, 0.6]
+              ? ["interpolate", ["linear"], ["zoom"], 6.5, 0, 8, 0.6]
               : 0,
           }}
         />
