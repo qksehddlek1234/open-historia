@@ -140,35 +140,93 @@ test("every polity the spec declares can be answered", () => {
   });
   const unanswered = Object.values(spec.polities).filter((p) => !answered(p)).map((p) => p.name);
   // THE GAP IS NAMED, ONE POLITY AT A TIME, so it cannot grow quietly — that is
-  // what this pin is for and it did its job: adding the roster below turned it
-  // red immediately.
+  // what this pin is for and it did its job twice in one day: adding the roster
+  // turned it red with forty names, and the leader pack turned it green again.
   //
-  // Why it is this long right now: the spec and the leader pack are held by
-  // different sessions. `src/runtime/leaderEras/revolutions.js` is Cowork's
-  // locked file this cycle, so the states added here — the South American
-  // republics, the Maghreb, the Senegambian and Malay kingdoms, the Company,
-  // Nejd, Wallachia and Moldavia — arrive on the board before their rulers do.
-  // Every name below is a to-do with an owner, not an accepted absence.
+  // The forty were the South American republics, the Maghreb, the Senegambian
+  // and Malay kingdoms, the Company, Nejd, Wallachia and Moldavia — states that
+  // arrived on the board before their rulers because the spec and the leader
+  // pack were held by different sessions that cycle. The list is empty because
+  // the owner finished it, not because the rule was relaxed. It stays empty.
   //
   // Peru-Bolivian Confederation left this list by being deleted: it was decreed
   // 28 October 1836 and installed 1 May 1837, so a board opening 1 January 1836
   // could not carry it. Peru and Bolivia stand in its place.
-  assert.deepEqual(unanswered.sort(), [
-    "Almamate of Futa Toro", "Beylik of Tunis", "Bhutan",
-    "Bolivia", "Bornu", "Chile",
-    "East India Company", "Ecuador", "Emirate of Asir",
-    "Emirate of Nejd", "Kaabu", "Kingdom of Baol",
-    "Kingdom of Benin", "Kingdom of Bundu", "Kingdom of Cayor",
-    "Kingdom of Kaarta", "Kingdom of Saloum", "Kingdom of Segu",
-    "Kingdom of Sine", "Mahra Sultanate", "Massina Empire",
-    "Mexico", "Negeri Sembilan", "Oyo",
-    "Paraguay", "Peru", "Principality of Moldavia",
-    "Principality of Wallachia", "Republic of Krakow", "Sindh",
-    "Sultanate of Brunei", "Sultanate of Johore", "Sultanate of Lahej",
-    "Sultanate of Perak", "Sultanate of Selangor", "Switzerland",
-    "Uruguay", "Venezuela", "Vilayet of Tripolitania",
-    "Yemen",
-  ], "a name added here without a leader row is a to-do, not a decision");
+  assert.deepEqual(unanswered.sort(), [],
+    "a name added here without a leader row is a to-do, not a decision");
+});
+
+test("the forty new thrones answer with a PERSON where the record has one", () => {
+  // Sampled across the five groups the roster added, because a pack can pass
+  // the emptiness pin above while quietly answering everything with an
+  // institution. These are places where a named ruler IS on record.
+  for (const [polity, expected] of [
+    ["Bolivia", /안드레스 데 산타 크루스/],
+    ["Paraguay", /^종신 최고독재관 호세 가스파르/],  // 파라과이에 "대통령"은 1844년까지 없다
+    ["Kingdom of Benin", /오바 오셈웬데/],
+    ["Massina Empire", /세쿠 아마두/],
+    ["Emirate of Nejd", /^이맘 파이살 빈 투르키/],    // 술탄도 국왕도 아니다 — 그 칭호는 20세기다
+    ["Sultanate of Perak", /샤하부딘 리아얏 샤/],
+    ["Principality of Wallachia", /알렉산드루 디미트리에 기카/],
+    ["Principality of Moldavia", /미하일 스투르자/],
+    ["Republic of Krakow", /비엘로그워프스키/],
+  ]) {
+    assert.match(referenceLeadership(polity, "1836-01-01").leader ?? "", expected,
+      `${polity}: the record names a person here`);
+  }
+});
+
+test("…and with an OFFICE where it does not — the Ragusa rule, four times", () => {
+  // Kaabu's nineteenth-century king list does not exist: Mandinka oral history
+  // transmits "forty-seven mansas" and preserves two names, neither of them in
+  // the 1830s. Baol's two source lineages contradict each other outright (its
+  // own teigne, or the Cayor damel holding both crowns). Sine's single
+  // candidate has an accession dated 1825 by Klein and 1839 by the Senegambian
+  // king lists. Switzerland had no permanent head of state at all under the
+  // 1815 pact — the Vorort rotated between three cantons every two years.
+  //
+  // Four different KINDS of absence, and not one of them is a reason to write a
+  // name. What this holds is that the answer still arrives.
+  for (const [polity, expected] of [
+    ["Kaabu", /만사바/],
+    ["Kingdom of Baol", /테인/],
+    ["Kingdom of Sine", /마드 아 시니그/],
+    ["Switzerland", /의장/],
+  ]) {
+    const held = referenceLeadership(polity, "1836-01-01").leader ?? "";
+    assert.match(held, expected, `${polity}: name the office when the person is not on record`);
+    assert.ok(!isRoleSentinel(held), `${polity}: an institution is an answer, "(없음)" is not`);
+  }
+});
+
+test("where name and power split, the board gets BOTH", () => {
+  // Bornu has two rulers in 1836 and the one that matters is not on the throne:
+  // the Sayfawa mai reigns, the shehu who beat back the Fulani jihad governs.
+  // Johore is the same shape for the opposite reason — the sultan died in
+  // September 1835 and his heir was ten, unrecognised by the British for twenty
+  // years, while the temenggong ran the mainland and Singapore. Writing one of
+  // each pair erases the fact that made the country what it was.
+  const bornu = referenceLeadership("Bornu", "1836-01-01");
+  assert.match(bornu.leader ?? "", /^셰후 무함마드 알아민 알카네미/, "the shehu governs");
+  assert.match(bornu.headOfState ?? "", /마이 이브라힘 4세/, "the mai reigns");
+  const johore = referenceLeadership("Sultanate of Johore", "1836-01-01");
+  assert.match(johore.leader ?? "", /^트믄공 다잉 이브라힘/, "the temenggong rules");
+  assert.match(johore.headOfState ?? "", /술탄 알리 이스칸다르 샤/, "the boy sultan is named too");
+});
+
+test("the new polities' successions inside the campaign's first years are on record", () => {
+  // Five of the forty change hands within twenty-six months of the opening
+  // date. A board that only knows 1 January hands all five to the model.
+  assert.match(referenceLeadership("Republic of Krakow", "1836-03-01").leader ?? "", /할레르/,
+    "Austrian troops entered on 17 February and the president resigned on the 25th");
+  assert.match(referenceLeadership("East India Company", "1836-06-01").leader ?? "", /오클랜드/,
+    "Metcalfe handed over on 4 March 1836");
+  assert.match(referenceLeadership("Almamate of Futa Toro", "1836-12-01").leader ?? "", /바발리 리/,
+    "an elective almamate turns over in months, not decades");
+  assert.match(referenceLeadership("Bornu", "1837-09-01").leader ?? "", /우마르/,
+    "al-Kanemi died 8 June 1837");
+  assert.match(referenceLeadership("Beylik of Tunis", "1838-01-01").leader ?? "", /아흐마드 1세/,
+    "Mustafa died 10 October 1837");
 });
 
 test("what is named is named, and a rotating office is an institution", () => {
@@ -206,6 +264,18 @@ test("Muhammad Ali is a GOVERNOR — the khedive title is thirty-one years away"
     "still a governor five months before the grant");
   assert.match(referenceLeadership("Egypt", "1867-07-01").leader ?? "", /^케디브 이스마일/,
     "and a khedive after it");
+});
+
+test("…while the ROSTER carries the original's name — the split is the precedent", () => {
+  // The player was asked to choose between accuracy and reproduction and chose
+  // to split them (2026-08-16): the board says what the original says, the
+  // titles and the territory say what the year says. The two files above and
+  // below this line are that division of labour, and a future session that
+  // "fixes" one to match the other undoes a decision rather than a bug.
+  assert.equal(byName.get("Khedivate of Egypt")?.name, "Khedivate of Egypt",
+    "the roster carries the original's name for this state");
+  assert.ok(byName.get("Khedivate of Egypt")?.aliases?.includes("Egypt of Muhammad Ali"),
+    "and the accurate name survives as an alias, so old faces and saves still land");
 });
 
 test("Andorra keeps both co-princes, because one of them is the whole point", () => {

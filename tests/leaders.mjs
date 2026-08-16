@@ -284,43 +284,22 @@ await (async () => {
       }
     }
   }
-  // A HANDOVER, NOT AN ACCEPTANCE — and it must shrink to nothing.
+  // THE HANDOVER LIST IS GONE, AND THAT IS THE POINT OF IT.
   //
-  // victorian-1836 gained forty polities on 2026-08-16 (the South American
-  // republics, the Maghreb, Sokoto and the Senegambian kingdoms, the East India
-  // Company and the Malay sultanates, Nejd, Wallachia and Moldavia) because the
-  // board was drawing those lands as holes — the player reported South America
-  // and Switzerland as missing. The spec and the leader pack are held by
-  // different sessions this cycle: leaderEras/revolutions.js is Cowork's locked
-  // file, so the states arrive before their rulers.
+  // A waiver list stood here for one day. victorian-1836 gained forty polities
+  // on 2026-08-16 (the South American republics, the Maghreb, the Senegambian
+  // kingdoms, the East India Company and the Malay sultanates, Nejd, Wallachia
+  // and Moldavia) because the board had been drawing those lands as holes, and
+  // the spec and the leader pack were held by different sessions that cycle —
+  // so the states arrived before their rulers and forty thrones sat open.
   //
-  // They are listed BY NAME rather than waived by a rule, for the same reason
-  // the 1836 spec test lists them: a count can drift, a name cannot. Anything
-  // NOT on this list still fails, which is the invariant the pin was written
-  // for — no throne is left for the model to invent unnoticed.
-  const awaitingLeaderPack = new Set([
-    "victorian-1836: Almamate of Futa Toro", "victorian-1836: Beylik of Tunis",
-    "victorian-1836: Bhutan", "victorian-1836: Bolivia",
-    "victorian-1836: Bornu", "victorian-1836: Chile",
-    "victorian-1836: East India Company", "victorian-1836: Ecuador",
-    "victorian-1836: Emirate of Asir", "victorian-1836: Emirate of Nejd",
-    "victorian-1836: Kaabu", "victorian-1836: Kingdom of Baol",
-    "victorian-1836: Kingdom of Benin", "victorian-1836: Kingdom of Bundu",
-    "victorian-1836: Kingdom of Cayor", "victorian-1836: Kingdom of Kaarta",
-    "victorian-1836: Kingdom of Saloum", "victorian-1836: Kingdom of Segu",
-    "victorian-1836: Kingdom of Sine", "victorian-1836: Mahra Sultanate",
-    "victorian-1836: Massina Empire", "victorian-1836: Mexico",
-    "victorian-1836: Negeri Sembilan", "victorian-1836: Oyo",
-    "victorian-1836: Paraguay", "victorian-1836: Peru",
-    "victorian-1836: Principality of Moldavia", "victorian-1836: Principality of Wallachia",
-    "victorian-1836: Republic of Krakow", "victorian-1836: Sindh",
-    "victorian-1836: Sultanate of Brunei", "victorian-1836: Sultanate of Johore",
-    "victorian-1836: Sultanate of Lahej", "victorian-1836: Sultanate of Perak",
-    "victorian-1836: Sultanate of Selangor", "victorian-1836: Switzerland",
-    "victorian-1836: Uruguay", "victorian-1836: Venezuela",
-    "victorian-1836: Vilayet of Tripolitania", "victorian-1836: Yemen"
-  ]);
-  assert.deepEqual(failures.filter((f) => !awaitingLeaderPack.has(f)), [],
+  // They were listed BY NAME rather than waived by a rule, so that the list
+  // could only shrink and never quietly grow. leaderEras/revolutions.js filled
+  // all forty the same day and the list came out. No exemption replaces it:
+  // from here a preset polity with no answerable ruler fails outright, which is
+  // the invariant the pin was written for — no throne is left for the model to
+  // invent unnoticed.
+  assert.deepEqual(failures, [],
     "every post-1444 preset polity must resolve");
   pass += 1;
   console.log("  ok  every polity of every preset from 1444 on resolves");
