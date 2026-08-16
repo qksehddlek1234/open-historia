@@ -66,7 +66,140 @@ const getCentroid = (ring) => {
   return { cx: x / scale, cy: y / scale };
 };
 
-const getPrincipalAxisAngle = (ring) => {
+// A shape's direction, carried as RUNNING SUMS over AREA. Two things forced
+// this form.
+//
+// A country is often not one polygon — a colonial empire is dozens — and sums
+// are the one form that lets those be measured together without holding their
+// points: merging two territories is adding two accumulators, exactly, in any
+// order.
+//
+// And it is the area that is measured, not the outline's points. Counting
+// points measures how finely each border was drawn: a region with an intricate
+// coast brings thousands of vertices and an inland one with a straight border
+// brings a dozen, so the answer follows the cartographer's pen. Measured on
+// wwii-1935 that put ITALY at -19°, tilted the wrong way across the most
+// obviously angled country in Europe, and PORTUGAL at +55° across a strip that
+// runs north-south. These are the standard polygon moments, so a province
+// counts for its size and nothing else.
+export const createAxisMoments = () => ({ a: 0, sx: 0, sy: 0, sxx: 0, sxy: 0, syy: 0 });
+
+export const addAxisMoments = (into, from) => {
+  if (!from) return into;
+  into.a += from.a;
+  into.sx += from.sx;
+  into.sy += from.sy;
+  into.sxx += from.sxx;
+  into.sxy += from.sxy;
+  into.syy += from.syy;
+  return into;
+};
+
+// One closed ring, in the space it will be drawn in. Winding order is absorbed
+// here (a clockwise ring integrates negative), so callers may pass rings from
+// any source and still add them together.
+export const addAxisPolygon = (moments, ring) => {
+  if (!ring || ring.length < 3) return moments;
+
+  let a = 0;
+  let sx = 0;
+  let sy = 0;
+  let sxx = 0;
+  let sxy = 0;
+  let syy = 0;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const [xj, yj] = ring[j];
+    const [xi, yi] = ring[i];
+    const cross = xj * yi - xi * yj;
+    a += cross;
+    sx += (xj + xi) * cross;
+    sy += (yj + yi) * cross;
+    sxx += (xj * xj + xj * xi + xi * xi) * cross;
+    syy += (yj * yj + yj * yi + yi * yi) * cross;
+    sxy += (xj * yi + 2 * xj * yj + 2 * xi * yi + xi * yj) * cross;
+  }
+
+  const sign = a < 0 ? -1 : 1;
+  moments.a += (sign * a) / 2;
+  moments.sx += (sign * sx) / 6;
+  moments.sy += (sign * sy) / 6;
+  moments.sxx += (sign * sxx) / 12;
+  moments.syy += (sign * syy) / 12;
+  moments.sxy += (sign * sxy) / 24;
+
+  return moments;
+};
+
+const covarianceOf = (moments) => {
+  if (!moments || !(moments.a > 0)) return null;
+
+  const mx = moments.sx / moments.a;
+  const my = moments.sy / moments.a;
+
+  return {
+    cxx: moments.sxx / moments.a - mx * mx,
+    cxy: moments.sxy / moments.a - mx * my,
+    cyy: moments.syy / moments.a - my * my,
+  };
+};
+
+// The major axis, in degrees, folded into (-90, 90] so text never prints
+// upside down.
+export const axisAngleOfMoments = (moments) => {
+  const c = covarianceOf(moments);
+  if (!c) return 0;
+
+  const angleRad = Math.atan2(2 * c.cxy, c.cxx - c.cyy) / 2;
+  let degrees = angleRad * (180 / Math.PI);
+
+  if (degrees > 90) degrees -= 180;
+  if (degrees < -90) degrees += 180;
+
+  return degrees;
+};
+
+// WHERE AN ANGLE STOPS MEANING ANYTHING, read off the map rather than picked.
+// Every one of wwii-1935's 109 seat territories was measured (elongation, and
+// the angle it produces) and the two groups separate cleanly here:
+//
+//   above — MOROCCO 3.4/-7°, ALBANIA 2.7/84°, TURKEY 2.7/0°, FRENCH EQUATORIAL
+//           AFRICA 2.5/-76°, ITALY 1.4/21°, THE BRITISH ISLES 1.4/-80°: every
+//           one of them the tilt you would draw by hand.
+//   below — BELGIAN CONGO 1.10/85°, THE NETHERLANDS 1.05/-79°, EGYPT 1.11/68°,
+//           BRAZIL 1.34/44°, SPAIN 1.06/-26°: not one defensible from the
+//           shape, because a round country has no direction to find. The
+//           readings are not merely uncertain — a perfectly round one resolves
+//           to atan2(0, -epsilon), a hard 90° off a shape with no vertical in
+//           it, which is how SPAIN first came to stand on end.
+//
+// A territory sitting near the line can cross it as its borders move and swap
+// between flat and a shallow tilt. That is the honest behaviour: at 1.4 the two
+// readings are about equally good, which is exactly why the line is here.
+export const AXIS_ELONGATION_FLOOR = 1.4;
+
+// HOW MUCH DIRECTION IS THERE, as the ratio of the fitted ellipse's axes. A
+// square has none: its two eigenvalues are equal, and the angle then falls out
+// of atan2(0, -epsilon) — which is 90°, a hard vertical read off a shape with
+// no vertical in it. Any caller turning an angle into a drawn rotation has to
+// know whether the angle means anything, and this is that number.
+export const axisElongationOfMoments = (moments) => {
+  const c = covarianceOf(moments);
+  if (!c) return 1;
+
+  const mean = (c.cxx + c.cyy) / 2;
+  const spread = Math.sqrt(((c.cxx - c.cyy) / 2) ** 2 + c.cxy * c.cxy);
+  const minor = mean - spread;
+  if (!(minor > 0)) return Infinity;
+
+  return Math.sqrt((mean + spread) / minor);
+};
+
+// The curved country labels below read this instead: they need the axis of the
+// one ring they are about to thread glyphs along, and they walk that ring's
+// points anyway. Left as it ships — the owner lane's accumulator above is the
+// one that had to change, because it sums across many rings.
+export const getPrincipalAxisAngle = (ring) => {
   if (!ring || ring.length < 3) return 0;
 
   let mx = 0;
@@ -97,7 +230,6 @@ const getPrincipalAxisAngle = (ring) => {
 
   return degrees;
 };
-
 const tileToLngLat = (px, py, extent = 4096) => {
   const lng = (px / extent) * 360 - 180;
   const latRad = Math.atan(Math.sinh(Math.PI * (1 - (2 * py) / extent)));
@@ -107,6 +239,26 @@ const tileToLngLat = (px, py, extent = 4096) => {
 
 const ringToLngLat = (ring, extent = 4096) =>
   ring.map(([px, py]) => tileToLngLat(px, py, extent));
+
+// The inverse, and it exists because AN ANGLE IS ONLY MEANINGFUL IN THE SPACE
+// IT IS DRAWN IN. Tile space is square Web Mercator with y pointing DOWN,
+// which is also how MapLibre reads text-rotate (positive = clockwise), so the
+// axis measured here can be handed straight to the layer — which is what the
+// country lane below does with bestRingTile.
+//
+// Measure the same territory in raw lng/lat instead and it fails twice. y
+// points UP there, so every tilt comes out MIRRORED: French West Africa runs
+// west-northwest to east-southeast and its label drew rising eastward. And a
+// degree of latitude is worth 1/cos(lat) tile units, so a northern country
+// reads as flatter than it draws — 2x understated by 60°N.
+export const lngLatToTile = ([lng, lat], extent = 4096) => {
+  // Web Mercator has no north pole; past this latitude y runs to infinity.
+  const clamped = Math.max(-85.051129, Math.min(85.051129, lat));
+  const px = ((lng + 180) / 360) * extent;
+  const py =
+    (extent / 2) * (1 - Math.asinh(Math.tan((clamped * Math.PI) / 180)) / Math.PI);
+  return [px, py];
+};
 
 const getPolylineLength = (points) => {
   let length = 0;

@@ -373,9 +373,24 @@ test("a possession may not out-print the seat it belongs to", () => {
   // repeat bigger than the country. The seat's own scale is the ceiling.
   const at = NATIONS.indexOf("const seatScale");
   assert.notEqual(at, -1, "the seat's scale must be computed before the loop");
-  const block = NATIONS.slice(at, at + 1400);
+  // Sliced to the END OF THE BUILDER, not a byte count: a fixed 1400-char
+  // window broke the moment the rotation note was written above `tier`, and a
+  // pin that fails because a comment grew is a pin measuring the wrong thing.
+  const block = NATIONS.slice(at, NATIONS.indexOf("return { type: \"FeatureCollection\"", at));
   assert.match(block, /areaScale: index === 0 \? ownScale : Math\.min\(ownScale, seatScale\)/);
   assert.match(block, /tier: index === 0 \? 0 : 1/);
+
+  // AND THE LABEL LIES ALONG THE TERRITORY. This was hardcoded flat, which
+  // is what put BELGIAN CONGO on top of BRITISH EAST AFRICA — both single
+  // clusters, so the tier split above cannot separate them. Country labels
+  // already rotate by principal axis; this brings the owner lane into line.
+  // The angle comes off the cluster's accumulated AREA, and only where the
+  // shape has a direction to give. label-leaders.mjs holds that behaviour;
+  // this holds the wiring.
+  assert.match(block, /axisElongationOfMoments\(cluster\.axis\) >= AXIS_ELONGATION_FLOOR/,
+    "a round territory has no axis to draw along");
+  assert.match(block, /\? axisAngleOfMoments\(cluster\.axis\)/);
+  assert.doesNotMatch(block, /rotation: 0,/, "flat-for-everyone may not come back");
 });
 
 

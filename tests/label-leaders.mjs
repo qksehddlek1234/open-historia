@@ -26,6 +26,45 @@ const {
   buildLeaderPlacement, LEADER_AREA_SCALE_FLOOR, LEADER_LABEL_AREA_SCALE, LEADER_EXTENSION_DEFAULT,
 } = await import("../src/runtime/labelLeaders.js");
 
+const {
+  addAxisMoments, addAxisPolygon, axisAngleOfMoments, axisElongationOfMoments,
+  createAxisMoments, getPrincipalAxisAngle, lngLatToTile, AXIS_ELONGATION_FLOOR,
+} = await import("../src/runtime/countryLabels.js");
+
+// Exactly what the owner lane hands the layer: every region's outline,
+// projected, accumulated as area, and drawn on only if there is a direction.
+const ownerMoments = (...rings) => {
+  const total = createAxisMoments();
+  for (const ring of rings) {
+    // (point) => …, never map(lngLatToTile): map hands the index along as the
+    // tile extent, which silently rescales every ring by its position.
+    const projected = ring.map((point) => lngLatToTile(point));
+    addAxisMoments(total, addAxisPolygon(createAxisMoments(), projected));
+  }
+  return total;
+};
+const ownerRotation = (...rings) => {
+  const moments = ownerMoments(...rings);
+  return axisElongationOfMoments(moments) >= AXIS_ELONGATION_FLOOR
+    ? axisAngleOfMoments(moments)
+    : 0;
+};
+
+// A rectangle, corner to corner. `steps` subdivides the west edge — the same
+// rectangle, drawn with more pen strokes.
+const rect = (west, south, east, north, steps = 1) => {
+  const ring = [[west, south], [east, south], [east, north], [west, north]];
+  for (let i = 1; i < steps; i += 1) {
+    ring.push([west, north - ((north - south) * i) / steps]);
+  }
+  ring.push([west, south]);
+  return ring;
+};
+// A strip running corner to corner, as a thin quadrilateral.
+const strip = (fromLng, fromLat, toLng, toLat, width = 1) => [
+  [fromLng, fromLat + width], [toLng, toLat + width],
+  [toLng, toLat - width], [fromLng, fromLat - width], [fromLng, fromLat + width],
+];
 // A rectangle in lng/lat around (0,0): `halfW` east-west, `halfH` north-south.
 const box = (halfW, halfH) => [
   [-halfW, -halfH], [halfW, -halfH], [halfW, halfH], [-halfW, halfH], [-halfW, -halfH],
@@ -156,4 +195,92 @@ test("and the setting is in the panel with the rest of the rendering dials", () 
   assert.match(SETTINGS, /All seven dials/);
 });
 
+console.log("\nAnd a label lies along the territory it names");
+
+test("a territory running down to the east tilts DOWN to the east", () => {
+  // MapLibre text-rotate is CLOCKWISE-positive. Measured in lng/lat this came
+  // out negative — the label rose over a territory that falls — because
+  // latitude points up where tile y points down. Caught on the 1935 map:
+  // FRENCH WEST AFRICA, running from Mauritania down to Niger, drew rising.
+  assert.ok(ownerRotation(strip(-15, 20, 12, 13)) > 0,
+    "a territory that descends eastward must tilt clockwise");
+  assert.ok(ownerRotation(strip(-15, 13, 12, 20)) < 0,
+    "and its mirror image must mirror, so this is a direction");
+});
+
+test("HOW FINELY A BORDER WAS DRAWN IS NOT A DIRECTION", () => {
+  // The reading that looked equivalent and was not. Counting outline points
+  // measures the cartographer's pen: a coast brings thousands of vertices and a
+  // straight inland border a dozen. On wwii-1935 that put ITALY at -19°, tilted
+  // the wrong way across the most obviously angled country in Europe, and
+  // PORTUGAL at +55° across a strip that runs north-south. Same rectangle, one
+  // edge drawn with 200 strokes instead of 1 — the country has not changed.
+  const plain = rect(-10, 36, 10, 44);
+  const detailed = rect(-10, 36, 10, 44, 200);
+  assert.ok(Math.abs(ownerRotation(plain) - ownerRotation(detailed)) < 0.001,
+    `detail moved the label (${ownerRotation(plain)} vs ${ownerRotation(detailed)})`);
+  // The old vertex reading is still in the file for the curved lane, and this
+  // is what it says about those two — 27° apart, for the same shape.
+  const vertexAngle = (ring) => getPrincipalAxisAngle(ring.map((p) => lngLatToTile(p)));
+  assert.ok(Math.abs(vertexAngle(plain) - vertexAngle(detailed)) > 20,
+    "if these agreed, this test would be proving nothing");
+});
+
+test("a province cannot outvote the country it is part of", () => {
+  // Moments are area-weighted, so a small piece moves the axis a small amount.
+  // This is also what lets an island join its mainland without swinging it.
+  const mainland = strip(-15, 20, 12, 13, 4);
+  const alone = ownerRotation(mainland);
+  const withIsland = ownerRotation(mainland, rect(-25, 15, -24, 16));
+  assert.ok(Math.abs(withIsland - alone) < 5,
+    `an island may not swing the label (${alone} -> ${withIsland})`);
+  // And the sum does not care what order the pieces arrived in.
+  const ab = createAxisMoments();
+  addAxisMoments(ab, ownerMoments(mainland));
+  addAxisMoments(ab, ownerMoments(rect(-25, 15, -24, 16)));
+  const ba = createAxisMoments();
+  addAxisMoments(ba, ownerMoments(rect(-25, 15, -24, 16)));
+  addAxisMoments(ba, ownerMoments(mainland));
+  assert.equal(axisAngleOfMoments(ab).toFixed(9), axisAngleOfMoments(ba).toFixed(9));
+});
+
+test("A ROUND COUNTRY IS LEFT ALONE, because it has no direction to draw along", () => {
+  // A square's two eigenvalues are equal and the angle falls out of
+  // atan2(0, -epsilon) — a hard 90° read off a shape with no vertical in it.
+  // That is how SPAIN came to stand on end. The gate is elongation, measured:
+  // see AXIS_ELONGATION_FLOOR for the 1935 board it was read off.
+  const square = rect(-4, 36, 4, 44);
+  assert.ok(axisElongationOfMoments(ownerMoments(square)) < AXIS_ELONGATION_FLOOR);
+  assert.equal(ownerRotation(square), 0, "a square must not print vertically");
+  // Not a rule about small countries — a small elongated one still lies down.
+  const sliver = rect(-0.2, 36, 0.2, 38);
+  assert.ok(axisElongationOfMoments(ownerMoments(sliver)) > AXIS_ELONGATION_FLOOR);
+  assert.ok(Math.abs(ownerRotation(sliver)) > 80);
+});
+
+test("the same run of degrees reads steeper up north, because it draws steeper", () => {
+  // A degree of latitude is worth 1/cos(lat) tile units. These two strips are
+  // the SAME diagonal in degrees, so unprojected they measure the same angle.
+  // On screen the northern one is far the steeper. Not a tuned constant: the
+  // 15° bar sits under a measured 21.5° gap.
+  const equator = strip(0, 0, 20, 14, 2);
+  const nordic = strip(0, 55, 20, 69, 2);
+  assert.equal(
+    getPrincipalAxisAngle(equator).toFixed(1),
+    getPrincipalAxisAngle(nordic).toFixed(1),
+    "unprojected, the two are indistinguishable — that is the bug",
+  );
+  const flat = Math.abs(ownerRotation(equator));
+  const steep = Math.abs(ownerRotation(nordic));
+  assert.ok(steep > flat + 15, `north must read steeper (${flat} -> ${steep})`);
+});
+
+test("and the tilt never flips the text upside down", () => {
+  // Folded into (-90, 90]. Text draws with text-keep-upright false, so
+  // anything outside that prints inverted.
+  for (const ring of [strip(0, 0, 1, 40), strip(0, 0, -1, 40), strip(0, 0, 40, 1)]) {
+    const angle = ownerRotation(ring);
+    assert.ok(angle > -91 && angle <= 91, `${angle} would print upside down`);
+  }
+});
 console.log(`\n${pass} passed\n`);

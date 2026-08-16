@@ -23,7 +23,16 @@ import {
 import { resolveRegionName } from "../../runtime/regionNameFixes.js";
 import { toCountryName } from "../../runtime/ownerNames.js";
 import { loadSeaRegionFeatures } from "../../runtime/seaRegions.js";
-import { loadCountryLabelCollections } from "../../runtime/countryLabels.js";
+import {
+  addAxisMoments,
+  addAxisPolygon,
+  axisAngleOfMoments,
+  axisElongationOfMoments,
+  AXIS_ELONGATION_FLOOR,
+  createAxisMoments,
+  lngLatToTile,
+  loadCountryLabelCollections,
+} from "../../runtime/countryLabels.js";
 import { translateLabel } from "../../runtime/translator.js";
 import {
   MAP_SETTING_KEYS, borderFadeStops, useDisplayScale, useMapRenderValue, useMapSetting,
@@ -268,6 +277,15 @@ const largestRingOf = (geometry) => {
   return best ? { ring: best, area: bestArea } : null;
 };
 
+// The direction of one region's outline, projected into the space it draws in
+// (lngLatToTile explains why that is not optional). Returned as sums so a
+// territory's regions can be added together later without keeping any points.
+const ringAxisMoments = (ring) => {
+  const moments = createAxisMoments();
+  addAxisPolygon(moments, ring.map((point) => lngLatToTile(point)));
+  return moments;
+};
+
 const ringCentroidLngLat = (ring) => {
   let x = 0;
   let y = 0;
@@ -343,6 +361,9 @@ const mergeOwnerClusters = (clusters, joinDeg) => {
           a.cx = (a.cx * a.area + b.cx * b.area) / total;
           a.cy = (a.cy * a.area + b.cy * b.area) / total;
           a.area = total;
+          // The axis travels with the merge, or an island joining its mainland
+          // would silently drop out of the angle the label is drawn at.
+          if (a.axis && b.axis) addAxisMoments(a.axis, b.axis);
           clusters.splice(j, 1);
           merged = true;
           break outer;
@@ -383,7 +404,11 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     const best = largestRingOf(allFeatures[index].geometry);
     if (!best || best.area <= 0) continue;
     ownerByIndex[index] = owner;
-    entryByIndex[index] = { c: ringCentroidLngLat(best.ring), area: best.area };
+    entryByIndex[index] = {
+      c: ringCentroidLngLat(best.ring),
+      area: best.area,
+      moments: ringAxisMoments(best.ring),
+    };
   }
 
   // Union-find over same-owner ADJACENT regions: each root is one contiguous
@@ -433,8 +458,16 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       cluster.cx = (cluster.cx * cluster.area + entry.c[0] * entry.area) / total;
       cluster.cy = (cluster.cy * cluster.area + entry.c[1] * entry.area) / total;
       cluster.area = total;
+      // The label's ANGLE rides along, accumulated (see the rotation note
+      // below). A running centroid cannot say which way a territory lies.
+      addAxisMoments(cluster.axis, entry.moments);
     } else {
-      roots.set(root, { cx: entry.c[0], cy: entry.c[1], area: entry.area });
+      roots.set(root, {
+        cx: entry.c[0],
+        cy: entry.c[1],
+        area: entry.area,
+        axis: entry.moments,
+      });
     }
   }
 
@@ -476,7 +509,40 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // than the country. Capping at the seat's own scale costs nothing where
           // the possession is smaller anyway, which is nearly always.
           areaScale: index === 0 ? ownScale : Math.min(ownScale, seatScale),
-          rotation: 0,
+          // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
+          // flat. Reported symptom: "BELGIAN CONGO" and "BRITISH EAST AFRICA"
+          // overprinting each other on the 1935 map. Both are single clusters,
+          // so `tier` cannot separate them, and shrinking by name length is a
+          // symptom fix the original does not use — its own map letterspaces
+          // BYELORUSSIAN SSR wide and lays it ALONG the country instead.
+          //
+          // Country labels already do exactly this (countryLabels.js reads the
+          // ring's principal axis); the owner-label path was the one place that
+          // did not, so this is bringing one lane into line with the other
+          // rather than inventing a rule. The axis here comes from the member
+          // centroids because a cluster has no single ring to read.
+          //
+          // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
+          // flat. Reported symptom: BELGIAN CONGO and BRITISH EAST AFRICA
+          // overprinting each other on the 1935 map. Both are single clusters,
+          // so `tier` cannot separate them, and shrinking by name length is a
+          // symptom fix the original does not use — its own map letterspaces
+          // BYELORUSSIAN SSR wide and lays it ALONG the country instead.
+          //
+          // Measured from the OUTLINES, which is the correction that mattered.
+          // Reading the member centroids instead looks equivalent and is not:
+          // it weighs a province the same as a subcontinent and knows nothing
+          // of either one's shape, so on wwii-1935 it stood SPAIN on end (-79°
+          // across a country that is wider than it is tall) and laid ITALY flat
+          // (0.1°, the most clearly angled country in Europe). Both readings
+          // are gone once the accumulated rings are what is measured.
+          // …and only where there IS a direction. See AXIS_ELONGATION_FLOOR:
+          // a round country's axis is noise, and BELGIAN CONGO — the label this
+          // whole change was reported for — stood vertical on the strength of
+          // an elongation of 1.10.
+          rotation: axisElongationOfMoments(cluster.axis) >= AXIS_ELONGATION_FLOOR
+            ? axisAngleOfMoments(cluster.axis)
+            : 0,
           tier: index === 0 ? 0 : 1,
           // See GLOBE_LAT_CORRECTION — same globe text-size fix (issue #6).
           lat: cluster.cy,
