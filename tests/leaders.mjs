@@ -310,6 +310,10 @@ await (async () => {
     "victorian-1836: Colony of Nova Scotia",
     "victorian-1836: Prince Edward Island Colony",
     "victorian-1836: Crown Colony of Newfoundland",
+    // 알제리 둘 — 보고 2를 고치며 세웠다. 둘 다 기록이 단단해서 사람이 답할 것으로
+    // 본다: 에미르 압델카데르(1832 추대)와 아흐메드 베이(1826 임명, 1837-10 함락).
+    "victorian-1836: Emirate of Abdelkader",
+    "victorian-1836: Beylik of Constantine",
     // 오세아니아 — 총독 셋(버크·아서/프랭클린·스털링)과, 사람이 아니라 **연합**이
     // 답이어야 할 자리 하나. 부족연합에는 상설 수장이 없다 — 1835년 선언은 랑가티라
     // 들의 회의체를 세웠고, 라구사 원칙이 그대로 적용되는 자리로 보인다.

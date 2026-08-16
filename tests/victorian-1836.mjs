@@ -161,12 +161,14 @@ test("every polity the spec declares can be answered", () => {
   // 줄루 왕국은 여기 없다. 딩가네가 이미 답하고, 그것이 이 목록이 "새 폴리티"가
   // 아니라 **진짜 공백**만 담고 있다는 증거다.
   const awaitingLeaderPack = [
+    "Beylik of Constantine",
     "Colony of New Brunswick",
     "Colony of New South Wales",
     "Colony of Nova Scotia",
     "Colony of Van Diemen's Land",
     "Colony of Western Australia",
     "Crown Colony of Newfoundland",
+    "Emirate of Abdelkader",
     "Hudson's Bay Company",
     "Prince Edward Island Colony",
     "Province of Lower Canada",
