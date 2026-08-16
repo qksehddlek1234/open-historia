@@ -8901,8 +8901,26 @@
       "Chile": [
         "653294"
       ],
+      "Colony of New Brunswick": [
+        "4f8fa8"
+      ],
+      "Colony of New South Wales": [
+        "c46a2f"
+      ],
+      "Colony of Nova Scotia": [
+        "3f6f8f"
+      ],
+      "Colony of Van Diemen's Land": [
+        "8f5a2f"
+      ],
+      "Colony of Western Australia": [
+        "e08f4a"
+      ],
       "Couto Misto": [
         "9a9a7a"
+      ],
+      "Crown Colony of Newfoundland": [
+        "2f5f6f"
       ],
       "Denmark": [
         "8a5f6d"
@@ -8987,6 +9005,9 @@
       ],
       "Hohenzollern-Sigmaringen": [
         "6f7f9a"
+      ],
+      "Hudson's Bay Company": [
+        "7b5e3b"
       ],
       "Internal: Diplomatic Representative": [
         "6b7280"
@@ -9138,6 +9159,9 @@
       "Portugal": [
         "2e7d6b"
       ],
+      "Prince Edward Island Colony": [
+        "6fb0c4"
+      ],
       "Prince-Bishopric of Montenegro": [
         "6a4a6a"
       ],
@@ -9164,6 +9188,12 @@
       ],
       "Principality of Wallachia": [
         "e0a800"
+      ],
+      "Province of Lower Canada": [
+        "8f4a7a"
+      ],
+      "Province of Upper Canada": [
+        "cf6f8f"
       ],
       "Qajar Persia": [
         "b07a3e"
@@ -9237,6 +9267,9 @@
       "United States": [
         "4a8f7a"
       ],
+      "United Tribes of New Zealand": [
+        "3f8f5f"
+      ],
       "Uruguay": [
         "0062b1"
       ],
@@ -9248,6 +9281,9 @@
       ],
       "Yemen": [
         "c45100"
+      ],
+      "Zulu Kingdom": [
+        "8f2f3f"
       ]
     },
     "ww1-1914": {

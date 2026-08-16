@@ -167,6 +167,45 @@ export default {
     DAN: { name: "Denmark", color: "#8a5f6d", aliases: ["덴마크", "Kingdom of Denmark"] },
     SWE: { name: "Sweden-Norway", color: "#4068bf", aliases: ["스웨덴-노르웨이", "스웨덴", "Sweden"] },
     GRE: { name: "Kingdom of Greece", color: "#5b8fd8", aliases: ["그리스 왕국", "그리스", "Greece", "Othonian Greece"] },
+    // ══ 식민지 구조 — 사용자 보고 3·11·12 ═════════════════════════════════
+    // "현대 국경 = 식민지 경계"라는 가정 하나가 보고 셋을 낳았다. 1836년의 영국은
+    // 캐나다도 호주도 **한 덩어리로 다스리지 않았다** — 자치령은 1867년(캐나다)과
+    // 1901년(호주)이고, 그 전까지는 서로 다른 헌장을 가진 식민지들과 특허회사다.
+    // 이름은 전부 OHM 시대 자료(`era-polities-1836-01-01.json`)가 부르는 그대로 쓴다.
+    //
+    // ── 북아메리카 ─────────────────────────────────────────────────────
+    // 허드슨만 회사는 나라가 아니라 **특허회사**인데 루퍼츠랜드와 노스웨스턴 준주를
+    // 통치한다 — 이 보드가 동인도회사를 폴리티로 세운 것과 같은 이유다. 회사가
+    // 그 땅의 정부다.
+    HBC: { name: "Hudson's Bay Company", color: "#7b5e3b", aliases: ["허드슨만 회사", "HBC", "Rupert's Land", "루퍼츠랜드", "North-West Territories", "Columbia District"] },
+    // 어퍼·로어 캐나다는 1791년 헌법법이 가른 별개 식민지다. 둘이 합쳐지는 것은
+    // 1841년 연합법이라 5년 뒤이고, 1837년 반란이 그 사이에 있다.
+    UPC: { name: "Province of Upper Canada", color: "#cf6f8f", aliases: ["어퍼 캐나다", "Upper Canada", "Canada West"] },
+    LWC: { name: "Province of Lower Canada", color: "#8f4a7a", aliases: ["로어 캐나다", "Lower Canada", "Canada East", "Bas-Canada"] },
+    // 대서양 식민지 넷은 각자 총독과 의회를 가졌고 캐나다 연방(1867)에 따로 들어간다.
+    // 뉴펀들랜드는 1949년까지도 따로다.
+    NBR: { name: "Colony of New Brunswick", color: "#4f8fa8", aliases: ["뉴브런즈윅", "New Brunswick"] },
+    NSC: { name: "Colony of Nova Scotia", color: "#3f6f8f", aliases: ["노바스코샤", "Nova Scotia"] },
+    PEI: { name: "Prince Edward Island Colony", color: "#6fb0c4", aliases: ["프린스에드워드섬", "Prince Edward Island"] },
+    NFL: { name: "Crown Colony of Newfoundland", color: "#2f5f6f", aliases: ["뉴펀들랜드", "Newfoundland"] },
+    //
+    // ── 오세아니아 ─────────────────────────────────────────────────────
+    // 반디먼스랜드는 1825년에, 서호주는 1829년 스완강 정착으로 뉴사우스웨일스에서
+    // 떨어져 나왔다. 셋은 서로 다른 식민지이고 연방은 1901년이다.
+    NSW: { name: "Colony of New South Wales", color: "#c46a2f", aliases: ["뉴사우스웨일스", "New South Wales"] },
+    VDL: { name: "Colony of Van Diemen's Land", color: "#8f5a2f", aliases: ["반디먼스랜드", "Van Diemen's Land", "Tasmania"] },
+    WAU: { name: "Colony of Western Australia", color: "#e08f4a", aliases: ["서호주", "Western Australia", "Swan River Colony"] },
+    // ★ 뉴질랜드는 1836년에 **영국령이 아니다.** 와이탕이 조약은 1840-02-06이고,
+    // 그때까지 북섬에는 1835년 독립선언의 부족연합이 있다 — 영국 왕실이 승인했고
+    // OHM도 `United Tribes of New Zealand`(1835 → 1840-05-21)로 기록한다. 지금 보드는
+    // 뉴질랜드 19칸을 전부 영국에게 주고 있어 **4년 이르다.**
+    UTZ: { name: "United Tribes of New Zealand", color: "#3f8f5f", aliases: ["뉴질랜드 부족연합", "United Tribes", "Te W(h)akaminenga", "New Zealand"] },
+    //
+    // ── 남아프리카 ─────────────────────────────────────────────────────
+    // 나탈은 1836년에 영국이 아니라 **딩가네의 줄루 왕국**이다. 영국령 나탈은 1843년,
+    // 그 사이에 대이주(1836-02 시작)와 피에트 레티프 학살(1838-02)이 있다.
+    ZUL: { name: "Zulu Kingdom", color: "#8f2f3f", aliases: ["줄루 왕국", "Zulu", "Dingane", "KwaZulu"] },
+
     SER: { name: "Principality of Serbia", color: "#7a6a9a", aliases: ["세르비아 공국", "세르비아", "Serbia"] },
     SAR: { name: "Kingdom of Sardinia", color: "#9a7ab0", aliases: ["사르데냐 왕국", "사보이아", "Piedmont-Sardinia", "Sardinia"] },
     SIC: { name: "Two Sicilies", color: "#a06a4a", aliases: ["양시칠리아 왕국", "나폴리", "Kingdom of the Two Sicilies", "Naples"] },
@@ -363,7 +402,7 @@ export default {
   },
 
   countryAssignments: {
-    GBR: ["GBR", "IRL", "CAN", "AUS", "NZL", "LKA", "MLT", "ZAF", "GUY", "BLZ", "JAM", "BRB", "TTO", "BHS", "SLE", "GMB"],
+    GBR: ["GBR", "IRL", "LKA", "MLT", "BLZ", "JAM", "BRB", "TTO", "BHS", "SLE", "GMB"],
     FRA: ["FRA", "DZA"], // Algiers taken 1830 — the conquest is young and contested
     RUS: ["RUS", "UKR", "BLR", "LTU", "LVA", "EST", "FIN", "GEO", "ARM", "AZE", "MDA", "KAZ"],
     AUT: ["AUT", "CZE", "SVK", "HUN", "HRV", "SVN"],
@@ -375,7 +414,7 @@ export default {
     // (1830~1840년 위임 통치).
     EGY: ["EGY", "SDN", "SYR", "LBN", "JOR", "ISR", "PSE"],
     ESP: ["ESP", "CUB", "PRI", "PHL", "GUM"],
-    POR: ["PRT", "AGO", "MOZ", "GNB", "CPV", "STP", "TLS"],
+    POR: ["PRT", "CPV", "STP", "TLS"],
     BEL: ["BEL"],
     NLD: ["NLD", "LUX", "IDN", "SUR"],
     DAN: ["DNK", "ISL", "GRL", "FRO"],
@@ -424,6 +463,60 @@ export default {
   },
 
   regionAssignments: {
+    // ══ 식민지 구조 · 보고 3·11·12 ═════════════════════════════════════════
+    // 위 폴리티 주석 참조. 여기는 칸 배정이고, **비워 두는 칸이 핵심**이다 —
+    // 남미에서 파타고니아·아라우카니아를 비운 것과 같은 원칙이다. 1836년에 그 땅을
+    // 다스리는 유럽 정부가 없으면 유럽 색을 칠하지 않는다.
+    //
+    // 캐나다 13칸 — 회사 7 · 식민지 6.
+    // 온타리오·퀘벡 칸은 현대 경계라 북쪽 절반이 실제로는 루퍼츠랜드다. GADM
+    // 1단계로는 못 가르므로 인구와 정부가 있는 남쪽을 따라 준다.
+    "CAN.1_1": "HBC", "CAN.2_1": "HBC", "CAN.3_1": "HBC", "CAN.6_1": "HBC", "CAN.8_1": "HBC", "CAN.12_1": "HBC",
+    "CAN.13_1": "HBC",
+    "CAN.9_1": "UPC",
+    "CAN.11_1": "LWC",
+    "CAN.4_1": "NBR",
+    "CAN.7_1": "NSC",
+    "CAN.10_1": "PEI",
+    "CAN.5_1": "NFL",
+    // 호주 — 남호주(AUS.8_1)는 개장일엔 아직 뉴사우스웨일스다. 1834년 남호주법이
+    // 법으로 떼어 놨지만 경계 특허장이 1836-02-19, 식민지 선포가 1836-12-28이다.
+    // 애시모어·카티에(AUS.1_1)와 산호해 제도(AUS.3_1)는 무인도이고 영국 병합이
+    // 각각 1878·1969라 **비운다.**
+    "AUS.2_1": "NSW", "AUS.4_1": "NSW", "AUS.5_1": "NSW", "AUS.6_1": "NSW", "AUS.7_1": "NSW", "AUS.8_1": "NSW",
+    "AUS.10_1": "NSW",
+    "AUS.9_1": "VDL",
+    "AUS.11_1": "WAU",
+    // 뉴질랜드 — 북섬 9칸이 부족연합이다. 1835년 선언에 서명한 것은 북부 랑가티라
+    // 들이고 남섬은 그 연합에 들어가지 않는다. **남섬·채텀·부속도서는 비운다** —
+    // 응아이타후가 있었지만 이 보드는 이위를 폴리티로 모델링하지 않고, 비우는 것이
+    // 영국으로 칠하는 것보다 참에 가깝다.
+    "NZL.1_1": "UTZ", "NZL.2_1": "UTZ", "NZL.5_1": "UTZ", "NZL.6_1": "UTZ", "NZL.7_1": "UTZ", "NZL.11_1": "UTZ",
+    "NZL.15_1": "UTZ", "NZL.17_1": "UTZ", "NZL.18_1": "UTZ",
+    // 남아프리카 — 케이프 식민지는 서·북·동케이프까지다. 1836-02에 막 시작된
+    // 대이주가 아직 오렌지강을 건너는 중이고, 보어 공화국(1852·1854)은 없다.
+    // 자유주·하우텡·림포포·음푸말랑가·노스웨스트는 소토·츠와나·은데벨레의 땅이라
+    // **비운다.** 콰줄루나탈만 이름 붙일 국가가 있다 — 줄루 왕국이다.
+    "ZAF.1_1": "GBR", "ZAF.8_1": "GBR", "ZAF.9_1": "GBR",
+    "ZAF.4_1": "ZUL",
+    // 영국령 기아나 — 해안 3개 주(에세키보·데메라라·버비스)를 1831년에 합친
+    // 식민지다. 내륙 고원은 측량조차 안 됐고 슘부르크 경계선이 1840년에야 그어진다.
+    "GUY.3_1": "GBR", "GUY.4_1": "GBR", "GUY.5_1": "GBR", "GUY.6_1": "GBR", "GUY.7_1": "GBR",
+    // 포르투갈 — 앙골라·모잠비크·기니는 1836년에 **해안 거점**이다. 내륙 정복은
+    // 1885년 베를린 회의의 실효 점유 원칙 이후이고, 그전까지 포르투갈이 다스리는
+    // 것은 요새와 그 배후지뿐이다. 모잠비크는 OHM도 `Province of Mozambique`를
+    // 1836년에 시작으로 기록한다.
+    // 앙골라: 루안다·벵고·벵겔라·쿠안자 남북. 모사메드스(나미베)는 1840년 건설이라
+    // 아직 없고, 카빈다의 포르투갈 주권은 1885년이다.
+    "AGO.11_1": "POR", "AGO.1_1": "POR", "AGO.2_1": "POR", "AGO.6_1": "POR", "AGO.7_1": "POR",
+    // 모잠비크: 이보·모잠비크섬·켈리마느·소팔라·이냠바느·로렌수마르케스와 잠베지
+    // 프라주(테테). 가자·마니카·니아사는 내륙이라 비운다.
+    "MOZ.1_1": "POR", "MOZ.3_1": "POR", "MOZ.5_1": "POR", "MOZ.6_1": "POR", "MOZ.7_1": "POR", "MOZ.9_1": "POR",
+    "MOZ.10_1": "POR", "MOZ.11_1": "POR",
+    // 기니: 비사우·카셰우 요새와 그 앞바다(비옴부·볼라마). 내륙은 푸타잘롱과
+    // 카부의 영향권이고 포르투갈의 실효 지배는 1910년대까지 해안에 머문다.
+    "GNB.2_1": "POR", "GNB.3_1": "POR", "GNB.4_1": "POR", "GNB.5_1": "POR",
+
     // ══ 사용자 보고 정정 · 다뉴브 ═══════════════════════════════════════════
     // "트란실바니아가 오스트리아에 없음" — 보드가 루마니아 전체를 오스만에게 줬다.
     // 트란실바니아 대공국은 1867년까지 합스부르크령이고 바나트·크리샤나·마라무레슈·

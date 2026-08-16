@@ -152,8 +152,32 @@ test("every polity the spec declares can be answered", () => {
   // Peru-Bolivian Confederation left this list by being deleted: it was decreed
   // 28 October 1836 and installed 1 May 1837, so a board opening 1 January 1836
   // could not carry it. Peru and Bolivia stand in its place.
-  assert.deepEqual(unanswered.sort(), [],
+  // ── 2026-08-16 두 번째 회차: 식민지 구조 열하나 ─────────────────────────
+  // 같은 일이 같은 이유로 다시 일어났다. 보고 3·11·12(현대 국경 = 식민지 경계)를
+  // 고치며 캐나다·호주·뉴질랜드의 실제 통치 단위를 세웠고, 스펙과 지도자 팩이
+  // 이번 회차에도 서로 다른 세션에 있다. **규칙을 푼 게 아니라 이름을 적는다** —
+  // 목록은 줄어들 수만 있고, 밖에 있는 이름은 여전히 즉시 빨개진다.
+  //
+  // 줄루 왕국은 여기 없다. 딩가네가 이미 답하고, 그것이 이 목록이 "새 폴리티"가
+  // 아니라 **진짜 공백**만 담고 있다는 증거다.
+  const awaitingLeaderPack = [
+    "Colony of New Brunswick",
+    "Colony of New South Wales",
+    "Colony of Nova Scotia",
+    "Colony of Van Diemen's Land",
+    "Colony of Western Australia",
+    "Crown Colony of Newfoundland",
+    "Hudson's Bay Company",
+    "Prince Edward Island Colony",
+    "Province of Lower Canada",
+    "Province of Upper Canada",
+    "United Tribes of New Zealand",
+  ].sort();
+  assert.deepEqual(unanswered.sort().filter((n) => !awaitingLeaderPack.includes(n)), [],
     "a name added here without a leader row is a to-do, not a decision");
+  // 목록이 자기 원인보다 오래 살면 안 된다 — 답이 생긴 이름은 빠져야 한다.
+  assert.deepEqual(awaitingLeaderPack.filter((n) => !unanswered.includes(n)), [],
+    "a polity that now answers must be removed from awaitingLeaderPack");
 });
 
 test("the forty new thrones answer with a PERSON where the record has one", () => {

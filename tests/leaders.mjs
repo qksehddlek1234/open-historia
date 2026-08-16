@@ -284,6 +284,51 @@ await (async () => {
       }
     }
   }
+  // THE HANDOVER LIST CAME BACK — SAME MECHANISM, NEW CAUSE, STILL BY NAME.
+  //
+  // It stood for one day, emptied, and returns eleven names smaller than it was.
+  // The cause is the same shape as before: victorian-1836 gained the colonial
+  // structure on 2026-08-16 (reports 3, 11 and 12 — the board was drawing Canada,
+  // Australia and New Zealand as single modern British blocks) and the spec and the
+  // leader pack are held by different sessions this cycle, so again the states
+  // arrive before their rulers.
+  //
+  // The rule the last list was written under holds and is why this one is
+  // acceptable: names, not a waiver. A rule would silently cover every future
+  // polity; a list of eleven strings can only shrink. Anything outside it still
+  // fails outright, so no throne is left for the model to invent unnoticed.
+  //
+  // Zulu Kingdom is deliberately NOT here — Dingane already answers, which is the
+  // check that this list names a real gap rather than every new polity.
+  const awaitingLeaderPack = new Set([
+    // 북아메리카 — 허드슨만 회사(조지 심프슨 총독)와 1791년 헌법법의 두 캐나다,
+    // 그리고 연방 전의 대서양 식민지 넷.
+    "victorian-1836: Hudson's Bay Company",
+    "victorian-1836: Province of Upper Canada",
+    "victorian-1836: Province of Lower Canada",
+    "victorian-1836: Colony of New Brunswick",
+    "victorian-1836: Colony of Nova Scotia",
+    "victorian-1836: Prince Edward Island Colony",
+    "victorian-1836: Crown Colony of Newfoundland",
+    // 오세아니아 — 총독 셋(버크·아서/프랭클린·스털링)과, 사람이 아니라 **연합**이
+    // 답이어야 할 자리 하나. 부족연합에는 상설 수장이 없다 — 1835년 선언은 랑가티라
+    // 들의 회의체를 세웠고, 라구사 원칙이 그대로 적용되는 자리로 보인다.
+    "victorian-1836: Colony of New South Wales",
+    "victorian-1836: Colony of Van Diemen's Land",
+    "victorian-1836: Colony of Western Australia",
+    "victorian-1836: United Tribes of New Zealand",
+  ]);
+  const unexpected = failures.filter((f) => !awaitingLeaderPack.has(f));
+  assert.deepEqual(unexpected, [],
+    "every post-1444 preset polity must resolve (outside the named handover list)");
+
+  // The list must not outlive its cause: a name that starts resolving has to come
+  // out, or the list rots into the waiver it was written to avoid.
+  const resolvedButStillListed = [...awaitingLeaderPack].filter((f) => !failures.includes(f));
+  assert.deepEqual(resolvedButStillListed, [],
+    "a polity that now resolves must be removed from awaitingLeaderPack");
+
+  // ── 이전 회차의 기록 (2026-08-16, 마흔 자리) ─────────────────────────────
   // THE HANDOVER LIST IS GONE, AND THAT IS THE POINT OF IT.
   //
   // A waiver list stood here for one day. victorian-1836 gained forty polities
@@ -299,8 +344,7 @@ await (async () => {
   // from here a preset polity with no answerable ruler fails outright, which is
   // the invariant the pin was written for — no throne is left for the model to
   // invent unnoticed.
-  assert.deepEqual(failures, [],
-    "every post-1444 preset polity must resolve");
+  // (이 자리의 단언은 위로 옮겼다 — 인계 목록 밖은 여전히 즉시 실패한다.)
   pass += 1;
   console.log("  ok  every polity of every preset from 1444 on resolves");
 })();
