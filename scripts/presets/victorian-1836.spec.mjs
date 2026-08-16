@@ -106,7 +106,24 @@ export default {
     // the personal union the Schleswig question is about.
     GER: { name: "German Confederation", color: "#b8b8a0", aliases: ["독일 연방", "독일 제후국들", "German minor states", "Deutscher Bund"] },
     OTT: { name: "Ottoman Empire", color: "#5a8a6a", aliases: ["오스만 제국", "오스만", "Turkey", "Sublime Porte"] },
-    EGY: { name: "Egypt of Muhammad Ali", color: "#c8a03e", aliases: ["무함마드 알리의 이집트", "이집트", "Egypt", "Khedivate"] },
+    // ★ 판례 — **표시명은 원본, 고증은 지도자 칭호와 서술에서** (사용자 결정, 2026-08-16)
+    //
+    // 케디브는 1867-06-08에 이스마일이 받은 칭호이고 1836년엔 아무도 그렇게 부르지
+    // 않았다. 그래서 한 번 `Egypt of Muhammad Ali`로 고쳤는데, 사용자가 화면에서
+    // 그걸 보고 되돌려 달라고 했다 — **원본 게임이 이 나라를 `Khedivate of Egypt`로**
+    // **부르기 때문이다.**
+    //
+    // 정확성과 원본 재현이 갈리는 첫 자리였고, 사용자가 **분리**를 골랐다. 판이
+    // 부르는 이름은 원본을 따르고, 고증은 **지도자 칭호**가 진다 —
+    // `leaderEras/revolutions.js`가 1867-06-08을 경계로 `왈리 이스마일 파샤` →
+    // `케디브 이스마일 파샤`로 자른다. 1836년 판에 뜨는 지도자는 `왈리 무함마드 알리`다.
+    //
+    // 이 규칙은 이 칸 하나가 아니다. 알제리(1830 침공은 연안 거점뿐)·캐나다(허드슨만
+    // 회사)·호주도 "원본이 그린 대로"와 "그 해에 맞는 대로"가 갈리는 자리이고,
+    // 거기서도 **표시명은 원본, 영토와 칭호는 고증**으로 간다.
+    //
+    // 옛 이름은 별칭으로 남긴다 — 면 이름과 서술이 그 문자열을 쓸 수 있다.
+    EGY: { name: "Khedivate of Egypt", color: "#c8a03e", aliases: ["이집트 케디브국", "무함마드 알리의 이집트", "이집트", "Egypt", "Egypt of Muhammad Ali", "Khedivate"] },
     ESP: { name: "Spain", color: "#d0a02e", aliases: ["스페인", "Spanish Empire", "Isabelline Spain"] },
     POR: { name: "Portugal", color: "#2e7d6b", aliases: ["포르투갈", "Portuguese Empire"] },
     BEL: { name: "Belgium", color: "#7a8a4a", aliases: ["벨기에", "Kingdom of Belgium"] },
