@@ -161,7 +161,15 @@ test("every polity the spec declares can be answered", () => {
   // 줄루 왕국은 여기 없다. 딩가네가 이미 답하고, 그것이 이 목록이 "새 폴리티"가
   // 아니라 **진짜 공백**만 담고 있다는 증거다.
   const awaitingLeaderPack = [
+    // ★ 바레인이 두 테스트에서 다르게 나온다. `tests/leaders.mjs`는 통과하고
+    // (거기 `resolveLeadership`은 사슬 전체를 본다) 여기는 걸린다 — 이 핀은
+    // `referenceLeadership`, 즉 **REFERENCE 표에 1836년을 덮는 행이 있는가**만
+    // 묻는다. 알칼리파는 사슬 어딘가에서 답하지만 그 표에는 이 해가 없다.
+    // 두 목록이 갈리는 것은 결함이 아니라 두 질문이 다르기 때문이고, 여기 적어
+    // 두지 않으면 다음 사람이 한쪽을 지운다.
+    "Bahrain",
     "Beylik of Constantine",
+    "Khanate of Kokand",
     "Free Hanseatic City of Bremen",
     "Free and Hanseatic City of Hamburg",
     "Grand Duchy of Baden",

@@ -310,6 +310,10 @@ await (async () => {
     "victorian-1836: Colony of Nova Scotia",
     "victorian-1836: Prince Edward Island Colony",
     "victorian-1836: Crown Colony of Newfoundland",
+    // 중앙아시아·걸프 — 보고 6. **코칸트 하나뿐이다**: 바레인을 같이 넣었다가
+    // 바로 아래 "답이 생긴 이름은 빠져야 한다" 핀에 걸렸다. 알칼리파가 이미
+    // 답한다 — 핀이 목록의 과잉을 잡은 첫 사례이고, 그러라고 건 것이다.
+    "victorian-1836: Khanate of Kokand",
     // 독일 다섯 — 독일 연방 덩어리에서 꺼낸 여섯 중 다섯. **하노버는 여기 없다**:
     // 1836년 하노버 국왕은 영국과 동군연합인 윌리엄 4세라 이미 답한다(동군연합이
     // 끊기는 것은 1837-06-20, 살리카법).
