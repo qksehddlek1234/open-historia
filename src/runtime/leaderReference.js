@@ -3737,6 +3737,12 @@ const inWindow = (entry, time) => {
 // Each pack may carry ALIASES ("Joseon" ← a scenario's own spelling) mapping
 // scenario polity names onto its keys.
 const ERA_PACK_LOADERS = [
+  // …and then bronze-1200bc fell off the front of THAT. Its twelve polities
+  // seeded zero leaders: the classical pack begins at year 1 and the board
+  // opens in 1200 BC. Windows here are astronomical years in ISO extended
+  // form, which is what Date.parse reads — the same off-by-one that
+  // runtime/gameDate.js documents (1200 BC is -001199, not -001200).
+  { key: "bronze", from: "-003000-01-01", until: "-001000-12-31", load: () => import("./leaderEras/bronze.js") },
   // The record used to start at 1000 and roman-117 fell off the front of it —
   // one seeded leader out of thirteen, and that one was a modern row leaking in
   // through an alias. classical.js says what it covers and what it refuses to
