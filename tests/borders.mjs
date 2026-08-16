@@ -385,7 +385,21 @@ test("a possession may not out-print the seat it belongs to", () => {
   // draws at (tests/label-leaders.mjs owns that half). The ceiling this pin
   // exists for is the OTHER branch and is untouched — a possession never gets a
   // leader line, so it never reaches the first one.
-  assert.match(block, /\(index === 0 \? ownScale : Math\.min\(ownScale, seatScale\)\)/);
+  //
+  // AND THEN IT WAS WRAPPED. Later the same day the ternary became the first
+  // argument of fitNameToTerritory(...), which put a newline between the opening
+  // paren and `index` — and this pin went red over WHITESPACE while the ceiling
+  // it guards had not moved. That is the same fault the comment above already
+  // records for the byte-count window, so the regex now tolerates line breaks
+  // and the parens are no longer part of the claim.
+  //
+  // The ceiling survives the wrap because fitNameToTerritory only ever shrinks:
+  // a possession enters at min(own, seat) and can leave smaller, never larger.
+  assert.match(block, /index === 0\s*\?\s*ownScale\s*:\s*Math\.min\(ownScale,\s*seatScale\)/);
+  // The wrap itself is worth pinning: if the ternary ever escapes the shrinker,
+  // long names go back to drawing wider than the countries they name.
+  assert.match(block, /fitNameToTerritory\(/,
+    "the in-territory branch must stay inside the fitter");
   assert.match(block, /tier: index === 0 \? 0 : 1/);
 
   // AND THE LABEL LIES ALONG THE TERRITORY. This was hardcoded flat, which
@@ -395,8 +409,15 @@ test("a possession may not out-print the seat it belongs to", () => {
   // The angle comes off the cluster's accumulated AREA, and only where the
   // shape has a direction to give. label-leaders.mjs holds that behaviour;
   // this holds the wiring.
-  assert.match(block, /axisElongationOfMoments\(cluster\.axis\) >= AXIS_ELONGATION_FLOOR/,
-    "a round territory has no axis to draw along");
+  // The two halves were hoisted into named locals the same day so the shrinker
+  // could reuse the elongation (`fitNameToTerritory` gives a long name more room
+  // when the label lies along the shape). The wiring is unchanged — measure the
+  // area moments, compare against the floor, angle or flat — so this pin follows
+  // the claim to the locals instead of pinning one spelling of it.
+  assert.match(block, /const elongation = axisElongationOfMoments\(cluster\.axis\)/,
+    "the angle must still come off accumulated AREA, not vertices");
+  assert.match(block, /elongation >= AXIS_ELONGATION_FLOOR\s*\?\s*axisAngleOfMoments\(cluster\.axis\)\s*:\s*0/,
+    "a shape with no direction to give must draw flat, not at a noise angle");
   assert.match(block, /\? axisAngleOfMoments\(cluster\.axis\)/);
   assert.doesNotMatch(block, /rotation: 0,/, "flat-for-everyone may not come back");
 });
@@ -427,8 +448,20 @@ test("a country label outranks a city label at the zoom a player reads at", () =
   // explanation.
   assert.doesNotMatch(paint, /"text-letter-spacing"\s*:/,
     "letter-spacing is layout — in paint it is silently dropped");
-  assert.match(NATIONS, /const LABEL_LETTER_SPACING = [\d.]+;/,
+  // AND ITS ADDRESS MOVED AGAIN, for a good reason: fitNameToTerritory has to
+  // know the tracking to work out how many letters cross a territory, and a dial
+  // declared in two files splits the first time someone tunes one of them. It now
+  // lives in runtime/labelLeaders.js and Nations.jsx imports it.
+  //
+  // So this pin stops asking WHERE it is declared and asks what it was always
+  // for: exactly one declaration exists, and this file uses that one.
+  const LEADERS = fs.readFileSync(new URL("../src/runtime/labelLeaders.js", import.meta.url), "utf8");
+  assert.match(LEADERS, /export const LABEL_LETTER_SPACING = [\d.]+;/,
     "tracking is what makes it read as the top rank");
+  assert.doesNotMatch(NATIONS, /const LABEL_LETTER_SPACING = [\d.]+;/,
+    "one dial, one declaration — a second copy drifts the moment it is tuned");
+  assert.match(NATIONS, /LABEL_LETTER_SPACING,/,
+    "Nations.jsx must import the one declaration, not restate it");
   const base = NATIONS.slice(NATIONS.indexOf("const pointLabelLayoutBase"), at);
   assert.match(base, /"text-letter-spacing": LABEL_LETTER_SPACING/,
     "…and every point label rank inherits it from the shared layout");

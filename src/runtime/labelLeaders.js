@@ -88,3 +88,77 @@ export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, ex
   anchor[1] = clamp(anchor[1], -84, 84);
   return { anchor, edge: [cx + (nx * reach), cy + (ny * reach)] };
 };
+
+// ── AND LABELS THAT FIT INSIDE, BUT ONLY BECAUSE THEIR NAME IS SHORT ─────────
+//
+// The rule above asks "is this country too small to hold a label?" and answers
+// from area alone. That misses the other half of the same question: a label is
+// only as wide as its NAME, and sizing by area never counts the letters.
+//
+// Reported as country labels overprinting each other in central Germany.
+// Measured on victorian-1836 at the reported view ([8.9, 51.2], z6.6, a 1600px
+// window) by rebuilding the owner label collection and laying the text boxes
+// out the way MapLibre does: KINGDOM OF PRUSSIA came out **1749px wide — wider
+// than the window** — and GRAND DUCHY OF MECKLENBURG-SCHWERIN four times wider
+// than the duchy it names. Five pairs of tier-0 labels overlapped, and tier-0
+// labels never yield to one another: a country standing on its own ground is
+// always drawn (`text-allow-overlap: true`). That pin is right and is NOT what
+// this changes.
+//
+// There is no zoom in the ratio and no area either, which is why this was never
+// a small-states bug: label width ÷ territory width is about 0.116 × letters,
+// so any name past ~9 characters is wider than its own country, everywhere.
+// Central Germany is only where the spill lands on a neighbour instead of sea.
+//
+// Deriving the cap — zoom cancels, and so does size:
+//
+//   font size (deg) = areaScale × 2^(z−16) ÷ (512·2^z / 360)
+//   label width     = font size × mean glyph width × letters × (1 + tracking)
+//   territory width = √area × √elongation     (the label lies along the axis)
+//   ownScale        = √area × 17500           (the sizing rule this file serves)
+//
+// …leaving a constant: how many letters fit across a territory, whatever its
+// size. About 8.6.
+
+// The original's country names are widely letterspaced, and that spacing is
+// most of what makes them read as a map's top rank rather than as large city
+// labels. It is applied in LAYOUT (Nations.jsx writes it into the label
+// layouts — put in paint, MapLibre rejects it and the tracking never applies),
+// and it is declared HERE because the fit below has to know it: widen the
+// tracking and every name needs more room.
+export const LABEL_LETTER_SPACING = 0.12;
+
+// Mean advance of an upper-case glyph in Impact / Arial Black, as a fraction of
+// the em. Estimated rather than measured off the player's installed font — the
+// stack is a CSS font-family and MapLibre draws the glyphs locally, so the true
+// value moves with whatever they have. It only has to be close, and the span
+// was measured rather than assumed: central Germany comes out with ZERO
+// overlapping pairs at 0.50 and at 0.55, and ONE at 0.60 (PRUSSIA against
+// GERMAN CONFEDERATION — two large polities, legible either way).
+export const NAME_FIT_CHAR_WIDTH = 0.55;
+
+// areaScale → degrees, with the zoom already cancelled from both sides.
+const DEG_PER_AREA_SCALE = 360 / (512 * 65536);
+
+// What the derivation collapses to: letters across a territory.
+export const NAME_FIT_LETTERS = 1
+  / (DEG_PER_AREA_SCALE * 17500 * NAME_FIT_CHAR_WIDTH * (1 + LABEL_LETTER_SPACING));
+
+// Shrink a label until it fits inside the shape it names. Returns the areaScale
+// to draw at, unchanged when the name already fits.
+export const fitNameToTerritory = (areaScale, name, elongation = 1) => {
+  const letters = Math.max(1, String(name ?? "").length);
+  // Lying along the long axis buys room, so an elongated country holds a longer
+  // name than a round one of the same area. Counted only where the label
+  // actually turns (AXIS_ELONGATION_FLOOR) — a horizontal label on a diagonal
+  // country cannot spend that length, so the caller passes 1 there.
+  const fit = (NAME_FIT_LETTERS * Math.sqrt(Math.max(1, elongation))) / letters;
+  if (!(fit < 1)) return areaScale;
+  // THE FLOOR. Below this a country's name reads at the weight of a province's,
+  // which is a fault the label paint has already had to fix once. It is the
+  // same line the leader-line rule draws — the size at which a name stops being
+  // legible as a country — so a name that still will not fit there stays too
+  // wide rather than going unreadable. Past that point the problem is the
+  // length of the name, and size cannot solve it.
+  return Math.max(Math.min(areaScale, LEADER_AREA_SCALE_FLOOR), areaScale * fit);
+};

@@ -24,6 +24,7 @@ const SETTINGS = read("src/Game/GameUI/settings.jsx");
 
 const {
   buildLeaderPlacement, LEADER_AREA_SCALE_FLOOR, LEADER_LABEL_AREA_SCALE, LEADER_EXTENSION_DEFAULT,
+  fitNameToTerritory, NAME_FIT_LETTERS,
 } = await import("../src/runtime/labelLeaders.js");
 
 const {
@@ -144,14 +145,17 @@ test("the extension rides the CACHE KEY, because the anchor is baked geometry", 
 test("the map draws the line under the labels and fades it with them", () => {
   assert.match(NATIONS, /id="country-leader-lines"/);
   assert.match(NATIONS, /leaderExtension: labelLineExtension/);
-  // The LINE still fades out by z8 — a leader is punctuation for a label that
-  // has been moved off its country, and once the country fills the screen it
-  // has nothing left to point at. The label itself no longer fades (see
-  // labelLayerPaint), so the invariant this pin holds — the line never outlives
-  // its text — is now satisfied with room to spare.
+  // The LINE still fades out once the country is big enough to point at itself
+  // — a leader is punctuation for a label that has been moved off its country.
+  // What changed is the dial: it was a zoom ramp (z5 0.38 → z8 0) and is now the
+  // country's own on-screen size, because zoom was a poor proxy for "fills the
+  // screen" and a cluster of small states at z6.6 lost every line to it. See
+  // the pin at the end of this file. The label itself no longer fades (see
+  // labelLayerPaint), so the invariant here — the line never outlives its text
+  // — is satisfied with room to spare.
   const paint = NATIONS.slice(NATIONS.indexOf("const leaderLinePaint"), NATIONS.indexOf("const labelLayerPaint"));
-  assert.match(paint, /5, 0\.38,/);
-  assert.match(paint, /8, 0,/);
+  assert.match(paint, /20, 0\.38,/);
+  assert.match(paint, /60, 0,/);
   // Hiding country labels hides their leader lines too — now the FIRST test in
   // that expression, because which collection follows depends on the lane.
   assert.match(NATIONS, /const activeLeaderLineData = !worldKnown \|\| mapDisplaySettings\.hideCountryLabels/);
@@ -386,6 +390,76 @@ test("the player's extension dial reaches the owner lane", () => {
     "passed to the builder");
   assert.match(NATIONS, /regionAdjacency, labelLineExtension, labelEpoch\]/,
     "and in the memo's deps");
+});
+
+console.log("\nA label has to fit inside the country it names");
+
+test("the letters-across-a-territory constant is the derivation, not a guess", () => {
+  // If this drifts, one of the four inputs moved and the comment above it is
+  // describing a number that no longer exists. 8.6 is what falls out of
+  // areaScale → degrees, the 17500 sizing rule, a 0.55em glyph and 12% tracking.
+  assert.ok(Math.abs(NAME_FIT_LETTERS - 8.65) < 0.05,
+    `NAME_FIT_LETTERS is ${NAME_FIT_LETTERS}`);
+  // And it must be DERIVED. A literal here would survive a change to the
+  // tracking untouched, which is the drift that moving the dial into this file
+  // was meant to stop.
+  assert.match(LEADERS, /NAME_FIT_LETTERS = 1\s*\n?\s*\/ \(DEG_PER_AREA_SCALE \* 17500 \* NAME_FIT_CHAR_WIDTH \* \(1 \+ LABEL_LETTER_SPACING\)\)/,
+    "computed from the tracking, not restated");
+});
+
+test("a short name is left alone", () => {
+  // BAVARIA at 7 letters fits inside Bavaria with room to spare, and a cap that
+  // touches it has started shrinking labels for no reason.
+  assert.equal(fitNameToTerritory(120000, "BAVARIA"), 120000);
+  assert.equal(fitNameToTerritory(120000, "BELGIUM"), 120000);
+  assert.equal(fitNameToTerritory(120000, "SPAIN"), 120000);
+});
+
+test("a long name is cut to the width of its own country", () => {
+  // The reported pair. 18 letters is a bit over twice the 8.6 that fit, so the
+  // label comes back at roughly half — and the RATIO is what is pinned, not a
+  // pixel count, because pixels move with zoom and this does not.
+  const prussia = fitNameToTerritory(120000, "KINGDOM OF PRUSSIA") / 120000;
+  assert.ok(Math.abs(prussia - (NAME_FIT_LETTERS / 18)) < 0.01, `${prussia}`);
+  const mecklenburg = fitNameToTerritory(400000, "GRAND DUCHY OF MECKLENBURG-SCHWERIN") / 400000;
+  assert.ok(Math.abs(mecklenburg - (NAME_FIT_LETTERS / 35)) < 0.01, `${mecklenburg}`);
+});
+
+test("lying along the long axis buys room — but only where the label turns", () => {
+  // A country four times as long as it is wide holds twice the letters. The
+  // caller spends that ONLY where the tilt was actually applied; a horizontal
+  // label on a diagonal shape gets the round-country allowance.
+  const flat = fitNameToTerritory(120000, "KINGDOM OF PRUSSIA", 1);
+  const long = fitNameToTerritory(120000, "KINGDOM OF PRUSSIA", 4);
+  assert.ok(long > flat, "an elongated country keeps more of its size");
+  assert.ok(Math.abs((long / flat) - 2) < 0.01, "√4 = twice the letters");
+  assert.match(NATIONS, /fitNameToTerritory\(\n\s*index === 0 \? ownScale : Math\.min\(ownScale, seatScale\),\n\s*name,\n\s*tilt \? elongation : 1,/,
+    "and the caller only spends it when the label actually turns");
+});
+
+test("the floor holds — a name is never shrunk into a province label", () => {
+  // Below LEADER_AREA_SCALE_FLOOR a country's name reads at a province's
+  // weight, a fault the label paint has already had to fix once. A 60-letter
+  // name would ask for a twelfth of the size; it gets the floor instead.
+  assert.equal(fitNameToTerritory(120000, "A".repeat(60)), LEADER_AREA_SCALE_FLOOR);
+  // …and a label already below the floor is not pushed further down by it.
+  assert.equal(fitNameToTerritory(9000, "A".repeat(60)), 9000);
+});
+
+test("the leader line fades on the COUNTRY's size, not on zoom", () => {
+  // The old ramp was z5 0.38 → z8 0, which put every line at 0.18 by z6.6 — the
+  // zoom a player reads a cluster of small states at, and the zoom the overlap
+  // was reported from. Andorra on an empty coast showed; the same line in
+  // central Germany did not. The reason for fading was never zoom, it was "the
+  // shape is now big enough to point at itself", so that is what it reads.
+  assert.match(NATIONS, /\["\*", \["coalesce", \["get", "ownScale"\], 0\], \["\^", 2, \["-", \["zoom"\], 16\]\]\]/,
+    "opacity interpolates on the country's own on-screen size");
+  assert.doesNotMatch(NATIONS, /"line-opacity": \[\s*\n?\s*"interpolate", \["linear"\], \["zoom"\],\s*\n?\s*5, 0\.38/,
+    "the zoom ramp is gone, not left sitting beside it");
+  // And the builder has to ship the property, or the coalesce reads 0 for every
+  // line and they all draw at full strength forever.
+  assert.match(NATIONS, /properties: \{ name, ownScale \}/,
+    "ownScale rides on the line feature");
 });
 
 console.log(`\n${pass} passed\n`);

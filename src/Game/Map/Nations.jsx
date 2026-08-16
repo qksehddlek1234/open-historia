@@ -38,10 +38,12 @@ import {
 // here rather than restating them — two floors would drift apart the first time
 // either was tuned.
 import {
+  LABEL_LETTER_SPACING,
   LEADER_AREA_SCALE_FLOOR,
   LEADER_EXTENSION_DEFAULT,
   LEADER_LABEL_AREA_SCALE,
   buildLeaderPlacement,
+  fitNameToTerritory,
 } from "../../runtime/labelLeaders.js";
 import { translateLabel } from "../../runtime/translator.js";
 import {
@@ -88,10 +90,9 @@ const buildCountryTextSize = (multiplier = 1, correctForGlobe = false) => {
 // codebase already treats as a legible country label at map scale. A repeat of a
 // name the map carries elsewhere is exactly what belongs at that floor.
 const MINOR_LABEL_SCALE = 0.6;
-// The original's country names are widely letterspaced; this is that dial, and
-// it belongs to LAYOUT (see the note in labelLayerPaint for what happens when it
-// is written into paint instead). One constant so every label rank tracks alike.
-const LABEL_LETTER_SPACING = 0.12;
+// LABEL_LETTER_SPACING moved to runtime/labelLeaders.js — fitNameToTerritory
+// has to know the tracking to work out how wide a name draws, and one dial
+// declared in two files drifts the first time either is tuned.
 // Features with no tier at all are the STOCK label set, which has one rank and
 // must keep drawing at full weight — so absent reads as 0, never as minor.
 const LABEL_TIER = ["coalesce", ["get", "tier"], 0];
@@ -432,6 +433,7 @@ const DISPUTED_TERRITORY_CLAIMANT = {
   Z06: "Pakistan", Z07: "India", Z08: "China", Z09: "India",
 };
 
+
 const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null, leaderExtension = LEADER_EXTENSION_DEFAULT) => {
   const allFeatures = regionsFC?.features ?? [];
   const countryNameByCode = new Map(); // gid0 -> modern country name (fallback labels)
@@ -558,7 +560,8 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       // additional clusters must clear the size bar.
       if (index > 0 && cluster.area < MIN_CLUSTER_AREA) continue;
       const ownScale = Math.sqrt(cluster.area) * 17500;
-      const tilt = axisElongationOfMoments(cluster.axis) >= AXIS_ELONGATION_FLOOR
+      const elongation = axisElongationOfMoments(cluster.axis);
+      const tilt = elongation >= AXIS_ELONGATION_FLOOR
         ? axisAngleOfMoments(cluster.axis)
         : 0;
 
@@ -597,7 +600,9 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           type: "Feature",
           id: `owner-leader-${id}`,
           geometry: { type: "LineString", coordinates: [leader.edge, leader.anchor] },
-          properties: { name },
+          // ownScale rides along so the line can fade on how big the COUNTRY is
+          // on screen rather than on zoom alone — see leaderLinePaint.
+          properties: { name, ownScale },
         });
       }
       features.push({
@@ -613,9 +618,17 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           //
           // Out on a line the label is no longer describing an area it sits in,
           // so it stops being sized by one and draws to be read.
+          //
+          // …AND INSIDE, IT HAS TO FIT. See fitNameToTerritory: sizing by area
+          // alone ignores how many letters the name has, and a long name drew
+          // several times wider than the country it names.
           areaScale: leader
             ? LEADER_LABEL_AREA_SCALE
-            : (index === 0 ? ownScale : Math.min(ownScale, seatScale)),
+            : fitNameToTerritory(
+              index === 0 ? ownScale : Math.min(ownScale, seatScale),
+              name,
+              tilt ? elongation : 1,
+            ),
           // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
           // flat. Reported symptom: BELGIAN CONGO and BRITISH EAST AFRICA
           // overprinting each other on the 1935 map. Both are single clusters,
@@ -1696,13 +1709,31 @@ const WorldMap = ({ isGlobe = false }) => {
 
   // The line is the label's own colour at half strength — it is punctuation for
   // the text, not a border, and it must never compete with a real one.
+  //
+  // IT FADES ON HOW BIG THE COUNTRY IS, NOT ON ZOOM.
+  //
+  // The reason for fading was right and the dial was wrong. "A leader line is
+  // punctuation, and a country that fills the screen has nothing to point at"
+  // — true, but zoom is a poor proxy for filling the screen. The old ramp went
+  // 0.38 at z5 to 0 at z8, so at the zoom a player actually reads a cluster of
+  // small states (z6.6, reported) every line was down to 0.18 and effectively
+  // invisible: Andorra alone on a coast showed, the same line in central
+  // Germany did not.
+  //
+  // ownScale × 2^(zoom−16) is the country's own size in the very units the text
+  // is sized in (buildCountryTextSize), so this reads "fade the line out as the
+  // shape it points at grows past reading size, wherever the zoom happens to
+  // be". A micro-state keeps its line far deeper in than z8; a country near the
+  // promotion floor loses it early, which is the original intent. Only promoted
+  // shapes have lines at all, so this only ever spans ownScale < 20,000.
   const leaderLinePaint = useMemo(() => ({
     "line-color": labelTextColor || "#FFFFFF",
     "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.5, 6, 0.9, 8, 1.2],
     "line-opacity": [
-      "interpolate", ["linear"], ["zoom"],
-      5, 0.38,
-      8, 0,
+      "interpolate", ["linear"],
+      ["*", ["coalesce", ["get", "ownScale"], 0], ["^", 2, ["-", ["zoom"], 16]]],
+      20, 0.38,
+      60, 0,
     ],
   }), [labelTextColor]);
 
