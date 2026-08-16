@@ -284,68 +284,25 @@ await (async () => {
       }
     }
   }
-  // THE HANDOVER LIST CAME BACK — SAME MECHANISM, NEW CAUSE, STILL BY NAME.
+  // AND THE LIST EMPTIED AGAIN — THREE TIMES IN ONE DAY.
   //
-  // It stood for one day, emptied, and returns eleven names smaller than it was.
-  // The cause is the same shape as before: victorian-1836 gained the colonial
-  // structure on 2026-08-16 (reports 3, 11 and 12 — the board was drawing Canada,
-  // Australia and New Zealand as single modern British blocks) and the spec and the
-  // leader pack are held by different sessions this cycle, so again the states
-  // arrive before their rulers.
+  // Forty names, then thirteen, then twenty-one. Each list was written the same
+  // way — BY NAME, never by rule, so it could only shrink — and each emptied the
+  // same day it was written. The mechanism that produces them is structural and
+  // will produce a fourth: the spec and the leader pack are held by different
+  // sessions, so states keep arriving before their rulers.
   //
-  // The rule the last list was written under holds and is why this one is
-  // acceptable: names, not a waiver. A rule would silently cover every future
-  // polity; a list of eleven strings can only shrink. Anything outside it still
-  // fails outright, so no throne is left for the model to invent unnoticed.
+  // What must not happen is a list that outlives its cause. The pin that stops
+  // that is the one below, and it has already earned its place twice: it caught
+  // Bahrain being listed while the Al Khalifa chain already answered here, and
+  // it is what forces each of these lists back to zero.
   //
-  // Zulu Kingdom is deliberately NOT here — Dingane already answers, which is the
-  // check that this list names a real gap rather than every new polity.
-  const awaitingLeaderPack = new Set([
-    // 북아메리카 — 허드슨만 회사(조지 심프슨 총독)와 1791년 헌법법의 두 캐나다,
-    // 그리고 연방 전의 대서양 식민지 넷.
-    "victorian-1836: Hudson's Bay Company",
-    "victorian-1836: Province of Upper Canada",
-    "victorian-1836: Province of Lower Canada",
-    "victorian-1836: Colony of New Brunswick",
-    "victorian-1836: Colony of Nova Scotia",
-    "victorian-1836: Prince Edward Island Colony",
-    "victorian-1836: Crown Colony of Newfoundland",
-    // 남아메리카 — 보고 8. 카바나젱의 대통령은 에두아르두 앙젤림(1835-08~1836-05)
-    // 이고, 그 앞에 펠릭스 클레멘치 말셰르와 프란시스쿠 페드루 비니아그리가 있다.
-    "victorian-1836: Cabanagem",
-    // 중앙아시아·걸프 — 보고 6. **코칸트 하나뿐이다**: 바레인을 같이 넣었다가
-    // 바로 아래 "답이 생긴 이름은 빠져야 한다" 핀에 걸렸다. 알칼리파가 이미
-    // 답한다 — 핀이 목록의 과잉을 잡은 첫 사례이고, 그러라고 건 것이다.
-    "victorian-1836: Khanate of Kokand",
-    // 독일 다섯 — 독일 연방 덩어리에서 꺼낸 여섯 중 다섯. **하노버는 여기 없다**:
-    // 1836년 하노버 국왕은 영국과 동군연합인 윌리엄 4세라 이미 답한다(동군연합이
-    // 끊기는 것은 1837-06-20, 살리카법).
-    "victorian-1836: Kingdom of Württemberg",
-    "victorian-1836: Grand Duchy of Baden",
-    "victorian-1836: Free Hanseatic City of Bremen",
-    "victorian-1836: Free and Hanseatic City of Hamburg",
-    "victorian-1836: Grand Duchy of Saxe-Weimar-Eisenach",
-    // 알제리 둘 — 보고 2를 고치며 세웠다. 둘 다 기록이 단단해서 사람이 답할 것으로
-    // 본다: 에미르 압델카데르(1832 추대)와 아흐메드 베이(1826 임명, 1837-10 함락).
-    "victorian-1836: Emirate of Abdelkader",
-    "victorian-1836: Beylik of Constantine",
-    // 오세아니아 — 총독 셋(버크·아서/프랭클린·스털링)과, 사람이 아니라 **연합**이
-    // 답이어야 할 자리 하나. 부족연합에는 상설 수장이 없다 — 1835년 선언은 랑가티라
-    // 들의 회의체를 세웠고, 라구사 원칙이 그대로 적용되는 자리로 보인다.
-    "victorian-1836: Colony of New South Wales",
-    "victorian-1836: Colony of Van Diemen's Land",
-    "victorian-1836: Colony of Western Australia",
-    "victorian-1836: United Tribes of New Zealand",
-  ]);
-  const unexpected = failures.filter((f) => !awaitingLeaderPack.has(f));
-  assert.deepEqual(unexpected, [],
-    "every post-1444 preset polity must resolve (outside the named handover list)");
-
-  // The list must not outlive its cause: a name that starts resolving has to come
-  // out, or the list rots into the waiver it was written to avoid.
-  const resolvedButStillListed = [...awaitingLeaderPack].filter((f) => !failures.includes(f));
-  assert.deepEqual(resolvedButStillListed, [],
-    "a polity that now resolves must be removed from awaitingLeaderPack");
+  // Zulu Kingdom and Hanover were never listed — Dingane answers, and the 1836
+  // king of Hanover is William IV in personal union with Britain (the union
+  // breaks 1837-06-20 under Salic law). A list that names real gaps and not
+  // every new polity is the whole point.
+  assert.deepEqual(failures, [],
+    "every post-1444 preset polity must resolve");
 
   // ── 이전 회차의 기록 (2026-08-16, 마흔 자리) ─────────────────────────────
   // THE HANDOVER LIST IS GONE, AND THAT IS THE POINT OF IT.

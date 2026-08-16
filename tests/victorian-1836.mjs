@@ -160,35 +160,18 @@ test("every polity the spec declares can be answered", () => {
   //
   // 줄루 왕국은 여기 없다. 딩가네가 이미 답하고, 그것이 이 목록이 "새 폴리티"가
   // 아니라 **진짜 공백**만 담고 있다는 증거다.
-  const awaitingLeaderPack = [
-    // ★ 바레인이 두 테스트에서 다르게 나온다. `tests/leaders.mjs`는 통과하고
-    // (거기 `resolveLeadership`은 사슬 전체를 본다) 여기는 걸린다 — 이 핀은
-    // `referenceLeadership`, 즉 **REFERENCE 표에 1836년을 덮는 행이 있는가**만
-    // 묻는다. 알칼리파는 사슬 어딘가에서 답하지만 그 표에는 이 해가 없다.
-    // 두 목록이 갈리는 것은 결함이 아니라 두 질문이 다르기 때문이고, 여기 적어
-    // 두지 않으면 다음 사람이 한쪽을 지운다.
-    "Bahrain",
-    "Beylik of Constantine",
-    "Cabanagem",
-    "Khanate of Kokand",
-    "Free Hanseatic City of Bremen",
-    "Free and Hanseatic City of Hamburg",
-    "Grand Duchy of Baden",
-    "Grand Duchy of Saxe-Weimar-Eisenach",
-    "Kingdom of Württemberg",
-    "Colony of New Brunswick",
-    "Colony of New South Wales",
-    "Colony of Nova Scotia",
-    "Colony of Van Diemen's Land",
-    "Colony of Western Australia",
-    "Crown Colony of Newfoundland",
-    "Emirate of Abdelkader",
-    "Hudson's Bay Company",
-    "Prince Edward Island Colony",
-    "Province of Lower Canada",
-    "Province of Upper Canada",
-    "United Tribes of New Zealand",
-  ].sort();
+  // 목록이 오늘만 세 번 섰다 — 마흔, 열셋, 스물하나. 세 번 다 같은 날 비었다.
+  // 기제는 구조적이다(스펙과 지도자 팩이 서로 다른 세션에 있다). 막아야 할 것은
+  // 목록이 서는 일이 아니라 **자기 원인보다 오래 사는 일**이고, 아래 두 줄이
+  // 그걸 강제한다: 목록 밖은 즉시 빨개지고, 답이 생긴 이름은 반드시 빠진다.
+  //
+  // ★ 바레인이 남긴 관찰은 목록보다 오래 간다. 이 핀과 tests/leaders.mjs의 핀은
+  // **다른 질문을 한다** — 저쪽 `resolveLeadership`은 별칭 사슬 전체를 보고,
+  // 여기 `referenceLeadership`은 REFERENCE 표에 그 해를 덮는 행이 있는지만
+  // 묻는다. 그래서 사슬 어딘가에서 답하지만 표에는 없는 폴리티가 한쪽만
+  // 통과했다. 지금은 알칼리파가 표에 있어 둘 다 통과하지만, 다음에 두 목록이
+  // 갈리면 그건 결함이 아니라 이 차이일 수 있다.
+  const awaitingLeaderPack = [];
   assert.deepEqual(unanswered.sort().filter((n) => !awaitingLeaderPack.includes(n)), [],
     "a name added here without a leader row is a to-do, not a decision");
   // 목록이 자기 원인보다 오래 살면 안 된다 — 답이 생긴 이름은 빠져야 한다.
