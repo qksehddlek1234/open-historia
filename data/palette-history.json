@@ -8859,6 +8859,9 @@
       ]
     },
     "victorian-1836": {
+      "Andorra": [
+        "653294"
+      ],
       "Austrian Empire": [
         "e8d878"
       ],
@@ -8867,6 +8870,9 @@
       ],
       "Central America": [
         "8ab0d4"
+      ],
+      "Couto Misto": [
+        "9a9a7a"
       ],
       "Denmark": [
         "8a5f6d"
@@ -8877,8 +8883,35 @@
       "Domestic: Newspaper": [
         "6b7280"
       ],
+      "Duchy of Anhalt-Bernburg": [
+        "7f6f8f"
+      ],
+      "Duchy of Lucca": [
+        "009ce0"
+      ],
+      "Duchy of Modena and Reggio": [
+        "b5744a"
+      ],
+      "Duchy of Nassau": [
+        "6f8f7a"
+      ],
+      "Duchy of Parma and Piacenza": [
+        "f44e3b"
+      ],
+      "Duchy of Saxe-Altenburg": [
+        "a3946b"
+      ],
+      "Duchy of Saxe-Meiningen": [
+        "8f7f5f"
+      ],
       "Egypt of Muhammad Ali": [
         "c8a03e"
+      ],
+      "Electorate of Hesse": [
+        "9a8f6a"
+      ],
+      "Emirate of Bukhara": [
+        "8a7f5a"
       ],
       "Emirate of Kabul": [
         "6b7a5a"
@@ -8886,11 +8919,29 @@
       "France": [
         "3f5fd0"
       ],
+      "Free City of Frankfurt": [
+        "d9c98a"
+      ],
+      "Free City of Lübeck": [
+        "7f96a8"
+      ],
       "German Confederation": [
         "b8b8a0"
       ],
+      "Grand Duchy of Hesse": [
+        "af0d3e"
+      ],
+      "Grand Duchy of Mecklenburg-Schwerin": [
+        "aeaddb"
+      ],
+      "Grand Duchy of Tuscany": [
+        "873bce"
+      ],
       "Haiti": [
         "8a3a5a"
+      ],
+      "Hohenzollern-Sigmaringen": [
+        "6f7f9a"
       ],
       "Internal: Diplomatic Representative": [
         "6b7280"
@@ -8928,6 +8979,15 @@
       "Joseon": [
         "5b7fae"
       ],
+      "Khanate of Kalat": [
+        "7b64ff"
+      ],
+      "Khanate of Khiva": [
+        "5f8a8a"
+      ],
+      "Kingdom of Bavaria": [
+        "bbbac9"
+      ],
       "Kingdom of Greece": [
         "5b8fd8"
       ],
@@ -8940,17 +9000,32 @@
       "Kingdom of Sardinia": [
         "9a7ab0"
       ],
+      "Kingdom of Saxony": [
+        "7b7d93"
+      ],
       "Konbaung Burma": [
         "7a9a4a"
       ],
+      "Landgraviate of Hesse-Homburg": [
+        "b08f9a"
+      ],
+      "Liechtenstein": [
+        "c45100"
+      ],
       "Mexico": [
         "6b8a3e"
+      ],
+      "Monaco": [
+        "a8523f"
       ],
       "Netherlands": [
         "c87a3e"
       ],
       "Nguyen Vietnam": [
         "5a9a7a"
+      ],
+      "Omani Empire": [
+        "fb9e00"
       ],
       "Ottoman Empire": [
         "5a8a6a"
@@ -8964,8 +9039,26 @@
       "Portugal": [
         "2e7d6b"
       ],
+      "Prince-Bishopric of Montenegro": [
+        "6a4a6a"
+      ],
+      "Principality of Lippe": [
+        "98a86f"
+      ],
+      "Principality of Reuss-Gera": [
+        "8f6f6f"
+      ],
+      "Principality of Reuss-Greiz": [
+        "a87f7f"
+      ],
+      "Principality of Schaumburg-Lippe": [
+        "8fa8a0"
+      ],
       "Principality of Serbia": [
         "7a6a9a"
+      ],
+      "Principality of Waldeck-Pyrmont": [
+        "c9b06a"
       ],
       "Qajar Persia": [
         "b07a3e"
@@ -8978,6 +9071,9 @@
       ],
       "Russian Empire": [
         "8b9a54"
+      ],
+      "San Marino": [
+        "572400"
       ],
       "Siam": [
         "4a7ab0"
@@ -8993,6 +9089,9 @@
       ],
       "Tokugawa Japan": [
         "a85454"
+      ],
+      "Trucial States": [
+        "d06a5a"
       ],
       "Two Sicilies": [
         "a06a4a"

@@ -1060,6 +1060,288 @@ export const REFERENCE = {
       { name: "(없음)" },
     ],
   },
+
+  // ---- 1836년 독일 연방·이탈리아 공국·소국 (victorian-1836 로스터 분해) ----
+  // victorian-1836의 시대 면 46개 중 38개가 붙을 나라를 못 찾고 있었다. 스펙이
+  // 방국 열아홉을 `German Confederation` 한 칸으로 뭉쳐 놨기 때문이고, 로스터를
+  // 쪼개면 면은 바로 붙는다 — 그런데 로스터만 쪼개면 새 나라 서른셋이 **지도자
+  // 없이** 판에 오른다. 이 묶음이 그 자리를 채운다.
+  //
+  // 두 가지 규약:
+  // ① 1836년 재위자만이 아니라 **다음 승계까지** 적는다. 캠페인이 앞으로
+  //    달리면 그 다음 사람도 기록에서 나와야지 모델이 지어내면 안 된다.
+  //    1836년에만 승계가 넷이다 — 작센(6월)·리히텐슈타인(4월)·로이스그라이츠
+  //    (10월)·메클렌부르크(이듬해 2월).
+  // ② **날짜를 모르면 아는 만큼만 적는다.** 이 파일은 "1816"·"1828-09" 같은
+  //    부분 날짜를 이미 쓰고 있고, 중앙아시아 항목이 그렇다. 하루를 지어내
+  //    정밀해 보이게 만들지 않는다.
+  //
+  // 자유시와 공동통치체는 사람 이름을 적지 않는다. 프랑크푸르트·뤼베크의
+  // 시장은 1년 임기 윤번이고 산마리노 집정관은 6개월 윤번이며 코투미스투의
+  // 판사는 이름이 남아 있지 않다 — 기록이 단단한 곳만 사람을 적고 나머지는
+  // 제도를 적는다(라구사 원칙).
+  "Kingdom of Bavaria": {
+    leader: [
+      { name: "국왕 루트비히 1세", from: "1825-10-13", until: "1848-03-20" },
+      { name: "국왕 막시밀리안 2세", from: "1848-03-20", until: "1864-03-10" },
+      { name: "국왕 루트비히 2세", from: "1864-03-10", until: "1886-06-13" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Kingdom of Saxony": {
+    leader: [
+      { name: "국왕 안톤", from: "1827-05-05", until: "1836-06-06" },
+      { name: "국왕 프리드리히 아우구스트 2세", from: "1836-06-06", until: "1854-08-09" },
+      { name: "국왕 요한", from: "1854-08-09", until: "1873-10-29" },
+      { name: "국왕 알베르트", from: "1873-10-29", until: "1902-06-19" },
+    ],
+    // 1830년 소요 뒤 조카를 공동섭정으로 앉혔다. 판이 열리는 날 작센의 실무는
+    // 이 사람이 보고 있고, 여섯 달 뒤 그대로 왕이 된다.
+    deputy: [
+      { name: "공동섭정 프리드리히 아우구스트", from: "1830-09-13", until: "1836-06-06" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Grand Duchy of Hesse": {
+    leader: [
+      { name: "대공 루트비히 2세", from: "1830-04-06", until: "1848-06-16" },
+      { name: "대공 루트비히 3세", from: "1848-06-16", until: "1877-06-13" },
+      { name: "대공 루트비히 4세", from: "1877-06-13", until: "1892-03-13" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Electorate of Hesse": {
+    leader: [
+      { name: "선제후 빌헬름 2세", from: "1821-02-27", until: "1847-11-20" },
+      { name: "선제후 프리드리히 빌헬름 1세", from: "1847-11-20", until: "1866-06-20" },
+    ],
+    // 1831년 헌법 소요 뒤 선제후는 하나우로 물러나 있고 아들이 공동섭정으로
+    // 카셀에서 통치한다 — 명목과 실무가 갈라진 자리라 둘 다 적는다.
+    deputy: [
+      { name: "공동섭정 프리드리히 빌헬름", from: "1831-09-30", until: "1847-11-20" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Grand Duchy of Mecklenburg-Schwerin": {
+    leader: [
+      { name: "대공 프리드리히 프란츠 1세", from: "1785-04-24", until: "1837-02-01" },
+      { name: "대공 파울 프리드리히", from: "1837-02-01", until: "1842-03-07" },
+      { name: "대공 프리드리히 프란츠 2세", from: "1842-03-07", until: "1883-04-15" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Nassau": {
+    leader: [
+      { name: "공작 빌헬름", from: "1816-03-30", until: "1839-08-20" },
+      { name: "공작 아돌프", from: "1839-08-20", until: "1866-09-20" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Saxe-Meiningen": {
+    leader: [
+      { name: "공작 베른하르트 2세", from: "1803-12-24", until: "1866-09-20" },
+      { name: "공작 게오르크 2세", from: "1866-09-20", until: "1914-06-25" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Saxe-Altenburg": {
+    leader: [
+      { name: "공작 요제프", from: "1834-09-29", until: "1848-11-30" },
+      { name: "공작 게오르크", from: "1848-11-30", until: "1853-08-03" },
+      { name: "공작 에른스트 1세", from: "1853-08-03", until: "1908-02-07" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Anhalt-Bernburg": {
+    leader: [
+      { name: "공작 알렉산더 카를", from: "1834-03-24", until: "1863-08-19" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Principality of Lippe": {
+    leader: [
+      { name: "후작 레오폴트 2세", from: "1802-04-05", until: "1851-01-01" },
+      { name: "후작 레오폴트 3세", from: "1851-01-01", until: "1875-12-08" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Principality of Waldeck-Pyrmont": {
+    leader: [
+      { name: "후작 게오르크 2세", from: "1813-09-09", until: "1845-05-15" },
+      { name: "후작 게오르크 빅토르", from: "1845-05-15", until: "1893-05-12" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Principality of Schaumburg-Lippe": {
+    leader: [
+      { name: "후작 게오르크 빌헬름", from: "1787-02-13", until: "1860-11-21" },
+      { name: "후작 아돌프 1세 게오르크", from: "1860-11-21", until: "1893-05-08" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Free City of Frankfurt": {
+    // 시장은 원로원이 해마다 뽑는 윤번직이고, 도시가 곧 연방의회 소재지다.
+    // 1836년 한 사람을 세우는 건 그 제도를 잘못 그리는 것이다.
+    leader: [
+      { name: "시장 2인 (원로원이 매년 선출하는 윤번직)" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Free City of Lübeck": {
+    leader: [
+      { name: "시장 2인 (원로원이 매년 선출하는 윤번직)" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Landgraviate of Hesse-Homburg": {
+    leader: [
+      { name: "방백 루트비히 빌헬름", from: "1829-01-20", until: "1839-01-19" },
+      { name: "방백 필리프", from: "1839-01-19", until: "1846-12-15" },
+      { name: "방백 구스타프", from: "1846-12-15", until: "1848-09-08" },
+      { name: "방백 페르디난트", from: "1848-09-08", until: "1866-03-24" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Hohenzollern-Sigmaringen": {
+    leader: [
+      { name: "후작 카를", from: "1831-10-17", until: "1848-08-27" },
+      { name: "후작 카를 안톤", from: "1848-08-27", until: "1849-12-07" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Principality of Reuss-Greiz": {
+    leader: [
+      { name: "후작 하인리히 19세", from: "1817-04-29", until: "1836-10-31" },
+      { name: "후작 하인리히 20세", from: "1836-10-31", until: "1859-11-08" },
+      { name: "후작 하인리히 22세", from: "1859-11-08", until: "1902-04-19" },
+    ],
+    deputy: [
+      { name: "섭정 카롤리네 대공비", from: "1859-11-08", until: "1867-03-28" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Principality of Reuss-Gera": {
+    // 유년계는 1848년에야 게라로 합쳐진다. 1836년의 수석은 로이스슐라이츠의
+    // 하인리히 62세이고, 면이 "Reuß-Gera"로 닫혔다고 해서 그 해에 통합된
+    // 공국이 있었던 것처럼 적지는 않는다.
+    leader: [
+      { name: "후작 하인리히 62세 (로이스슐라이츠)", from: "1818-04-17", until: "1854-06-19" },
+      { name: "후작 하인리히 67세", from: "1854-06-19", until: "1867-07-11" },
+      { name: "후작 하인리히 14세", from: "1867-07-11", until: "1913-03-29" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  Liechtenstein: {
+    leader: [
+      { name: "후작 요한 1세 요제프", from: "1805-03-24", until: "1836-04-20" },
+      { name: "후작 알로이스 2세", from: "1836-04-20", until: "1858-11-12" },
+      { name: "후작 요한 2세", from: "1858-11-12", until: "1929-02-11" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Grand Duchy of Tuscany": {
+    leader: [
+      { name: "대공 레오폴도 2세", from: "1824-06-18", until: "1859-07-21" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Modena and Reggio": {
+    leader: [
+      { name: "공작 프란체스코 4세", from: "1814-07-14", until: "1846-01-21" },
+      { name: "공작 프란체스코 5세", from: "1846-01-21", until: "1859-06-11" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Parma and Piacenza": {
+    // 나폴레옹의 두 번째 황후가 자기 공국을 종신으로 받았다. 1847년 그가
+    // 죽으면 부르봉파르마가 돌아오고 루카는 토스카나로 넘어간다 — 빈 회의가
+    // 미리 짜 둔 연쇄다.
+    leader: [
+      { name: "여공작 마리아 루이자", from: "1814-04-11", until: "1847-12-17" },
+      { name: "공작 카를로 2세", from: "1847-12-17", until: "1849-03-14" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Duchy of Lucca": {
+    leader: [
+      { name: "공작 카를로 로도비코", from: "1824-03-13", until: "1847-10-05" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  Andorra: {
+    // 공동군주가 둘이고 둘 다 밖에 있다 — 우르젤 주교와 프랑스 국가원수.
+    // 한 자리에 한 사람만 적으면 이 나라가 무엇인지를 지운다.
+    leader: [
+      { name: "주교공 시모 데 과르디올라", from: "1827", until: "1851-01-21" },
+    ],
+    headOfState: [
+      { name: "공동공 프랑스 국왕 루이필리프 1세", from: "1830-08-09", until: "1848-02-24" },
+    ],
+  },
+  Monaco: {
+    leader: [
+      { name: "공 오노레 5세", from: "1819-02-16", until: "1841-10-02" },
+      { name: "공 플로레스탄 1세", from: "1841-10-02", until: "1856-06-20" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "San Marino": {
+    leader: [
+      { name: "집정관 2인 (6개월 임기, 4월·10월 교대)" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Couto Misto": {
+    // 두 왕국 어디에도 속하지 않은 세 마을. 자기들이 뽑은 판사가 다스렸고 그
+    // 이름은 남아 있지 않다 — 1868년 경계조약으로 나뉘어 사라진다.
+    leader: [
+      { name: "선출직 판사(juiz)와 세 마을 회의" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Prince-Bishopric of Montenegro": {
+    leader: [
+      { name: "주교공 페타르 2세 페트로비치녜고시", from: "1830-10-30", until: "1851-10-31" },
+      { name: "공 다닐로 1세", from: "1851-10-31", until: "1860-08-13" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Omani Empire": {
+    leader: [
+      { name: "술탄 사이드 빈 술탄", from: "1804-11-14", until: "1856-10-19" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Trucial States": {
+    // 하나의 나라가 아니라 영국과 해상 휴전 조약을 맺은 샤이흐국들이다.
+    // 군주 한 사람을 세우면 없는 통일체를 만드는 셈이라 제도를 적는다.
+    leader: [
+      { name: "휴전 조약을 맺은 샤이흐들 (단일 군주 없음)" },
+    ],
+    deputy: [
+      { name: "샤르자·라스알카이마의 술탄 빈 사크르 알카시미 (최대 서명자)", from: "1820", until: "1866" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Emirate of Bukhara": {
+    leader: [
+      { name: "아미르 나스룰라 칸", from: "1827", until: "1860-10-20" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Khanate of Khiva": {
+    leader: [
+      { name: "칸 알라쿨리", from: "1825", until: "1842" },
+      { name: "칸 라힘쿨리", from: "1842", until: "1845" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Khanate of Kalat": {
+    leader: [
+      { name: "칸 메흐라브 칸", from: "1817", until: "1839-11-13" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
 };
 
 export const POLITICAL_FIGURES = {
@@ -1322,7 +1604,14 @@ export const POLITICAL_FIGURES = {
 };
 
 export const ALIASES = {
-  "Kingdom of Italy": "Italian Republic",
+  // "Kingdom of Italy" WAS DECLARED TWICE HERE — once pointing at the Napoleonic
+  // "Italian Republic" and once, forty lines down, at "Italy". The later one won
+  // silently, as the later one always does in an object literal, and the first
+  // was dead the day it was written. Removed rather than kept, because the
+  // survivor is the one the boards need: kaiserreich-1936 NAMES its polity
+  // "Kingdom of Italy" and six more carry it as an alias for the post-1861
+  // kingdom, while napoleonic-1804 already names its own "Italian Republic" and
+  // never needed the hop. Found by no-dupe-keys on 2026-08-16, pre-existing.
   "Cisalpine Republic": "Italian Republic",
   "Hanover": "Electorate of Hanover",
   "Kingdom of Sardinia": "Sardinia",

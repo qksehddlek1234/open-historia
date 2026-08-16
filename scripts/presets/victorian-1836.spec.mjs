@@ -60,22 +60,50 @@ export default {
   //
   //   node scripts/ohm/plan-era-faces.mjs --build --min-polities 150 --only 1836-01-01
   //
-  // Until that dump exists the preset builds exactly as before, and says so.
-  // faceOwners is deliberately empty for now: the colonial holdings whose NAME
-  // cannot answer who holds them (Gibraltar, Malta, Heligoland, the Channel
-  // Islands, Algérie française) need the same treatment 1939 got, and that is a
-  // pass over the assembled faces, not a guess made in advance.
+  // THE DUMP EXISTS NOW — 46 faces — AND THE ROSTER WAS THROWING 38 OF THEM AWAY.
+  // Measured 2026-08-16: 8 of 46 matched. Not because the geometry was bad, but
+  // because the paragraph above predicted the states and the roster below then
+  // wrote them as ONE cell, `GER: German Confederation`. Bayern, Sachsen,
+  // Kurhessen, Waldeck and fifteen more arrived with their outlines closed and
+  // had nowhere to land. The fix is the roster, not the assembler; the states
+  // are named below and GER now means only the members with no face.
+  //
+  // faceOwners was left open for the holdings whose NAME cannot answer who holds
+  // them. That pass has now been made — four of the five are British:
   eraGeometry: {
     date: "1836-01-01",
     window: [-15, 30, 50, 72],
+    faceOwners: {
+      // Crown colony, taken from the French in 1800 and confirmed at Vienna.
+      "Colony of Malta": "GBR",
+      // A protectorate since 1815 — a republic on paper, a High Commissioner in
+      // fact. Ceded to Greece in 1864, which is 28 years the wrong way.
+      "United States of the Ionian Islands": "GBR",
+      // Crown dependencies. Neither is IN the United Kingdom and both answer to
+      // its Crown; with no line here they stand up as sovereign states — the
+      // same fault tests/era-sovereignty.mjs pins for the 1946 Isle of Man.
+      "Isle of Man": "GBR",
+      Jersey: "GBR",
+    },
   },
 
   polities: {
-    GBR: { name: "United Kingdom", color: "#c0507a", aliases: ["영국", "대영제국", "Britain", "Great Britain", "British Empire", "East India Company"] },
+    // The long form is the alias that matters: the era face is styled "United
+    // Kingdom of Great Britain and Ireland", and stripStyle only takes "Kingdom
+    // of" off the FRONT — so the player's own country was among the 38 misses.
+    GBR: { name: "United Kingdom", color: "#c0507a", aliases: ["영국", "대영제국", "United Kingdom of Great Britain and Ireland", "Britain", "Great Britain", "British Empire", "East India Company"] },
     FRA: { name: "France", color: "#3f5fd0", aliases: ["프랑스", "7월 왕정", "July Monarchy", "Orléanist France"] },
     RUS: { name: "Russian Empire", color: "#8b9a54", aliases: ["러시아 제국", "러시아", "Russia"] },
     AUT: { name: "Austrian Empire", color: "#e8d878", aliases: ["오스트리아 제국", "오스트리아", "Austria", "Habsburg Monarchy"] },
     PRU: { name: "Kingdom of Prussia", color: "#4a6a8a", aliases: ["프로이센", "Prussia"] },
+    // WHAT IS LEFT OF THE AGGREGATE. It used to stand for all ~35 Bund members;
+    // it now stands for the ones the assembler could NOT close a face for —
+    // Hannover, Württemberg, Baden, Braunschweig, Oldenburg, Mecklenburg-
+    // Strelitz, Sachsen-Weimar, Hamburg, Bremen and the rest. Those still ride
+    // as one blob, and that is a data gap, not a design: give the assembler
+    // their outlines and they come out of here the same way the nineteen below
+    // did. Holstein and Lauenburg are members too and sit under DAN, which is
+    // the personal union the Schleswig question is about.
     GER: { name: "German Confederation", color: "#b8b8a0", aliases: ["독일 연방", "독일 제후국들", "German minor states", "Deutscher Bund"] },
     OTT: { name: "Ottoman Empire", color: "#5a8a6a", aliases: ["오스만 제국", "오스만", "Turkey", "Sublime Porte"] },
     EGY: { name: "Egypt of Muhammad Ali", color: "#c8a03e", aliases: ["무함마드 알리의 이집트", "이집트", "Egypt", "Khedivate"] },
@@ -90,7 +118,17 @@ export default {
     SAR: { name: "Kingdom of Sardinia", color: "#9a7ab0", aliases: ["사르데냐 왕국", "사보이아", "Piedmont-Sardinia", "Sardinia"] },
     SIC: { name: "Two Sicilies", color: "#a06a4a", aliases: ["양시칠리아 왕국", "나폴리", "Kingdom of the Two Sicilies", "Naples"] },
     PAP: { name: "Papal States", color: "#e8e0c0", aliases: ["교황령", "Papacy", "Rome"] },
-    ITD: { name: "Italian Duchies", color: "#c8b88a", aliases: ["이탈리아 공국들", "토스카나", "Tuscany", "Parma", "Modena"] },
+    // ── the Italian duchies, four states where there was one cell ──────────────
+    // `ITD: Italian Duchies` is gone. It was the same fault as GER on a smaller
+    // scale, and it was worse than a miss: Granducato di Toscana MATCHED it
+    // through stripStyle, so the board drew one duchy's outline and labelled it
+    // with an aggregate that also claimed Parma, Modena and Lucca.
+    TOS: { name: "Grand Duchy of Tuscany", color: "#873bce", aliases: ["토스카나 대공국", "토스카나", "Granducato di Toscana", "Tuscany"] },
+    MOD: { name: "Duchy of Modena and Reggio", color: "#b5744a", aliases: ["모데나 레조 공국", "모데나", "Ducato di Modena e Reggio", "Modena"] },
+    PAR: { name: "Duchy of Parma and Piacenza", color: "#f44e3b", aliases: ["파르마 피아첸차 공국", "파르마", "Ducato di Parma e Piacenza", "Parma"] },
+    // Lucca is an independent duchy until 1847, when it falls in to Tuscany
+    // under the Treaty of Vienna's succession clause. In 1836 it is its own.
+    LUC: { name: "Duchy of Lucca", color: "#009ce0", aliases: ["루카 공국", "루카", "Ducato di Lucca", "Lucca"] },
     QAJ: { name: "Qajar Persia", color: "#b07a3e", aliases: ["카자르 페르시아", "페르시아", "Persia", "Iran"] },
     AFG: { name: "Emirate of Kabul", color: "#6b7a5a", aliases: ["카불 토후국", "아프가니스탄", "Afghanistan", "Dost Mohammad's emirate"] },
     SIK: { name: "Sikh Empire", color: "#d8b83e", aliases: ["시크 제국", "라호르 왕국", "Punjab", "Ranjit Singh's empire"] },
@@ -107,6 +145,69 @@ export default {
     HTI: { name: "Haiti", color: "#8a3a5a", aliases: ["아이티", "Boyer's Haiti", "Hayti"] },
     PBC: { name: "Peru-Bolivian Confederation", color: "#7a5aa0", aliases: ["페루-볼리비아 국가연합", "페루", "볼리비아", "Peru", "Bolivia", "Santa Cruz confederation"] },
     HAW: { name: "Kingdom of Hawaii", color: "#4a9a9a", aliases: ["하와이 왕국", "하와이", "Hawaii", "Sandwich Islands"] },
+
+    // ── the German Confederation, one state per closed face ────────────────────
+    // Nineteen entries for twenty faces (Waldeck holds two, see below). Each
+    // alias list carries the EXACT string the assembler wrote, because that is
+    // what the face is matched on — the German styling is the face's, not ours.
+    // None of these needs a countryAssignments row: the face carves the state
+    // out of whatever province GER was holding, which is the whole point.
+    BAY: { name: "Kingdom of Bavaria", color: "#bbbac9", aliases: ["바이에른 왕국", "바이에른", "Königreich Bayern", "Bavaria"] },
+    SAX: { name: "Kingdom of Saxony", color: "#7b7d93", aliases: ["작센 왕국", "작센", "Königreich Sachsen", "Saxony"] },
+    HES: { name: "Grand Duchy of Hesse", color: "#af0d3e", aliases: ["헤센 대공국", "헤센다름슈타트", "Großherzogtum Hessen", "Hesse-Darmstadt", "Grand-Hesse"] },
+    // Two Hesses, and they are not the same state — Kurhessen (Kassel) is the
+    // electorate, Großherzogtum Hessen (Darmstadt) the grand duchy. The
+    // electoral title survived the Empire it was an election to, which is why
+    // there is still a Kurfürst in 1836 and nothing left to elect.
+    KUR: { name: "Electorate of Hesse", color: "#9a8f6a", aliases: ["헤센 선제후국", "쿠어헤센", "Kurhessen", "Hesse-Kassel", "Electorate of Hesse"] },
+    MEC: { name: "Grand Duchy of Mecklenburg-Schwerin", color: "#aeaddb", aliases: ["메클렌부르크슈베린 대공국", "메클렌부르크", "Großherzogtum Mecklenburg-Schwerin", "Mecklenburg-Schwerin"] },
+    NAS: { name: "Duchy of Nassau", color: "#6f8f7a", aliases: ["나사우 공국", "나사우", "Nassau"] },
+    SAM: { name: "Duchy of Saxe-Meiningen", color: "#8f7f5f", aliases: ["작센마이닝겐 공국", "Sachsen-Meiningen", "Saxe-Meiningen"] },
+    SAA: { name: "Duchy of Saxe-Altenburg", color: "#a3946b", aliases: ["작센알텐부르크 공국", "Sachsen-Altenburg", "Saxe-Altenburg"] },
+    ANH: { name: "Duchy of Anhalt-Bernburg", color: "#7f6f8f", aliases: ["안할트베른부르크 공국", "Herzogtum Anhalt-Bernburg", "Anhalt-Bernburg"] },
+    LIP: { name: "Principality of Lippe", color: "#98a86f", aliases: ["리페 후국", "Lippe", "Lippe-Detmold"] },
+    // ONE STATE, TWO FACES, AND THEY ARE NOT NEIGHBOURS. Waldeck sits west of
+    // Kassel; Pyrmont is an exclave 60km north, around the spa. The assembler
+    // closed them separately and correctly — the graft takes both under one
+    // owner, which is what the principality actually was.
+    WAL: { name: "Principality of Waldeck-Pyrmont", color: "#c9b06a", aliases: ["발데크피르몬트 후국", "발데크", "Waldeck", "Pyrmont", "Waldeck-Pyrmont"] },
+    SCH: { name: "Principality of Schaumburg-Lippe", color: "#8fa8a0", aliases: ["샤움부르크리페 후국", "Schaumburg-Lippe"] },
+    // The two free cities in the window. Frankfurt is also the Bund's capital —
+    // the Bundesversammlung sits there, in a city that is itself a member.
+    FRK: { name: "Free City of Frankfurt", color: "#d9c98a", aliases: ["프랑크푸르트 자유시", "프랑크푸르트", "Frankfurt", "Frankfur", "Freie Stadt Frankfurt"] },
+    LUB: { name: "Free City of Lübeck", color: "#7f96a8", aliases: ["뤼베크 자유한자동맹시", "뤼베크", "Freie und Hansestadt Lübeck", "Lübeck"] },
+    HOM: { name: "Landgraviate of Hesse-Homburg", color: "#b08f9a", aliases: ["헤센-홈부르크 방백국", "Hessen-Homburg", "Hesse-Homburg"] },
+    HOH: { name: "Hohenzollern-Sigmaringen", color: "#6f7f9a", aliases: ["호엔촐레른지크마링겐", "Hohenzollern-Sigmaringen"] },
+    // The two Reuß lines, elder and younger. Every prince of the house is a
+    // Heinrich and they are numbered across the whole family, which is why the
+    // ordinals run into the sixties without anyone reigning that long.
+    RGZ: { name: "Principality of Reuss-Greiz", color: "#a87f7f", aliases: ["로이스그라이츠 후국", "Fürstentum Reuß-Greiz", "Reuss-Greiz", "Reuß-Greiz"] },
+    RGE: { name: "Principality of Reuss-Gera", color: "#8f6f6f", aliases: ["로이스게라 후국", "Fürstentum Reuß-Gera", "Reuss-Gera", "Reuß-Gera"] },
+    // A Bund member too, and the only one still on the map in 2026.
+    LIE: { name: "Liechtenstein", color: "#c45100", aliases: ["리히텐슈타인", "Fürstentum Liechtenstein"] },
+
+    // ── the rest of the misses ────────────────────────────────────────────────
+    // Nothing here is German or Italian; they were unmatched for the plain
+    // reason that the roster stopped at great powers and these are small.
+    AND: { name: "Andorra", color: "#653294", aliases: ["안도라", "Principality of Andorra"] },
+    MON: { name: "Monaco", color: "#a8523f", aliases: ["모나코", "Principality of Monaco"] },
+    SMR: { name: "San Marino", color: "#572400", aliases: ["산마리노", "Most Serene Republic of San Marino"] },
+    // A condominium on the Portuguese-Galician border — three villages that
+    // answered to neither crown, kept their own elected judge, and were divided
+    // away in 1868. It is on the map because the assembler closed it, and it is
+    // exactly the kind of border a modern province layer can never produce.
+    CTM: { name: "Couto Misto", color: "#9a9a7a", aliases: ["코투미스투", "Couto Mixto", "Couto Misto"] },
+    // Ottoman on paper, and the paper is thirty years out of date. OTT still
+    // holds MNE in countryAssignments; this face takes back what the
+    // prince-bishop actually ruled from Cetinje.
+    MNE: { name: "Prince-Bishopric of Montenegro", color: "#6a4a6a", aliases: ["몬테네그로 주교후국", "몬테네그로", "Митрополство Црногорско", "Montenegro"] },
+    // Muscat and Zanzibar under one sultan — the richest carrying trade in the
+    // western Indian Ocean, and he moves his capital to Zanzibar in 1840.
+    OMA: { name: "Omani Empire", color: "#fb9e00", aliases: ["오만 제국", "오만", "الْإِمْبَرَاطُورِيَّة الْعُمَانِيَّة", "Sultanate of Oman", "Muscat and Oman"] },
+    TRU: { name: "Trucial States", color: "#d06a5a", aliases: ["휴전 오만", "Trucial Oman", "Trucial States"] },
+    BUK: { name: "Emirate of Bukhara", color: "#8a7f5a", aliases: ["부하라 토후국", "امارت بخارا", "Emirate of Bukhara (1785-1868)", "Bukhara"] },
+    KHI: { name: "Khanate of Khiva", color: "#5f8a8a", aliases: ["히바 칸국", "خیوه خانلیگی", "Khiva"] },
+    KAL: { name: "Khanate of Kalat", color: "#7b64ff", aliases: ["칼라트 번왕국", "Khanate of Kalat", "Kalat"] },
   },
 
   countryAssignments: {
@@ -163,7 +264,10 @@ export default {
     // ── Italy: a geographic expression ──
     "ITA.13_1": "SAR", "ITA.9_1": "SAR", "ITA.19_1": "SAR", "ITA.14_1": "SAR",
     "ITA.10_1": "AUT", "ITA.20_1": "AUT", "ITA.7_1": "AUT", "ITA.17_1": "AUT", // Lombardy-Venetia
-    "ITA.16_1": "ITD", "ITA.6_1": "ITD", // Tuscany, Parma-Modena — the duchies
+    // Tuscany, and Emilia — the duchies' baseline. Emilia-Romagna is one modern
+    // province holding Parma, Modena AND papal Bologna; Modena takes the
+    // baseline and the Parma face carves its own half back out.
+    "ITA.16_1": "TOS", "ITA.6_1": "MOD",
     "ITA.8_1": "PAP", "ITA.18_1": "PAP", "ITA.11_1": "PAP",
     "ITA.5_1": "SIC", "ITA.1_1": "SIC", "ITA.12_1": "SIC", "ITA.2_1": "SIC", "ITA.3_1": "SIC", "ITA.4_1": "SIC", "ITA.15_1": "SIC",
     // ── India: the Company's map, with the Sikh exception ──

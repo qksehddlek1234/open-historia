@@ -88,11 +88,38 @@ export const measureBoard = (board, seed) => {
   return { board, modernKm, eraKm, totalKm: modernKm + eraKm };
 };
 
-const boards = process.argv.slice(2).length
+// A BOARD WITHOUT regions.geojson IS SKIPPED, AND SAYING SO IS THE POINT.
+//
+// share-base-map removes the file from every board that shares the default map,
+// and a clone that never ran rebuild-all simply does not have it for the boards
+// it never built. Either way the meter can only see what is on disk — and the
+// first run of this tool quietly reported 17 boards as if they were the fleet,
+// leaving victorian-1836 out of a table that then named victorian-1836 as the
+// cheapest place to dig. The denominator is now printed with the skips named.
+//
+// ── AND THE FLEET SUM IS NOT THE DENOMINATOR YOU WANT ─────────────────────
+// Two clones ran this tool on the same commit. Every per-board figure matched
+// exactly; the totals did not — 1,576,471km/8.9% over 14 boards against
+// 2,011,059km/6.9% over 17. Reconciled to the kilometre:
+//
+//   the 17 = the 14 − victorian-1836 + firerises-2020 · kaiserreich-1936 ·
+//            realworld-2026 · zombie-2019
+//
+// Those four have not had share-base-map run on them, so they still carry a
+// private copy of the DEFAULT modern map — 499,016km of the same border
+// counted four more times, era length 0 by construction. That does not make
+// 6.9% a different slice of the truth; it makes it a worse denominator, and
+// 8.9% the right one. firerises-2020 and zombie-2019 both read 130,639km,
+// which is the tell: identical file, identical border.
+//
+// So the denominator that means anything is **boards carrying their own map**.
+// Summing the fleet counts the shared default map once per board that shares
+// it, and no amount of rebuilding fixes that — it is the same line.
+const requested = process.argv.slice(2).length
   ? process.argv.slice(2)
-  : readdirSync(SCENARIOS)
-    .filter((d) => d !== "default" && existsSync(path.join(SCENARIOS, d, "regions.geojson")))
-    .sort();
+  : readdirSync(SCENARIOS).filter((d) => d !== "default").sort();
+const boards = requested.filter((d) => existsSync(path.join(SCENARIOS, d, "regions.geojson")));
+const skipped = requested.filter((d) => !boards.includes(d));
 
 process.stdout.write("[coverage] 시드 세그먼트 색인 중… ");
 const seed = seedSegments();
@@ -113,8 +140,15 @@ for (const r of rows) {
 const total = rows.reduce((s, r) => s + r.totalKm, 0);
 const era = rows.reduce((s, r) => s + r.eraKm, 0);
 console.log("-".repeat(53));
-console.log("합계".padEnd(18)
+console.log(`합계(${rows.length}보드)`.padEnd(18)
   + `${Math.round(total).toLocaleString()}km`.padStart(13)
   + `${Math.round(era).toLocaleString()}km`.padStart(13)
   + `${(total ? (era / total) * 100 : 0).toFixed(1)}%`.padStart(9));
+if (skipped.length) {
+  console.log(`\n⚠ regions.geojson 없어 건너뜀 ${skipped.length}보드: ${skipped.join(", ")}`);
+  console.log("  (share-base-map이 공유 보드의 파일을 지운다. 안 빌드한 보드는 애초에 없다 —");
+  console.log("   그건 재라. 하지만 공유 보드는 재도 같은 선이 한 번 더 세어질 뿐이다.)");
+}
 console.log("\n※ 재현율은 '시대 자료에서 온 비율'이지 '맞는 비율'이 아니다 — 파일 머리말 참조.");
+console.log("※ 합계를 인용할 때는 **분모(보드 수)를 함께** 적어라. 그리고 분모에 기본 지도를");
+console.log("   공유하는 보드가 섞이면 같은 국경을 여러 번 세게 된다 — 머리말의 실측 참조.");
