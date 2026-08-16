@@ -69,6 +69,10 @@ const buildCountryTextSize = (multiplier = 1, correctForGlobe = false) => {
 // codebase already treats as a legible country label at map scale. A repeat of a
 // name the map carries elsewhere is exactly what belongs at that floor.
 const MINOR_LABEL_SCALE = 0.6;
+// The original's country names are widely letterspaced; this is that dial, and
+// it belongs to LAYOUT (see the note in labelLayerPaint for what happens when it
+// is written into paint instead). One constant so every label rank tracks alike.
+const LABEL_LETTER_SPACING = 0.12;
 // Features with no tier at all are the STOCK label set, which has one rank and
 // must keep drawing at full weight — so absent reads as 0, never as minor.
 const LABEL_TIER = ["coalesce", ["get", "tier"], 0];
@@ -1427,6 +1431,12 @@ const WorldMap = ({ isGlobe = false }) => {
     "text-pitch-alignment": "map",
     "text-rotation-alignment": "map",
     "text-keep-upright": false,
+    // Tracking, matched by eye to the original's screenshots — its country names
+    // are widely letterspaced, and that spacing is most of what makes them read
+    // as a map's top rank rather than as large city labels. LAYOUT, not paint:
+    // written into labelLayerPaint it was rejected as an unknown property on
+    // every style pass and never reached the screen.
+    "text-letter-spacing": LABEL_LETTER_SPACING,
     visibility: mapDisplaySettings.hideCountryLabels ? "none" : "visible",
   }), [isGlobe, labelFontStack, mapDisplaySettings.hideCountryLabels]);
 
@@ -1474,6 +1484,7 @@ const WorldMap = ({ isGlobe = false }) => {
     "text-size": buildCountryTextSize(1, isGlobe),
     "text-rotate": ["get", "rotation"],
     "text-anchor": "center",
+    "text-letter-spacing": LABEL_LETTER_SPACING,
     "text-allow-overlap": true,
     "text-pitch-alignment": "map",
     "text-rotation-alignment": "map",
@@ -1514,10 +1525,13 @@ const WorldMap = ({ isGlobe = false }) => {
     // buildCountryTextSize, which is measured; a second guard that dimmed the
     // label was doing a size job with an opacity dial.
     "text-opacity": 0.75,
-    // Tracking, matched by eye to the original's screenshots — its country names
-    // are widely letterspaced, which is most of what makes them read as a map's
-    // top rank rather than as large city labels. One dial, easy to tune.
-    "text-letter-spacing": 0.12,
+    // TRACKING LIVES IN LAYOUT, NOT HERE. It was written into this paint object
+    // and MapLibre answered "unknown property text-letter-spacing" on every
+    // style pass — 76 errors in one page load (4 label layers × 19 passes) — and
+    // the tracking simply never applied, so the look this dial was matched to
+    // was never on screen. Same bucket mistake as text-allow-overlap earlier
+    // today: layout properties are rejected silently-ish from paint. The value
+    // now sits in pointLabelLayoutBase and the curved layout beside it.
   }), [labelHaloColor, labelTextColor]);
 
   // Halo is the other half of weight. A 1px halo around a name set 40% smaller

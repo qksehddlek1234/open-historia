@@ -391,7 +391,24 @@ test("a country label outranks a city label at the zoom a player reads at", () =
   const paint = NATIONS.slice(at, NATIONS.indexOf("}), [labelHaloColor", at));
   assert.match(paint, /"text-opacity": 0\.75/, "the country label must not fade with zoom");
   assert.doesNotMatch(paint, /"text-opacity": \[/, "no zoom ramp may return to this property");
-  assert.match(paint, /"text-letter-spacing": [\d.]+/, "tracking is what makes it read as the top rank");
+
+  // TRACKING IS THE OTHER HALF, AND IT LIVES IN LAYOUT. This pin first asked
+  // for it inside labelLayerPaint, where it had in fact been written — and
+  // MapLibre rejected it there as an unknown property on every style pass (76
+  // errors in one page load, four label layers × nineteen passes), so the
+  // tracking the pin was guarding never reached the screen. The invariant is
+  // unchanged: country names are letterspaced. Only its address is corrected,
+  // and paint is now fenced off so the value cannot drift back.
+  // The ASSIGNMENT, not the word: the paint object carries a comment explaining
+  // why the property is not here, and a bare-name pin would fail on its own
+  // explanation.
+  assert.doesNotMatch(paint, /"text-letter-spacing"\s*:/,
+    "letter-spacing is layout — in paint it is silently dropped");
+  assert.match(NATIONS, /const LABEL_LETTER_SPACING = [\d.]+;/,
+    "tracking is what makes it read as the top rank");
+  const base = NATIONS.slice(NATIONS.indexOf("const pointLabelLayoutBase"), at);
+  assert.match(base, /"text-letter-spacing": LABEL_LETTER_SPACING/,
+    "…and every point label rank inherits it from the shared layout");
 });
 
 console.log(`\n${pass} passed\n`);
