@@ -8859,8 +8859,14 @@
       ]
     },
     "victorian-1836": {
+      "Almamate of Futa Toro": [
+        "7d5a34"
+      ],
       "Andorra": [
         "653294"
+      ],
+      "Argentine Confederation": [
+        "2725a2"
       ],
       "Austrian Empire": [
         "e8d878"
@@ -8868,8 +8874,23 @@
       "Belgium": [
         "7a8a4a"
       ],
+      "Beylik of Tunis": [
+        "9f0500"
+      ],
+      "Bhutan": [
+        "fcdc00"
+      ],
+      "Bolivia": [
+        "b59521"
+      ],
+      "Bornu": [
+        "6b4f2a"
+      ],
       "Central America": [
         "8ab0d4"
+      ],
+      "Chile": [
+        "653294"
       ],
       "Couto Misto": [
         "9a9a7a"
@@ -8904,17 +8925,32 @@
       "Duchy of Saxe-Meiningen": [
         "8f7f5f"
       ],
+      "East India Company": [
+        "fd6868"
+      ],
+      "Ecuador": [
+        "e27300"
+      ],
       "Egypt of Muhammad Ali": [
         "c8a03e"
       ],
       "Electorate of Hesse": [
         "9a8f6a"
       ],
+      "Emirate of Asir": [
+        "d9b45a"
+      ],
       "Emirate of Bukhara": [
         "8a7f5a"
       ],
       "Emirate of Kabul": [
         "6b7a5a"
+      ],
+      "Emirate of Nejd": [
+        "ffd952"
+      ],
+      "Empire of Brazil": [
+        "194d33"
       ],
       "France": [
         "3f5fd0"
@@ -8979,14 +9015,29 @@
       "Joseon": [
         "5b7fae"
       ],
+      "Kaabu": [
+        "6f8a4a"
+      ],
       "Khanate of Kalat": [
         "7b64ff"
       ],
       "Khanate of Khiva": [
         "5f8a8a"
       ],
+      "Kingdom of Baol": [
+        "9c6b3c"
+      ],
       "Kingdom of Bavaria": [
         "bbbac9"
+      ],
+      "Kingdom of Benin": [
+        "c19a57"
+      ],
+      "Kingdom of Bundu": [
+        "8e7b45"
+      ],
+      "Kingdom of Cayor": [
+        "b8894f"
       ],
       "Kingdom of Greece": [
         "5b8fd8"
@@ -8994,14 +9045,26 @@
       "Kingdom of Hawaii": [
         "4a9a9a"
       ],
+      "Kingdom of Kaarta": [
+        "93a05e"
+      ],
       "Kingdom of Prussia": [
         "4a6a8a"
+      ],
+      "Kingdom of Saloum": [
+        "a9713f"
       ],
       "Kingdom of Sardinia": [
         "9a7ab0"
       ],
       "Kingdom of Saxony": [
         "7b7d93"
+      ],
+      "Kingdom of Segu": [
+        "7a9a5a"
+      ],
+      "Kingdom of Sine": [
+        "c98b5a"
       ],
       "Konbaung Burma": [
         "7a9a4a"
@@ -9012,14 +9075,29 @@
       "Liechtenstein": [
         "c45100"
       ],
+      "Mahra Sultanate": [
+        "8a6a5a"
+      ],
+      "Massina Empire": [
+        "4e7a52"
+      ],
       "Mexico": [
         "6b8a3e"
       ],
       "Monaco": [
         "a8523f"
       ],
+      "Negeri Sembilan": [
+        "c25a6a"
+      ],
+      "Nepal": [
+        "7d4bb0"
+      ],
       "Netherlands": [
         "c87a3e"
+      ],
+      "New Granada": [
+        "fcc400"
       ],
       "Nguyen Vietnam": [
         "5a9a7a"
@@ -9030,8 +9108,17 @@
       "Ottoman Empire": [
         "5a8a6a"
       ],
+      "Oyo": [
+        "c8a66a"
+      ],
       "Papal States": [
         "e8e0c0"
+      ],
+      "Paraguay": [
+        "750b6c"
+      ],
+      "Peru": [
+        "d2a94b"
       ],
       "Peru-Bolivian Confederation": [
         "7a5aa0"
@@ -9044,6 +9131,9 @@
       ],
       "Principality of Lippe": [
         "98a86f"
+      ],
+      "Principality of Moldavia": [
+        "d4c24e"
       ],
       "Principality of Reuss-Gera": [
         "8f6f6f"
@@ -9060,11 +9150,17 @@
       "Principality of Waldeck-Pyrmont": [
         "c9b06a"
       ],
+      "Principality of Wallachia": [
+        "e0a800"
+      ],
       "Qajar Persia": [
         "b07a3e"
       ],
       "Qing Empire": [
         "b23b3b"
+      ],
+      "Republic of Krakow": [
+        "b3b3b3"
       ],
       "Republic of Texas": [
         "bf6a4a"
@@ -9081,11 +9177,38 @@
       "Sikh Empire": [
         "d8b83e"
       ],
+      "Sindh": [
+        "741a1a"
+      ],
+      "Sokoto Caliphate": [
+        "2f6b3a"
+      ],
       "Spain": [
         "d0a02e"
       ],
+      "Sultanate of Brunei": [
+        "2b7bc4"
+      ],
+      "Sultanate of Johore": [
+        "d4553f"
+      ],
+      "Sultanate of Lahej": [
+        "b06a3a"
+      ],
+      "Sultanate of Morocco": [
+        "662b00"
+      ],
+      "Sultanate of Perak": [
+        "b8452f"
+      ],
+      "Sultanate of Selangor": [
+        "a03a52"
+      ],
       "Sweden-Norway": [
         "4068bf"
+      ],
+      "Switzerland": [
+        "d52b1e"
       ],
       "Tokugawa Japan": [
         "a85454"
@@ -9101,6 +9224,18 @@
       ],
       "United States": [
         "4a8f7a"
+      ],
+      "Uruguay": [
+        "0062b1"
+      ],
+      "Venezuela": [
+        "659400"
+      ],
+      "Vilayet of Tripolitania": [
+        "7d1b1b"
+      ],
+      "Yemen": [
+        "c45100"
       ]
     },
     "ww1-1914": {
