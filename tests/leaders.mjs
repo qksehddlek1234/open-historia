@@ -310,6 +310,14 @@ await (async () => {
     "victorian-1836: Colony of Nova Scotia",
     "victorian-1836: Prince Edward Island Colony",
     "victorian-1836: Crown Colony of Newfoundland",
+    // 독일 다섯 — 독일 연방 덩어리에서 꺼낸 여섯 중 다섯. **하노버는 여기 없다**:
+    // 1836년 하노버 국왕은 영국과 동군연합인 윌리엄 4세라 이미 답한다(동군연합이
+    // 끊기는 것은 1837-06-20, 살리카법).
+    "victorian-1836: Kingdom of Württemberg",
+    "victorian-1836: Grand Duchy of Baden",
+    "victorian-1836: Free Hanseatic City of Bremen",
+    "victorian-1836: Free and Hanseatic City of Hamburg",
+    "victorian-1836: Grand Duchy of Saxe-Weimar-Eisenach",
     // 알제리 둘 — 보고 2를 고치며 세웠다. 둘 다 기록이 단단해서 사람이 답할 것으로
     // 본다: 에미르 압델카데르(1832 추대)와 아흐메드 베이(1826 임명, 1837-10 함락).
     "victorian-1836: Emirate of Abdelkader",

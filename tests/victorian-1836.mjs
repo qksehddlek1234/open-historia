@@ -162,6 +162,11 @@ test("every polity the spec declares can be answered", () => {
   // 아니라 **진짜 공백**만 담고 있다는 증거다.
   const awaitingLeaderPack = [
     "Beylik of Constantine",
+    "Free Hanseatic City of Bremen",
+    "Free and Hanseatic City of Hamburg",
+    "Grand Duchy of Baden",
+    "Grand Duchy of Saxe-Weimar-Eisenach",
+    "Kingdom of Württemberg",
     "Colony of New Brunswick",
     "Colony of New South Wales",
     "Colony of Nova Scotia",

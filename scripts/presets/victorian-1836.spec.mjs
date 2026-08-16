@@ -103,6 +103,18 @@ export default {
     // **직할**이고, 세르비아 남부가 1878년 베를린 조약까지 공국에 들어오지 않는다.
     // 그래서 칸을 하나씩 적는다. 아래 목록은 GADM 이름을 직접 확인하고 골랐다.
     faceKeepOut: {
+      // ★ 호엔촐레른지그마링겐 면의 **주 링이 자기 나라보다 19배 크다.**
+      // 실측: 링 18개 중 주 링이 2.58deg²(≈21,300km²)에 bbox 7.07~9.87°E ×
+      // 47.53~49.82°N — 바덴과 뷔르템베르크를 덮고 라인강을 건너 팔츠까지 간다.
+      // 공국 실면적은 약 1,142km²다. 나머지 17개 링(각 0.0004~0.0012deg²)이
+      // **진짜 호엔촐레른**이다 — 원래 파편화된 나라라 그 모양이 맞다.
+      // 대조로 바이에른 면은 주 링 8.8deg²(≈72,000km²)에 실제 약 76,000km²로 맞는다.
+      //
+      // 그래서 면을 버리지 않는다(월경지를 같이 잃는다). **주 링이 잘못 문 칸만**
+      // **막는다** — 프라이부르크(남부 바덴)·카를스루에·라인헤센팔츠에는 호엔촐레른이
+      // 한 뼘도 없었다. 슈투트가르트·튀빙겐은 막지 않는다: 진짜 월경지가 거기 있고
+      // 면이 이겨야 지그마링겐과 헤힝겐이 그려진다.
+      "Hohenzollern-Sigmaringen": ["DEU.DE12", "DEU.DE13", "DEU.DEB3"],
       "دولتْ علیّه عثمانیّه": [
         // 왈라키아 공국 16칸 — 문테니아 + 올테니아. 1834년부터 러시아 보호 아래의
         // 자치 공국이고 기르기타 5세가 다스린다. 오스만은 종주권만 갖는다.
@@ -141,6 +153,31 @@ export default {
     // did. Holstein and Lauenburg are members too and sit under DAN, which is
     // the personal union the Schleswig question is about.
     GER: { name: "German Confederation", color: "#b8b8a0", aliases: ["독일 연방", "독일 제후국들", "German minor states", "Deutscher Bund"] },
+    // ── 연방에서 빠져나오는 여섯 (2026-08-16) ──────────────────────────────
+    // 위 GER 주석이 "조립기에 윤곽을 주면 나온다"고 적어 뒀는데, 윤곽을 기다리지
+    // 않고 **칸으로 먼저 세운다.** 이유는 이 여섯의 NUTS 칸이 실제 나라와 잘 맞기
+    // 때문이다 — 브레멘·함부르크는 **칸이 곧 도시국가**라 완벽하고, 뷔르템베르크·
+    // 바덴도 슈투트가르트/튀빙겐·카를스루에/프라이부르크로 거의 그대로 떨어진다.
+    // 면이 나중에 오면 면이 이기므로(면 > 지역) 이 배정은 그때 자동으로 정밀해진다.
+    //
+    // 실측: 이 여섯을 세우기 전 GER은 14칸을 쥐고 있었고 그중 10칸이 이들이었다.
+    // 그 덩어리가 중부 독일 한복판에 657px짜리 레이블을 세워 승격 레이블 여섯을
+    // 밀어내고 있었다(Cowork 실측). 집합이 줄면 레이블도 줄어든다.
+    WUR: { name: "Kingdom of Württemberg", color: "#3a5f7a", aliases: ["뷔르템베르크 왕국", "Württemberg", "Wurttemberg", "Königreich Württemberg"] },
+    BAD: { name: "Grand Duchy of Baden", color: "#c48f5a", aliases: ["바덴 대공국", "Baden", "Großherzogtum Baden"] },
+    // 하노버는 1836년에 **영국과 동군연합**이다 — 국왕이 윌리엄 4세다. 살리카법
+    // 때문에 빅토리아가 물려받지 못해 **1837-06-20**에 갈라지고 컴벌랜드 공
+    // 에른스트 아우구스트가 간다. 개장 연도 다음 해의 사건이다.
+    HAN: { name: "Kingdom of Hanover", color: "#7a5f8f", aliases: ["하노버 왕국", "Hanover", "Hannover", "Königreich Hannover"] },
+    // 한자 자유시 둘. 연방 회원이면서 도시 하나가 나라다.
+    BRE: { name: "Free Hanseatic City of Bremen", color: "#5f9aa8", aliases: ["브레멘 자유시", "Bremen", "Freie Hansestadt Bremen"] },
+    HAM: { name: "Free and Hanseatic City of Hamburg", color: "#a8895f", aliases: ["함부르크 자유시", "Hamburg", "Freie und Hansestadt Hamburg"] },
+    // 튀링겐 한 칸에 공국이 여럿 산다(작센바이마르아이제나흐·마이닝겐·알텐부르크·
+    // 코부르크고타·슈바르츠부르크·로이스). 그중 **넷은 이미 면이 있어** 알아서
+    // 깎아 가므로, 칸의 주인은 가장 크고 유일한 대공국인 작센바이마르아이제나흐로
+    // 둔다 — 칼 프리드리히의 바이마르, 괴테가 1832년까지 살던 그곳이다.
+    SWG: { name: "Grand Duchy of Saxe-Weimar-Eisenach", color: "#8f7aa8", aliases: ["작센바이마르아이제나흐", "Saxe-Weimar-Eisenach", "Sachsen-Weimar-Eisenach", "Weimar"] },
+
     OTT: { name: "Ottoman Empire", color: "#5a8a6a", aliases: ["오스만 제국", "오스만", "Turkey", "Sublime Porte"] },
     // ★ 판례 — **표시명은 원본, 고증은 지도자 칭호와 서술에서** (사용자 결정, 2026-08-16)
     //
@@ -723,6 +760,29 @@ export default {
     "DEU.4_1": "PRU", "DEU.3_1": "PRU", "DEU.13_1": "PRU", "DEU.10_1": "PRU", "DEU.11_1": "PRU", "DEU.12_1": "PRU", // Rhineland Prussian since 1815
     "DEU.8_1": "GER", "DEU.2_1": "GER", "DEU.1_1": "GER", "DEU.7_1": "GER", "DEU.14_1": "GER", "DEU.16_1": "GER", "DEU.9_1": "GER", "DEU.6_1": "GER", "DEU.5_1": "GER",
     "DEU.15_1": "DAN",  // the duchies — the Schleswig question is loaded, not fired
+
+    // ★ 순서가 의미를 갖는 자리다 — **아래 여섯은 위 `DEU.8_1: "GER"` 뒤에 와야**
+    // **한다.** 빌더가 레거시 `DEU.n_1` 키를 NUTS 칸들로 **확장**하고
+    // (`expandRegionKey`), 같은 칸에 두 번 쓰면 **나중 것이 이긴다**. 처음엔 이 블록을
+    // 파일 앞쪽에 뒀다가 배정이 통째로 먹히지 않았다 — 빌드가 조용히 옛 답을 냈고
+    // 실측해서야 알았다. 여기 두면 여섯이 GER 확장을 덮어쓴다.
+    // ══ 독일 연방에서 여섯을 꺼낸다 ═══════════════════════════════════════
+    // 위 폴리티 주석 참조. GER 14칸 중 10칸이 여기로 간다.
+    "DEU.DE11": "WUR", "DEU.DE14": "WUR",
+    "DEU.DE12": "BAD", "DEU.DE13": "BAD",
+    // DE13 프라이부르크와 DEB3는 호엔촐레른 메가링이 물고 있던 칸이다(위 울타리).
+    // 프라이부르크는 남부 바덴이고, 라인헤센팔츠는 팔츠(바이에른)가 라인헤센
+    // (헤센대공국)보다 네 배 크므로 바이에른에 준다 — 한 칸으로는 못 가른다.
+    "DEU.DEB3": "BAY",
+    // 하노버 넷. 브라운슈바이크 칸(DE91)에는 브라운슈바이크 공국이 함께 있고
+    // 베저엠스(DE94)에는 올덴부르크 대공국이 있다 — 둘 다 NUTS 한 칸으로는 못
+    // 가르고 면적 다수는 하노버다. **조립기에 그 둘의 윤곽이 들어오면 면이 이겨**
+    // **저절로 갈린다**(GER 주석이 적어 둔 그 경로).
+    "DEU.DE91": "HAN", "DEU.DE92": "HAN", "DEU.DE93": "HAN", "DEU.DE94": "HAN",
+    // 한자 자유시 둘 — 칸이 곧 나라라 이 배정은 정확하다.
+    "DEU.DE50": "BRE", "DEU.DE60": "HAM",
+    // 튀링겐 한 칸. 마이닝겐·알텐부르크·로이스 둘은 면이 있어 알아서 깎는다.
+    "DEU.DEG0": "SWG",
     // ── Italy: a geographic expression ──
     "ITA.13_1": "SAR", "ITA.9_1": "SAR", "ITA.19_1": "SAR", "ITA.14_1": "SAR",
     "ITA.10_1": "AUT", "ITA.20_1": "AUT", "ITA.7_1": "AUT", "ITA.17_1": "AUT", // Lombardy-Venetia
