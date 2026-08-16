@@ -422,6 +422,22 @@ export default {
     "POL.8_1": "GER",   // Opolskie — Oberschlesien, the part that stayed German
     "POL.14_1": "GER",  // Warmińsko-Mazurskie — southern East Prussia (Allenstein)
     "POL.16_1": "GER",  // Zachodniopomorskie — Pommern (Stettin)
+    // 회랑은 **좁다** — 현대 포모제 전체가 폴란드였던 게 아니다.
+    // 서쪽 끝(슈톨프·라우엔부르크)은 독일 힌터포메른, 동쪽 끝(마리엔부르크·
+    // 마리엔베르더)은 서프로이센이고, 폴란드는 그 사이 그디니아·카르투지·
+    // 호이니체 띠뿐이다. 셋으로 갈리는 유일한 지역이라 기준선을 독일로 두고
+    // **시대 면이 폴란드와 자유시를 깎아내게** 한다.
+    //
+    // 왜 기준선을 뒤집어야 하나: `Germany`·`East Prussia` 면은 **rung 3**이고,
+    // 이 지역엔 rung-1 면(`Polska`·`Freie Stadt Danzig`)이 있다. eraGeometry의
+    // rung-1 우선 규칙은 **지역 단위로** rung-3 후보를 통째로 버리므로(1935에서
+    // 589건), 독일 면은 여기 절대 못 들어온다. 기준선이 유일한 통로다.
+    //
+    // 면 실측(점 포함 검사, 하이브리드 파일): 슈톨프·라우엔부르크 → `Germany` ·
+    // 호이니체·그디니아·카르투지 → `Polska` · 단치히 → `Freie Stadt Danzig` ·
+    // 마리엔부르크·마리엔베르더·알렌슈타인 → `East Prussia` · 슈테틴 → `Germany`.
+    // 면은 1935년 선을 정확히 알고 있었고, 막고 있던 건 기준선이었다.
+    "POL.11_1": "GER",  // Pomorskie — 회랑은 Polska 면이 도로 깎아낸다
     // East Prussia is German until 1945.
     "RUS.21_1": "GER",  // Kaliningrad = Königsberg
     // Memel is still LITHUANIAN in 1935 (annexed March 1939) — no override.

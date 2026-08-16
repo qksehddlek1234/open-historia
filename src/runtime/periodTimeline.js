@@ -26,7 +26,10 @@
 const normalizeString = (value) => String(value ?? "").trim();
 const normalizeArray = (value) => (Array.isArray(value) ? value : []);
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+// Extended years allowed: a deep-past board's dates are "-001199-01-01" (see
+// runtime/gameDate.js for why six digits and why that number is 1200 BCE).
+// The plain four-digit form stays first because every other board uses it.
+const ISO_DATE = /^(?:\d{4}|[+-]\d{6})-\d{2}-\d{2}$/;
 
 // How far an entry's importance reaches. The window selector uses this to decide
 // what is worth the prompt space when a jump covers a lot of ground.

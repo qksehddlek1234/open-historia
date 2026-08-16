@@ -660,6 +660,12 @@ writeJson(path.join(scenarioDir, "scenario.json"), {
   accentColor: m.accentColor ?? "#7c3aed",
   coverImageContentType: coverContentType,
   createdAt: now,
+  // What the clock shows when the machine date is not a thing a player reads.
+  // Only the deep-past boards need it: their dates are ISO extended years
+  // ("-001199-01-01" is 1200 BCE) because that is the only form parsers accept,
+  // and no locale formatter turns that into the spelling the scenario authored.
+  // Absent on every other board, and absent means "format the date normally".
+  ...(m.dateLabel ? { dateLabel: m.dateLabel } : {}),
   description: m.description ?? "",
   eyebrow: m.eyebrow ?? "Historical Preset",
   heroSubtitle: m.heroSubtitle ?? "",

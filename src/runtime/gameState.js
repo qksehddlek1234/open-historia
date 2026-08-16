@@ -1743,7 +1743,7 @@ export const isPolityLandless = (world, code) => {
 // don't parse and pass through untouched.
 const canonicalizeDateString = (value) => {
   const text = normalizeOptionalString(value);
-  if (!text || /^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+  if (!text || /^(?:\d{4}|[+-]\d{6})-\d{2}-\d{2}$/.test(text)) return text;
   // An ISO date prefix (datetime forms) is authoritative — slicing it avoids
   // the timezone day-shift of parsing "...T00:00:00Z" into local time.
   const prefix = /^(\d{4}-\d{2}-\d{2})[T ]/.exec(text);

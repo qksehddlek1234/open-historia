@@ -18,6 +18,10 @@ export default {
     heroSubtitle: "The palaces still stand. The Sea Peoples are coming.",
     eyebrow: "Late Bronze Age",
     subtitle: "c. 1200 BC",
+    // What the clock shows. The machine date below is "-001199-01-01" because
+    // that is what parsers need; this is what a player must read, and the two
+    // are different strings on purpose (see the game block's note).
+    dateLabel: "1200 BCE",
     accentColor: "#c28a2e",
     coverImage: "public/loading_screen_3.jpg",
     description:
@@ -30,9 +34,23 @@ export default {
   },
 
   // Player starts as New Kingdom Egypt. game.country MUST equal the owner code.
-  // BCE dates are plain text (dayjs can't parse them); the timeline shows them
-  // verbatim and the AI advances them as text.
-  game: { country: "EGYP", startDate: "1200 BCE", gameDate: "1200 BCE" },
+  //
+  // THE DATE IS A MACHINE VALUE NOW, AND THE LABEL IS ITS OWN FIELD.
+  // This board used to carry `startDate: "1200 BCE"`, which is not a date any
+  // parser accepts — `Date.parse` returns NaN, `ensureReferenceEra` returned
+  // before loading anything, and the board resolved 0 of 24 leaders no matter
+  // which era pack existed. That was never a coverage hole; it was a parse
+  // failure upstream of coverage.
+  //
+  // "-001199-01-01" is 1200 BCE, and both halves of that are measured
+  // (runtime/gameDate.js carries the numbers): ISO extended years are SIGN plus
+  // SIX digits, so a four-digit "-1200-01-01" is read as the Middle Ages; and
+  // ISO counts astronomically with a year zero, so the ISO year for 1200 BCE is
+  // -1199, not -1200. Writing -001200 here would put the board in 1201 BCE.
+  //
+  // What a player reads comes from meta.dateLabel below — the authored
+  // spelling, which no formatter may second-guess.
+  game: { country: "EGYP", startDate: "-001199-01-01", gameDate: "-001199-01-01" },
 
   // Bronze Age warfare: massed infantry with bronze arms, chariotry ("armor"),
   // war fleets and garrisons. No true siege artillery and certainly no air.

@@ -26,10 +26,15 @@
 // that switch modern fallback on. Deep-past presets leave unassigned land
 // unclaimed and never consult this.
 
-const YEAR = (dateISO) => {
-  const match = /^(-?\d{1,4})/.exec(String(dateISO ?? "").trim());
-  return match ? Number(match[1]) : NaN;
-};
+import { gameYear } from "../../../src/runtime/gameDate.js";
+
+// The year reader lives in runtime/gameDate.js now. The regex that used to sit
+// here was wrong on all three of bronze-1200bc's candidate date strings — it
+// read "1200 BCE" as +1200, "-1200-01-01" as -1200 (a string Date.parse in fact
+// reads as the Middle Ages), and the correct extended form "-001199-01-01" as
+// -0011. This table only covers 1804 → and so never met one, but the reader was
+// shared-shaped and wrong, which is how it would have spread.
+const YEAR = (dateISO) => gameYear(dateISO);
 
 // { code: [[fromYear, untilYear, ownerISO3]] } — untilYear is EXCLUSIVE.
 // `null` as owner means "unclaimed by any state on this table's terms".
