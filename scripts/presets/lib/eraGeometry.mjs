@@ -292,10 +292,14 @@ export const graftEraGeometry = (regionFeatures, faces, {
     clipFailures: [],
     nonAreaGeometry: 0,
     facesUsed: new Set(),
-    // Hybrid (rung 2+3) accounting: regions where rung-1 presence suppressed
-    // rung-3 candidates, and regions clipped purely by rung-3 backfill.
-    rung3Suppressed: 0,
+    // Hybrid (rung 2+3) accounting. `rung3Regions` is regions cut by backfill
+    // alone; `rung3AfterRung1` is the number the per-area rule exists to move —
+    // regions where BOTH rungs cut, which the old per-region rule made
+    // impossible; `rung3Covered` is where rung 1 left no room and the outcome
+    // matches what the old rule would have produced anyway.
     rung3Regions: 0,
+    rung3AfterRung1: 0,
+    rung3Covered: 0,
   };
   let offcutSeq = 0;
 
@@ -307,32 +311,53 @@ export const graftEraGeometry = (regionFeatures, faces, {
       continue;
     }
     const rb = bboxOf(mp);
-    let candidates = faces.filter((f) => bboxOverlaps(rb, f.bbox));
-    // SOURCE-LADDER PRECEDENCE, DECIDED PER REGION AND NEVER GEOMETRICALLY.
-    // Rung-3 backfill polygons (historical-basemaps) arrive WHOLE and may
-    // overlap rung-1 assembly faces; clipping a region against both would
-    // double-cover it and corrupt the per-owner fold below. The rule from the
-    // hybrid design (PLAN-F-OHM, 2026-08-14): a region any rung-1 face
-    // touches belongs to rung 1 entirely — rung-3 exists to cut only the
-    // regions rung 1 never reaches. The seam between the two rungs therefore
-    // follows modern region boundaries, a step of at most one region's width,
-    // inside rung 3's own continent-scale tolerance. Faces without a rung
-    // property are rung 1 (every pre-hybrid dump), so legacy builds are
-    // untouched by construction. Suppressions are counted per region.
-    if (candidates.some((f) => (f.rung ?? 1) !== 3) && candidates.some((f) => (f.rung ?? 1) === 3)) {
-      candidates = candidates.filter((f) => (f.rung ?? 1) !== 3);
-      report.rung3Suppressed += 1;
-    }
+    const candidates = faces.filter((f) => bboxOverlaps(rb, f.bbox));
     if (candidates.length === 0) {
       report.untouched += 1;
       out.push(feature);
       continue;
     }
+    // SOURCE-LADDER PRECEDENCE, DECIDED PER AREA — 2026-08-16.
+    //
+    // Rung-3 backfill polygons (historical-basemaps) arrive WHOLE and may
+    // overlap rung-1 assembly faces. Clipping a region against both without
+    // care would double-cover it and corrupt the per-owner fold below, so the
+    // hybrid design (PLAN-F-OHM, 2026-08-14) took the cheap way out: a region
+    // any rung-1 face TOUCHED belonged to rung 1 entirely, and every rung-3
+    // candidate for it was dropped.
+    //
+    // That rule was the single largest cause of low era coverage, and the
+    // measurement is what retired it. On wwii-1935, 38 rung-1 faces suppressed
+    // rung 3 across 589 regions — and the land those 38 faces did not actually
+    // cover stayed a MODERN province edge, because the only source that could
+    // have cut it had been shown the door at the region boundary. mongol-1300,
+    // the one board with no rung-1 dump at all and therefore no suppression,
+    // reproduced 60.6% of its border against 4.2% for 1935. Partial coverage
+    // was evicting complete coverage.
+    //
+    // The order is the same; the unit is not. Rung 1 clips first and takes what
+    // it covers. What is LEFT of the region — never what rung 1 already holds —
+    // is then offered to rung 3, one face at a time, each subtracting its own
+    // piece before the next is asked. Double cover is impossible by
+    // construction rather than by refusal, and the seam between the rungs now
+    // follows the rung-1 outline exactly instead of stepping out to the nearest
+    // modern region edge. Faces with no rung property are rung 1 (every
+    // pre-hybrid dump), so a board without backfill takes the same path it
+    // always did: `available` is never computed and nothing below runs.
+    //
+    // Measured on rebuild: wwii-1935 4.2% → 7.8%, medieval-1200 17.4% → 21.8%.
+    candidates.sort((a, b) => Number((a.rung ?? 1) === 3) - Number((b.rung ?? 1) === 3));
     if (candidates.every((f) => (f.rung ?? 1) === 3)) report.rung3Regions += 1;
     const specOwner = feature.properties.owner;
     const wholeArea = multiPolygonArea(mp);
     const pieces = [];
     let failed = false;
+    // The room left for rung 3, computed once, the first time a rung-3 face is
+    // reached — so a rung-1-only region pays nothing for this.
+    let available = null;
+    let availableComputed = false;
+    let rung3Fell = false;    // a difference() threw; rung 3 stands down here
+    let rung3Took = false;
     for (const face of candidates) {
       // A fused face swallowed its neighbour because the border between them
       // never closed. It is still the best outline its winner has, but over
@@ -361,9 +386,38 @@ export const graftEraGeometry = (regionFeatures, faces, {
         report.keepOutRefusals.push({ id: feature.properties.id, gid0: feature.properties.gid0, face: face.name });
         continue;
       }
+      // Rung 3 is offered the remainder, not the region. `pieces` at this point
+      // holds every rung-1 clip that survived the refusals above — including
+      // none, when a fused face was refused, which is the case where rung 3
+      // correctly gets the whole region.
+      const isBackfill = (face.rung ?? 1) === 3;
+      if (isBackfill && !availableComputed) {
+        availableComputed = true;
+        available = mp;
+        for (const p of pieces) {
+          try {
+            available = difference(available, p.face.mp);
+          } catch (error) {
+            // The subtraction is what makes rung 3 safe here. Without it we
+            // cannot know what is free, so rung 3 stands down for this region
+            // and rung 1's cut stands alone — the OLD behaviour, reached as a
+            // fallback and counted, never as a silent default.
+            report.clipFailures.push({ id: feature.properties.id, face: `available/${p.face.name}`, error: String(error?.message ?? error) });
+            rung3Fell = true;
+            available = null;
+            break;
+          }
+          if (!available || available.length === 0) break;
+        }
+        if (!rung3Fell && (!available || multiPolygonArea(available) <= minPieceArea)) {
+          available = null;
+          report.rung3Covered += 1;   // rung 1 left nothing — the old rule's outcome, honestly
+        }
+      }
+      if (isBackfill && !available) continue;
       let clipped;
       try {
-        clipped = intersection(mp, face.mp);
+        clipped = intersection(isBackfill ? available : mp, face.mp);
       } catch (error) {
         // Loud, never silent: a clip that throws is a region whose era border
         // we could NOT place, and it keeps its modern shape and hand-assigned
@@ -378,7 +432,20 @@ export const graftEraGeometry = (regionFeatures, faces, {
         continue;
       }
       pieces.push({ face, mp: clipped, area });
+      if (!isBackfill) continue;
+      rung3Took = true;
+      // Two backfill polygons can overlap each other as readily as they overlap
+      // rung 1 — first one there wins the ground, the next is offered the rest.
+      try {
+        available = difference(available, face.mp);
+      } catch (error) {
+        report.clipFailures.push({ id: feature.properties.id, face: `available/${face.name}`, error: String(error?.message ?? error) });
+        available = null;
+        rung3Fell = true;
+      }
+      if (available && multiPolygonArea(available) <= minPieceArea) available = null;
     }
+    if (rung3Took && pieces.some((p) => (p.face.rung ?? 1) !== 3)) report.rung3AfterRung1 += 1;
     if (failed || pieces.length === 0) {
       if (!failed) report.untouched += 1;
       out.push(feature);

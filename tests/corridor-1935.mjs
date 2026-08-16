@@ -58,15 +58,18 @@ test("East Prussia is German on both sides of the 1945 line", () => {
   assert.equal(assignedTo("RUS.21_1"), "GER", "Königsberg");
 });
 
-test("Pomorskie's baseline looks backwards ON PURPOSE, so the faces can cut it", () => {
-  // The one province with three owners. If this ever reads POL, the Corridor
-  // swallows Stolp and Marienburg again and nothing in the build log says so —
-  // the cut roster would simply stop mentioning Germany.
-  assert.equal(assignedTo("POL.11_1"), "GER",
-    "Pomorskie must start German for the rung-1 Polish face to carve the Corridor out");
-  const at = SPEC.indexOf('"POL.11_1"');
-  const why = SPEC.slice(Math.max(0, at - 1400), at);
-  assert.match(why, /rung 3/, "and the reason must stay written next to it");
+test("Pomorskie has NO baseline row, and the detour that briefly put one there is recorded", () => {
+  // For one day it read GER. That was a workaround, not a fact. The rung-3
+  // German faces could not enter a region a rung-1 face touched, so flipping
+  // the baseline was the only door — and this board has no Poland polity at
+  // all (unassignedKeepModernOwner supplies the modern name), so the only
+  // value the row could carry was Germany. The per-area rule opened the door
+  // properly on 2026-08-16; the row came out and the default went back to
+  // Poland, which is what 1935 was. Fifteen towns still land 15/15.
+  assert.equal(assignedTo("POL.11_1"), null,
+    "a row here can only say GER, and GER is not Pomorskie's 1935 baseline");
+  assert.match(SPEC, /기준선이 하루 동안 독일이었다/,
+    "the detour, and why it ended, must stay written where the row used to be");
 });
 
 test("Memel is Lithuanian in 1935 — the annexation is four years away", () => {
@@ -74,18 +77,21 @@ test("Memel is Lithuanian in 1935 — the annexation is four years away", () => 
   assert.match(SPEC, /Memel is still LITHUANIAN/, "and the spec says why it is left alone");
 });
 
-console.log("\nThe rule that makes the baseline load-bearing");
+console.log("\nThe rule that made the baseline load-bearing, and the one that replaced it");
 
-test("a rung-1 face still suppresses rung-3 candidates per region", () => {
-  // This is what makes the flip necessary rather than a preference. If the
-  // suppression is ever relaxed to be per-area, the German faces reach Pomorskie
-  // directly and POL.11's baseline should go back to Poland — so the two live
-  // and die together, and this pin is where that is written down.
-  assert.match(ERA, /rung3Suppressed \+= 1/);
-  const at = ERA.indexOf("rung3Suppressed += 1");
-  const rule = ERA.slice(at - 400, at);
-  assert.match(rule, /candidates\.filter\(\(f\) => \(f\.rung \?\? 1\) !== 3\)/,
-    "suppression drops rung 3 for the WHOLE region, which is why a baseline is the only way in");
+test("rung precedence is measured in AREA, which is what let the row come out", () => {
+  // The previous version of this pin held the opposite and said so: "if the
+  // suppression is ever relaxed to be per-area, the German faces reach
+  // Pomorskie directly and POL.11's baseline should go back to Poland — so the
+  // two live and die together". They did. This is the other end of that.
+  assert.doesNotMatch(ERA, /rung3Suppressed/,
+    "the per-region drop is gone; a rung-1 face no longer evicts rung 3 from a whole region");
+  assert.match(ERA, /candidates\.sort\(\(a, b\) => Number\(\(a\.rung \?\? 1\) === 3\) - Number\(\(b\.rung \?\? 1\) === 3\)\)/,
+    "rung 1 is asked first");
+  assert.match(ERA, /intersection\(isBackfill \? available : mp, face\.mp\)/,
+    "and rung 3 is clipped against what is LEFT, never against the whole region");
+  assert.match(ERA, /rung3AfterRung1/,
+    "regions where both rungs cut are counted — that number is the change");
 });
 
 console.log(`\n${pass} passed\n`);

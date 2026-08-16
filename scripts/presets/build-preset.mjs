@@ -768,8 +768,8 @@ if (eraReport) {
     const owners = [...new Set(r.mergedRefusals.map((x) => x.owner))];
     console.log(`    융합 면 권위 거부 ${r.mergedRefusals.length}건 — 삼켜진 소유주(${owners.join(", ")})의 지역엔 그 면을 적용하지 않음`);
   }
-  if (r.rung3Regions > 0 || r.rung3Suppressed > 0) {
-    console.log(`    하이브리드(rung 2+3): rung-3 백필이 자른 지역 ${r.rung3Regions} · rung-1 우선으로 rung-3 억제 ${r.rung3Suppressed}`);
+  if (r.rung3Regions > 0 || r.rung3AfterRung1 > 0 || r.rung3Covered > 0) {
+    console.log(`    하이브리드(rung 2+3): rung-3 단독 ${r.rung3Regions}지역 · rung-1이 가져간 뒤 남은 땅을 rung-3이 ${r.rung3AfterRung1}지역 · rung-1이 다 덮어 rung-3 자리 없음 ${r.rung3Covered}지역`);
   }
   console.log(`    소유권 테이블 동기화 ${r.syncedOverrides}건 — 지도와 게임이 같은 소유주를 말한다(1턴째 가짜 정복선 방지)`);
 }

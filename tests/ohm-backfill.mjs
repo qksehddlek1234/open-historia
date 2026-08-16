@@ -34,7 +34,7 @@ const test = (name, fn) => {
 const { backfillEraFaces, coverageInside, decimateMp, pointInMp } = await import(
   url.pathToFileURL(path.join(ROOT, "scripts", "ohm", "backfill-era-faces.mjs")).href
 );
-const { graftEraGeometry } = await import(
+const { graftEraGeometry, multiPolygonArea } = await import(
   url.pathToFileURL(path.join(ROOT, "scripts", "presets", "lib", "eraGeometry.mjs")).href
 );
 
@@ -152,18 +152,54 @@ const graftFace = (owner, ring, rung) => ({
   bbox: [ring[0][0][0], ring[0][0][1], ring[0][2][0], ring[0][2][1]],
 });
 
-test("A REGION RUNG 1 TOUCHES IGNORES RUNG 3 ENTIRELY — no double cover, counted", () => {
-  // Both faces overlap the region; the rung-3 face would claim its west half.
+// The rule these three pin was rewritten on 2026-08-16. It used to be: a region
+// any rung-1 face TOUCHED belonged to rung 1 entirely, and every rung-3
+// candidate for it was dropped. That was the largest single cause of low era
+// coverage — on wwii-1935 it threw rung 3 out of 589 regions, and the land the
+// 38 rung-1 faces did not actually cover stayed a modern province edge. Now
+// rung 1 takes what it covers and rung 3 is offered what is left, which is the
+// same precedence measured in area instead of in whole regions.
+
+test("RUNG 1 TAKES WHAT IT COVERS AND RUNG 3 GETS THE REST — no double cover", () => {
+  // The region is 10..20. Realm (rung 1) covers 14..20 of it, Crudia (rung 3)
+  // wants 10..16. Under the old rule Crudia was dropped and 10..14 stayed
+  // Modernia; now the overlap goes to rung 1 and Crudia takes 10..14 only.
   const regions = [region("MOD.1_1", box(10, 45, 20, 55))];
   const faces = [
     graftFace("Realm", box(14, 44, 21, 56), 1),
     graftFace("Crudia", box(9, 44, 16, 56), 3),
   ];
   const { features, report } = graftEraGeometry(regions, faces);
-  assert.equal(report.rung3Suppressed, 1, "the suppression is counted per region");
+  assert.equal(report.rung3AfterRung1, 1, "both rungs cut this region — the point of the change");
   assert.equal(report.rung3Regions, 0);
+  assert.equal(report.rung3Covered, 0);
+  const owners = features.map((f) => f.properties.owner).sort();
+  assert.deepEqual(owners, ["Crudia", "Realm"], "and Modernia keeps nothing — the whole region is claimed");
+  // NO DOUBLE COVER, stated as area rather than as trust. The pieces must sum
+  // to the region, not to more than it: the overlap 14..16 belongs to Realm
+  // alone, so Crudia's share is 4/10 of the width, not 6/10.
+  const areaOf = (f) => multiPolygonArea(f.geometry.type === "Polygon"
+    ? [f.geometry.coordinates] : f.geometry.coordinates);
+  const total = features.reduce((sum, f) => sum + areaOf(f), 0);
+  const whole = multiPolygonArea([box(10, 45, 20, 55)]);
+  assert.ok(Math.abs(total - whole) / whole < 1e-9, `pieces sum to ${total}, region is ${whole}`);
+  const crudia = features.find((f) => f.properties.owner === "Crudia");
+  assert.ok(Math.abs(areaOf(crudia) / whole - 0.4) < 1e-9, "Crudia gets 10..14, not 10..16");
+});
+
+test("…and where rung 1 covers everything, rung 3 gets nothing — the old outcome", () => {
+  // The case the old rule was right about, now reached by measurement rather
+  // than by assumption, and counted separately so the two can be told apart.
+  const regions = [region("MOD.4_1", box(10, 45, 20, 55))];
+  const faces = [
+    graftFace("Realm", box(9, 44, 21, 56), 1),
+    graftFace("Crudia", box(9, 44, 16, 56), 3),
+  ];
+  const { features, report } = graftEraGeometry(regions, faces);
+  assert.equal(report.rung3Covered, 1);
+  assert.equal(report.rung3AfterRung1, 0);
   assert.ok(!features.some((f) => f.properties.owner === "Crudia"),
-    "the rung-3 owner must not appear anywhere in this region's outcome");
+    "there is no room, so the backfill owner appears nowhere");
 });
 
 test("A REGION ONLY RUNG 3 REACHES IS CUT BY IT, and counted as such", () => {
@@ -174,17 +210,20 @@ test("A REGION ONLY RUNG 3 REACHES IS CUT BY IT, and counted as such", () => {
   ];
   const { features, report } = graftEraGeometry(regions, faces);
   assert.equal(report.rung3Regions, 1);
-  assert.equal(report.rung3Suppressed, 0);
+  assert.equal(report.rung3AfterRung1, 0, "no rung-1 face reaches here, so nothing was left over");
   assert.ok(features.some((f) => f.properties.owner === "Crudia"), "rung 3 owns its cut");
 });
 
 test("LEGACY FACES CARRY NO RUNG AND NOTHING CHANGES — absent means rung 1", () => {
+  // The path this pin guards is now literal: with no rung-3 candidate the
+  // remainder is never computed and not one line of the new branch runs.
   const regions = [region("MOD.3_1", box(10, 45, 20, 55))];
   const legacy = graftFace("Realm", box(9, 44, 21, 56), undefined);
   delete legacy.rung;
   const { report } = graftEraGeometry(regions, [legacy]);
-  assert.equal(report.rung3Suppressed, 0);
   assert.equal(report.rung3Regions, 0);
+  assert.equal(report.rung3AfterRung1, 0);
+  assert.equal(report.rung3Covered, 0);
   assert.equal(report.confirmed + report.reowned.length, 1, "the legacy face still grafts as before");
 });
 
