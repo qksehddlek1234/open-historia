@@ -46,6 +46,10 @@ export default {
   // faces; absent the dump it builds exactly as before, and says so.
   eraGeometry: {
     date: "2000-01-01",
+    // rung-3 백필을 얹은 하이브리드. mtime 자동 탐색에 맡기지 않는다 —
+    // 평문과 하이브리드가 한 디렉터리에 같이 있고, 어느 쪽을 그리는지는
+    // 우연이 아니라 선택이어야 한다(1935가 같은 이유로 못 박았다).
+    file: "scripts/ohm/out/era-borders-2000-01-01-z4-hybrid.geojson",
     window: [-15, 30, 50, 72],
     // 2026-08-14 면 검수 (52면 전수).
     excludeFaces: [
