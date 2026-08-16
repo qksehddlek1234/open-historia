@@ -88,6 +88,51 @@ export default {
       "Protectorate of Kuwait": "Kuwait", // 1913 영국-오스만 협약의 자치 셰이크국
       "Sultanate of Muscat and Oman": "Oman",
     },
+
+    // rung-3의 이탈리아 면은 1914년이 아니라 **1919년 국경**을 그린다. 실측하니
+    // 우디네·포르데노네를 되찾아 주는 대신(그건 맞다) 남의 땅 아홉 칸을 가져간다.
+    // 면을 버리기엔 반도 전체가 아깝고 지역 배정으로는 못 막으므로(면이 배정을
+    // 이긴다) 틀린 곳만 울타리로 막는다.
+    faceKeepOut: {
+      "Kingfom of Italy": [
+        // 산마리노는 1914년에도 오늘도 독립 공화국이다. 면이 반도를 통으로 칠하면서
+        // 7칸을 삼켰다. 로스터 밖이라 `unassignedKeepModernOwner`가 이름을 지킨다.
+        "SMR",
+        // 코르시카는 1768년 베르사유 조약부터 프랑스다. 면이 `FRA.5.1_1`을 가져갔다.
+        // 프랑스 전체를 막는다 — 1914년 이탈리아는 프랑스 땅을 한 뼘도 갖지 않았고,
+        // 알프스 국경의 절단(FRA.1·13)도 같이 정리된다.
+        "FRA",
+        // 고리치아와 트리에스테는 오스트리아 연해지방이다. 이탈리아로 넘어가는 것은
+        // 1918년 점령과 1920년 라팔로 조약이라 6년 이르다. 우디네(7.4)·포르데노네
+        // (7.2)는 막지 않는다 — 그 둘은 원래 이탈리아이고 면이 옳게 고쳐 준다.
+        "ITA.7.1", // 고리치아
+        "ITA.7.3", // 트리에스테
+        // 트렌티노-알토아디제 역시 1914년엔 오스트리아(남티롤)다. 면이 절단으로
+        // 파고들었다(`ITA.17.1`·`ITA.17.2`).
+        "ITA.17",
+      ],
+    },
+
+    // ── rung-3 백필에서 버리는 면 넷 ───────────────────────────────────────
+    // 다섯 미매칭 중 하나(Kingfom of Italy)만 붙이고 나머지는 버린다. 이유를
+    // 면마다 적어 둔다 — 나중에 되살릴지 판단하려면 근거가 남아 있어야 한다.
+    excludeFaces: [
+      // 스페인령 모로코: rung-1이 이미 `Protectorado español en Marruecos`로 같은 땅을
+      // ESP에 주고 있다(위 faceOwners). 두 면이 같은 땅을 칠하면 뒤에 온 쪽이 이기고,
+      // 더 정확한 이름을 가진 rung-1 쪽을 남기는 것이 맞다.
+      "Spanish Morocco",
+      // "Arabia (Nejd)" 두 면 다 버린다. 큰 쪽은 18.8°×12.7°에 서쪽 끝이 36.5°E라
+      // 헤자즈와 트란스요르단까지 덮는데 그 땅은 1914년에 오스만이다. 보드는 이미
+      // SAU를 오스만 6 · 네지드 7로 갈라 놓았고(로스터 NEJ + rung-1 오스만 면), 거친
+      // 덩어리를 얹으면 그 구분이 지워진다. 작은 쪽(0.3°×0.7°)은 56.1°E — 무산담·
+      // 라스알카이마 근처라 네지드가 아니다. 이름이 땅과 맞지 않는다.
+      "Arabia (Nejd)",
+      // "British Protectorate"는 나라가 아니라 **관계**의 이름이고, 한 면이 트루셜
+      // 연안과 무스카트를 함께 덮는다(51.1~59.8°E) — 서로 다른 주권체 둘이다. 그 땅은
+      // 위 faceOwners가 `Protectorate of Kuwait`·`Sultanate of Muscat and Oman`으로
+      // 이미 각각 이름을 갖고 그리고 있다. 뭉뚱그린 면이 그 위를 덮으면 손해다.
+      "British Protectorate",
+    ],
   },
 
   polities: {
@@ -115,7 +160,10 @@ export default {
     RUS: { name: "Russian Empire", color: "#2e6b4f", aliases: ["러시아 제국", "Russia", "Tsarist Russia", "Imperial Russia"] },
     FRA: { name: "French Republic", color: "#3f6fd0", aliases: ["프랑스", "France", "French Empire", "Third Republic"] },
     GBR: { name: "British Empire", color: "#c0507a", aliases: ["대영제국", "영국", "United Kingdom", "Britain", "Great Britain"] },
-    ITA: { name: "Italy", color: "#4f7942", aliases: ["이탈리아 왕국", "Kingdom of Italy"] },
+    // "Kingfom of Italy"는 rung-3 원자료(historical-basemaps)의 오타다. 우리 실수가
+    // 아니고 우리가 고칠 수 있는 파일도 아니라, 별칭으로 받는다 — 1836에서
+    // `United Kingdom of Great Britain and Ireland`를 별칭 한 줄로 받은 것과 같다.
+    ITA: { name: "Italy", color: "#4f7942", aliases: ["이탈리아 왕국", "Kingdom of Italy", "Kingfom of Italy"] },
     JAP: { name: "Japan", color: "#b23b3b", aliases: ["일본 제국", "Empire of Japan", "Imperial Japan"] },
     USA: { name: "United States", color: "#4a8f7a", aliases: ["미국", "America", "United States of America"] },
     SRB: { name: "Serbia", color: "#8b6baf", aliases: ["세르비아 왕국", "Kingdom of Serbia"] },

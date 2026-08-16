@@ -63,6 +63,12 @@ export default {
       // 지역 패스 어휘(COUNTRY_NAMES)와 정확히 같은 문자열로 맞춘다 —
       // 지도와 소유권 테이블이 한 나라를 두 이름으로 부르면 안 된다.
       "Česko": "Czechia", // en=Czech Republic이지만 보드 어휘는 Czechia
+      // 북키프로스: rung-3이 부르는 이름은 `Turkish Cypriot-administered area`인데
+      // 베이스 지도의 어휘는 `Northern Cyprus`다(ownerCodes에 `Cyprus`와 나란히
+      // 들어 있다). 새 폴리티를 세우는 문제가 아니다 — 이 보드의 교리는 "2000년이
+      // 오늘과 다른 곳만 세운다"이고, 1974년 분단선은 그때나 지금이나 같다.
+      // 이름만 맞춰 주면 그 선이 현대 GADM 모서리가 아니라 시대 자료에서 온다.
+      "Turkish Cypriot-administered area": "Northern Cyprus",
       "ПЈР Македонија": "North Macedonia", // 2000년 당시 명칭은 FYROM — 보드 어휘 우선
       "ٱلْجُمْهُورِيَّةُ ٱلْعَرَبِيَّةُ ٱلْسُوْرِيَّة": "Syria",
       // 가자: 오슬로 체제 — 지구 대부분이 팔레스타인 자치정부 관할(A/B 구역).
@@ -75,7 +81,19 @@ export default {
     // · España 면이 리스본을 포함하는데 다른 다섯 날짜와 달리 2000에만
     //   mergedWith(Portugal) 기록이 없다(포르투갈 라벨이 이 날짜에 부재) —
     //   첫 빌드 실측: PRT 지역 106건이 스페인으로 재배정되고 있었다.
-    faceKeepOut: { "Deutschland": ["FRA"], "España": ["PRT"] },
+    faceKeepOut: {
+      "Deutschland": ["FRA"],
+      "España": ["PRT"],
+      // 이 파일에 손대다 발견한 기존 결함이다(내 이번 변경과 무관). 자료에
+      // `San Marino` 면이 따로 있는데 `Italy` 면이 **둘**이고, 반도를 통으로 덮는
+      // 쪽이 뒤에 적용돼 산마리노 7칸을 가져간다. 산마리노는 2000년에도 오늘도
+      // 독립 공화국이다. 이탈리아 면을 막으면 제 면이 제 땅을 갖는다.
+      "Italy": ["SMR"],
+      // 아크로티리·데켈리아는 1960년 독립 조약이 영국 주권으로 남긴 기지다.
+      // 북키프로스 면이 데켈리아(`XAD.2_1`)를 물었다 — 완충지대와 맞닿아 있지만
+      // 기지 자체는 영국령이고 2000년에도 그렇다.
+      "Turkish Cypriot-administered area": ["XAD"],
+    },
   },
 
   polities: {
