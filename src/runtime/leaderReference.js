@@ -3737,6 +3737,11 @@ const inWindow = (entry, time) => {
 // Each pack may carry ALIASES ("Joseon" ← a scenario's own spelling) mapping
 // scenario polity names onto its keys.
 const ERA_PACK_LOADERS = [
+  // The record used to start at 1000 and roman-117 fell off the front of it —
+  // one seeded leader out of thirteen, and that one was a modern row leaking in
+  // through an alias. classical.js says what it covers and what it refuses to
+  // name.
+  { key: "classical", from: "0001-01-01", until: "0999-12-31", load: () => import("./leaderEras/classical.js") },
   { key: "high-medieval", from: "1000-01-01", until: "1443-12-31", load: () => import("./leaderEras/highMedieval.js") },
   { key: "early-modern", from: "1444-01-01", until: "1749-12-31", load: () => import("./leaderEras/earlyModern.js") },
   { key: "revolutions", from: "1750-01-01", until: "1899-12-31", load: () => import("./leaderEras/revolutions.js") },

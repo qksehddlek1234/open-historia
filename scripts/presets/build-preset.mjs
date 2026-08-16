@@ -264,6 +264,10 @@ if (spec.internalVoices !== false) {
 // uncovered (the record starts at 1444 by design), and every other miss is a
 // named to-do for the reference's data lane.
 const { ensureReferenceEra, referenceLeadership } = await import("../../src/runtime/leaderReference.js");
+// The codebase's own test for "this is not a person" — reused rather than
+// restated, so a spelling added there is honoured here too.
+const { isRoleSentinel } = await import("../../src/runtime/countryStatLedger.js");
+const hasOfficeholder = (value) => Boolean(value) && !isRoleSentinel(value);
 const startDateForLeaders = spec.game?.startDate ?? "";
 await ensureReferenceEra(startDateForLeaders);
 const leaderReport = { hits: [], misses: [] };
@@ -273,7 +277,19 @@ for (const [code, p] of Object.entries(spec.polities ?? {})) {
   let via = null;
   for (const key of [name, ...(Array.isArray(p.aliases) ? p.aliases : [])]) {
     const r = referenceLeadership(key, startDateForLeaders);
-    if (r && (r.leader || r.headOfState)) {
+    // A SENTINEL IS NOT AN OFFICEHOLDER, AND IT MUST NOT END THE SEARCH.
+    //
+    // "(없음)" is a fact on record — this system has no separate such office —
+    // and it is legitimately the headOfState of a great many modern rows, where
+    // the leader IS the head of state. But it is not a person, and accepting it
+    // here did two things at once: it recorded a polity as having leadership
+    // when nobody had been found, and it stopped the alias loop before a key
+    // that WOULD have found someone could be tried. roman-117 read 1 leader
+    // seeded of 13 on that basis — "Han Dynasty" missed, fell through to its own
+    // alias "China", matched an unbounded modern sentinel row, and Emperor An of
+    // Han went on the board with a head of state of "(없음)" and no emperor.
+    // The honest count there was zero, which is what got the era pack written.
+    if (r && (hasOfficeholder(r.leader) || hasOfficeholder(r.headOfState))) {
       resolved = r;
       via = key;
       break;
