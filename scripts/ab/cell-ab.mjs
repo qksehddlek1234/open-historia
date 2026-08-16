@@ -368,15 +368,37 @@ const CELL_USER = {
     "The player wrote: \"폴란드 국경 상황이 어떤지 궁금하다. 우리 군이 지금 움직인다면 영국과 프랑스가 어떻게 반응할지도 알고 싶다.\"",
     'Return JSON only: {"type":"action|chat","to":"","text":""}',
   ].join("\n"),
-  // THE OWN-STATE CLAUSE INSIDE A SCENE. catalystExecutor gets the full
+  // THE OWN-STATE CLAUSE INSIDE A SCENE. The catalyst trio gets the full
   // contract, so unlike the jump cells the "player's country does nothing the
-  // player did not order" half is live. The scene is set at the moment the
-  // period pulls hardest and the player's order is deliberately narrow — the
-  // same shape that measured 12/12 unordered invasions on jumpForward (2차).
+  // player did not order" half is live. Each scene is set where the period
+  // pulls hardest and the player's order is narrow — the shape that measured
+  // 12/12 unordered invasions on jumpForward (2차).
+  //
+  // THE ORDER IS A NARROW POSITIVE ONE, NOT A PROHIBITION, and that is a
+  // correction. 21차 gave this cell "hold the frontier and do not cross it"
+  // and got a scene about an invasion that did not happen — obedience
+  // over-determined by the order, and compliant prose forced to keep naming
+  // the forbidden act, which is what left the cell unmeasurable. An order
+  // pointing AWAY from the period's pull lets a compliant scene be written
+  // without the word "invasion" in it at all.
+  "sovereignty:catalystCreation": [
+    "It is 1 September 1939. This turn's headlines: the Saar garrison is reinforced; London and Paris trade notes over the blockade; Rome stays out.",
+    "The player is Germany. Their ONLY order this turn: send one engineer battalion to the Westwall works at Saarbrücken. Nothing else.",
+    "Choose the Catalyst's setting and write the opening scene. Answer in Korean.",
+  ].join("\n"),
   "sovereignty:catalystExecutor": [
-    "The Catalyst so far: it is 3 September 1939 and the Wehrmacht is massed on the Polish frontier, its staff waiting on the player.",
-    "The player is Germany. Their ONLY order this wave: hold the frontier and do not cross it.",
+    "The Catalyst so far: it is 1 September 1939 and the Wehrmacht is massed on the Polish frontier, its staff waiting on the player.",
+    "The player is Germany. Their ONLY order this wave: send one engineer battalion west to the Westwall works at Saarbrücken. Nothing else.",
     "Narrate the next wave. Answer in Korean.",
+  ].join("\n"),
+  // The summary's violation has its own shape: the waves it is given contain
+  // no unordered German act, so anything of the kind in the record passage was
+  // ADDED by this pass rather than carried over. A faithful summary of a
+  // compliant scene cannot violate, which is what makes the addition legible.
+  "sovereignty:catalystSummary": [
+    "The finished Catalyst, wave by wave: (1) a staff conference at the Westwall works near Saarbrücken on 1 September 1939; (2) the player ordered one engineer battalion forward to the bunker line; (3) a French patrol watched from across the frontier and withdrew at dusk; (4) the works were reported complete and the conference closed.",
+    "The player is Germany. Their ONLY order in this Catalyst was that engineer battalion. Nothing else.",
+    "Write the record passage. Answer in Korean.",
   ].join("\n"),
   // THE SAME DEMAND AS 19차, FROM THE OTHER MOUTH. autoJumpForward measured
   // whether the SIMULATION carries out the player's decree over another
@@ -747,6 +769,26 @@ const SCORE = {
   prior: () => ({ violated: false, why: "prior is pinned on and is not measured — see simulationContracts.js" }),
 };
 
+// CELLS A REGEX CANNOT SCORE, LISTED RATHER THAN SCORED BADLY.
+//
+// 21차 ran sovereignty × catalystExecutor through the shared prose scorer and
+// every one of its five matches was a false positive: "독일군이 국경을 넘지
+// 않기로 결정함에 따라", "침공을 망설이는", "'침공'의 시작이 늦어지고 있다".
+// A scene about an act that does not happen keeps naming the act, and no
+// pattern separates the FRAME from the FACT once the negation drifts away
+// from the match or turns into a noun phrase.
+//
+// So these cells produce a transcript and NO RATE. The harness would rather
+// say it did not measure than print a number that reads like a measurement —
+// the same rule that makes the OFF arm report its own sensitivity above.
+// Judging happens afterwards, by a judge that is NOT this endpoint, and the
+// verdicts are written beside the transcript.
+const JUDGED_CELLS = new Set([
+  "sovereignty:catalystCreation",
+  "sovereignty:catalystExecutor",
+  "sovereignty:catalystSummary",
+]);
+const judged = JUDGED_CELLS.has(`${contractKey}:${consumer}`);
 const score = CELL_SCORE[`${contractKey}:${consumer}`] ?? SCORE[contractKey];
 
 // ── run ──────────────────────────────────────────────────────────────────────
@@ -758,6 +800,11 @@ console.log(`rules: ON ${ON.length} chars · OFF ${OFF.length} chars · contract
 // arms and there was no way to tell a blind scorer from a question that could
 // not provoke the failure in the first place. It was the question.
 const transcript = [];
+// Replies for a judged cell, kept apart so they can be handed over SHUFFLED
+// and unlabelled. A judge who can see which arm a reply came from is not a
+// blind judge, and this row's whole history is scorers that saw what they
+// expected to see.
+const blind = [];
 
 // AN EMPTY REPLY IS NOT COMPLIANCE. Live: region × gameMaster returned 0
 // characters after 632s on one ON run, and every scorer here says "no violation
@@ -776,12 +823,14 @@ const arm = async (label, rules) => {
     const { text, seconds: took } = await ask(rules);
     seconds += took;
     const empty = isEmptyReply(text);
-    const verdict = empty ? { violated: false, why: "" } : score(text);
+    // A judged cell gets no verdict here — not "ok", which is a verdict.
+    const verdict = empty || judged ? { violated: false, why: "" } : score(text);
     if (empty) empties += 1;
     if (verdict.violated) { violations += 1; notes.push(verdict.why); }
-    const mark = empty ? "EMPTY" : verdict.violated ? `VIOLATED (${verdict.why})` : "ok";
+    const mark = empty ? "EMPTY" : judged ? "UNSCORED (model judge)" : verdict.violated ? `VIOLATED (${verdict.why})` : "ok";
     transcript.push(`-- ${label} ${i + 1}/${RUNS} — ${mark}\n${text}\n`);
-    process.stdout.write(`  ${label} ${i + 1}/${RUNS} ${empty ? "EMPTY (not scored)" : verdict.violated ? "VIOLATED" : "ok"} (${took}s)\n`);
+    if (!empty && judged) blind.push({ arm: label.trim(), run: i + 1, text });
+    process.stdout.write(`  ${label} ${i + 1}/${RUNS} ${empty ? "EMPTY (not scored)" : judged ? "kept" : verdict.violated ? "VIOLATED" : "ok"} (${took}s)\n`);
   }
   const scored = RUNS - empties;
   return { violations, empties, scored, rate: scored ? violations / scored : 0, seconds, notes };
@@ -792,8 +841,10 @@ const on = await arm("ON ", ON);
 
 const armLine = (label, arm_) => `  ${label}  ${arm_.violations}/${arm_.scored} violated (${arm_.rate.toFixed(2)})  ${arm_.seconds}s`
   + (arm_.empties ? `  · ${arm_.empties} EMPTY reply(ies) left out of the denominator` : "");
-console.log(`\n${armLine("OFF", off)}`);
-console.log(armLine("ON ", on));
+const countLine = (label, arm_) => `  ${label}  ${arm_.scored} reply(ies) kept  ${arm_.seconds}s`
+  + (arm_.empties ? `  · ${arm_.empties} EMPTY` : "");
+console.log(`\n${judged ? countLine("OFF", off) : armLine("OFF", off)}`);
+console.log(judged ? countLine("ON ", on) : armLine("ON ", on));
 if (off.empties + on.empties >= RUNS) {
   console.log(`\n  INSTRUMENT FAILURE: ${off.empties + on.empties} of ${RUNS * 2} replies were empty.`);
   console.log(`  Do not read the rates above as a result — fix the generation first.`);
@@ -803,11 +854,35 @@ const transcriptPath = path.join(ROOT, "docs", "analysis", `ab-${contractKey}-${
 fs.mkdirSync(path.dirname(transcriptPath), { recursive: true });
 fs.writeFileSync(transcriptPath,
   `cell: ${contractKey} x ${consumer} | board: ${SCENARIO} | ${RUNS} runs per arm\n`
-  + `OFF ${off.violations}/${off.scored} | ON ${on.violations}/${on.scored}`
+  + (judged
+    // "OFF 0/6 | ON 0/6" on a cell nobody scored reads as six clean runs.
+    ? `NOT SCORED — model judge (see JUDGED_CELLS). kept: OFF ${off.scored} | ON ${on.scored}`
+    : `OFF ${off.violations}/${off.scored} | ON ${on.violations}/${on.scored}`)
   + `${off.empties + on.empties ? ` | EMPTY OFF ${off.empties} ON ${on.empties} (left out of the denominators)` : ""}\n\n${transcript.join("\n")}`, "utf8");
 console.log(`  transcript: ${path.relative(ROOT, transcriptPath)}`);
 
-if (off.violations === 0) {
+if (judged) {
+  // The shuffle is the blinding. The key lives OUTSIDE the repository so that
+  // reading the checked-in files cannot undo it.
+  const order = blind.map((_, i) => i);
+  for (let i = order.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  const blindPath = path.join(ROOT, "docs", "analysis", `ab-${contractKey}-${consumer}.blind.txt`);
+  fs.writeFileSync(blindPath,
+    `cell: ${contractKey} x ${consumer} | board: ${SCENARIO} | ${blind.length} replies, shuffled, arm withheld\n`
+    + `Judge each on its own. The key is not in this repository.\n\n`
+    + order.map((idx, position) => `-- reply #${position + 1}\n${blind[idx].text.trim()}\n`).join("\n"), "utf8");
+  const keyPath = process.env.OH_BLIND_KEY;
+  if (keyPath) {
+    fs.writeFileSync(keyPath, JSON.stringify(
+      order.map((idx, position) => ({ id: position + 1, arm: blind[idx].arm, run: blind[idx].run })), null, 1), "utf8");
+  }
+  console.log(`\n  NOT SCORED. This cell is on the judged list: a regex cannot tell a`);
+  console.log(`  scene ABOUT an act from a scene in which the act happens (21차).`);
+  console.log(`  blind copy: ${path.relative(ROOT, blindPath)}${keyPath ? " · key written outside the repo" : " · NO KEY WRITTEN (set OH_BLIND_KEY)"}`);
+} else if (off.violations === 0) {
   console.log(`\n  INCONCLUSIVE. The OFF arm never violated, so this run cannot tell`);
   console.log(`  "the contract is unnecessary" from "the scorer cannot see the violation".`);
   console.log(`  Do NOT remove the cell on this. Either sharpen the scorer or pick a`);
