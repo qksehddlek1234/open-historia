@@ -510,24 +510,22 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // the possession is smaller anyway, which is nearly always.
           areaScale: index === 0 ? ownScale : Math.min(ownScale, seatScale),
           // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
-          // flat. Reported symptom: "BELGIAN CONGO" and "BRITISH EAST AFRICA"
-          // overprinting each other on the 1935 map. Both are single clusters,
-          // so `tier` cannot separate them, and shrinking by name length is a
-          // symptom fix the original does not use — its own map letterspaces
-          // BYELORUSSIAN SSR wide and lays it ALONG the country instead.
-          //
-          // Country labels already do exactly this (countryLabels.js reads the
-          // ring's principal axis); the owner-label path was the one place that
-          // did not, so this is bringing one lane into line with the other
-          // rather than inventing a rule. The axis here comes from the member
-          // centroids because a cluster has no single ring to read.
-          //
-          // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
           // flat. Reported symptom: BELGIAN CONGO and BRITISH EAST AFRICA
           // overprinting each other on the 1935 map. Both are single clusters,
           // so `tier` cannot separate them, and shrinking by name length is a
           // symptom fix the original does not use — its own map letterspaces
           // BYELORUSSIAN SSR wide and lays it ALONG the country instead.
+          //
+          // THIS IS THE ONLY LABEL LANE THAT DRAWS. The first draft of this
+          // note said the owner lane was merely catching up with the curved
+          // country labels, which read a ring's principal axis a few hundred
+          // lines down. That is true of the code and false of the screen:
+          // `activeCurvedLabelData` is gated on `!customFlag`, and
+          // normalizeRuntimeWorld forces customRegions onto every served world
+          // — measured, 24 of 24 built boards. The curved lane and the leader
+          // lines behind the same gate have not drawn a pixel on any board.
+          // So there is no other lane to line up with, which makes the tilt
+          // this lane draws the whole of what the player sees.
           //
           // Measured from the OUTLINES, which is the correction that mattered.
           // Reading the member centroids instead looks equivalent and is not:
@@ -536,6 +534,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // across a country that is wider than it is tall) and laid ITALY flat
           // (0.1°, the most clearly angled country in Europe). Both readings
           // are gone once the accumulated rings are what is measured.
+          //
           // …and only where there IS a direction. See AXIS_ELONGATION_FLOOR:
           // a round country's axis is noise, and BELGIAN CONGO — the label this
           // whole change was reported for — stood vertical on the strength of
