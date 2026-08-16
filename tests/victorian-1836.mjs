@@ -169,6 +169,7 @@ test("every polity the spec declares can be answered", () => {
     // 두지 않으면 다음 사람이 한쪽을 지운다.
     "Bahrain",
     "Beylik of Constantine",
+    "Cabanagem",
     "Khanate of Kokand",
     "Free Hanseatic City of Bremen",
     "Free and Hanseatic City of Hamburg",

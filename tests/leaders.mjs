@@ -310,6 +310,9 @@ await (async () => {
     "victorian-1836: Colony of Nova Scotia",
     "victorian-1836: Prince Edward Island Colony",
     "victorian-1836: Crown Colony of Newfoundland",
+    // 남아메리카 — 보고 8. 카바나젱의 대통령은 에두아르두 앙젤림(1835-08~1836-05)
+    // 이고, 그 앞에 펠릭스 클레멘치 말셰르와 프란시스쿠 페드루 비니아그리가 있다.
+    "victorian-1836: Cabanagem",
     // 중앙아시아·걸프 — 보고 6. **코칸트 하나뿐이다**: 바레인을 같이 넣었다가
     // 바로 아래 "답이 생긴 이름은 빠져야 한다" 핀에 걸렸다. 알칼리파가 이미
     // 답한다 — 핀이 목록의 과잉을 잡은 첫 사례이고, 그러라고 건 것이다.
