@@ -171,6 +171,19 @@ test("the successions inside the campaign's first year are on record", () => {
   assert.match(referenceLeadership("Grand Duchy of Mecklenburg-Schwerin", "1837-03-01").leader ?? "", /파울 프리드리히/);
 });
 
+test("Muhammad Ali is a GOVERNOR — the khedive title is thirty-one years away", () => {
+  // Reported from the board: Egypt came up under a khedive in 1836. The Porte
+  // appointed Muhammad Ali wāli in 1805 and never granted him the other word;
+  // Abdülaziz granted it to Isma'il on 8 June 1867, which is why Isma'il holds
+  // two rows. The four governors between them were already written correctly,
+  // so the list was contradicting itself.
+  assert.match(referenceLeadership("Egypt", "1836-01-01").leader ?? "", /^왈리 무함마드 알리/);
+  assert.match(referenceLeadership("Egypt", "1867-01-01").leader ?? "", /^왈리 이스마일/,
+    "still a governor five months before the grant");
+  assert.match(referenceLeadership("Egypt", "1867-07-01").leader ?? "", /^케디브 이스마일/,
+    "and a khedive after it");
+});
+
 test("Andorra keeps both co-princes, because one of them is the whole point", () => {
   const row = referenceLeadership("Andorra", "1836-01-01");
   assert.match(row.leader ?? "", /주교공/, "the Bishop of Urgell");

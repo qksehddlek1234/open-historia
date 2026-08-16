@@ -152,8 +152,9 @@ test("the map draws the line under the labels and fades it with them", () => {
   const paint = NATIONS.slice(NATIONS.indexOf("const leaderLinePaint"), NATIONS.indexOf("const labelLayerPaint"));
   assert.match(paint, /5, 0\.38,/);
   assert.match(paint, /8, 0,/);
-  // Hiding country labels hides their leader lines too.
-  assert.match(NATIONS, /!mapDisplaySettings\.hideCountryLabels\n\s*\? leaderLineData/);
+  // Hiding country labels hides their leader lines too — now the FIRST test in
+  // that expression, because which collection follows depends on the lane.
+  assert.match(NATIONS, /const activeLeaderLineData = !worldKnown \|\| mapDisplaySettings\.hideCountryLabels/);
 });
 
 test("A LEADER LABEL YIELDS TO COLLISION, a country's own never does", () => {
@@ -283,4 +284,108 @@ test("and the tilt never flips the text upside down", () => {
     assert.ok(angle > -91 && angle <= 91, `${angle} would print upside down`);
   }
 });
+console.log(`\n${pass} passed\n`);
+
+// ── AND THE LANE THAT ACTUALLY DRAWS ────────────────────────────────────────
+//
+// Everything above was written for the stock lane, and the stock lane has never
+// run. `activeLeaderLineData` was gated on `!customFlag`, and
+// normalizeRuntimeWorld forces customRegions onto every served world — measured
+// 2026-08-16, 24 of 24 built boards. So the feature this file's header names —
+// "Danzig, Memel, Luxembourg, Andorra, Liechtenstein, San Marino, Monaco and
+// the Vatican are simply ABSENT from the 1935 map" — was true of the map for
+// every day this file has existed, and every pin above passed the whole time.
+//
+// The owner lane now promotes below the same floor. Counted on the built boards
+// by summing each owner's regions (the builder additionally splits an owner by
+// contiguity and promotes only the seat, which can only raise these):
+//
+//   wwii-1935      6 of 109 owners   San Marino 589 · Liechtenstein 1,954 ·
+//                                    St Vincent 3,062 · Andorra 3,893 ·
+//                                    FREE CITY OF DANZIG 9,116 · Luxembourg 9,940
+//   victorian-1836 15 of 59          the Bund's minors, thirteen of them added
+//                                    to that board the same week
+//   magna-1444     19 of 157         Ragusa, Lucca, Athens, Brunei, Bahrain…
+//   korea-1950      7 of 115         + the Saar Protectorate, 9,884
+//
+// An earlier note in the WORKLOG put 1935 at 24 of 109. That used each owner's
+// LARGEST RING where the builder uses its summed area, so it read every
+// multi-province country as smaller than it is and promoted countries that can
+// hold their own names. Six is the number.
+console.log("\nThe owner lane promotes too, which is the lane the player sees");
+
+test("THE GATE IS GONE — each lane brings its own lines", () => {
+  // Not un-gated to "always the stock collection": that would draw the modern
+  // world's leader lines under a 1935 board's labels. The lane picks.
+  const at = NATIONS.indexOf("const activeLeaderLineData");
+  const expression = NATIONS.slice(at, NATIONS.indexOf(";", at));
+  assert.match(expression, /customFlag\s*\n?\s*\?\s*ownerLeaderLineData/,
+    "a custom world draws the owner lane's lines");
+  assert.match(expression, /:\s*leaderLineData/, "and the stock world its own");
+});
+
+test("…and it takes the stock lane's constants rather than restating them", () => {
+  // Two floors drift apart the first time either is tuned.
+  const imports = NATIONS.slice(0, NATIONS.indexOf("ensurePmtilesProtocol()"));
+  assert.match(imports, /LEADER_AREA_SCALE_FLOOR/);
+  assert.match(imports, /LEADER_LABEL_AREA_SCALE/);
+  assert.match(imports, /LEADER_EXTENSION_DEFAULT/);
+  assert.match(imports, /buildLeaderPlacement/);
+  assert.match(imports, /from "\.\.\/\.\.\/runtime\/labelLeaders\.js"/);
+});
+
+test("ONLY THE SEAT IS PROMOTED — a possession is a repeat, not a lost name", () => {
+  // Pulling every under-floor possession onto its own line would draw a
+  // hairline to each of the British Empire's fourteen, for a name the map
+  // already carries at full size somewhere else.
+  const at = NATIONS.indexOf("const leader = index === 0");
+  assert.notEqual(at, -1, "the promotion must test the seat");
+  assert.match(NATIONS.slice(at, at + 200), /ownScale < LEADER_AREA_SCALE_FLOOR/);
+});
+
+test("a promoted owner label leaves its shape the way the stock one does", () => {
+  const block = NATIONS.slice(NATIONS.indexOf("const buildOwnerLabelCollection"),
+    NATIONS.indexOf("const WorldMap"));
+  assert.match(block, /coordinates: leader \? leader\.anchor/, "it sits at the anchor");
+  assert.match(block, /areaScale: leader\s*\n?\s*\? LEADER_LABEL_AREA_SCALE/, "and draws to be read");
+  assert.match(block, /rotation: leader \? 0 : tilt/, "horizontal once it is off its shape");
+  assert.match(block, /lat: leader \? leader\.anchor\[1\]/, "globe correction follows the anchor");
+  assert.match(block, /leader: leader \? 1 : 0/, "and every feature carries the routing property");
+});
+
+test("the extent is carried through the fold, or the line starts inside", () => {
+  // The cluster is a fold and the rings are gone by the time the direction is
+  // known, so a bounding box rides along — through the union-find AND through
+  // the island merge, which is where an axis was nearly lost once already.
+  const block = NATIONS.slice(NATIONS.indexOf("const buildOwnerLabelCollection"),
+    NATIONS.indexOf("const WorldMap"));
+  assert.match(block, /bbox: ringBbox\(best\.ring\)/);
+  assert.match(block, /cluster\.bbox = unionBbox\(cluster\.bbox, entry\.bbox\)/);
+  assert.match(NATIONS, /if \(a\.bbox && b\.bbox\) a\.bbox = unionBbox\(a\.bbox, b\.bbox\)/,
+    "and through mergeOwnerClusters");
+});
+
+test("bbox corners answer 'how far that way' exactly", () => {
+  // The reason a box is enough: buildLeaderPlacement projects every point it is
+  // given onto the outward normal and keeps the furthest. For a box the corners
+  // ARE the extremes, so the four of them give the same reach the full outline
+  // would — never short, which is the failure that would matter.
+  const corners = [[10, 40], [12, 40], [12, 44], [10, 44]];
+  const fromRing = buildLeaderPlacement([...corners, [10, 45], [11, 44.5]], [11, 42], 0, 0.5);
+  const fromCorners = buildLeaderPlacement(corners, [11, 42], 0, 0.5);
+  assert.ok(fromRing.anchor[1] >= fromCorners.anchor[1],
+    "a ring reaching past its own box may go further; the box never goes short");
+  // And the anchor is outside the shape it left, which is the whole point.
+  assert.ok(fromCorners.anchor[1] > 44, `${fromCorners.anchor[1]} is still inside`);
+});
+
+test("the player's extension dial reaches the owner lane", () => {
+  // Baked into the geometry at build time, so the dial has to be a dependency
+  // of the memo or moving it moves nothing until the world reloads.
+  assert.match(NATIONS, /regionAdjacency,\n\s*labelLineExtension,\n\s*\);/,
+    "passed to the builder");
+  assert.match(NATIONS, /regionAdjacency, labelLineExtension, labelEpoch\]/,
+    "and in the memo's deps");
+});
+
 console.log(`\n${pass} passed\n`);

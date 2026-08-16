@@ -273,12 +273,28 @@ export const REFERENCE = {
     ],
   },
   Egypt: {
+    // THE TITLE IS THIRTY-ONE YEARS EARLY IF IT SAYS KHEDIVE HERE.
+    //
+    // Reported from the 1836 board, where Muhammad Ali came up as 케디브. He was
+    // not one. The Porte appointed him WĀLI — governor — of an Ottoman province
+    // in 1805, and that is the office he held for forty-three years, through
+    // Sudan, the Hejaz, Syria and two wars against his own sultan. He wanted the
+    // other word and used it unofficially; Constantinople never granted it.
+    //
+    // Abdülaziz granted "khedive" to ISMA'IL on 8 June 1867, which is why the
+    // rows below split him in two rather than backdating the title to his
+    // accession. The four in between were governors and were already written as
+    // such, so the file was contradicting itself in the same list.
+    //
+    // Do not "fix" this back by matching the entries below it. A title is a
+    // grant with a date, and this board opens thirty-one years before the date.
     leader: [
-      { name: "케디브 무함마드 알리", from: "1805-07-09", until: "1848-07-20" },
+      { name: "왈리 무함마드 알리", from: "1805-07-09", until: "1848-07-20" },
       { name: "왈리 이브라힘 파샤", from: "1848-07-20", until: "1848-11-10" },
       { name: "왈리 압바스 1세", from: "1848-11-10", until: "1854-07-13" },
       { name: "왈리 사이드 파샤", from: "1854-07-13", until: "1863-01-18" },
-      { name: "케디브 이스마일 파샤", from: "1863-01-18", until: "1879-06-26" },
+      { name: "왈리 이스마일 파샤", from: "1863-01-18", until: "1867-06-08" },
+      { name: "케디브 이스마일 파샤", from: "1867-06-08", until: "1879-06-26" },
       { name: "케디브 테우피크 파샤", from: "1879-06-26", until: "1892-01-07" },
       { name: "케디브 압바스 2세", from: "1892-01-08", until: "1914-12-19" },
     ],

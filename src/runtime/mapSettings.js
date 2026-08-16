@@ -142,9 +142,21 @@ export function getMapRenderValue(name) {
     const fallback = MAP_RENDER_DEFAULTS[name];
     if (fallback === undefined) return undefined;
     const [min, max] = MAP_RENDER_BOUNDS[name];
+    // A KEY THAT WAS NEVER WRITTEN IS NOT THE NUMBER ZERO.
+    //
+    // localStorage.getItem returns null for an absent key and Number(null) is 0
+    // — finite, so the fallback below was unreachable and EVERY default in
+    // MAP_RENDER_DEFAULTS was dead for anyone who had not moved that slider.
+    // Measured on a running board: labelLineExtension read 0.5 in the table and
+    // 0 on the map, which made every leader line zero-length (the tiler drops
+    // those, so the lines Cowork had just enabled drew nothing at all), and the
+    // province fade range 7.5 → 14 was clamped to its floor of 2.25 → 2.25, so
+    // the hairlines this file spends a paragraph tuning came up at world zoom.
     let raw = NaN;
     try {
-        raw = Number(localStorage.getItem(MAP_RENDER_KEYS[name]));
+        const stored = localStorage.getItem(MAP_RENDER_KEYS[name]);
+        if (stored === null || stored === "") return fallback;
+        raw = Number(stored);
     } catch {
         return fallback;
     }

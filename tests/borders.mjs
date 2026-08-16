@@ -376,8 +376,16 @@ test("a possession may not out-print the seat it belongs to", () => {
   // Sliced to the END OF THE BUILDER, not a byte count: a fixed 1400-char
   // window broke the moment the rotation note was written above `tier`, and a
   // pin that fails because a comment grew is a pin measuring the wrong thing.
-  const block = NATIONS.slice(at, NATIONS.indexOf("return { type: \"FeatureCollection\"", at));
-  assert.match(block, /areaScale: index === 0 \? ownScale : Math\.min\(ownScale, seatScale\)/);
+  // The builder now returns two collections (the labels and their leader
+  // lines), so the anchor is the object it returns rather than the bare one.
+  const block = NATIONS.slice(at, NATIONS.indexOf("labels: { type: \"FeatureCollection\"", at));
+  assert.notEqual(block.length, 0, "the builder's return is where this block ends");
+  // The expression grew a branch on 2026-08-16: a seat below the leader floor
+  // leaves its shape entirely and draws at the size a label off its country
+  // draws at (tests/label-leaders.mjs owns that half). The ceiling this pin
+  // exists for is the OTHER branch and is untouched — a possession never gets a
+  // leader line, so it never reaches the first one.
+  assert.match(block, /\(index === 0 \? ownScale : Math\.min\(ownScale, seatScale\)\)/);
   assert.match(block, /tier: index === 0 \? 0 : 1/);
 
   // AND THE LABEL LIES ALONG THE TERRITORY. This was hardcoded flat, which

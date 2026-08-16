@@ -33,6 +33,16 @@ import {
   lngLatToTile,
   loadCountryLabelCollections,
 } from "../../runtime/countryLabels.js";
+// Pure geometry, no DOM. The owner lane promotes below the SAME floor the stock
+// lane uses and places the label the same way, so it takes those constants from
+// here rather than restating them — two floors would drift apart the first time
+// either was tuned.
+import {
+  LEADER_AREA_SCALE_FLOOR,
+  LEADER_EXTENSION_DEFAULT,
+  LEADER_LABEL_AREA_SCALE,
+  buildLeaderPlacement,
+} from "../../runtime/labelLeaders.js";
 import { translateLabel } from "../../runtime/translator.js";
 import {
   MAP_SETTING_KEYS, borderFadeStops, useDisplayScale, useMapRenderValue, useMapSetting,
@@ -286,6 +296,34 @@ const ringAxisMoments = (ring) => {
   return moments;
 };
 
+// One region's extent in lng/lat, kept as [minX, minY, maxX, maxY] so clusters
+// can union it while they fold. Used only by the leader-line placement.
+const ringBbox = (ring) => {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const [x, y] of ring) {
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+  return [minX, minY, maxX, maxY];
+};
+
+const unionBbox = (a, b) => [
+  Math.min(a[0], b[0]), Math.min(a[1], b[1]),
+  Math.max(a[2], b[2]), Math.max(a[3], b[3]),
+];
+
+// The four corners, in the shape buildLeaderPlacement wants — it projects every
+// point it is given onto the outward normal and keeps the furthest, so a corner
+// list answers "how far does this territory reach that way" exactly.
+const bboxCorners = ([minX, minY, maxX, maxY]) => [
+  [minX, minY], [maxX, minY], [maxX, maxY], [minX, maxY],
+];
+
 const ringCentroidLngLat = (ring) => {
   let x = 0;
   let y = 0;
@@ -362,8 +400,11 @@ const mergeOwnerClusters = (clusters, joinDeg) => {
           a.cy = (a.cy * a.area + b.cy * b.area) / total;
           a.area = total;
           // The axis travels with the merge, or an island joining its mainland
-          // would silently drop out of the angle the label is drawn at.
+          // would silently drop out of the angle the label is drawn at. The
+          // extent travels for the same reason: a leader line measured from
+          // half a territory starts inside the other half.
           if (a.axis && b.axis) addAxisMoments(a.axis, b.axis);
+          if (a.bbox && b.bbox) a.bbox = unionBbox(a.bbox, b.bbox);
           clusters.splice(j, 1);
           merged = true;
           break outer;
@@ -384,7 +425,7 @@ const DISPUTED_TERRITORY_CLAIMANT = {
   Z06: "Pakistan", Z07: "India", Z08: "China", Z09: "India",
 };
 
-const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null) => {
+const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null, leaderExtension = LEADER_EXTENSION_DEFAULT) => {
   const allFeatures = regionsFC?.features ?? [];
   const countryNameByCode = new Map(); // gid0 -> modern country name (fallback labels)
   const ownerByIndex = new Array(allFeatures.length).fill("");
@@ -408,6 +449,15 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       c: ringCentroidLngLat(best.ring),
       area: best.area,
       moments: ringAxisMoments(best.ring),
+      // How far the territory reaches, for the leader-line placement below. A
+      // bounding box rather than the rings themselves because the cluster is a
+      // FOLD: by the time the direction is known the rings are long gone, and
+      // four corners union in a line where a ring list would have to be carried
+      // through the whole union-find. It reads slightly LARGE for a shape that
+      // is not a rectangle, which is the safe direction — a label that starts a
+      // little far out is still legible; one that starts short sits on top of
+      // the country it is naming.
+      bbox: ringBbox(best.ring),
     };
   }
 
@@ -461,17 +511,20 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       // The label's ANGLE rides along, accumulated (see the rotation note
       // below). A running centroid cannot say which way a territory lies.
       addAxisMoments(cluster.axis, entry.moments);
+      cluster.bbox = unionBbox(cluster.bbox, entry.bbox);
     } else {
       roots.set(root, {
         cx: entry.c[0],
         cy: entry.c[1],
         area: entry.area,
         axis: entry.moments,
+        bbox: entry.bbox,
       });
     }
   }
 
   const features = [];
+  const leaderFeatures = [];
   let id = 0;
   for (const [owner, roots] of perOwner) {
     // Islands still join their nearby mainland (and any adjacency near-miss
@@ -498,17 +551,64 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       // additional clusters must clear the size bar.
       if (index > 0 && cluster.area < MIN_CLUSTER_AREA) continue;
       const ownScale = Math.sqrt(cluster.area) * 17500;
+      const tilt = axisElongationOfMoments(cluster.axis) >= AXIS_ELONGATION_FLOOR
+        ? axisAngleOfMoments(cluster.axis)
+        : 0;
+
+      // TOO SMALL TO HOLD ITS OWN NAME → the label goes outside, on a line.
+      //
+      // This is countryLabels.js's rule, reached from the lane that actually
+      // draws. That lane has the same promotion and has never run: it lives
+      // behind `!customFlag`, and normalizeRuntimeWorld forces customRegions
+      // onto every served world (24 of 24 built boards). So the feature
+      // tests/label-leaders.mjs was written for — Danzig, Memel, Luxembourg,
+      // Andorra, Liechtenstein, San Marino, Monaco, the Vatican — has never
+      // reached a pixel, on any board, since the day it was written.
+      //
+      // Counted on the built boards against that lane's own floor, by summing
+      // each owner's regions the way this builder does: wwii-1935 promotes 6 of
+      // 109 owners, victorian-1836 15 of 59, magna-1444 19 of 157, korea-1950 7
+      // of 115. SAN MARINO scores 589 against a floor of 20,000 — at the zoom a
+      // player reads Europe, a label under a pixel wide. FREE CITY OF DANZIG is
+      // 9,116, which is the case the 1935 board was reported for. Thirteen of
+      // 1836's fifteen are states added to that board the same week, which is
+      // what turned a dark feature into a load-bearing one.
+      //
+      // ONLY THE SEAT (index 0). A possession below the floor is a repeat of a
+      // name the map already carries at full size somewhere else, and pulling
+      // every such repeat out on its own line would draw a hairline to each of
+      // the British Empire's fourteen. The rule is about a country that cannot
+      // show its name at all, and a possession is never that.
+      const leader = index === 0 && ownScale < LEADER_AREA_SCALE_FLOOR && cluster.bbox
+        ? buildLeaderPlacement(bboxCorners(cluster.bbox), [cluster.cx, cluster.cy], tilt, leaderExtension)
+        : null;
+      if (leader) {
+        // From the territory's own edge out to the label, not from its centre:
+        // starting at the edge keeps the stroke off a country two pixels wide
+        // instead of covering it.
+        leaderFeatures.push({
+          type: "Feature",
+          id: `owner-leader-${id}`,
+          geometry: { type: "LineString", coordinates: [leader.edge, leader.anchor] },
+          properties: { name },
+        });
+      }
       features.push({
         type: "Feature",
         id: `owner-label-${id++}`,
-        geometry: { type: "Point", coordinates: [cluster.cx, cluster.cy] },
+        geometry: { type: "Point", coordinates: leader ? leader.anchor : [cluster.cx, cluster.cy] },
         properties: {
           name,
           // A possession may not out-print the seat. Area alone let it: British
           // Australia is larger than the British Isles, so the repeat drew bigger
           // than the country. Capping at the seat's own scale costs nothing where
           // the possession is smaller anyway, which is nearly always.
-          areaScale: index === 0 ? ownScale : Math.min(ownScale, seatScale),
+          //
+          // Out on a line the label is no longer describing an area it sits in,
+          // so it stops being sized by one and draws to be read.
+          areaScale: leader
+            ? LEADER_LABEL_AREA_SCALE
+            : (index === 0 ? ownScale : Math.min(ownScale, seatScale)),
           // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
           // flat. Reported symptom: BELGIAN CONGO and BRITISH EAST AFRICA
           // overprinting each other on the 1935 map. Both are single clusters,
@@ -539,18 +639,29 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // a round country's axis is noise, and BELGIAN CONGO — the label this
           // whole change was reported for — stood vertical on the strength of
           // an elongation of 1.10.
-          rotation: axisElongationOfMoments(cluster.axis) >= AXIS_ELONGATION_FLOOR
-            ? axisAngleOfMoments(cluster.axis)
-            : 0,
+          //
+          // A LEADER LABEL IS HORIZONTAL. Tilting it to the principal axis of a
+          // shape it is no longer standing on reads as a mistake — the same
+          // call countryLabels.js makes for the same reason.
+          rotation: leader ? 0 : tilt,
           tier: index === 0 ? 0 : 1,
+          // Which layer draws it. The three label layers share one source and
+          // filter on this, so the property has to be present on every feature
+          // rather than only on the promoted ones.
+          leader: leader ? 1 : 0,
           // See GLOBE_LAT_CORRECTION — same globe text-size fix (issue #6).
-          lat: cluster.cy,
+          lat: leader ? leader.anchor[1] : cluster.cy,
         },
       });
     }
   }
 
-  return { type: "FeatureCollection", features };
+  // Two collections, because they are two sources: the labels go into the point
+  // source the three label layers share, the lines into their own.
+  return {
+    labels: { type: "FeatureCollection", features },
+    leaderLines: { type: "FeatureCollection", features: leaderFeatures },
+  };
 };
 
 
@@ -702,18 +813,24 @@ const WorldMap = ({ isGlobe = false }) => {
     [customActive, regionData],
   );
 
-  const ownerLabelData = useMemo(() => {
-    if (!customActive) return EMPTY_FEATURE_COLLECTION;
+  // labelLineExtension is a player dial, so it belongs in the deps: moving it
+  // moves where a promoted label sits, which is baked in here rather than in a
+  // layer (see the note on the setting above).
+  const ownerLabels = useMemo(() => {
+    if (!customActive) return null;
     return buildOwnerLabelCollection(
       regionData,
       regionOwnershipOverrides,
       polityOverrides,
       (raw, owner) => translateLabel(resolveCountryDisplayName(raw, owner)),
       regionAdjacency,
+      labelLineExtension,
     );
     // labelEpoch: rebuild once new translations land.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customActive, regionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelEpoch]);
+  }, [customActive, regionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelLineExtension, labelEpoch]);
+  const ownerLabelData = ownerLabels?.labels ?? EMPTY_FEATURE_COLLECTION;
+  const ownerLeaderLineData = ownerLabels?.leaderLines ?? EMPTY_FEATURE_COLLECTION;
 
   // On custom maps the stock modern-country labels are replaced wholesale by the
   // owner labels (no more "Russia"/"Ukraine" floating over the Soviet Union).
@@ -726,11 +843,24 @@ const WorldMap = ({ isGlobe = false }) => {
       ? ownerLabelData
       : pointLabelData;
   const activeCurvedLabelData = worldKnown && !customFlag ? curvedLabelData : EMPTY_FEATURE_COLLECTION;
-  // Leader lines belong to the stock label set, so they follow the curved
-  // labels: a custom world draws owner labels instead and has none of them.
-  const activeLeaderLineData = worldKnown && !customFlag && !mapDisplaySettings.hideCountryLabels
-    ? leaderLineData
-    : EMPTY_FEATURE_COLLECTION;
+  // LEADER LINES USED TO BE STOCK-ONLY, AND THEREFORE NEVER DREW.
+  //
+  // The note that stood here said a custom world "draws owner labels instead
+  // and has none of them", which described the code exactly and the screen not
+  // at all: normalizeRuntimeWorld forces customRegions onto every served world,
+  // so `!customFlag` is false everywhere and BOTH branches of that sentence
+  // resolved to nothing. The same gate had already cost this map its country
+  // borders once — the autopsy is on the countries source below — and this was
+  // its second casualty and the curved labels its third.
+  //
+  // Now each lane brings its own: the owner lane promotes below the same floor
+  // countryLabels.js uses, so whichever set of labels is on the map, the states
+  // too small to hold their names are on lines.
+  const activeLeaderLineData = !worldKnown || mapDisplaySettings.hideCountryLabels
+    ? EMPTY_FEATURE_COLLECTION
+    : customFlag
+      ? ownerLeaderLineData
+      : leaderLineData;
 
   const handleRegionClick = useCallback((event) => {
     // Everything on this map is a point a few pixels across, and every query below

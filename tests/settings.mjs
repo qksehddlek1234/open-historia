@@ -1,6 +1,8 @@
 // Three things at once: the settings the engine supported and never exposed, a
 // city that could not be edited, and a difficulty setting that did nothing.
 import assert from "node:assert/strict";
+import { MAP_RENDER_DEFAULTS, MAP_RENDER_KEYS, getMapRenderValue } from "../src/runtime/mapSettings.js";
+import { buildLeaderPlacement } from "../src/runtime/labelLeaders.js";
 import fs from "node:fs";
 import {
   ACTION_OUTCOMES,
@@ -591,6 +593,63 @@ test("A COUNTRY BORDER NEEDS NO OPACITY LIFT — it already draws at full", () =
   // whole time, because it checked the expression and not the pixel.
   assert.match(NATIONS, /"line-opacity": worldKnown \? 1 : 0,/);
   assert.doesNotMatch(NATIONS, /"line-opacity": showStockCountries/);
+});
+
+console.log("\nA default is what an untouched setting reads as");
+
+// AN ABSENT KEY IS NOT ZERO, and for the whole life of this file it was.
+//
+// getMapRenderValue read localStorage.getItem(...) straight into Number().
+// getItem returns null for a key nobody has written, Number(null) is 0, and 0
+// is finite — so the fallback was unreachable and every value in
+// MAP_RENDER_DEFAULTS was dead on arrival for a player who had never moved
+// that slider. Measured on a running board before the fix:
+//
+//   labelLineExtension  table 0.5  ·  map 0   → every leader line zero-length,
+//                                              and a zero-length line is dropped
+//                                              by the tiler, so none drew at all
+//   borderFadeStart/End table 7.5/14 · map 2.25/2.25 (clamped to the floor)
+//                                            → the province hairlines this file
+//                                              tunes came up at world zoom
+//
+// These run against a stub localStorage because the getter is browser code;
+// the point of the pin is the null branch, which needs no browser.
+test("an unwritten key falls back to the documented default, not to 0", () => {
+  const original = globalThis.localStorage;
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, String(v)),
+  };
+  try {
+    for (const [name, expected] of Object.entries(MAP_RENDER_DEFAULTS)) {
+      assert.equal(getMapRenderValue(name), expected,
+        `${name} must read its default while nothing is stored`);
+    }
+    // A stored value still wins, and an empty string is not a number either.
+    store.set(MAP_RENDER_KEYS.labelLineExtension, "1.25");
+    assert.equal(getMapRenderValue("labelLineExtension"), 1.25);
+    store.set(MAP_RENDER_KEYS.labelLineExtension, "");
+    assert.equal(getMapRenderValue("labelLineExtension"), MAP_RENDER_DEFAULTS.labelLineExtension);
+    // And a real 0 the player chose is honoured — the bug was reading ABSENCE
+    // as 0, not the number itself.
+    store.set(MAP_RENDER_KEYS.labelLineExtension, "0");
+    assert.equal(getMapRenderValue("labelLineExtension"), 0);
+    // Garbage still falls back rather than clamping to a bound.
+    store.set(MAP_RENDER_KEYS.labelLineExtension, "abc");
+    assert.equal(getMapRenderValue("labelLineExtension"), MAP_RENDER_DEFAULTS.labelLineExtension);
+  } finally {
+    globalThis.localStorage = original;
+  }
+});
+
+test("…and the leader line the map draws is therefore not zero-length", () => {
+  // The symptom that found it: promoted labels drew, their lines did not.
+  const corners = [[12.40, 43.89], [12.51, 43.89], [12.51, 43.99], [12.40, 43.99]];
+  const placed = buildLeaderPlacement(corners, [12.455, 43.94], 0, MAP_RENDER_DEFAULTS.labelLineExtension);
+  assert.ok(placed, "a real bbox must place");
+  const length = Math.hypot(placed.anchor[0] - placed.edge[0], placed.anchor[1] - placed.edge[1]);
+  assert.ok(length > 0.4, `San Marino's line is ${length}° long`);
 });
 
 console.log(`\n${pass} passed`);
