@@ -53,6 +53,24 @@ export default {
     // 2026-08-14 면 검수 (34면 전수). 잔여 메가면과 라벨 착지 오류는 배제,
     // 나머지 미매칭 27면 전부 명명 — 근거는 각 행에.
     excludeFaces: [
+      // ── rung-3 백필에서 버리는 면 다섯 ────────────────────────────────
+      // 메가면 둘. 이름은 맞는데 면이 이웃을 삼킨다 — 실측한 크기를 적어 둔다.
+      // 스위스 연방 4.5°×1.9°: 제네바·뇌샤텔·삼동맹·발레를 통째로 덮는데, 이 스펙은
+      // 그 넷을 일부러 따로 세운다(위 faceOwners). rung-1의 Eidgenossenschaft 면이
+      // 이미 연방을 그리므로 이 면은 중복이면서 더 나쁘다.
+      "Swiss Confederation",
+      // 히바 17.2°×9.5°: 카스피해에서 아무다리야까지 덮어 부하라 칸국을 삼킨다.
+      "Khiva Khanate",
+      // 나라가 아닌 것 셋.
+      // 롬바르디아는 1650년에 존재하지 않는 이름이다 — 그 땅의 주권은 밀라노 공국
+      // (스페인)이고, 롬바르디아-베네치아 왕국은 1815년이다. 밀라노 면과 겹친다.
+      "Lombardy",
+      // 관체스는 나라가 아니라 사람들이고, 카스티야의 정복은 1496년에 끝났다.
+      // 카나리아는 이미 스페인 배정 안에 있다.
+      "Guanches",
+      // "central Asian khanates"는 총칭이고 면도 1.2°×0.6°짜리 조각이다. 그 땅의
+      // 칸국들(부하라·히바·카자흐)은 로스터에 이미 각자 있다.
+      "central Asian khanates",
       // 동부 잔여 메가면(40.2x44.9°, 링 193): 미폐합 동부 전체가 한 면이 되어
       // 러시아 라벨을 얻었다. 점검사 실측: 이스파한(페르시아)이 안에 있다.
       // 배제하면 모스크바 대공국 지역들은 스펙 배정(RUS)을 유지한다.
@@ -86,6 +104,41 @@ export default {
       "République de Genève": "Republic of Geneva",
       "Principauté de Neuchâtel": "Principality of Neuchâtel", // 오를레앙-롱빌가
       "Stadtrepublik Mülhausen": "Republic of Mulhouse", // 스위스 맹방 도시국가
+      // ── rung-3 백필(world_1650)이 데려온 면들 ──────────────────────────
+      // 백필은 같은 나라를 rung-1보다 **짧은 이름**으로 부른다. 이름이 다르면 면이
+      // 떨어지므로, 새 주인을 만들지 말고 이미 쓰는 문자열로 보낸다 — 안 그러면
+      // 토스카나가 둘이 된다.
+      "Tuscany": "Grand Duchy of Tuscany",
+      "Modena": "Duchy of Modena",
+      "Massa": "Duchy of Massa and Carrara",
+      // 피비차노는 루니지아나의 메디치 월경지다(1477년부터 피렌체령, 1847년 모데나
+      // 할양). 마사와 가르파냐나에 막혀 본토와 떨어져 있어 면이 따로 온다.
+      "Fivizzano": "Grand Duchy of Tuscany",
+
+      // 왕관은 주권자가 아니다. 밀라노·나폴리·사르데냐는 1650년에 전부 펠리페 4세의
+      // 것이고 총독이 다스린다 — 왕국이라는 이름 때문에 독립국으로 세우면 틀린다.
+      // 나폴리 공화국(1647-10)은 1648-04-06에 진압됐고, 사르데냐는 1720년에야
+      // 사보이아로 간다.
+      "Milan": "Spanish Empire",
+      "Naples": "Spanish Empire",
+      "Sardinia": "Spanish Empire",
+      // 폰트레몰리는 1650년 **그 해에** 손이 바뀐다 — 제노바가 1647년에 사기로 했다가
+      // 물렀고, 펠리페 4세가 메디치에게 팔아 토스카나가 1650-09-18에 인수한다.
+      // 개장일에는 아직 스페인령이다.
+      "Pontremoli": "Spanish Empire",
+
+      // 로스터 밖 주권체 — 이름 그대로 세운다(위 아일랜드·제노바와 같은 취급).
+      // 교황령: 인노첸시오 10세. 카스트로는 1649-09에 무너져 이미 교황령이다.
+      "Papal States": "Papal States",
+      // 베네치아: 도제 프란체스코 몰린, 1645년부터 크레타 전쟁 중이다.
+      "Venice": "Republic of Venice",
+      // "Sardinia-Piedmont"는 70년 이른 이름이다 — 사보이아가 사르데냐를 받는 것은
+      // 1720년 헤이그 교환이다. 그런데 면이 덮는 땅(5.3~8.3°E)은 섬을 포함하지 않고
+      // 사보이아-피에몬테 본토뿐이라, 버리지 않고 그 시대 이름으로 고쳐 세운다.
+      "Sardinia-Piedmont": "Duchy of Savoy",
+      // 핀마르크는 1650년 노르웨이의 최북단이고 노르웨이는 덴마크와 동군연합이다.
+      "Finnmark": "Denmark-Norway",
+
       "Grand Duchy of Tuscany": "Grand Duchy of Tuscany", // 메디치
       "Ducato di Parma e Piacenza": "Duchy of Parma", // 파르네세
       "Ducatus Mutinae et Regii": "Duchy of Modena", // 에스테
@@ -138,7 +191,9 @@ export default {
     RUS:   { name: "Tsardom of Russia", color: "#2f8f4f", aliases: ["Russia", "Muscovy"] },
     DEN_N: { name: "Denmark-Norway", color: "#b0486a", aliases: ["Denmark", "the Oldenburg realm"] },
     OTTO:  { name: "Ottoman Empire", color: "#6b4f2e", aliases: ["the Porte", "the Turks"] },
-    SAFA:  { name: "Safavid Persia", color: "#34869a", aliases: ["Persia", "Iran", "the Safavids"] },
+    // rung-3 백필(world_1650)은 이 나라를 "Safavid Empire"라 부른다. 로스터 이름이
+    // "Safavid Persia"라 면이 떨어졌다 — 별칭 한 줄이 그 간극이다.
+    SAFA:  { name: "Safavid Persia", color: "#34869a", aliases: ["Persia", "Iran", "the Safavids", "Safavid Empire"] },
     MUGH:  { name: "Mughal Empire", color: "#3a7d4f", aliases: ["Hindustan", "the Mughals"] },
     QING:  { name: "Qing Dynasty", color: "#c9a227", aliases: ["China", "the Manchus"] },
     JOSE:  { name: "Joseon", color: "#5a9a7a", aliases: ["Korea"] },
@@ -150,6 +205,9 @@ export default {
     //   left unclaimed, which grayed out everything around Russia) —
     KAZH:  { name: "Kazakh Khanate", color: "#b8722e", aliases: ["the Kazakhs", "Kazakh Hordes"] },
     BUKH:  { name: "Khanate of Bukhara", color: "#3f9a9a", aliases: ["Bukhara", "the Janids"] },
+    // 별칭에 "Khiva Khanate"를 넣었다가 뺐다. rung-3에서 그 이름을 달고 오는 면은
+    // 17.2°×9.5°로 부하라까지 삼키는 메가면이라, 붙이면 히바가 중앙아시아를 통째로
+    // 칠한다. 아래 excludeFaces로 막고 히바는 rung-1 면과 TKM 배정으로 남긴다.
     KHIV:  { name: "Khanate of Khiva", color: "#a04f70", aliases: ["Khiva", "Khwarazm"] },
     KHAL:  { name: "Khalkha Mongols", color: "#7a9a3f", aliases: ["Mongolia", "the Khalkha"] },
     DZUN:  { name: "Dzungar Khanate", color: "#4f6ab8", aliases: ["Dzungars", "the Oirats"] },
