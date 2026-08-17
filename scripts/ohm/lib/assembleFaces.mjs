@@ -956,10 +956,20 @@ export const assignFaces = (faces, polities, { resolveConflicts = false, landTes
     if (landTest && byName.size > 0) {
       landFraction = faceLandFraction(face, landTest);
       if (landFraction < LAND_FRACTION_MIN) {
+        // The refusal carries its OUTLINE, decimated to stay a report and not a
+        // second geometry file. Refused complexes are the raw material for the
+        // split experiment (plan C: keep the closed parts instead of dropping
+        // the whole amalgam), and without the ring every analysis has to re-run
+        // the assembly just to see what was refused. ~1,000 points keeps the
+        // 2,000 deg² Mediterranean complex under 40 KB and is dense enough for
+        // point-in-face membership tests, which is all a split analysis needs.
+        const outer = face.outer ?? [];
+        const stride = Math.max(1, Math.ceil(outer.length / 1000));
         seaRefusals.push({
           names: [...byName.keys()],
           area: +Math.abs(face.area ?? 0).toFixed(2),
           landFraction: +landFraction.toFixed(3),
+          outer: outer.filter((_, i) => i % stride === 0).map(([x, y]) => [+x.toFixed(4), +y.toFixed(4)]),
         });
         conflicts.push({
           face,
