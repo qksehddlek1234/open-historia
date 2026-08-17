@@ -59,6 +59,12 @@ import { translateLabel } from "../../runtime/translator.js";
 // Which of a polity's names the label prints — the spec's alias in the player's
 // script before the translator's guess.
 import { pickDisplayAlias } from "../../runtime/labelNames.js";
+// Which regions touch, and which piece of a merged territory carries its label.
+import {
+  buildRegionAdjacency,
+  largestClusterPart,
+  snapshotClusterPart,
+} from "../../runtime/labelClusters.js";
 import { getStoredLanguage } from "../../runtime/i18n.js";
 import {
   MAP_SETTING_KEYS, borderFadeStops, useDisplayScale, useMapRenderValue, useMapSetting,
@@ -368,46 +374,20 @@ const ringCentroidLngLat = (ring) => {
 const CLUSTER_JOIN_DEGREES = 10; // centroids closer than this merge into one label cluster
 const MIN_CLUSTER_AREA = 1.5; // in lng/lat degrees^2 — skips tiny extra islands
 
-// Which regions physically touch, from shared border vertices. The seed
-// simplifies each region on its own, so mid-border vertices don't always match
-// between neighbours — but junction corners (tripoints) survive any
-// simplification, and most border runs still share long identical stretches.
-// Hashing EVERY vertex on a ~11m grid (1e-4°) catches both; the centroid
-// mop-up in the label builder heals whatever this still misses. Owner-agnostic
-// (geometry only) so it can be memoized per world and reused across ownership
-// changes.
-const buildRegionAdjacency = (regionsFC) => {
-  const features = regionsFC?.features ?? [];
-  const firstSeen = new Map(); // packed vertex -> first feature index
-  const neighbors = features.map(() => null);
-  const link = (a, b) => {
-    (neighbors[a] ??= new Set()).add(b);
-    (neighbors[b] ??= new Set()).add(a);
-  };
-  for (let index = 0; index < features.length; index += 1) {
-    const geometry = features[index]?.geometry;
-    const polys = geometry?.type === "Polygon"
-      ? [geometry.coordinates]
-      : geometry?.type === "MultiPolygon" ? geometry.coordinates : [];
-    for (const poly of polys) {
-      for (const ring of poly ?? []) {
-        if (!ring) continue;
-        for (let v = 0; v < ring.length; v += 1) {
-          const pt = ring[v];
-          // 1e-4° grid, packed into one number (fits 2^53).
-          const key = Math.round((pt[0] + 180) * 1e4) * 4194304 + Math.round((pt[1] + 90) * 1e4);
-          const seen = firstSeen.get(key);
-          if (seen === undefined) firstSeen.set(key, index);
-          else if (seen !== index) link(seen, index);
-        }
-      }
-    }
-  }
-  return neighbors;
-};
+// Which regions physically touch — buildRegionAdjacency, in labelClusters.js.
+// It used to hash shared vertices on a 1e-4° grid, which is how GADM's own
+// provinces meet but not how two COUNTRIES' outlines meet: across a national
+// border they miss by a hair (Prussia's Polish provinces stop 2.2e-4° short of
+// Brandenburg), and only the 10° centroid mop-up below was hiding it. It now
+// asks proximity — vertices within REGION_ADJACENCY_DEGREES — with the
+// threshold measured, not guessed; the numbers are on the function.
 
 // Merge same-owner clusters until stable — the greedy pass alone under-merges
 // long landmass chains (Siberia), which printed the same name a dozen times.
+//
+// Each cluster remembers the contiguous pieces it was merged from (`parts`,
+// snapshotted before the fold): the label goes on the largest of them, not on
+// the merged centroid — see largestClusterPart and the placement loop below.
 const mergeOwnerClusters = (clusters, joinDeg) => {
   let merged = true;
   while (merged) {
@@ -417,6 +397,9 @@ const mergeOwnerClusters = (clusters, joinDeg) => {
         const a = clusters[i];
         const b = clusters[j];
         if (Math.hypot(a.cx - b.cx, a.cy - b.cy) <= joinDeg) {
+          a.parts ??= [snapshotClusterPart(a)];
+          b.parts ??= [snapshotClusterPart(b)];
+          a.parts.push(...b.parts);
           const total = a.area + b.area;
           a.cx = (a.cx * a.area + b.cx * b.area) / total;
           a.cy = (a.cy * a.area + b.cy * b.area) / total;
@@ -640,10 +623,21 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     // `tier` is that rank, and Nations.jsx draws the two from separate layers.
     const seatScale = Math.sqrt(clusters[0]?.area ?? 0) * 17500;
     for (let index = 0; index < clusters.length; index += 1) {
-      const cluster = clusters[index];
+      const merged = clusters[index];
       // Every owner keeps its largest cluster (tiny states still get a label);
       // additional clusters must clear the size bar.
-      if (index > 0 && cluster.area < MIN_CLUSTER_AREA) continue;
+      if (index > 0 && merged.area < MIN_CLUSTER_AREA) continue;
+      // THE LABEL SITS ON THE LARGEST CONTIGUOUS PIECE. The merged centroid is
+      // the sea for an archipelago and leans toward an exclave for a country
+      // that has one — Bavaria's label sat west toward the Palatinate, on top
+      // of Württemberg's; Two Sicilies' in the Tyrrhenian; Britain's in the
+      // Irish Sea. Only the POSITION moves: size, tier, tilt and the rings a
+      // curved label may run through still read the whole merged cluster, so
+      // an archipelago's name keeps the archipelago's weight and lean. (1836:
+      // labels off their own land 10 → 2 of 114, the last central-German
+      // overlap gone, nothing else changed — see labelClusters.js.)
+      const anchor = largestClusterPart(merged);
+      const cluster = anchor === merged ? merged : { ...merged, cx: anchor.cx, cy: anchor.cy };
       const ownScale = Math.sqrt(cluster.area) * 17500;
       const elongation = axisElongationOfMoments(cluster.axis);
       const tilt = elongation >= AXIS_ELONGATION_FLOOR

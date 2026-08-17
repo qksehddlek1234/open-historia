@@ -27,6 +27,9 @@ const {
   fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, nameWidthEm, widestLineEm,
 } = await import("../src/runtime/labelLeaders.js");
 const { buildClusterCurvePath, layoutGlyphsAlongPath } = await import("../src/runtime/labelCurves.js");
+const {
+  REGION_ADJACENCY_DEGREES, buildRegionAdjacency, snapshotClusterPart, largestClusterPart,
+} = await import("../src/runtime/labelClusters.js");
 
 const {
   addAxisMoments, addAxisPolygon, axisAngleOfMoments, axisElongationOfMoments,
@@ -627,6 +630,86 @@ test("the owner lane wires the curve as its own rung, on its own layer", () => {
   // back — indices, not rings, or the fold carries every vertex on the map.
   assert.match(NATIONS, /members: \[index\],/, "clusters record which regions they fold");
   assert.match(NATIONS, /if \(a\.members && b\.members\) a\.members\.push\(\.\.\.b\.members\);/, "and the centroid merge keeps them");
+});
+
+// ---- which regions touch, and where the label sits (labelClusters.js) --------------
+
+// A square region, as a GeoJSON feature. `gap` places it that far east of x0.
+const square = (x0, y0, size = 1) => ({
+  type: "Feature",
+  properties: {},
+  geometry: { type: "Polygon", coordinates: [[[x0, y0], [x0 + size, y0], [x0 + size, y0 + size], [x0, y0 + size], [x0, y0]]] },
+});
+const touches = (adjacency, a, b) => Boolean(adjacency[a]?.has(b)) && Boolean(adjacency[b]?.has(a));
+
+test("adjacency is proximity, and the threshold is the measured one — 1e-2°", () => {
+  // Measured on the 1836 board (see labelClusters.js): cross-border gaps are
+  // digitising noise under 1e-4°, river borders open to ~6e-3°, and the first
+  // same-owner pair that genuinely is apart sits at 1.8e-2°.
+  assert.equal(REGION_ADJACENCY_DEGREES, 0.01);
+  const fc = { features: [
+    square(0, 0),                              // 0
+    square(1, 0),                              // 1  shares an edge with 0 — the old rule's case
+    square(2 + 2.2e-4, 0),                     // 2  Prussia's gap: 2.2e-4° east of 1 (Lubuskie → Brandenburg)
+    square(3 + 2.2e-4 + 5.9e-3, 0),            // 3  a river's width east of 2 (Mymensingh → Khasi Hills, 5.9e-3°)
+    square(4 + 2.2e-4 + 5.9e-3 + 1.8e-2, 0),   // 4  Incheon → Kaesong: 1.8e-2° east of 3 — apart
+    square(20, 20),                            // 5  touches nothing
+  ] };
+  const adjacency = buildRegionAdjacency(fc);
+  assert.equal(adjacency.length, fc.features.length, "one entry per feature");
+  assert.ok(touches(adjacency, 0, 1), "a shared edge still counts (a shared vertex is 0° apart)");
+  assert.ok(touches(adjacency, 1, 2), "a 2.2e-4° gap is a border, not a strait");
+  assert.ok(touches(adjacency, 2, 3), "so is a river's width");
+  assert.equal(adjacency[3]?.has(4) ?? false, false, "1.8e-2° is apart");
+  assert.equal(adjacency[5], null, "a region touching nothing stays null, as before");
+  for (let i = 0; i < adjacency.length; i += 1) for (const j of adjacency[i] ?? []) assert.ok(adjacency[j].has(i), "symmetric");
+  // The threshold is a parameter — the old hairline rule is epsilon ≈ 0.
+  const strict = buildRegionAdjacency(fc, 1e-3);
+  assert.ok(touches(strict, 1, 2), "at 1e-3° Prussia still joins");
+  assert.equal(strict[2]?.has(3) ?? false, false, "but the river does not — which is why 1e-3° was not chosen");
+});
+
+test("adjacency reads every polygon of a MultiPolygon, and only vertices", () => {
+  const fc = { features: [
+    { type: "Feature", properties: {}, geometry: { type: "MultiPolygon", coordinates: [
+      square(0, 0).geometry.coordinates,
+      square(10, 10).geometry.coordinates,
+    ] } },
+    square(11 + 5e-3, 10),   // 1  reaches the second polygon of 0
+    square(0, 5),            // 2  4° north of 0 — its bbox overlaps nothing, its vertices are far
+    { type: "Feature", properties: {}, geometry: null }, // 3  no geometry at all
+  ] };
+  const adjacency = buildRegionAdjacency(fc);
+  assert.ok(touches(adjacency, 0, 1), "the second polygon counts");
+  assert.equal(adjacency[2], null);
+  assert.equal(adjacency[3], null, "a feature without geometry is simply isolated");
+  assert.deepEqual(buildRegionAdjacency({ features: [] }), [], "an empty board is an empty answer");
+});
+
+test("the label sits on the largest contiguous piece, and only the position moves", () => {
+  // The merge keeps a snapshot of each piece as it was BEFORE folding, so the
+  // biggest piece's own centroid survives the merged centroid.
+  const mainland = { cx: 11.4, cy: 49.0, area: 7.0, axis: { a: 1 }, bbox: [9, 47, 14, 51], members: [0, 1] };
+  const exclave = { cx: 7.8, cy: 49.4, area: 0.6, axis: { a: 2 }, bbox: [7, 49, 8.5, 50], members: [2] };
+  const snap = snapshotClusterPart(mainland);
+  assert.deepEqual(snap, { cx: 11.4, cy: 49.0, area: 7.0 }, "a snapshot is position and weight, nothing that mutates");
+  const merged = { ...mainland, cx: 11.1, cy: 49.03, area: 7.6, parts: [snap, snapshotClusterPart(exclave)] };
+  const anchor = largestClusterPart(merged);
+  assert.equal(anchor, snap, "the biggest piece wins");
+  assert.equal(largestClusterPart(mainland), mainland, "a cluster that never merged is its own anchor");
+  const bare = { cx: 1, cy: 2, area: 3, parts: [] };
+  assert.equal(largestClusterPart(bare), bare, "empty parts → itself");
+  // Wired that way in Nations.jsx: the merge snapshots, the loop anchors, and
+  // the anchored view keeps everything but cx/cy from the merged cluster.
+  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*largestClusterPart,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
+  assert.match(NATIONS, /a\.parts \?\?= \[snapshotClusterPart\(a\)\];\n\s*b\.parts \?\?= \[snapshotClusterPart\(b\)\];\n\s*a\.parts\.push\(\.\.\.b\.parts\);/,
+    "the merge remembers its pieces, snapshotted before the fold");
+  assert.match(NATIONS, /const anchor = largestClusterPart\(merged\);\n\s*const cluster = anchor === merged \? merged : \{ \.\.\.merged, cx: anchor\.cx, cy: anchor\.cy \};/,
+    "the loop reads size, tier, tilt and rings from the merged cluster and the position from the anchor");
+  assert.match(NATIONS, /const ownScale = Math\.sqrt\(cluster\.area\) \* 17500;/, "size still comes from the whole cluster");
+  assert.doesNotMatch(NATIONS, /const buildRegionAdjacency = /, "the hairline hash is gone from Nations.jsx, not duplicated");
+  assert.match(NATIONS, /const CLUSTER_JOIN_DEGREES = 10;/,
+    "the centroid join stays at 10°: at 3° Japan splits into three labels and Britain into two — the join is for archipelagos, the anchor is for exclaves");
 });
 
 console.log(`\n${pass} passed\n`);
