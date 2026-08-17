@@ -330,7 +330,13 @@ test("every assembled face finds an owner (skipped without the dump)", () => {
     .map(([face, code]) => [face, spec.polities[code].name]));
   const index = buildFaceNameIndex(spec.polities, []);
   const features = JSON.parse(fs.readFileSync(dump, "utf8")).features ?? [];
-  const unmatched = features.filter((f) => !matchFace(f, index, faceOwners))
+  // An EXCLUDED face is not thrown away silently — it is thrown away by name,
+  // with its reason in the spec (the misdrawn Ionian blob is the first). The
+  // claim this test holds is "no face dies unnoticed", and a named exclusion
+  // is the opposite of unnoticed, so it is carved out rather than matched.
+  const excluded = new Set(spec.eraGeometry.excludeFaces ?? []);
+  const unmatched = features.filter((f) => !excluded.has(f.properties?.name))
+    .filter((f) => !matchFace(f, index, faceOwners))
     .map((f) => f.properties?.name);
   assert.deepEqual(unmatched, [], "these faces are drawn and thrown away");
   assert.equal(features.length, 46);
