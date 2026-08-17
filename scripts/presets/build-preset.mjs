@@ -230,6 +230,23 @@ const polityOverrides = {};
 const colors = { ...baseColors };
 for (const [code, p] of Object.entries(spec.polities ?? {})) {
   const name = polityName(code);
+  // THE FIRST COUNTRY GRANT IS THE HOME, and that convention is now a rule.
+  //
+  // The owner-label builder picks a polity's seat as its LARGEST cluster, and
+  // measured across the fleet (2026-08-17) that is wrong 59 times: every
+  // colonial power's biggest holding out-measures its homeland — Denmark's
+  // Greenland is 656 deg² against a 6 deg² home, the UK's 1804 seat lands in
+  // Canada at 1,694, and on victorian-1836 the tier-0 "영국" prints over
+  // Oregon. A seat is where the government sits, not where the map is widest.
+  //
+  // The specs already know the answer: every empire's countryAssignments row
+  // leads with its homeland (GBR: ["GBR", ...], POR: ["PRT", ...]) — written
+  // that way by habit long before anything read the order. `home` promotes
+  // that habit to data. Emitted only when a country grant exists, so
+  // face-only and region-only polities gain no key and keep today's
+  // largest-cluster behaviour; the label side treats a missing home the same
+  // way, which is what makes this change inert until it is consumed.
+  const firstGrant = (spec.countryAssignments?.[code] ?? [])[0];
   polityOverrides[name] = {
     // No `code`: the key IS the identifier now.
     name,
@@ -241,6 +258,7 @@ for (const [code, p] of Object.entries(spec.polities ?? {})) {
     // dies at the builder and the runtime falls back to a name registry that
     // cannot know what a future scenario calls its horde.
     ...(p.speechless === true ? { speechless: true } : {}),
+    ...(typeof firstGrant === "string" && firstGrant ? { home: firstGrant } : {}),
   };
   colors[name] = hexToRgb(p.color ?? "#888888");
 }

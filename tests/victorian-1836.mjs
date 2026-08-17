@@ -325,4 +325,24 @@ test("every assembled face finds an owner (skipped without the dump)", () => {
   assert.equal(features.length, 46);
 });
 
+test("the first country grant rides into the world as `home` (skipped unbuilt)", () => {
+  // The label builder picks a polity's seat as its LARGEST cluster, and the
+  // fleet measurement of 2026-08-17 found that wrong 59 times — every empire's
+  // biggest colony out-measures its homeland, so tier-0 "영국" printed over
+  // Oregon. The builder now stamps the first country grant into
+  // polityOverrides.home; the label side will prefer the cluster holding home
+  // regions. This pins the emission contract from both sides: present and
+  // correct where a grant exists, ABSENT where none does — a face-only polity
+  // gaining a home key would silently change its label placement.
+  const worldPath = new URL("../server/data/scenarios/victorian-1836/world.json", import.meta.url);
+  if (!existsSync(worldPath)) { console.log("      (world absent — board not built)"); return; }
+  const po = JSON.parse(fs.readFileSync(worldPath, "utf8")).polityOverrides ?? {};
+  assert.equal(po["United Kingdom"]?.home, "GBR", "the empire's home is the first grant, not the widest cluster");
+  assert.equal(po["Khedivate of Egypt"]?.home, "EGY");
+  assert.ok(!("home" in (po["Papal States"] ?? {})),
+    "a face-only polity must NOT gain a home — absence is what keeps its behaviour unchanged");
+  assert.ok(!("home" in (po["Hudson's Bay Company"] ?? {})),
+    "region-grant-only polities stay on largest-cluster seating too");
+});
+
 console.log(`\n${pass} passed\n`);
