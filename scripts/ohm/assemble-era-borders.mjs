@@ -440,7 +440,24 @@ const main = () => {
   });
   const reportPath = path.join(outDir, `era-borders-${stem}-report.json`);
   const inWindow = ([x, y]) => !windowBbox || (x >= windowBbox[0] && x <= windowBbox[2] && y >= windowBbox[1] && y <= windowBbox[3]);
+  // THE RECIPE RIDES WITH THE RESULT. Learned the hard way on 2026-08-17: the
+  // committed 1836 assembly (46 faces, segments 638,251) could not be reproduced
+  // — tile lines give 163,700 segments, both Overpass transports give 805,292,
+  // and nothing recorded which input, which flags, or which snap produced the
+  // file the board actually pins. A fresh run silently produced a DIFFERENT map
+  // and only a face-count diff caught it. Every report now carries its own
+  // invocation, so "rebuild this exactly" is a read, not an archaeology dig.
+  const recipe = {
+    lines: path.relative(PROJECT_ROOT, path.resolve(linesPath)),
+    polities: path.relative(PROJECT_ROOT, path.resolve(options.polities)),
+    landMask: options.landMask ? path.relative(PROJECT_ROOT, path.resolve(PROJECT_ROOT, options.landMask)) : null,
+    overrides: options.overrides ? path.relative(PROJECT_ROOT, path.resolve(options.overrides)) : null,
+    snap: options.snap,
+    maxAdminLevel: options.maxAdminLevel,
+    resolveConflicts: Boolean(options.resolveConflicts),
+  };
   writeFileSync(reportPath, JSON.stringify({
+    recipe,
     report,
     coastStats,
     centerOverridesApplied: overridden,
