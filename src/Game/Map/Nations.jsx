@@ -56,6 +56,10 @@ import {
   tileToLngLat,
 } from "../../runtime/labelCurves.js";
 import { translateLabel } from "../../runtime/translator.js";
+// Which of a polity's names the label prints — the spec's alias in the player's
+// script before the translator's guess.
+import { pickDisplayAlias } from "../../runtime/labelNames.js";
+import { getStoredLanguage } from "../../runtime/i18n.js";
 import {
   MAP_SETTING_KEYS, borderFadeStops, useDisplayScale, useMapRenderValue, useMapSetting,
 } from "../../runtime/mapSettings.js";
@@ -964,17 +968,27 @@ const WorldMap = ({ isGlobe = false }) => {
   // labelLineExtension is a player dial, so it belongs in the deps: moving it
   // moves where a promoted label sits, which is baked in here rather than in a
   // layer (see the note on the setting above).
+  //
+  // The name a label prints comes from the SPEC first: the polity's first
+  // alias in the player's script (a Korean player reads "바이에른 왕국", the
+  // string the preset author wrote, not the pack's "바바리아 왕국"). Only when
+  // the spec has nothing in that script — a Latin-script language, a base
+  // country with no polity entry — does the old path run: the scenario's
+  // display override, then the translator. See labelNames.js for the numbers
+  // behind this. The language is read once per build; switching it reloads.
   const ownerLabels = useMemo(() => {
     if (!customActive) return null;
+    const language = getStoredLanguage();
     return buildOwnerLabelCollection(
       regionData,
       regionOwnershipOverrides,
       polityOverrides,
-      (raw, owner) => translateLabel(resolveCountryDisplayName(raw, owner)),
+      (raw, owner) => pickDisplayAlias(polityOverrides?.[owner]?.aliases, language)
+        ?? translateLabel(resolveCountryDisplayName(raw, owner)),
       regionAdjacency,
       labelLineExtension,
     );
-    // labelEpoch: rebuild once new translations land.
+    // labelEpoch: rebuild once new translations land (the fallback path only).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customActive, regionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelLineExtension, labelEpoch]);
   const ownerLabelData = ownerLabels?.labels ?? EMPTY_FEATURE_COLLECTION;
