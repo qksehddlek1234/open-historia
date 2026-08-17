@@ -261,3 +261,21 @@ Related gitignored-but-not-in-LFS runtime artifacts you also shouldn't commit: `
 | Map-data hosting | `scripts/map-assets.json`, `scripts/fetch-map-assets.mjs` (§9) |
 | Rebuild an official preset | `scripts/presets/build-preset.mjs <spec>` |
 | Web/site deploy | `WEB-DEPLOY.md`, [Web build](web-build.md) |
+
+## 스펙 관례 — 순서가 데이터인 두 자리 (2026-08-17)
+
+같은 날 승격된 관례 둘. 스펙들이 습관으로 이미 지키던 순서를 규칙으로 박은
+것이라 소급 편집은 없었고, 어기면 각자의 핀이 빌드 전에 빨개진다.
+
+- **`countryAssignments`의 첫 원소가 본국이다.** 빌더가 그 값을
+  `polityOverrides[이름].home`으로 방출하고, 레이블 빌더가 seat(도장 레이블
+  자리)를 최대 클러스터가 아니라 home 지역이 담긴 클러스터에서 고른다 — 함대
+  실측 59건(덴마크의 seat가 그린란드, 1836 영국이 오리건)의 수리다. 국가
+  그랜트가 없는 폴리티는 키를 얻지 않고 현행(최대 클러스터)을 유지한다.
+  핀: `tests/victorian-1836.mjs`.
+- **`aliases`의 첫 항목이 한국어 표시명이다.** 지도 리졸버(`labelNames.js`)가
+  첫 활성 스크립트 별칭을 표시명으로 쓰고, 없을 때만 AI 번역 팩으로 떨어진다 —
+  팩은 설치마다 다르고 오역("이집트 쿠베이트")이 사용자가 고른 이름을 덮고
+  있었다. 라틴 문자 언어 화면은 이 관례와 무관하게 옛 경로다.
+  핀: `tests/preset-display-alias.mjs` (공백 5보드는 이름으로 면제 — 줄어들
+  수만 있다).
