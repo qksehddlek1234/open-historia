@@ -48,6 +48,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { bboxToTileRange, isoToDecdate, resolveWindow, tileToBbox } from "./lib/eraBorders.mjs";
 import { SNAP_TOLERANCE, assembleEraBorders } from "./lib/assembleFaces.mjs";
+import { auditFaceSizes } from "./audit-face-sizes.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
@@ -425,6 +426,18 @@ const main = () => {
   const namedFaceless = polities
     .filter((p) => !byPolity.has(p.name))
     .map((p) => p.name);
+  // The size audit rides every assembly so a face that dwarfs its own name is
+  // seen the day it is made, not the day someone happens to run the CLI. It is
+  // a list for a human, never a guard — the reasons are in audit-face-sizes.mjs
+  // (measured: it catches the Lübeck class and cannot see the Hohenzollern
+  // class, and both facts are pinned in tests/ohm-face-audit.mjs).
+  const sizeSuspects = auditFaceSizes({
+    type: "FeatureCollection",
+    features: [...byPolity.values()].map((entry) => ({
+      properties: { name: entry.polity.name },
+      geometry: { type: "MultiPolygon", coordinates: facesToMultiPolygon(entry.faces.map((f) => f)) },
+    })),
+  });
   const reportPath = path.join(outDir, `era-borders-${stem}-report.json`);
   const inWindow = ([x, y]) => !windowBbox || (x >= windowBbox[0] && x <= windowBbox[2] && y >= windowBbox[1] && y <= windowBbox[3]);
   writeFileSync(reportPath, JSON.stringify({
@@ -438,6 +451,7 @@ const main = () => {
     lostLabelsInWindow: lostLabels.filter((p) => inWindow(p.center)).map((p) => ({ name: p.name, center: p.center })),
     unassignedFaces: unassigned.map((f) => ({ area: f.area, bbox: bboxOfCoords(f.outer) })).sort((a, b) => b.area - a.area),
     politiesWithoutFaces: namedFaceless,
+    sizeSuspects,
   }, null, 1));
 
   console.log(
@@ -456,6 +470,9 @@ const main = () => {
   }
   if (!options.landMask) console.log("[ohm] 해안 없음 — 바다에 면한 나라는 닫히지 못했다. regions-seed.geojson을 --land-mask로 주라");
   console.log(`[ohm] 면 없는 정치체 ${namedFaceless.length}개 (→ F-3에서 사다리 2·3단 폴백 후보) — 목록은 리포트에`);
+  for (const s of sizeSuspects) {
+    console.log(`[ohm] ⚠ 크기 의심: ${s.tier} "${s.name}" 주 링 ${s.area}deg² = 문턱의 ${s.ratio}배 — 사람이 볼 것`);
+  }
   console.log(`[ohm] 기록:\n  ${path.relative(PROJECT_ROOT, bordersPath)}\n  ${path.relative(PROJECT_ROOT, reportPath)}`);
 };
 
