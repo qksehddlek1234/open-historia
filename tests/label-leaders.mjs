@@ -26,6 +26,7 @@ const {
   buildLeaderPlacement, LEADER_AREA_SCALE_FLOOR, LEADER_LABEL_AREA_SCALE, LEADER_EXTENSION_DEFAULT,
   fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, nameWidthEm, widestLineEm,
 } = await import("../src/runtime/labelLeaders.js");
+const { buildClusterCurvePath, layoutGlyphsAlongPath } = await import("../src/runtime/labelCurves.js");
 
 const {
   addAxisMoments, addAxisPolygon, axisAngleOfMoments, axisElongationOfMoments,
@@ -500,6 +501,132 @@ test("the leader line fades on the COUNTRY's size, not on zoom", () => {
   // line and they all draw at full strength forever.
   assert.match(NATIONS, /properties: \{ name, ownScale \}/,
     "ownScale rides on the line feature");
+});
+
+console.log("\nA label that BENDS along the country — the owner lane's own curve");
+
+// A strip that bends: an L-shaped band, in tile-ish units. Wide enough along
+// its axis to hold a name, narrow enough that a flat label would spill.
+const bentBand = () => {
+  const pts = [];
+  // A quarter-arc of radius 100 centred on (0,0), swept from 0° to 90°, band
+  // width 14 — the outer edge forward, the inner edge back.
+  for (let i = 0; i <= 20; i += 1) { const a = (i / 20) * (Math.PI / 2); pts.push([107 * Math.cos(a), 107 * Math.sin(a)]); }
+  for (let i = 20; i >= 0; i -= 1) { const a = (i / 20) * (Math.PI / 2); pts.push([93 * Math.cos(a), 93 * Math.sin(a)]); }
+  pts.push(pts[0]);
+  return pts;
+};
+const bandCentroid = [100 * Math.cos(Math.PI / 4), 100 * Math.sin(Math.PI / 4)];
+
+test("the stock builder could not be reused: the owner lane's curve takes the AXIS as an argument", () => {
+  // The whole reason the density-biased vertex axis was replaced (Italy −19°,
+  // Portugal +55°). Two calls with two axes must trace two different paths —
+  // if the function recomputed the axis from the ring it would ignore this.
+  const ring = bentBand();
+  const a = buildClusterCurvePath([ring], bandCentroid, -45, 6, { needed: true, glyphCount: 6 });
+  const b = buildClusterCurvePath([ring], bandCentroid, 30, 6, { needed: true, glyphCount: 6 });
+  assert.ok(a, "the arc along its own axis yields a path");
+  assert.ok(!b || Math.abs(a.length - b.length) > 1e-6, "a different axis is a different path");
+});
+
+test("…and it measures a CLUSTER: a border shared between two rings is not a gap", () => {
+  // The same band split at its middle into two rings that touch. Sliced along
+  // the axis, the touching edge would read as two intervals; merged, it is one.
+  // The United Kingdom's mainland came out 0.5% as wide as it is long before
+  // this merge existed (measured, 1836) — every large country was a "strip".
+  const whole = bentBand();
+  const outer = []; const inner = [];
+  for (let i = 0; i <= 10; i += 1) { const a = (i / 20) * (Math.PI / 2); outer.push([107 * Math.cos(a), 107 * Math.sin(a)]); inner.push([93 * Math.cos(a), 93 * Math.sin(a)]); }
+  const half1 = [...outer, ...inner.reverse(), outer[0]];
+  const outer2 = []; const inner2 = [];
+  for (let i = 10; i <= 20; i += 1) { const a = (i / 20) * (Math.PI / 2); outer2.push([107 * Math.cos(a), 107 * Math.sin(a)]); inner2.push([93 * Math.cos(a), 93 * Math.sin(a)]); }
+  const half2 = [...outer2, ...inner2.reverse(), outer2[0]];
+  const one = buildClusterCurvePath([whole], bandCentroid, -45, 6, { needed: true, glyphCount: 6 });
+  const two = buildClusterCurvePath([half1, half2], bandCentroid, -45, 6, { needed: true, glyphCount: 6 });
+  assert.ok(one && two, "both trace");
+  assert.ok(Math.abs(one.widthRatio - two.widthRatio) < 0.05,
+    `split at a shared edge, the band is as wide as it was whole: ${one.widthRatio} vs ${two.widthRatio}`);
+});
+
+test("…and it spaces glyphs by their WIDTH: Hangul is full-width here too", () => {
+  // Same path, a name of seven Latin capitals and one of seven Hangul syllables:
+  // the Hangul name is wider, so along a path of fixed length its glyphs get
+  // less path per em (they are packed to fill the same usable length) — but
+  // relative to EACH OTHER, a Hangul glyph advances further than a Latin one.
+  const ring = bentBand();
+  const path = buildClusterCurvePath([ring], bandCentroid, -45, 6, { needed: true, glyphCount: 7 });
+  const latin = layoutGlyphsAlongPath(path, "BAVARIA");
+  const hangul = layoutGlyphsAlongPath(path, "바이에른왕국임");
+  assert.ok(latin && hangul);
+  assert.ok(hangul.totalEm > latin.totalEm * 1.5, "the Hangul name measures wider");
+  assert.ok(hangul.glyphs[0].advanceEm > latin.glyphs[0].advanceEm, "and each glyph advances further");
+});
+
+test("the whole label faces one way — no glyph is flipped against its neighbours", () => {
+  // Württemberg's label came out with three of eight glyphs upside down when
+  // each was normalised on its own (measured). Now the direction is decided
+  // once from the path and every glyph follows it: consecutive rotations never
+  // jump by more than the path's own bend.
+  const ring = bentBand();
+  const path = buildClusterCurvePath([ring], bandCentroid, -45, 6, { needed: true, glyphCount: 8 });
+  const laid = layoutGlyphsAlongPath(path, "WURTTEMBG");
+  const rots = laid.glyphs.map((g) => g.rotation);
+  for (let i = 1; i < rots.length; i += 1) {
+    let d = Math.abs(rots[i] - rots[i - 1]);
+    if (d > 180) d = 360 - d;
+    assert.ok(d < 45, `glyphs ${i - 1}→${i} turn ${d}° — one of them is facing the wrong way`);
+  }
+});
+
+test("a curve is drawn where it is NEEDED, not where the shape is pretty", () => {
+  // The stock lane's gate was "is this a strip" (width ratio ≤ 0.22). The
+  // original curves GRAND-HESSE (0.30) and SAXE-WEIMAR (0.61) — not strips —
+  // because their names do not fit flat. So the caller says whether the flat
+  // label fits, and a fat-but-bent shape whose name does not fit gets a curve
+  // that the stock gate would have refused.
+  const ring = bentBand();                       // width ratio ≈ 0.14/… well under 0.7
+  const withNeed = buildClusterCurvePath([ring], bandCentroid, -45, 6, { needed: true, glyphCount: 6 });
+  assert.ok(withNeed, "needed → the bend is used");
+  // A path so gently bent that a straight label draws the same thing is refused
+  // when the flat label fits — and only then. Straight band, no need: null.
+  const straight = [[0, -7], [200, -7], [200, 7], [0, 7], [0, -7]];
+  assert.equal(buildClusterCurvePath([straight], [100, 0], 0, 6, { needed: false, glyphCount: 6 }), null,
+    "a straight strip whose name fits stays flat");
+});
+
+test("a round country stays flat, and so does one whose glyphs would scatter", () => {
+  // Round: no long axis worth following. A disc's width ratio is ~1, past the
+  // 0.7 gate.
+  const disc = []; for (let i = 0; i <= 40; i += 1) { const a = (i / 40) * Math.PI * 2; disc.push([100 * Math.cos(a), 100 * Math.sin(a)]); }
+  assert.equal(buildClusterCurvePath([disc], [0, 0], 0, 6, { needed: true, glyphCount: 6 }), null, "a disc has no line to follow");
+  // Scatter: a short name on a long bent path puts each glyph on a different
+  // bend. Two Sicilies and New Granada did this at 57–61° between neighbours
+  // (measured) and read as letters thrown on a curve. Two glyphs on the
+  // quarter-arc would face 90° apart — refused.
+  const ring = bentBand();
+  assert.equal(buildClusterCurvePath([ring], bandCentroid, -45, 2, { needed: true, glyphCount: 2 }), null,
+    "two glyphs cannot share a quarter-arc without facing away from each other");
+});
+
+test("the owner lane wires the curve as its own rung, on its own layer", () => {
+  // Between the leader line and the flat label; only the seat; only when the
+  // flat label would not fit; one feature per glyph tagged `curved`; and the
+  // three text-field:name layers exclude those glyphs or every glyph prints
+  // the whole name.
+  assert.match(NATIONS, /const curved = !leader && index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
+    "the rung sits after the leader line and before the flat label");
+  assert.match(NATIONS, /const flatFits = widestLineEm\(name\) <= NAME_FIT_EM \* Math\.sqrt/,
+    "and only fires when the flat label would not fit");
+  assert.match(NATIONS, /id="country-labels-curved"[\s\S]*?filter=\{\["==", \["get", "curved"\], 1\]\}/,
+    "the glyphs have their own layer");
+  assert.match(NATIONS, /id="country-labels"[\s\S]*?\["!=", \["get", "curved"\], 1\]/,
+    "and the flat layer excludes them");
+  assert.match(NATIONS, /id="country-labels-minor"[\s\S]*?\["!=", \["get", "curved"\], 1\]/,
+    "as does the minor layer");
+  // The cluster carries its member indices so the curve can read the rings
+  // back — indices, not rings, or the fold carries every vertex on the map.
+  assert.match(NATIONS, /members: \[index\],/, "clusters record which regions they fold");
+  assert.match(NATIONS, /if \(a\.members && b\.members\) a\.members\.push\(\.\.\.b\.members\);/, "and the centroid merge keeps them");
 });
 
 console.log(`\n${pass} passed\n`);

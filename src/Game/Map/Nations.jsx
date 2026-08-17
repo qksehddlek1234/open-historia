@@ -42,9 +42,19 @@ import {
   LEADER_AREA_SCALE_FLOOR,
   LEADER_EXTENSION_DEFAULT,
   LEADER_LABEL_AREA_SCALE,
+  NAME_FIT_EM,
   buildLeaderPlacement,
   fitNameToTerritory,
+  nameWidthEm,
+  widestLineEm,
 } from "../../runtime/labelLeaders.js";
+// The owner lane's own curved labels — see labelCurves.js for why the stock
+// lane's builder behind `!customFlag` could not simply be switched on.
+import {
+  buildClusterCurvePath,
+  layoutGlyphsAlongPath,
+  tileToLngLat,
+} from "../../runtime/labelCurves.js";
 import { translateLabel } from "../../runtime/translator.js";
 import {
   MAP_SETTING_KEYS, borderFadeStops, useDisplayScale, useMapRenderValue, useMapSetting,
@@ -413,6 +423,7 @@ const mergeOwnerClusters = (clusters, joinDeg) => {
           // half a territory starts inside the other half.
           if (a.axis && b.axis) addAxisMoments(a.axis, b.axis);
           if (a.bbox && b.bbox) a.bbox = unionBbox(a.bbox, b.bbox);
+          if (a.members && b.members) a.members.push(...b.members);
           clusters.splice(j, 1);
           merged = true;
           break outer;
@@ -433,6 +444,68 @@ const DISPUTED_TERRITORY_CLAIMANT = {
   Z06: "Pakistan", Z07: "India", Z08: "China", Z09: "India",
 };
 
+// A CURVED LABEL FOR A SEAT WHOSE NAME WILL NOT FIT FLAT — or null, in which
+// case the caller falls through to the flat label and its fit cap.
+//
+// Sizing. The flat label draws at `ownScale` (capped by fitNameToTerritory to
+// what fits across the territory). Along a curve there is more room — the path
+// is the shape's whole length, not its width — so the glyphs can be larger
+// than the capped flat label and still stay inside. They are sized to fill the
+// path's usable length, clamped to [floor, ownScale]: never bigger than the
+// country's own weight, never smaller than a country label may go (the same
+// LEADER_AREA_SCALE_FLOOR the cap stops at). If even the floor is too big for
+// the path, there is no curve — the leader line or the flat cap answers.
+//
+// The path is traced in tile space (where the axis is measured — see
+// lngLatToTile in countryLabels.js) and the glyph positions come back to
+// lng/lat for the source. `extent` only has to match between the two calls.
+const CURVE_TILE_EXTENT = 4096;
+// One em of a name at areaScale A occupies A × 2^(z−16) px at zoom z; a tile
+// unit of a 4096-extent world tile is 2^z × 512 / 4096 = 2^(z−3) px. Zoom
+// cancels: an em at areaScale A is A / 8192 tile units.
+const TILE_UNITS_PER_EM_PER_SCALE = 1 / 8192;
+const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation) => {
+  if (!cluster?.members?.length) return null;
+  // Does the flat label fit? Then it stays flat — same reading the cap makes.
+  const flatFits = widestLineEm(name) <= NAME_FIT_EM * Math.sqrt(Math.max(1, tilt ? elongation : 1));
+  if (flatFits) return null;
+
+  const rings = [];
+  for (const index of cluster.members) {
+    const best = largestRingOf(allFeatures[index]?.geometry);
+    if (best?.ring) rings.push(best.ring.map((point) => lngLatToTile(point, CURVE_TILE_EXTENT)));
+  }
+  if (!rings.length) return null;
+  const centroid = lngLatToTile([cluster.cx, cluster.cy], CURVE_TILE_EXTENT);
+  const axisDeg = axisAngleOfMoments(cluster.axis);
+  const glyphCount = Array.from(String(name)).filter((c) => c !== " ").length;
+
+  const path = buildClusterCurvePath(rings, centroid, axisDeg, nameWidthEm(name), {
+    needed: true,
+    glyphCount,
+    // The path must hold the whole name at no less than the floor's size.
+    minPathPerEm: LEADER_AREA_SCALE_FLOOR * TILE_UNITS_PER_EM_PER_SCALE,
+  });
+  if (!path) return null;
+
+  const laid = layoutGlyphsAlongPath(path, name);
+  if (!laid) return null;
+
+  // Size to the path: the areaScale that puts exactly one em in laid.perEm
+  // tile units, clamped as described above.
+  const fillScale = laid.perEm / TILE_UNITS_PER_EM_PER_SCALE;
+  const areaScale = Math.max(LEADER_AREA_SCALE_FLOOR, Math.min(ownScale, fillScale));
+
+  return {
+    areaScale,
+    glyphs: laid.glyphs.map((g, index) => ({
+      index,
+      glyph: g.glyph,
+      rotation: g.rotation,
+      lngLat: tileToLngLat(g.position, CURVE_TILE_EXTENT),
+    })),
+  };
+};
 
 const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null, leaderExtension = LEADER_EXTENSION_DEFAULT) => {
   const allFeatures = regionsFC?.features ?? [];
@@ -521,6 +594,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       // below). A running centroid cannot say which way a territory lies.
       addAxisMoments(cluster.axis, entry.moments);
       cluster.bbox = unionBbox(cluster.bbox, entry.bbox);
+      cluster.members.push(index);
     } else {
       roots.set(root, {
         cx: entry.c[0],
@@ -528,6 +602,13 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
         area: entry.area,
         axis: entry.moments,
         bbox: entry.bbox,
+        // WHICH REGIONS, not their rings. The curved lane below needs the
+        // cluster's outline to trace a centreline through it, and the bbox
+        // note above is right that carrying rings through the fold is a lot
+        // of vertices for something almost no cluster uses. Indices are four
+        // bytes each; the rings are read back from allFeatures only for the
+        // handful of seats whose flat label will not fit.
+        members: [index],
       });
     }
   }
@@ -605,6 +686,50 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           properties: { name, ownScale },
         });
       }
+
+      // TOO WIDE TO FIT FLAT → the label BENDS along the territory.
+      //
+      // The rung between the leader line and the flat label, and the one the
+      // original actually uses for GRAND-HESSE and SAXE-WEIMAR (seen on its
+      // 1836 board). Only the SEAT, like the leader line and for the same
+      // reason; and only where the flat label would not fit — a name that
+      // fits stays flat, however elegant a curve the shape could carry, because
+      // a bend a reader cannot see the reason for reads as a mistake.
+      //
+      // The path is traced through the cluster's own outline (its member rings
+      // read back from allFeatures — see `members`), along the SAME area-moment
+      // axis the flat label tilts to, so the two never disagree on which way
+      // the country runs. labelCurves.js explains why the stock lane's builder
+      // could not be reused as-is.
+      const curved = !leader && index === 0
+        ? buildOwnerCurve(cluster, allFeatures, name, ownScale, tilt, elongation)
+        : null;
+      if (curved) {
+        // One point feature per glyph, on its own source and layer (see
+        // `owner-curved-label-source`). Same face, size and colour as the flat
+        // label it replaces; `areaScale` is what buildCountryTextSize reads, so
+        // the glyphs draw at the seat's own weight, times how much of the flat
+        // size the path had room for.
+        for (const g of curved.glyphs) {
+          features.push({
+            type: "Feature",
+            id: `owner-glyph-${id}-${g.index}`,
+            geometry: { type: "Point", coordinates: g.lngLat },
+            properties: {
+              glyph: g.glyph,
+              areaScale: curved.areaScale,
+              rotation: g.rotation,
+              tier: 0,
+              leader: 0,
+              curved: 1,
+              lat: g.lngLat[1],
+            },
+          });
+        }
+        id += 1;
+        continue;
+      }
+
       features.push({
         type: "Feature",
         id: `owner-label-${id++}`,
@@ -2026,21 +2151,24 @@ const WorldMap = ({ isGlobe = false }) => {
       </Source>
 
       <Source id="country-point-label-source" type="geojson" data={activePointLabelData}>
-        {/* THREE LAYERS, ONE SOURCE — and none of the three splits could be a
-            case expression inside one. text-allow-overlap is layout-only and
-            constant-only (see the note above the layouts), and text-size and
-            halo are per-layer too, so each rank of label has to be its own
-            layer filtered on the property that names it.
+        {/* FOUR LAYERS, ONE SOURCE — and none of the splits could be a case
+            expression inside one. text-allow-overlap is layout-only and
+            constant-only (see the note above the layouts), and text-size, halo
+            and text-field are per-layer too, so each rank of label has to be
+            its own layer filtered on the property that names it.
 
             leader and tier never co-occur — leader labels belong to the stock
             set and tier to the owner set, and a world draws one or the other —
             but the filters are written as if they could, because a filter that
             is only correct by accident stops being correct when the accident
-            does. */}
+            does. `curved` is the owner lane's own: a seat whose name would not
+            fit flat is emitted as one feature PER GLYPH, and those must not
+            reach the three text-field:name layers or every glyph prints the
+            whole name. */}
         <Layer
           id="country-labels"
           type="symbol"
-          filter={["all", ["!=", ["get", "leader"], 1], ["!=", LABEL_TIER, 1]]}
+          filter={["all", ["!=", ["get", "leader"], 1], ["!=", LABEL_TIER, 1], ["!=", ["get", "curved"], 1]]}
           layout={pointLabelLayerLayout}
           paint={labelLayerPaint}
         />
@@ -2056,9 +2184,25 @@ const WorldMap = ({ isGlobe = false }) => {
         <Layer
           id="country-labels-minor"
           type="symbol"
-          filter={["all", ["!=", ["get", "leader"], 1], ["==", LABEL_TIER, 1]]}
+          filter={["all", ["!=", ["get", "leader"], 1], ["==", LABEL_TIER, 1], ["!=", ["get", "curved"], 1]]}
           layout={minorPointLabelLayerLayout}
           paint={minorLabelLayerPaint}
+        />
+        {/* THE OWNER LANE'S CURVED LABELS — the rung the original uses for
+            GRAND-HESSE and SAXE-WEIMAR. One glyph per feature along a path
+            traced through the seat's own territory (buildOwnerCurve), drawn
+            with the SAME layout the stock curved lane would have used
+            (text-field: glyph, per-glyph rotate, overlap allowed — a country
+            standing on its own ground always draws) so the two lanes are the
+            same typography. This layer is on the OWNER source; the stock
+            curved source above stays gated on !customFlag and stays empty on
+            every built board, for the reason labelCurves.js explains. */}
+        <Layer
+          id="country-labels-curved"
+          type="symbol"
+          filter={["==", ["get", "curved"], 1]}
+          layout={curvedLabelLayerLayout}
+          paint={labelLayerPaint}
         />
       </Source>
     </>
