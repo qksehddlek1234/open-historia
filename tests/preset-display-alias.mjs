@@ -38,9 +38,9 @@ console.log("\nA polity's first alias is its Korean display name");
 // spec work (medieval-1200 alone is 135 polities); until then those boards'
 // Korean screens come from the translation pack, which is the old behaviour,
 // not a new break.
+// bronze-1200bc and colonial-1650 left this list on 2026-08-17 — 59 display
+// names, and from that batch the convention guards them like everyone else.
 const KNOWN_GAPS = new Set([
-  "bronze-1200bc",
-  "colonial-1650",
   "medieval-1200",
   "mongol-1300",
   "roman-117",
