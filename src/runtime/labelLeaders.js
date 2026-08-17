@@ -93,32 +93,47 @@ export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, ex
 //
 // The rule above asks "is this country too small to hold a label?" and answers
 // from area alone. That misses the other half of the same question: a label is
-// only as wide as its NAME, and sizing by area never counts the letters.
+// only as wide as its NAME, and sizing by area never measures the name.
 //
 // Reported as country labels overprinting each other in central Germany.
 // Measured on victorian-1836 at the reported view ([8.9, 51.2], z6.6, a 1600px
 // window) by rebuilding the owner label collection and laying the text boxes
-// out the way MapLibre does: KINGDOM OF PRUSSIA came out **1749px wide — wider
-// than the window** — and GRAND DUCHY OF MECKLENBURG-SCHWERIN four times wider
-// than the duchy it names. Five pairs of tier-0 labels overlapped, and tier-0
+// out the way MapLibre does. Five pairs of tier-0 labels overlapped, and tier-0
 // labels never yield to one another: a country standing on its own ground is
 // always drawn (`text-allow-overlap: true`). That pin is right and is NOT what
 // this changes.
 //
 // There is no zoom in the ratio and no area either, which is why this was never
-// a small-states bug: label width ÷ territory width is about 0.116 × letters,
-// so any name past ~9 characters is wider than its own country, everywhere.
-// Central Germany is only where the spill lands on a neighbour instead of sea.
+// a small-states bug: label width ÷ territory width depends only on how wide
+// the NAME is, so a long name is wider than its own country everywhere. Central
+// Germany is only where the spill lands on a neighbour instead of on sea.
 //
 // Deriving the cap — zoom cancels, and so does size:
 //
 //   font size (deg) = areaScale × 2^(z−16) ÷ (512·2^z / 360)
-//   label width     = font size × mean glyph width × letters × (1 + tracking)
+//   label width     = font size × (name width in em, tracking included)
 //   territory width = √area × √elongation     (the label lies along the axis)
 //   ownScale        = √area × 17500           (the sizing rule this file serves)
 //
-// …leaving a constant: how many letters fit across a territory, whatever its
-// size. About 8.6.
+// …leaving a constant: how many EM fit across a territory, whatever its size.
+// About 4.76 — 8.6 upper-case Latin letters, or 4.8 Hangul syllables.
+//
+// ★ IT MEASURES THE NAME IN EM, NOT IN LETTERS — and that was a bug once.
+//
+// The first version counted letters and multiplied by 0.55, the width of an
+// upper-case Latin glyph. This game is played in Korean: every polity carries a
+// Korean alias and the label lane draws it. Hangul is full-width — 1.0 em, not
+// 0.55 — so on the screen the player actually looks at, the cap saw 58% of the
+// real width and left 바이에른 왕국 (6.3 em) alone as if it fit in 4.76. Measured
+// on the reported view in Korean: two overlapping pairs before, one after, and
+// the survivor was exactly the pair the letter count could not see. Measured
+// again with per-glyph widths: zero.
+//
+// The measurement also has to know that MapLibre WRAPS. Nothing here sets
+// text-max-width, so the default 10 em applies and a long name breaks at spaces
+// and hyphens: GRAND DUCHY OF SAXE-WEIMAR-EISENACH is not one line of 18 em, it
+// is three lines of at most 7.2. Measure the widest LINE, not the whole string,
+// or the cap shrinks names that were never as wide as it thinks.
 
 // The original's country names are widely letterspaced, and that spacing is
 // most of what makes them read as a map's top rank rather than as large city
@@ -128,31 +143,74 @@ export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, ex
 // tracking and every name needs more room.
 export const LABEL_LETTER_SPACING = 0.12;
 
-// Mean advance of an upper-case glyph in Impact / Arial Black, as a fraction of
-// the em. Estimated rather than measured off the player's installed font — the
-// stack is a CSS font-family and MapLibre draws the glyphs locally, so the true
-// value moves with whatever they have. It only has to be close, and the span
-// was measured rather than assumed: central Germany comes out with ZERO
-// overlapping pairs at 0.50 and at 0.55, and ONE at 0.60 (PRUSSIA against
-// GERMAN CONFEDERATION — two large polities, legible either way).
-export const NAME_FIT_CHAR_WIDTH = 0.55;
+// MapLibre's default `text-max-width`, in em. Nations.jsx does not set the
+// property, so this is the width at which the renderer actually wraps — if
+// that ever changes there, change it here or the fit measures the wrong shape.
+export const LABEL_MAX_WIDTH_EM = 10;
+
+// Advance widths as em fractions. Estimated rather than measured off the
+// player's installed font — the stack is a CSS font-family and MapLibre draws
+// the glyphs locally, so the true numbers move with whatever they have. Only
+// the ratios have to be right: full-width CJK is exactly 1 em by design; an
+// upper-case Latin glyph in a heavy face is a bit over half of one; a space is
+// narrower still. Measured across the plausible span for the Latin value
+// (0.50–0.60), central Germany's overlap count did not move.
+export const NAME_FIT_CHAR_WIDTH = 0.55;   // upper-case Latin (kept: tests and
+// the doc-comment above cite it as the letters-per-territory constant's input)
+const glyphWidth = (ch) => {
+  if (/[ᄀ-ᇿ㄰-㆏가-힯぀-ヿ㐀-䶿一-鿿豈-﫿＀-￯]/.test(ch)) return 1.0;
+  if (ch === " ") return 0.3;
+  if (/[A-Z]/.test(ch)) return NAME_FIT_CHAR_WIDTH;
+  if (/[a-z]/.test(ch)) return 0.5;
+  return 0.45; // punctuation, digits, hyphens
+};
+
+// Width of a run of text as MapLibre will draw it, in em, tracking included.
+export const nameWidthEm = (text) => {
+  let width = 0;
+  for (const ch of String(text ?? "")) width += glyphWidth(ch) + LABEL_LETTER_SPACING;
+  return width;
+};
+
+// The width of the WIDEST LINE after MapLibre's wrapping — greedy at spaces
+// and after hyphens, never exceeding LABEL_MAX_WIDTH_EM where a break exists.
+// This is what actually has to fit; the full string is what the first version
+// measured, and it over-counted every name past ten em.
+export const widestLineEm = (text) => {
+  const tokens = String(text ?? "").split(/(?<=[ -])/);
+  let widest = 0;
+  let line = "";
+  for (const token of tokens) {
+    if (line && nameWidthEm(line + token) > LABEL_MAX_WIDTH_EM) {
+      widest = Math.max(widest, nameWidthEm(line.trimEnd()));
+      line = token;
+    } else {
+      line += token;
+    }
+  }
+  return Math.max(widest, nameWidthEm(line.trimEnd()));
+};
 
 // areaScale → degrees, with the zoom already cancelled from both sides.
 const DEG_PER_AREA_SCALE = 360 / (512 * 65536);
 
-// What the derivation collapses to: letters across a territory.
-export const NAME_FIT_LETTERS = 1
-  / (DEG_PER_AREA_SCALE * 17500 * NAME_FIT_CHAR_WIDTH * (1 + LABEL_LETTER_SPACING));
+// What the derivation collapses to: em across a territory. About 4.76.
+export const NAME_FIT_EM = 1 / (DEG_PER_AREA_SCALE * 17500);
+
+// …and the older way of saying the same number, kept because tests and the
+// doc-comment above cite it: upper-case Latin letters across a territory,
+// tracking included. About 8.6.
+export const NAME_FIT_LETTERS = NAME_FIT_EM / (NAME_FIT_CHAR_WIDTH + LABEL_LETTER_SPACING);
 
 // Shrink a label until it fits inside the shape it names. Returns the areaScale
 // to draw at, unchanged when the name already fits.
 export const fitNameToTerritory = (areaScale, name, elongation = 1) => {
-  const letters = Math.max(1, String(name ?? "").length);
+  const width = Math.max(0.01, widestLineEm(name));
   // Lying along the long axis buys room, so an elongated country holds a longer
   // name than a round one of the same area. Counted only where the label
   // actually turns (AXIS_ELONGATION_FLOOR) — a horizontal label on a diagonal
   // country cannot spend that length, so the caller passes 1 there.
-  const fit = (NAME_FIT_LETTERS * Math.sqrt(Math.max(1, elongation))) / letters;
+  const fit = (NAME_FIT_EM * Math.sqrt(Math.max(1, elongation))) / width;
   if (!(fit < 1)) return areaScale;
   // THE FLOOR. Below this a country's name reads at the weight of a province's,
   // which is a fault the label paint has already had to fix once. It is the

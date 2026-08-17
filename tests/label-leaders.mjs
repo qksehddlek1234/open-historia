@@ -24,7 +24,7 @@ const SETTINGS = read("src/Game/GameUI/settings.jsx");
 
 const {
   buildLeaderPlacement, LEADER_AREA_SCALE_FLOOR, LEADER_LABEL_AREA_SCALE, LEADER_EXTENSION_DEFAULT,
-  fitNameToTerritory, NAME_FIT_LETTERS,
+  fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, nameWidthEm, widestLineEm,
 } = await import("../src/runtime/labelLeaders.js");
 
 const {
@@ -394,45 +394,85 @@ test("the player's extension dial reaches the owner lane", () => {
 
 console.log("\nA label has to fit inside the country it names");
 
-test("the letters-across-a-territory constant is the derivation, not a guess", () => {
-  // If this drifts, one of the four inputs moved and the comment above it is
-  // describing a number that no longer exists. 8.6 is what falls out of
-  // areaScale → degrees, the 17500 sizing rule, a 0.55em glyph and 12% tracking.
-  assert.ok(Math.abs(NAME_FIT_LETTERS - 8.65) < 0.05,
-    `NAME_FIT_LETTERS is ${NAME_FIT_LETTERS}`);
+test("the em-across-a-territory constant is the derivation, not a guess", () => {
+  // If this drifts, one of the inputs moved and the comment above it is
+  // describing a number that no longer exists. 5.33 em is what falls out of
+  // areaScale → degrees and the 17500 sizing rule; 7.9 is the same width in
+  // upper-case Latin letters once tracking is added per glyph.
+  assert.ok(Math.abs(NAME_FIT_EM - 5.33) < 0.02, `NAME_FIT_EM is ${NAME_FIT_EM}`);
+  assert.ok(Math.abs(NAME_FIT_LETTERS - 7.95) < 0.05, `NAME_FIT_LETTERS is ${NAME_FIT_LETTERS}`);
   // And it must be DERIVED. A literal here would survive a change to the
   // tracking untouched, which is the drift that moving the dial into this file
   // was meant to stop.
-  assert.match(LEADERS, /NAME_FIT_LETTERS = 1\s*\n?\s*\/ \(DEG_PER_AREA_SCALE \* 17500 \* NAME_FIT_CHAR_WIDTH \* \(1 \+ LABEL_LETTER_SPACING\)\)/,
-    "computed from the tracking, not restated");
+  assert.match(LEADERS, /NAME_FIT_EM = 1 \/ \(DEG_PER_AREA_SCALE \* 17500\)/, "the em constant is computed");
+  assert.match(LEADERS, /NAME_FIT_LETTERS = NAME_FIT_EM \/ \(NAME_FIT_CHAR_WIDTH \+ LABEL_LETTER_SPACING\)/,
+    "and the letter count is derived from it, not restated");
+});
+
+test("THE FIT MEASURES EM, NOT LETTERS — Hangul is full-width", () => {
+  // The game is played in Korean; every polity carries a Korean alias and the
+  // label lane draws it. The first cap counted letters × 0.55 and so saw
+  // 바이에른 왕국 as 3.9 em when it is 7.1 — the reported view in Korean kept
+  // exactly one overlapping pair, and it was that one. Seven Hangul syllables
+  // must measure wider than seven Latin capitals — half again as wide (1.52×;
+  // not the raw 1.0/0.55 because a space and per-glyph tracking dilute it).
+  assert.ok(nameWidthEm("바이에른 왕국") > nameWidthEm("BAVARIA") * 1.4,
+    `${nameWidthEm("바이에른 왕국")} vs ${nameWidthEm("BAVARIA")}`);
+  // …and therefore the SAME areaScale that leaves BAVARIA alone caps 바이에른 왕국.
+  assert.equal(fitNameToTerritory(120000, "BAVARIA"), 120000);
+  assert.ok(fitNameToTerritory(120000, "바이에른 왕국") < 120000, "the Korean name is capped");
+});
+
+test("…and it measures the WIDEST LINE, because MapLibre wraps at 10 em", () => {
+  // Nothing sets text-max-width, so the default applies and a long name breaks
+  // at spaces and hyphens. GRAND DUCHY OF SAXE-WEIMAR-EISENACH is three lines
+  // of at most ~9 em, not one of ~19; measured whole, the first cap shrank it
+  // twice as hard as the screen ever needed. Pin the wrap, then pin that the
+  // fit reads the wrapped width and not the string.
+  const whole = nameWidthEm("GRAND DUCHY OF SAXE-WEIMAR-EISENACH");
+  const line = widestLineEm("GRAND DUCHY OF SAXE-WEIMAR-EISENACH");
+  assert.ok(whole > 17 && line < 10, `whole ${whole}, widest line ${line}`);
+  assert.ok(line <= LABEL_MAX_WIDTH_EM, "no line may exceed the wrap width where a break exists");
+  const fitted = fitNameToTerritory(400000, "GRAND DUCHY OF SAXE-WEIMAR-EISENACH") / 400000;
+  assert.ok(Math.abs(fitted - (NAME_FIT_EM / line)) < 0.01, `fit follows the widest line: ${fitted}`);
+  // A name with no break point cannot wrap and is measured whole.
+  assert.equal(widestLineEm("작센바이마르아이제나흐"), nameWidthEm("작센바이마르아이제나흐"));
 });
 
 test("a short name is left alone", () => {
-  // BAVARIA at 7 letters fits inside Bavaria with room to spare, and a cap that
-  // touches it has started shrinking labels for no reason.
+  // BAVARIA fits inside Bavaria with room to spare, and a cap that touches it
+  // has started shrinking labels for no reason.
   assert.equal(fitNameToTerritory(120000, "BAVARIA"), 120000);
   assert.equal(fitNameToTerritory(120000, "BELGIUM"), 120000);
   assert.equal(fitNameToTerritory(120000, "SPAIN"), 120000);
+  assert.equal(fitNameToTerritory(120000, "프로이센"), 120000);
 });
 
 test("a long name is cut to the width of its own country", () => {
-  // The reported pair. 18 letters is a bit over twice the 8.6 that fit, so the
-  // label comes back at roughly half — and the RATIO is what is pinned, not a
-  // pixel count, because pixels move with zoom and this does not.
+  // The RATIO is what is pinned, not a pixel count, because pixels move with
+  // zoom and this does not. Both names below wrap, so the ratio follows the
+  // widest line — see the wrap pin above.
   const prussia = fitNameToTerritory(120000, "KINGDOM OF PRUSSIA") / 120000;
-  assert.ok(Math.abs(prussia - (NAME_FIT_LETTERS / 18)) < 0.01, `${prussia}`);
+  assert.ok(Math.abs(prussia - (NAME_FIT_EM / widestLineEm("KINGDOM OF PRUSSIA"))) < 0.01, `${prussia}`);
   const mecklenburg = fitNameToTerritory(400000, "GRAND DUCHY OF MECKLENBURG-SCHWERIN") / 400000;
-  assert.ok(Math.abs(mecklenburg - (NAME_FIT_LETTERS / 35)) < 0.01, `${mecklenburg}`);
+  assert.ok(Math.abs(mecklenburg - (NAME_FIT_EM / widestLineEm("GRAND DUCHY OF MECKLENBURG-SCHWERIN"))) < 0.01, `${mecklenburg}`);
 });
 
 test("lying along the long axis buys room — but only where the label turns", () => {
   // A country four times as long as it is wide holds twice the letters. The
   // caller spends that ONLY where the tilt was actually applied; a horizontal
   // label on a diagonal shape gets the round-country allowance.
-  const flat = fitNameToTerritory(120000, "KINGDOM OF PRUSSIA", 1);
-  const long = fitNameToTerritory(120000, "KINGDOM OF PRUSSIA", 4);
+  // Measured on a name wide enough that neither reading is clamped back to
+  // the input or down to the floor — every real name in the roster wraps to
+  // under 10 em and fits whole at elongation 4, which is correct but proves
+  // nothing about the ratio. Sixty unbreakable glyphs on a huge territory do.
+  const wide = "A".repeat(60);
+  const flat = fitNameToTerritory(4e6, wide, 1);
+  const long = fitNameToTerritory(4e6, wide, 4);
   assert.ok(long > flat, "an elongated country keeps more of its size");
-  assert.ok(Math.abs((long / flat) - 2) < 0.01, "√4 = twice the letters");
+  assert.ok(Math.abs((long / flat) - 2) < 0.01, "√4 = twice the width");
+  // …and a name that already fits at elongation 4 is left alone, not inflated.
+  assert.equal(fitNameToTerritory(120000, "KINGDOM OF PRUSSIA", 4), 120000);
   assert.match(NATIONS, /fitNameToTerritory\(\n\s*index === 0 \? ownScale : Math\.min\(ownScale, seatScale\),\n\s*name,\n\s*tilt \? elongation : 1,/,
     "and the caller only spends it when the label actually turns");
 });

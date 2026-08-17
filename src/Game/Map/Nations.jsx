@@ -620,8 +620,11 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // so it stops being sized by one and draws to be read.
           //
           // …AND INSIDE, IT HAS TO FIT. See fitNameToTerritory: sizing by area
-          // alone ignores how many letters the name has, and a long name drew
-          // several times wider than the country it names.
+          // alone never measures the name, and a wide name drew wider than the
+          // country it names. `name` here is what the resolver returned — the
+          // Korean alias on a Korean client — and the fit measures THAT string
+          // in em, with MapLibre's wrapping applied, so it is capping the label
+          // the player sees and not the English one the spec is keyed by.
           areaScale: leader
             ? LEADER_LABEL_AREA_SCALE
             : fitNameToTerritory(
