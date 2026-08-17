@@ -28,7 +28,7 @@ const {
 } = await import("../src/runtime/labelLeaders.js");
 const { buildClusterCurvePath, layoutGlyphsAlongPath } = await import("../src/runtime/labelCurves.js");
 const {
-  REGION_ADJACENCY_DEGREES, buildRegionAdjacency, snapshotClusterPart, largestClusterPart,
+  REGION_ADJACENCY_DEGREES, buildRegionAdjacency, snapshotClusterPart, largestClusterPart, seatIndex,
 } = await import("../src/runtime/labelClusters.js");
 
 const {
@@ -292,6 +292,34 @@ test("and the tilt never flips the text upside down", () => {
     assert.ok(angle > -91 && angle <= 91, `${angle} would print upside down`);
   }
 });
+test("the seat is where the government sits — the home cluster, not the biggest possession", () => {
+  // 1836 Britain, as the label builder sees it: clusters sorted largest first,
+  // each remembering which regions it folded; gid0 says which country a region
+  // was cut from. `home` ("GBR") comes from the preset builder.
+  const gid0 = { 0: "CAN", 1: "CAN", 2: "CAN", 3: "GBR", 4: "GBR", 5: "IRL", 6: "ZAF", 7: "ZAF" };
+  const clusters = [
+    { area: 900, members: [0, 1, 2] },   // Columbia District / Rupert's Land — the largest
+    { area: 700, members: [6, 7] },      // Cape Colony
+    { area: 300, members: [3, 4, 5] },   // the British Isles
+  ];
+  const gid0Of = (index) => gid0[index];
+  assert.equal(seatIndex(clusters, "GBR", gid0Of), 2, "the British Isles are the seat");
+  assert.equal(seatIndex(clusters, "CAN", gid0Of), 0, "…and would be Canada if Canada were home");
+  assert.equal(seatIndex(clusters, undefined, gid0Of), 0, "no home → the largest, as before (Prussia, the Papal States, the Company)");
+  assert.equal(seatIndex(clusters, "  ", gid0Of), 0, "a blank home is no home");
+  assert.equal(seatIndex(clusters, "FRA", gid0Of), 0, "a home whose regions sit in no cluster changes nothing");
+  assert.equal(seatIndex([], "GBR", gid0Of), 0);
+  // Ties go to area: clusters arrive largest first and only a strictly better
+  // count moves the seat.
+  const tied = [{ area: 900, members: [3] }, { area: 300, members: [4] }];
+  assert.equal(seatIndex(tied, "GBR", gid0Of), 0, "one home region each → the larger keeps the seat");
+  // Wired that way: right after the size sort, the home cluster is moved to the
+  // front, so index 0 — the leader line, the curve, the full-weight label, the
+  // cap every possession is held under — is the seat.
+  assert.match(NATIONS, /clusters\.sort\(\(a, b\) => b\.area - a\.area\);\n(?:\s*\/\/.*\n)*\s*const seat = seatIndex\(clusters, polityOverrides\?\.\[owner\]\?\.home, \(index\) => allFeatures\[index\]\?\.properties\?\.gid0\);\n\s*if \(seat > 0\) clusters\.unshift\(\.\.\.clusters\.splice\(seat, 1\)\);/);
+  assert.match(NATIONS, /const seatScale = Math\.sqrt\(clusters\[0\]\?\.area \?\? 0\) \* 17500;/, "the possession cap reads the seat's own weight");
+});
+
 console.log(`\n${pass} passed\n`);
 
 // ── AND THE LANE THAT ACTUALLY DRAWS ────────────────────────────────────────
@@ -701,7 +729,7 @@ test("the label sits on the largest contiguous piece, and only the position move
   assert.equal(largestClusterPart(bare), bare, "empty parts → itself");
   // Wired that way in Nations.jsx: the merge snapshots, the loop anchors, and
   // the anchored view keeps everything but cx/cy from the merged cluster.
-  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*largestClusterPart,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
+  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*largestClusterPart,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
   assert.match(NATIONS, /a\.parts \?\?= \[snapshotClusterPart\(a\)\];\n\s*b\.parts \?\?= \[snapshotClusterPart\(b\)\];\n\s*a\.parts\.push\(\.\.\.b\.parts\);/,
     "the merge remembers its pieces, snapshotted before the fold");
   assert.match(NATIONS, /const anchor = largestClusterPart\(merged\);\n\s*const cluster = anchor === merged \? merged : \{ \.\.\.merged, cx: anchor\.cx, cy: anchor\.cy \};/,
@@ -710,6 +738,34 @@ test("the label sits on the largest contiguous piece, and only the position move
   assert.doesNotMatch(NATIONS, /const buildRegionAdjacency = /, "the hairline hash is gone from Nations.jsx, not duplicated");
   assert.match(NATIONS, /const CLUSTER_JOIN_DEGREES = 10;/,
     "the centroid join stays at 10°: at 3° Japan splits into three labels and Britain into two — the join is for archipelagos, the anchor is for exclaves");
+});
+
+test("the seat is where the government sits — the home cluster, not the biggest possession", () => {
+  // 1836 Britain, as the label builder sees it: clusters sorted largest first,
+  // each remembering which regions it folded; gid0 says which country a region
+  // was cut from. `home` ("GBR") comes from the preset builder.
+  const gid0 = { 0: "CAN", 1: "CAN", 2: "CAN", 3: "GBR", 4: "GBR", 5: "IRL", 6: "ZAF", 7: "ZAF" };
+  const clusters = [
+    { area: 900, members: [0, 1, 2] },   // Columbia District / Rupert's Land — the largest
+    { area: 700, members: [6, 7] },      // Cape Colony
+    { area: 300, members: [3, 4, 5] },   // the British Isles
+  ];
+  const gid0Of = (index) => gid0[index];
+  assert.equal(seatIndex(clusters, "GBR", gid0Of), 2, "the British Isles are the seat");
+  assert.equal(seatIndex(clusters, "CAN", gid0Of), 0, "…and would be Canada if Canada were home");
+  assert.equal(seatIndex(clusters, undefined, gid0Of), 0, "no home → the largest, as before (Prussia, the Papal States, the Company)");
+  assert.equal(seatIndex(clusters, "  ", gid0Of), 0, "a blank home is no home");
+  assert.equal(seatIndex(clusters, "FRA", gid0Of), 0, "a home whose regions sit in no cluster changes nothing");
+  assert.equal(seatIndex([], "GBR", gid0Of), 0);
+  // Ties go to area: clusters arrive largest first and only a strictly better
+  // count moves the seat.
+  const tied = [{ area: 900, members: [3] }, { area: 300, members: [4] }];
+  assert.equal(seatIndex(tied, "GBR", gid0Of), 0, "one home region each → the larger keeps the seat");
+  // Wired that way: right after the size sort, the home cluster is moved to the
+  // front, so index 0 — the leader line, the curve, the full-weight label, the
+  // cap every possession is held under — is the seat.
+  assert.match(NATIONS, /clusters\.sort\(\(a, b\) => b\.area - a\.area\);\n(?:\s*\/\/.*\n)*\s*const seat = seatIndex\(clusters, polityOverrides\?\.\[owner\]\?\.home, \(index\) => allFeatures\[index\]\?\.properties\?\.gid0\);\n\s*if \(seat > 0\) clusters\.unshift\(\.\.\.clusters\.splice\(seat, 1\)\);/);
+  assert.match(NATIONS, /const seatScale = Math\.sqrt\(clusters\[0\]\?\.area \?\? 0\) \* 17500;/, "the possession cap reads the seat's own weight");
 });
 
 console.log(`\n${pass} passed\n`);

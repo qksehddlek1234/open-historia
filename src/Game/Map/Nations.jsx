@@ -63,6 +63,7 @@ import { pickDisplayAlias } from "../../runtime/labelNames.js";
 import {
   buildRegionAdjacency,
   largestClusterPart,
+  seatIndex,
   snapshotClusterPart,
 } from "../../runtime/labelClusters.js";
 import { getStoredLanguage } from "../../runtime/i18n.js";
@@ -608,13 +609,19 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     // heals) via the small centroid merge.
     const clusters = mergeOwnerClusters([...roots.values()], CLUSTER_JOIN_DEGREES);
     clusters.sort((a, b) => b.area - a.area);
+    // THE SEAT IS WHERE THE GOVERNMENT SITS, not the biggest possession. The
+    // preset builder writes each polity's `home` (the first country in its
+    // grants); the cluster holding the most regions cut from that country
+    // moves to the front. Without a home the largest stays — see seatIndex.
+    const seat = seatIndex(clusters, polityOverrides?.[owner]?.home, (index) => allFeatures[index]?.properties?.gid0);
+    if (seat > 0) clusters.unshift(...clusters.splice(seat, 1));
     const rawName = DISPUTED_TERRITORY_CLAIMANT[owner]
       ? `Disputed (${DISPUTED_TERRITORY_CLAIMANT[owner]})`
       : polityOverrides?.[owner]?.name || countryNameByCode.get(owner) || owner;
     const name = String(nameResolver ? nameResolver(rawName, owner) : rawName).toUpperCase();
-    // Clusters are sorted largest first, so index 0 is the seat and everything
-    // after it is an outlying possession printing a name the map already carries
-    // once. That distinction had no expression here: every cluster emitted the
+    // Index 0 is the seat (the home cluster, else the largest) and everything
+    // after it, largest first, is an outlying possession printing a name the
+    // map already carries once. That distinction had no expression here: every cluster emitted the
     // same feature, so the label over a colony drew at full country weight — 75
     // of them on wwii-1935 (British Empire ×14, Dutch East Indies ×9, French
     // Republic ×8), 37 on medieval-1200, 13 on roman-117. A player reading that

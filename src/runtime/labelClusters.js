@@ -1,7 +1,8 @@
 /*! Open Historia — which regions touch, and where a territory's label sits © 2026 Nicholas Krol, MIT (see src/Editor/LICENSE). */
-// TWO PURE PIECES OF THE OWNER-LABEL BUILDER (Nations.jsx), split out so they
-// can be tested without the map: which regions are contiguous, and which piece
-// of a merged territory carries its label.
+// THREE PURE PIECES OF THE OWNER-LABEL BUILDER (Nations.jsx), split out so they
+// can be tested without the map: which regions are contiguous, which piece of
+// a merged territory carries its label, and which of an owner's territories is
+// its seat.
 //
 // ── Adjacency ──────────────────────────────────────────────────────────────
 //
@@ -181,4 +182,34 @@ export const largestClusterPart = (cluster) => {
   let best = parts[0];
   for (const part of parts) if (part.area > best.area) best = part;
   return best;
+};
+
+// ── Seat ───────────────────────────────────────────────────────────────────
+//
+// Which cluster is the SEAT — tier 0, the name at full weight, the one the
+// leader line and the curved label are offered to — used to be the largest by
+// area. That names an empire after its biggest possession: 59 cases across
+// the fleet (measured 2026-08-17) — Denmark's seat was Greenland on six
+// boards, 1836 Britain's was the Columbia District, Portugal's Mozambique,
+// the Netherlands' the East Indies. The preset builder now emits each
+// polity's `home`, the first country in its grants ("GBR" for Britain, "DNK"
+// for Denmark; a polity with no country grant has none). The seat is the
+// cluster holding the most regions cut from that country. Ties go to area
+// (clusters arrive largest first, and only a strictly better count moves the
+// seat); a polity without a home, or whose home regions sit in no cluster,
+// keeps the largest — nothing changes for it.
+export const seatIndex = (clusters, homeCode, gid0Of) => {
+  const home = String(homeCode ?? "").trim();
+  if (!home || !clusters?.length) return 0;
+  let seat = 0;
+  let best = 0;
+  for (let index = 0; index < clusters.length; index += 1) {
+    let count = 0;
+    for (const member of clusters[index].members ?? []) if (gid0Of(member) === home) count += 1;
+    if (count > best) {
+      best = count;
+      seat = index;
+    }
+  }
+  return seat;
 };
