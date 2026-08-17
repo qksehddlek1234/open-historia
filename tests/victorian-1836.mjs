@@ -110,10 +110,21 @@ console.log("\nA territory whose name cannot say who holds it");
 test("the crown dependencies and the two colonies are stated, not guessed", () => {
   // Left unowned these read as sovereign states — the same fault
   // tests/era-sovereignty.mjs pins for the 1946 Isle of Man face.
-  for (const face of ["Isle of Man", "Jersey", "Colony of Malta",
-    "United States of the Ionian Islands"]) {
+  for (const face of ["Isle of Man", "Jersey", "Colony of Malta"]) {
     assert.equal(spec.eraGeometry.faceOwners?.[face], "GBR", `${face} answers to the Crown`);
   }
+  // The Ionian Islands left this list on 2026-08-17 WITHOUT leaving the claim.
+  // The face wearing that name is a misdrawn blob — bbox [20.72,36.39 →
+  // 24.09,39.05], which reaches Athens and never touches Corfu — and owning it
+  // put the Kingdom of Greece's capital under the United Kingdom. The islands
+  // are still stated, not guessed: the face is excluded and the REGION carries
+  // the Crown. Both halves are asserted, because either alone regresses —
+  // exclusion without the grant makes the islands read as sovereign Greece,
+  // the grant without the exclusion puts Athens back under the Crown.
+  assert.ok(spec.eraGeometry.excludeFaces?.includes("United States of the Ionian Islands"),
+    "the misdrawn Ionian face must stay excluded — it covers Athens, not Corfu");
+  assert.equal(spec.regionAssignments?.["GRC.7.1_1"], "GBR",
+    "the real islands answer to the Crown by region");
 });
 
 test("the player's own country was among the 38 misses, for a dull reason", () => {
