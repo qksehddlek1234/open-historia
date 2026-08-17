@@ -76,15 +76,27 @@ export default {
     faceOwners: {
       // Crown colony, taken from the French in 1800 and confirmed at Vienna.
       "Colony of Malta": "GBR",
-      // A protectorate since 1815 — a republic on paper, a High Commissioner in
-      // fact. Ceded to Greece in 1864, which is 28 years the wrong way.
-      "United States of the Ionian Islands": "GBR",
+      // The Ionian Islands are NOT here any more — the face wearing that name is
+      // a misdrawn blob. Measured 2026-08-17: bbox [20.72,36.39 → 24.09,39.05],
+      // which reaches ATHENS and the whole Peloponnese but never touches Corfu
+      // (19.9°E). Owning it to GBR put the Kingdom of Greece's own capital under
+      // the United Kingdom — Cowork caught it when the Greek label sat at 40°N.
+      // The face is excluded below and the real islands are granted by region
+      // (GRC.7.1_1 → GBR in regionAssignments). Ceded to Greece in 1864, which
+      // is still 28 years the wrong way — the OWNER was right, the face was not.
       // Crown dependencies. Neither is IN the United Kingdom and both answer to
       // its Crown; with no line here they stand up as sovereign states — the
       // same fault tests/era-sovereignty.mjs pins for the 1946 Isle of Man.
       "Isle of Man": "GBR",
       Jersey: "GBR",
     },
+
+    excludeFaces: [
+      // 위 faceOwners 주석 참조 — 이름은 실재한 보호령인데 면은 남부 본토를 덮는
+      // 오형상이다. 크기 감사가 못 잡는 세 번째 부류이기도 하다: 이름에 크기
+      // 단어가 없다("United States of ..." — 도시국가·공국 티어 어디에도 안 걸림).
+      "United States of the Ionian Islands",
+    ],
 
     // ── 다뉴브 공국 셋을 오스만 면에서 빼낸다 ────────────────────────────
     // 사용자 보고("세르비아 위치가 틀림")의 뿌리다. 아래 regionAssignments에 왈라키아·
@@ -898,6 +910,25 @@ export default {
     //   주고 있었는데, 1836년 카자르의 실효 국경은 코페트다그이고 그 북쪽은 테케·
     //   요무트·에르사리 부족의 땅이다. 페르시아는 오히려 그쪽에서 습격을 당한다
     //   (메르브를 잠깐 얻는 것은 1850년대이고 1861년에 다시 잃는다).
+
+    // ══ 그리스 — 1832년 국경 (Cowork 실측 보고, 2026-08-17) ═══════════════
+    // 스펙이 GRE: ["GRC"]로 현대 그리스 전체를 왕국에 주고 있었는데, 1832년
+    // 콘스탄티노플 조약의 왕국은 아르타-볼로스 선 남쪽뿐이다. 테살리아는 1881년,
+    // 에페이로스·마케도니아는 1913년까지 오스만이다.
+    "GRC.5.1_1": "OTT", // 에페이로스
+    "GRC.5.2_1": "OTT", // 서마케도니아
+    "GRC.6.1_1": "OTT", // 중마케도니아
+    "GRC.6.2_1": "OTT", // 동마케도니아-트라키아
+    "GRC.8.2_1": "OTT", // 테살리아 — 1881년 콘스탄티노플 협정까지 오스만
+    "GRC.1.1_1": "OTT", // 북에게해 제도
+    "GRC.2.1_1": "OTT", // 아토스
+    // 이오니아 제도 — 1815년부터 영국 보호령, 1864년 그리스 할양. 면이 오형상이라
+    // (위 excludeFaces) 지역으로 준다.
+    "GRC.7.1_1": "GBR",
+    // 남에게해(GRC.1.2_1)는 왕국에 남는다 — 키클라데스는 왕국, 도데카니사는
+    // 오스만(1912년까지)인데 GADM 한 칸이라 못 가른다. 서안과 같은 유보 자리다:
+    // 어느 쪽을 골라도 절반을 틀리게 칠하고, 왕국 쪽이 창건 영토(키클라데스)를
+    // 지운다는 점에서 더 큰 거짓이라 왕국으로 둔다.
 
     // ══ 독일 연방에서 여섯을 꺼낸다 ═══════════════════════════════════════
     // 위 폴리티 주석 참조. GER 14칸 중 10칸이 여기로 간다.
