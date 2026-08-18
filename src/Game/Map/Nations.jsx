@@ -628,7 +628,6 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     // map sees two ranks of place printed as one rank of type.
     //
     // `tier` is that rank, and Nations.jsx draws the two from separate layers.
-    const seatScale = Math.sqrt(clusters[0]?.area ?? 0) * 17500;
     for (let index = 0; index < clusters.length; index += 1) {
       const merged = clusters[index];
       // Every owner keeps its largest cluster (tiny states still get a label);
@@ -741,10 +740,18 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
         geometry: { type: "Point", coordinates: leader ? leader.anchor : [cluster.cx, cluster.cy] },
         properties: {
           name,
-          // A possession may not out-print the seat. Area alone let it: British
-          // Australia is larger than the British Isles, so the repeat drew bigger
-          // than the country. Capping at the seat's own scale costs nothing where
-          // the possession is smaller anyway, which is nearly always.
+          // A POSSESSION PRINTS AT ITS OWN WEIGHT — the rank cue is the minor
+          // layer's MINOR_LABEL_SCALE, not a cap. There was a cap here (a repeat
+          // could not out-print the seat) and it never bit while the seat was the
+          // largest cluster; the moment the seat became the HOME cluster it bit
+          // hard — Greenland's "덴마크" fell to a tenth of its size and vanished at
+          // 7 px, the Dutch East Indies to a quarter. Checked against the original
+          // (2026-08-18, its WWII board): it caps nothing — DENMARK is drawn across
+          // Greenland at Greenland's size while Denmark proper carries no name at
+          // that zoom at all. So: own weight, times the layer's 0.6 for a repeat.
+          // That already keeps most repeats under the seat (1836: Canada 90k and
+          // the Cape 84k under Britain's 112k); only an extreme area gap breaks
+          // it (Greenland 5.8× Denmark), and there the original does the same.
           //
           // Out on a line the label is no longer describing an area it sits in,
           // so it stops being sized by one and draws to be read.
@@ -757,11 +764,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // the player sees and not the English one the spec is keyed by.
           areaScale: leader
             ? LEADER_LABEL_AREA_SCALE
-            : fitNameToTerritory(
-              index === 0 ? ownScale : Math.min(ownScale, seatScale),
-              name,
-              tilt ? elongation : 1,
-            ),
+            : fitNameToTerritory(ownScale, name, tilt ? elongation : 1),
           // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
           // flat. Reported symptom: BELGIAN CONGO and BRITISH EAST AFRICA
           // overprinting each other on the 1935 map. Both are single clusters,

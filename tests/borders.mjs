@@ -368,11 +368,26 @@ test("the minor rank is smaller, thinner-haloed, and cullable", () => {
   assert.ok(scale > 0 && scale < 1, `the minor rank must actually be smaller (got ${scale})`);
 });
 
-test("a possession may not out-print the seat it belongs to", () => {
-  // British Australia is larger than the British Isles, so area alone drew the
-  // repeat bigger than the country. The seat's own scale is the ceiling.
-  const at = NATIONS.indexOf("const seatScale");
-  assert.notEqual(at, -1, "the seat's scale must be computed before the loop");
+test("a possession prints at its own weight — the seat ceiling is RETIRED", () => {
+  // This test spent its life asserting the opposite, and the reversal is the
+  // record. The ceiling (min(ownScale, seatScale)) was built because British
+  // Australia out-printed the British Isles — but while the seat was the
+  // LARGEST cluster it never actually bit. The day the seat rule landed
+  // (seat = home cluster, 2026-08-18) it bit hard: Greenland's DENMARK fell to
+  // 7px. Measured against the original game, the original has NO cap — it
+  // prints Greenland's DENMARK at Greenland's size and leaves the homeland
+  // unnamed at that zoom — and the disease this ceiling was built for is held
+  // by the tier-1 layer's 0.6 factor instead (Canada 90k < Britain's 112k).
+  // User-approved, k read from the original, not invented: k = 1, no cap.
+  //
+  // So this pin now asserts the ABSENCE — whoever reintroduces a seat ceiling
+  // must come through this comment first.
+  assert.equal(NATIONS.indexOf("const seatScale"), -1,
+    "the seat ceiling is retired — a possession prints at its own weight");
+  assert.doesNotMatch(NATIONS, /Math\.min\(ownScale,\s*seatScale\)/,
+    "the cap must not return by another spelling");
+  const at = NATIONS.indexOf("const ownScale");
+  assert.notEqual(at, -1, "the builder loop is where the remaining claims live");
   // Sliced to the END OF THE BUILDER, not a byte count: a fixed 1400-char
   // window broke the moment the rotation note was written above `tier`, and a
   // pin that fails because a comment grew is a pin measuring the wrong thing.
@@ -380,26 +395,11 @@ test("a possession may not out-print the seat it belongs to", () => {
   // lines), so the anchor is the object it returns rather than the bare one.
   const block = NATIONS.slice(at, NATIONS.indexOf("labels: { type: \"FeatureCollection\"", at));
   assert.notEqual(block.length, 0, "the builder's return is where this block ends");
-  // The expression grew a branch on 2026-08-16: a seat below the leader floor
-  // leaves its shape entirely and draws at the size a label off its country
-  // draws at (tests/label-leaders.mjs owns that half). The ceiling this pin
-  // exists for is the OTHER branch and is untouched — a possession never gets a
-  // leader line, so it never reaches the first one.
-  //
-  // AND THEN IT WAS WRAPPED. Later the same day the ternary became the first
-  // argument of fitNameToTerritory(...), which put a newline between the opening
-  // paren and `index` — and this pin went red over WHITESPACE while the ceiling
-  // it guards had not moved. That is the same fault the comment above already
-  // records for the byte-count window, so the regex now tolerates line breaks
-  // and the parens are no longer part of the claim.
-  //
-  // The ceiling survives the wrap because fitNameToTerritory only ever shrinks:
-  // a possession enters at min(own, seat) and can leave smaller, never larger.
-  assert.match(block, /index === 0\s*\?\s*ownScale\s*:\s*Math\.min\(ownScale,\s*seatScale\)/);
-  // The wrap itself is worth pinning: if the ternary ever escapes the shrinker,
-  // long names go back to drawing wider than the countries they name.
-  assert.match(block, /fitNameToTerritory\(/,
-    "the in-territory branch must stay inside the fitter");
+  // What SURVIVES the retirement: every in-territory label still goes through
+  // the fitter (long names must not draw wider than the countries they name),
+  // and the two ranks still exist — that separation was never the cap's job.
+  assert.match(block, /fitNameToTerritory\(\s*ownScale/,
+    "own weight, but still inside the fitter");
   assert.match(block, /tier: index === 0 \? 0 : 1/);
 
   // AND THE LABEL LIES ALONG THE TERRITORY. This was hardcoded flat, which

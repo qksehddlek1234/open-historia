@@ -292,34 +292,6 @@ test("and the tilt never flips the text upside down", () => {
     assert.ok(angle > -91 && angle <= 91, `${angle} would print upside down`);
   }
 });
-test("the seat is where the government sits — the home cluster, not the biggest possession", () => {
-  // 1836 Britain, as the label builder sees it: clusters sorted largest first,
-  // each remembering which regions it folded; gid0 says which country a region
-  // was cut from. `home` ("GBR") comes from the preset builder.
-  const gid0 = { 0: "CAN", 1: "CAN", 2: "CAN", 3: "GBR", 4: "GBR", 5: "IRL", 6: "ZAF", 7: "ZAF" };
-  const clusters = [
-    { area: 900, members: [0, 1, 2] },   // Columbia District / Rupert's Land — the largest
-    { area: 700, members: [6, 7] },      // Cape Colony
-    { area: 300, members: [3, 4, 5] },   // the British Isles
-  ];
-  const gid0Of = (index) => gid0[index];
-  assert.equal(seatIndex(clusters, "GBR", gid0Of), 2, "the British Isles are the seat");
-  assert.equal(seatIndex(clusters, "CAN", gid0Of), 0, "…and would be Canada if Canada were home");
-  assert.equal(seatIndex(clusters, undefined, gid0Of), 0, "no home → the largest, as before (Prussia, the Papal States, the Company)");
-  assert.equal(seatIndex(clusters, "  ", gid0Of), 0, "a blank home is no home");
-  assert.equal(seatIndex(clusters, "FRA", gid0Of), 0, "a home whose regions sit in no cluster changes nothing");
-  assert.equal(seatIndex([], "GBR", gid0Of), 0);
-  // Ties go to area: clusters arrive largest first and only a strictly better
-  // count moves the seat.
-  const tied = [{ area: 900, members: [3] }, { area: 300, members: [4] }];
-  assert.equal(seatIndex(tied, "GBR", gid0Of), 0, "one home region each → the larger keeps the seat");
-  // Wired that way: right after the size sort, the home cluster is moved to the
-  // front, so index 0 — the leader line, the curve, the full-weight label, the
-  // cap every possession is held under — is the seat.
-  assert.match(NATIONS, /clusters\.sort\(\(a, b\) => b\.area - a\.area\);\n(?:\s*\/\/.*\n)*\s*const seat = seatIndex\(clusters, polityOverrides\?\.\[owner\]\?\.home, \(index\) => allFeatures\[index\]\?\.properties\?\.gid0\);\n\s*if \(seat > 0\) clusters\.unshift\(\.\.\.clusters\.splice\(seat, 1\)\);/);
-  assert.match(NATIONS, /const seatScale = Math\.sqrt\(clusters\[0\]\?\.area \?\? 0\) \* 17500;/, "the possession cap reads the seat's own weight");
-});
-
 console.log(`\n${pass} passed\n`);
 
 // ── AND THE LANE THAT ACTUALLY DRAWS ────────────────────────────────────────
@@ -505,7 +477,7 @@ test("lying along the long axis buys room — but only where the label turns", (
   assert.ok(Math.abs((long / flat) - 2) < 0.01, "√4 = twice the width");
   // …and a name that already fits at elongation 4 is left alone, not inflated.
   assert.equal(fitNameToTerritory(120000, "KINGDOM OF PRUSSIA", 4), 120000);
-  assert.match(NATIONS, /fitNameToTerritory\(\n\s*index === 0 \? ownScale : Math\.min\(ownScale, seatScale\),\n\s*name,\n\s*tilt \? elongation : 1,/,
+  assert.match(NATIONS, /fitNameToTerritory\(ownScale, name, tilt \? elongation : 1\)/,
     "and the caller only spends it when the label actually turns");
 });
 
@@ -762,10 +734,22 @@ test("the seat is where the government sits — the home cluster, not the bigges
   const tied = [{ area: 900, members: [3] }, { area: 300, members: [4] }];
   assert.equal(seatIndex(tied, "GBR", gid0Of), 0, "one home region each → the larger keeps the seat");
   // Wired that way: right after the size sort, the home cluster is moved to the
-  // front, so index 0 — the leader line, the curve, the full-weight label, the
-  // cap every possession is held under — is the seat.
+  // front, so index 0 — the leader line, the curve, the full-weight label — is
+  // the seat.
   assert.match(NATIONS, /clusters\.sort\(\(a, b\) => b\.area - a\.area\);\n(?:\s*\/\/.*\n)*\s*const seat = seatIndex\(clusters, polityOverrides\?\.\[owner\]\?\.home, \(index\) => allFeatures\[index\]\?\.properties\?\.gid0\);\n\s*if \(seat > 0\) clusters\.unshift\(\.\.\.clusters\.splice\(seat, 1\)\);/);
-  assert.match(NATIONS, /const seatScale = Math\.sqrt\(clusters\[0\]\?\.area \?\? 0\) \* 17500;/, "the possession cap reads the seat's own weight");
+});
+
+test("a possession prints at its own weight — the original caps nothing, and neither do we", () => {
+  // The cap (a repeat may not out-print the seat) never bit while the seat was
+  // the largest cluster and bit hard once the seat was the home cluster —
+  // Greenland's DENMARK to a tenth. The original, checked on 2026-08-18, draws
+  // DENMARK across Greenland at Greenland's size and gives Denmark proper no
+  // name at that zoom. The rank cue is the minor layer's 0.6, not a cap.
+  assert.doesNotMatch(NATIONS, /Math\.min\(ownScale, seatScale\)/, "the cap is gone");
+  assert.doesNotMatch(NATIONS, /const seatScale =/, "and nothing else reads a seat weight");
+  assert.match(NATIONS, /areaScale: leader\n\s*\? LEADER_LABEL_AREA_SCALE\n\s*: fitNameToTerritory\(ownScale, name, tilt \? elongation : 1\),/,
+    "seat and possession alike are sized by their own territory, then fitted to their own name");
+  assert.match(NATIONS, /const MINOR_LABEL_SCALE = 0\.6;/, "the repeat still prints lighter");
 });
 
 console.log(`\n${pass} passed\n`);
