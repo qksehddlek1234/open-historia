@@ -148,6 +148,11 @@ export const LABEL_LETTER_SPACING = 0.12;
 // that ever changes there, change it here or the fit measures the wrong shape.
 export const LABEL_MAX_WIDTH_EM = 10;
 
+// MapLibre's default `text-line-height`, in em — the height of one wrapped
+// line, and so of the label's box when the placement (labelClusters.js) asks
+// how tall a two-line name stands. Same caveat as the wrap width above.
+export const LABEL_LINE_HEIGHT_EM = 1.2;
+
 // Advance widths as em fractions. Estimated rather than measured off the
 // player's installed font — the stack is a CSS font-family and MapLibre draws
 // the glyphs locally, so the true numbers move with whatever they have. Only
@@ -172,23 +177,32 @@ export const nameWidthEm = (text) => {
   return width;
 };
 
-// The width of the WIDEST LINE after MapLibre's wrapping — greedy at spaces
-// and after hyphens, never exceeding LABEL_MAX_WIDTH_EM where a break exists.
-// This is what actually has to fit; the full string is what the first version
-// measured, and it over-counted every name past ten em.
-export const widestLineEm = (text) => {
+// The lines MapLibre will wrap a name into — greedy at spaces and after
+// hyphens, never exceeding LABEL_MAX_WIDTH_EM where a break exists. Trailing
+// spaces are the break's, not the line's, and are dropped.
+export const wrapNameLines = (text) => {
   const tokens = String(text ?? "").split(/(?<=[ -])/);
-  let widest = 0;
+  const lines = [];
   let line = "";
   for (const token of tokens) {
     if (line && nameWidthEm(line + token) > LABEL_MAX_WIDTH_EM) {
-      widest = Math.max(widest, nameWidthEm(line.trimEnd()));
+      lines.push(line.trimEnd());
       line = token;
     } else {
       line += token;
     }
   }
-  return Math.max(widest, nameWidthEm(line.trimEnd()));
+  lines.push(line.trimEnd());
+  return lines;
+};
+
+// The width of the WIDEST LINE after that wrapping. This is what actually has
+// to fit; the full string is what the first version measured, and it
+// over-counted every name past ten em.
+export const widestLineEm = (text) => {
+  let widest = 0;
+  for (const line of wrapNameLines(text)) widest = Math.max(widest, nameWidthEm(line));
+  return widest;
 };
 
 // areaScale → degrees, with the zoom already cancelled from both sides.

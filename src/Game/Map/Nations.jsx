@@ -39,6 +39,7 @@ import {
 // either was tuned.
 import {
   LABEL_LETTER_SPACING,
+  LABEL_LINE_HEIGHT_EM,
   LEADER_AREA_SCALE_FLOOR,
   LEADER_EXTENSION_DEFAULT,
   LEADER_LABEL_AREA_SCALE,
@@ -47,6 +48,7 @@ import {
   fitNameToTerritory,
   nameWidthEm,
   widestLineEm,
+  wrapNameLines,
 } from "../../runtime/labelLeaders.js";
 // The owner lane's own curved labels — see labelCurves.js for why the stock
 // lane's builder behind `!customFlag` could not simply be switched on.
@@ -59,10 +61,15 @@ import { translateLabel } from "../../runtime/translator.js";
 // Which of a polity's names the label prints — the spec's alias in the player's
 // script before the translator's guess.
 import { pickDisplayAlias } from "../../runtime/labelNames.js";
-// Which regions touch, and which piece of a merged territory carries its label.
+// Which regions touch, which piece of a merged territory carries its label,
+// and where on that piece the label sits.
 import {
   buildRegionAdjacency,
+  labelBox,
   largestClusterPart,
+  largestPolygonOf,
+  placeLabelInPiece,
+  projectPolygon,
   seatIndex,
   snapshotClusterPart,
 } from "../../runtime/labelClusters.js";
@@ -452,6 +459,21 @@ const CURVE_TILE_EXTENT = 4096;
 // unit of a 4096-extent world tile is 2^z × 512 / 4096 = 2^(z−3) px. Zoom
 // cancels: an em at areaScale A is A / 8192 tile units.
 const TILE_UNITS_PER_EM_PER_SCALE = 1 / 8192;
+// A region's largest polygon in tile space, projected once and kept: the
+// geometry objects are stable across ownership changes, so a rebuild after a
+// conquest re-fills the placement rasters (labelClusters.js) and re-projects
+// nothing. 1836 is two million vertices — the projection was 40% of the pass.
+const projectedPieceCache = new WeakMap();
+const projectedPieceOf = (geometry) => {
+  if (!geometry) return null;
+  let projected = projectedPieceCache.get(geometry);
+  if (projected === undefined) {
+    const polygon = largestPolygonOf(geometry);
+    projected = polygon ? projectPolygon(polygon, (point) => lngLatToTile(point, CURVE_TILE_EXTENT)) : null;
+    projectedPieceCache.set(geometry, projected);
+  }
+  return projected;
+};
 const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation) => {
   if (!cluster?.members?.length) return null;
   // Does the flat label fit? Then it stays flat — same reading the cap makes.
@@ -603,6 +625,9 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
 
   const features = [];
   const leaderFeatures = [];
+  // Flat labels waiting for the placement pass below, with the piece each one
+  // must stay inside of.
+  const pending = [];
   let id = 0;
   for (const [owner, roots] of perOwner) {
     // Islands still join their nearby mainland (and any adjacency near-miss
@@ -734,7 +759,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
         continue;
       }
 
-      features.push({
+      const feature = {
         type: "Feature",
         id: `owner-label-${id++}`,
         geometry: { type: "Point", coordinates: leader ? leader.anchor : [cluster.cx, cluster.cy] },
@@ -808,8 +833,82 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // See GLOBE_LAT_CORRECTION — same globe text-size fix (issue #6).
           lat: leader ? leader.anchor[1] : cluster.cy,
         },
-      });
+      };
+      features.push(feature);
+      // A flat label is placed for real below, once every label the map will
+      // draw is known. It carries the regions of the piece it is anchored on
+      // (the anchor's own list when the cluster merged, the cluster's when it
+      // did not) and its drawn size: tier-1 draws at MINOR_LABEL_SCALE.
+      if (!leader) {
+        pending.push({
+          feature,
+          members: anchor === merged ? merged.members : anchor.members,
+          em: (index === 0 ? 1 : MINOR_LABEL_SCALE) * feature.properties.areaScale * TILE_UNITS_PER_EM_PER_SCALE,
+        });
+      }
     }
+  }
+
+  // WHERE ON ITS PIECE, EXACTLY. Up to here a flat label sits at its piece's
+  // centroid, and a centroid is only a good spot while the shape is convex —
+  // Croatia's is in Bosnia, Norway's in Sweden, South Africa's inside Lesotho.
+  // The commoner fault is milder: the label is sized by √area and lies along
+  // the axis, and on anything long or bent a corner of it crosses a border —
+  // measured across the fleet, only 61% of flat labels sat wholly on their own
+  // land, 77 had their anchor off it altogether. placeLabelInPiece is the fix:
+  // it samples the label's own rectangle against a raster of the piece and, if
+  // the label does not sit wholly on the piece, moves it the shortest way to the
+  // spot where the most of it does (fleet: wholly-inside 61% → 87%, mean 94% →
+  // 99%, median move half an em). Every other label box the map draws — leader
+  // labels, curved glyphs, the other flat labels at their current spots — is an
+  // obstacle, so the move never lands on a small neighbour's leader label; that
+  // is why this runs as a second pass, after the loop that decides them all.
+  // Labels are placed in emission order and each sees the ones already moved.
+  //
+  // In tile space (CURVE_TILE_EXTENT), where a label's box is the same at every
+  // zoom and `rotation` is what MapLibre draws; the answer comes back through
+  // tileToLngLat like the curved glyphs do. Only the seat's leader line and the
+  // curved lane are untouched: one is not on the piece at all, the other is
+  // already threaded through it.
+  const boxOfFeature = (feature) => {
+    const p = feature.properties;
+    const centre = lngLatToTile(feature.geometry.coordinates, CURVE_TILE_EXTENT);
+    if (p.curved === 1) {
+      const em = p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
+      return labelBox(centre, (nameWidthEm(p.glyph) / 2) * em, em / 2, p.rotation);
+    }
+    const em = (p.leader === 1 ? 1 : p.tier === 1 ? MINOR_LABEL_SCALE : 1) * p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
+    return labelBox(
+      centre,
+      (widestLineEm(p.name) / 2) * em,
+      (wrapNameLines(p.name).length * LABEL_LINE_HEIGHT_EM * em) / 2,
+      p.rotation,
+    );
+  };
+  const boxes = new Map(features.map((feature) => [feature.id, boxOfFeature(feature)]));
+  for (const { feature, members, em } of pending) {
+    const polygons = [];
+    for (const index of members) {
+      const projected = projectedPieceOf(allFeatures[index]?.geometry);
+      if (projected) polygons.push(projected);
+    }
+    const p = feature.properties;
+    const obstacles = [];
+    for (const [otherId, box] of boxes) if (otherId !== feature.id) obstacles.push(box);
+    const placed = placeLabelInPiece({
+      polygons,
+      anchor: lngLatToTile(feature.geometry.coordinates, CURVE_TILE_EXTENT),
+      halfWidth: (widestLineEm(p.name) / 2) * em,
+      halfHeight: (wrapNameLines(p.name).length * LABEL_LINE_HEIGHT_EM * em) / 2,
+      rotation: p.rotation,
+      em,
+      obstacles,
+    });
+    if (!placed.moved) continue;
+    const lngLat = tileToLngLat(placed.position, CURVE_TILE_EXTENT);
+    feature.geometry.coordinates = lngLat;
+    p.lat = lngLat[1];
+    boxes.set(feature.id, boxOfFeature(feature));
   }
 
   // Two collections, because they are two sources: the labels go into the point

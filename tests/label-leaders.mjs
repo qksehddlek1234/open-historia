@@ -24,12 +24,15 @@ const SETTINGS = read("src/Game/GameUI/settings.jsx");
 
 const {
   buildLeaderPlacement, LEADER_AREA_SCALE_FLOOR, LEADER_LABEL_AREA_SCALE, LEADER_EXTENSION_DEFAULT,
-  fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, nameWidthEm, widestLineEm,
+  fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, LABEL_LINE_HEIGHT_EM,
+  nameWidthEm, widestLineEm, wrapNameLines,
 } = await import("../src/runtime/labelLeaders.js");
 const { buildClusterCurvePath, layoutGlyphsAlongPath } = await import("../src/runtime/labelCurves.js");
 const {
   REGION_ADJACENCY_DEGREES, buildRegionAdjacency, snapshotClusterPart, largestClusterPart, seatIndex,
+  LABEL_FIT_CELLS, LABEL_FIT_PULL, largestPolygonOf, labelBox, projectPolygon, placeLabelInPiece,
 } = await import("../src/runtime/labelClusters.js");
+const CLUSTERS = read("src/runtime/labelClusters.js");
 
 const {
   addAxisMoments, addAxisPolygon, axisAngleOfMoments, axisElongationOfMoments,
@@ -692,7 +695,10 @@ test("the label sits on the largest contiguous piece, and only the position move
   const mainland = { cx: 11.4, cy: 49.0, area: 7.0, axis: { a: 1 }, bbox: [9, 47, 14, 51], members: [0, 1] };
   const exclave = { cx: 7.8, cy: 49.4, area: 0.6, axis: { a: 2 }, bbox: [7, 49, 8.5, 50], members: [2] };
   const snap = snapshotClusterPart(mainland);
-  assert.deepEqual(snap, { cx: 11.4, cy: 49.0, area: 7.0 }, "a snapshot is position and weight, nothing that mutates");
+  assert.deepEqual(snap, { cx: 11.4, cy: 49.0, area: 7.0, members: [0, 1] },
+    "a snapshot is position, weight and which regions — copied, since the merge appends to the live list");
+  assert.notEqual(snap.members, mainland.members, "…a copy, not the array itself");
+  assert.deepEqual(snapshotClusterPart({ cx: 1, cy: 2, area: 3 }).members, [], "a cluster without a member list snapshots an empty one");
   const merged = { ...mainland, cx: 11.1, cy: 49.03, area: 7.6, parts: [snap, snapshotClusterPart(exclave)] };
   const anchor = largestClusterPart(merged);
   assert.equal(anchor, snap, "the biggest piece wins");
@@ -701,7 +707,7 @@ test("the label sits on the largest contiguous piece, and only the position move
   assert.equal(largestClusterPart(bare), bare, "empty parts → itself");
   // Wired that way in Nations.jsx: the merge snapshots, the loop anchors, and
   // the anchored view keeps everything but cx/cy from the merged cluster.
-  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*largestClusterPart,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
+  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*labelBox,\n\s*largestClusterPart,\n\s*largestPolygonOf,\n\s*placeLabelInPiece,\n\s*projectPolygon,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
   assert.match(NATIONS, /a\.parts \?\?= \[snapshotClusterPart\(a\)\];\n\s*b\.parts \?\?= \[snapshotClusterPart\(b\)\];\n\s*a\.parts\.push\(\.\.\.b\.parts\);/,
     "the merge remembers its pieces, snapshotted before the fold");
   assert.match(NATIONS, /const anchor = largestClusterPart\(merged\);\n\s*const cluster = anchor === merged \? merged : \{ \.\.\.merged, cx: anchor\.cx, cy: anchor\.cy \};/,
@@ -750,6 +756,101 @@ test("a possession prints at its own weight — the original caps nothing, and n
   assert.match(NATIONS, /areaScale: leader\n\s*\? LEADER_LABEL_AREA_SCALE\n\s*: fitNameToTerritory\(ownScale, name, tilt \? elongation : 1\),/,
     "seat and possession alike are sized by their own territory, then fitted to their own name");
   assert.match(NATIONS, /const MINOR_LABEL_SCALE = 0\.6;/, "the repeat still prints lighter");
+});
+
+test("a name wraps the way MapLibre wraps it, and the box is as tall as its lines", () => {
+  assert.deepEqual(wrapNameLines("GRAND DUCHY OF SAXE-WEIMAR-EISENACH"), ["GRAND DUCHY OF", "SAXE-WEIMAR-", "EISENACH"],
+    "greedy at spaces and after hyphens, never past the wrap width where a break exists");
+  assert.deepEqual(wrapNameLines("작센바이마르아이제나흐"), ["작센바이마르아이제나흐"], "no break, no wrap — however wide");
+  assert.deepEqual(wrapNameLines(""), [""]);
+  assert.equal(widestLineEm("GRAND DUCHY OF SAXE-WEIMAR-EISENACH"),
+    Math.max(...wrapNameLines("GRAND DUCHY OF SAXE-WEIMAR-EISENACH").map(nameWidthEm)),
+    "the widest line is the widest of those lines — one wrap rule, read twice");
+  assert.equal(LABEL_LINE_HEIGHT_EM, 1.2, "MapLibre's default text-line-height; the placement's box height is lines × this");
+});
+
+test("the label sits where it fits — on its own piece, the least distance from its anchor", () => {
+  const P = (rings) => projectPolygon(rings, (point) => point);
+  // A projected polygon is one flat buffer, ring by ring.
+  const square = P([[[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]], [[4, 4], [6, 4], [6, 6], [4, 6], [4, 4]]]);
+  assert.deepEqual([...square.ringStart], [0, 5, 10], "outer ring then hole, end to end");
+  assert.equal(square.xs.length, 10);
+  // A label wholly on a rectangle stays exactly where it is.
+  const rect = P([[[0, 0], [100, 0], [100, 40], [0, 40], [0, 0]]]);
+  const stay = placeLabelInPiece({ polygons: [rect], anchor: [50, 20], halfWidth: 30, halfHeight: 6, rotation: 0, em: 10 });
+  assert.equal(stay.moved, false);
+  assert.deepEqual(stay.position, [50, 20]);
+  assert.equal(stay.coverage, 1);
+  assert.equal(stay.anchorCoverage, 1);
+  // A crescent: the anchor (its centroid) is in the bite. The label moves onto
+  // the nearer arm and lands wholly on it.
+  const cee = P([[[0, 0], [100, 0], [100, 100], [0, 100], [0, 80], [80, 80], [80, 20], [0, 20], [0, 0]]]);
+  const bite = placeLabelInPiece({ polygons: [cee], anchor: [40, 45], halfWidth: 8, halfHeight: 4, rotation: 0, em: 4 });
+  assert.equal(bite.anchorCoverage, 0, "nothing of it was on land");
+  assert.equal(bite.moved, true);
+  assert.equal(bite.coverage, 1);
+  assert.ok(bite.position[1] < 20 && bite.position[1] > 4 && bite.position[0] > 8 && bite.position[0] < 72,
+    `on the lower arm, clear of its edges: ${bite.position}`);
+  // …unless another label already sits there: an obstacle over the lower arm
+  // sends it to the upper one.
+  const taken = labelBox([40, 10], 45, 12, 0);
+  const around = placeLabelInPiece({ polygons: [cee], anchor: [40, 45], halfWidth: 8, halfHeight: 4, rotation: 0, em: 4, obstacles: [taken] });
+  assert.equal(around.coverage, 1);
+  assert.ok(around.position[1] > 80, `up onto the top arm: ${around.position}`);
+  // The pull: a label sticking out over one end of a long bar moves the LEAST
+  // that brings it wholly on — toward the middle, not to the far end.
+  const bar = P([[[0, 0], [200, 0], [200, 20], [0, 20], [0, 0]]]);
+  const nudged = placeLabelInPiece({ polygons: [bar], anchor: [30, 10], halfWidth: 40, halfHeight: 5, rotation: 0, em: 5 });
+  assert.equal(nudged.coverage, 1);
+  // (a raster cell is 200/256 here, so "just" is within one cell of x = 40)
+  assert.ok(nudged.position[0] >= 39 && nudged.position[0] < 46, `just far enough in: ${nudged.position}`);
+  assert.ok(Math.abs(nudged.position[1] - 10) < 2, "and not off the bar's centreline");
+  // Rotation is the label's, in the working plane (clockwise, y down): the same
+  // label along a diagonal bar fits; across it, it does not.
+  const diagonal = P([[[0, 0], [20, 0], [120, 100], [100, 100], [0, 0]]]);
+  assert.equal(placeLabelInPiece({ polygons: [diagonal], anchor: [60, 50], halfWidth: 40, halfHeight: 4, rotation: 45, em: 4 }).moved, false);
+  assert.ok(placeLabelInPiece({ polygons: [diagonal], anchor: [60, 50], halfWidth: 40, halfHeight: 4, rotation: -45, em: 4 }).anchorCoverage < 0.3);
+  // Nothing to fit into keeps the anchor.
+  assert.deepEqual(placeLabelInPiece({ polygons: [], anchor: [1, 2], halfWidth: 1, halfHeight: 1, em: 1 }),
+    { position: [1, 2], coverage: 0, anchorCoverage: 0, moved: false });
+  assert.equal(placeLabelInPiece({ polygons: [rect], anchor: [50, 20], halfWidth: 1, halfHeight: 1, em: 0 }).moved, false, "no em, no pull, no move");
+  // The dials, as measured: 256 cells reads a ragged coast right; 0.03 per em
+  // keeps a settled label settled and moves an unsettled one the least.
+  assert.equal(LABEL_FIT_CELLS, 256);
+  assert.equal(LABEL_FIT_PULL, 0.03);
+  assert.match(CLUSTERS, /const LABEL_FIT_SETTLED = 0\.999;/, "wholly on its land, less one sample of tolerance");
+  // The pieces of the box a placement is measured with.
+  const box = labelBox([10, 10], 5, 2, 90);
+  assert.ok(Math.abs(box.minX - 8) < 1e-9 && Math.abs(box.maxX - 12) < 1e-9 && Math.abs(box.minY - 5) < 1e-9 && Math.abs(box.maxY - 15) < 1e-9,
+    "a box turned 90° is as wide as it was tall");
+  const multi = { type: "MultiPolygon", coordinates: [
+    [[[0, 0], [1, 0], [1, 1], [0, 0]]],
+    [[[0, 0], [5, 0], [5, 5], [0, 5], [0, 0]], [[1, 1], [2, 1], [2, 2], [1, 1]]],
+  ] };
+  assert.equal(largestPolygonOf(multi).length, 2, "the largest polygon by its outer ring, holes kept");
+  assert.equal(largestPolygonOf(null), null);
+});
+
+test("Nations.jsx places every flat label after it knows every label — obstacles first", () => {
+  // The loop collects, the pass places: a flat label carries its piece's
+  // regions and its drawn em (tier-1 at MINOR_LABEL_SCALE) to a second pass
+  // that runs once every leader label, glyph and flat label is known.
+  assert.match(NATIONS, /const pending = \[\];/);
+  assert.match(NATIONS, /if \(!leader\) \{\n\s*pending\.push\(\{\n\s*feature,\n\s*members: anchor === merged \? merged\.members : anchor\.members,\n\s*em: \(index === 0 \? 1 : MINOR_LABEL_SCALE\) \* feature\.properties\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE,\n\s*\}\);\n\s*\}/,
+    "a flat label waits with the anchor piece's own region list and its drawn size");
+  assert.match(NATIONS, /const boxes = new Map\(features\.map\(\(feature\) => \[feature\.id, boxOfFeature\(feature\)\]\)\);/,
+    "every label the map draws is a box before any flat label is placed");
+  assert.match(NATIONS, /for \(const \{ feature, members, em \} of pending\) \{/);
+  assert.match(NATIONS, /const placed = placeLabelInPiece\(\{\n\s*polygons,\n\s*anchor: lngLatToTile\(feature\.geometry\.coordinates, CURVE_TILE_EXTENT\),\n\s*halfWidth: \(widestLineEm\(p\.name\) \/ 2\) \* em,\n\s*halfHeight: \(wrapNameLines\(p\.name\)\.length \* LABEL_LINE_HEIGHT_EM \* em\) \/ 2,\n\s*rotation: p\.rotation,\n\s*em,\n\s*obstacles,\n\s*\}\);/,
+    "the label's own wrapped width, line count and tilt, in tile space, against every other box");
+  assert.match(NATIONS, /if \(!placed\.moved\) continue;\n\s*const lngLat = tileToLngLat\(placed\.position, CURVE_TILE_EXTENT\);\n\s*feature\.geometry\.coordinates = lngLat;\n\s*p\.lat = lngLat\[1\];\n\s*boxes\.set\(feature\.id, boxOfFeature\(feature\)\);/,
+    "a moved label moves its globe latitude with it and becomes the obstacle it now is");
+  assert.match(NATIONS, /const projectedPieceCache = new WeakMap\(\);/, "regions are projected once per world, not once per rebuild");
+  assert.match(NATIONS, /const projected = projectedPieceOf\(allFeatures\[index\]\?\.geometry\);/);
+  // Curved glyphs and leader labels are obstacles too — a box each, at their
+  // own size — and the leader lane and curved lane themselves are not placed
+  // again: `pending` only ever receives a flat label.
+  assert.match(NATIONS, /if \(p\.curved === 1\) \{\n\s*const em = p\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE;\n\s*return labelBox\(centre, \(nameWidthEm\(p\.glyph\) \/ 2\) \* em, em \/ 2, p\.rotation\);\n\s*\}/);
 });
 
 console.log(`\n${pass} passed\n`);
