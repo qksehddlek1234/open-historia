@@ -123,6 +123,15 @@ export default {
     SIA: { name: "Siam", color: "#4a7ab0", aliases: ["시암", "라따나꼬신", "Thailand", "Rattanakosin"] },
     BUR: { name: "Konbaung Burma", color: "#7a9a4a", aliases: ["꼰바웅 버마", "버마", "Burma", "Myanmar"] },
     VIE: { name: "Nguyen Vietnam", color: "#5a9a7a", aliases: ["응우옌 베트남", "베트남", "Vietnam"] },
+    // — 면 전용 소유주의 로스터 승격 (2026-08-18 번역 진단) — colonial-1650과 같은
+    //   수리. 로스터 항목이 없어 "몬테네그로 사자백제"(AI 환각) 같은 per-PC 이름이
+    //   살았다. 색은 절차색 실측 핀(palette-history), 별칭은 한글 하나만(면 매칭
+    //   인덱스 오염 방지), countryAssignments 없음(영토는 위 faceOwners 면이 준다).
+    LUC:  { name: "Republic of Lucca", color: "#66bf40", aliases: ["루카 공화국"] },
+    MONT: { name: "Prince-Bishopric of Montenegro", color: "#40bf9d", aliases: ["몬테네그로 주교후국"] },
+    BUKH: { name: "Emirate of Bukhara", color: "#bf40bd", aliases: ["부하라 토후국"] },
+    OMAN: { name: "Omani Empire", color: "#8c40bf", aliases: ["오만 제국"] },
+    SEPT: { name: "Septinsular Republic", color: "#9540bf", aliases: ["이오니아 칠도 공화국"] },
   },
 
   countryAssignments: {

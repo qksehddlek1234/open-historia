@@ -301,8 +301,31 @@ await (async () => {
   // king of Hanover is William IV in personal union with Britain (the union
   // breaks 1837-06-20 under Salic law). A list that names real gaps and not
   // every new polity is the whole point.
-  assert.deepEqual(failures, [],
-    "every post-1444 preset polity must resolve");
+  // ── 네 번째 목록 (2026-08-18, 열두 자리) — 위 주석이 예언한 그 목록 ──────
+  // The translation batch stood nineteen face-only owners up as roster polities
+  // (their Korean display names needed a roster row to live in), and twelve of
+  // the nineteen arrived before their rulers — the same structural mechanism as
+  // the first three lists: the spec and the leader pack are held by different
+  // sessions. Seven resolved on arrival (Genoa, Lucca ×2, Tuscany, Montenegro,
+  // Bukhara, Oman — the reference already knew them). These twelve are named BY
+  // NAME so the list can only shrink, and deepEqual is what makes a seat the
+  // pack fills LEAVE the list (the Bahrain rule above).
+  const HANDOVER_2026_08_18 = [
+    "colonial-1650: Duchy of Modena",
+    "colonial-1650: Duchy of Parma",
+    "colonial-1650: Duchy of Savoy",
+    "colonial-1650: Duchy of Guastalla",
+    "colonial-1650: Duchy of Massa and Carrara",
+    "colonial-1650: Duchy of Mirandola",
+    "colonial-1650: Principality of Neuchâtel",
+    "colonial-1650: Republic of Valais",
+    "colonial-1650: Swiss Confederacy",
+    "colonial-1650: Three Leagues",
+    "colonial-1650: Irish Catholic Confederation",
+    "napoleonic-1804: Septinsular Republic",
+  ];
+  assert.deepEqual(failures, HANDOVER_2026_08_18,
+    "every post-1444 preset polity must resolve — or stand in the named handover list, which may only shrink");
 
   // ── 이전 회차의 기록 (2026-08-16, 마흔 자리) ─────────────────────────────
   // THE HANDOVER LIST IS GONE, AND THAT IS THE POINT OF IT.

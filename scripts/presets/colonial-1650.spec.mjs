@@ -227,6 +227,28 @@ export default {
     BORN:  { name: "Kanem-Bornu", color: "#6f5a9a", aliases: ["카넴보르누", "Bornu"] },
     AJUR:  { name: "Ajuran Sultanate", color: "#3a6a8f", aliases: ["아주란 술탄국", "Ajuran", "the Somali coast"] },
     MUTA:  { name: "Kingdom of Mutapa", color: "#8f7a3f", aliases: ["무타파 왕국", "Mutapa", "Monomotapa"] },
+    // — 면 전용 소유주의 로스터 승격 (2026-08-18 번역 진단) —
+    //   위 faceOwners 값으로만 살던 이탈리아·스위스·아일랜드 소국들. 로스터 항목이
+    //   없으면 별칭을 실을 자리가 없어 화면에 영어로 뜨거나 per-PC AI 팩이 이름을
+    //   지어낸다. 색은 각 클론의 절차색 폴백이 이미 그리던 값(data/palette-history.json
+    //   실측)을 그대로 핀 — 이 배치는 번역 수리지 재색이 아니고, 핀으로 per-PC 색
+    //   불안정(wwii-1939/Lithuania 병)도 함께 죽는다. 별칭은 한글 하나만: 별칭은
+    //   면 매칭 인덱스의 키이기도 해서(buildFaceNameIndex), 영어 별칭을 얹으면
+    //   rung-3 면을 훔칠 수 있다. countryAssignments 없음(빈칸 원칙 — 영토는 면이 준다).
+    GENO:  { name: "Republic of Genoa", color: "#66bf40", aliases: ["제노바 공화국"] },
+    LUCC:  { name: "Republic of Lucca", color: "#66bf40", aliases: ["루카 공화국"] },
+    MODE:  { name: "Duchy of Modena", color: "#66bf40", aliases: ["모데나 공국"] },
+    PARM:  { name: "Duchy of Parma", color: "#66bf40", aliases: ["파르마 공국"] },
+    SAVO:  { name: "Duchy of Savoy", color: "#bf8e40", aliases: ["사보이아 공국"] },
+    GUAS:  { name: "Duchy of Guastalla", color: "#66bf40", aliases: ["과스탈라 공국"] },
+    MASS:  { name: "Duchy of Massa and Carrara", color: "#66bf40", aliases: ["마사카라라 공국"] },
+    MIRA:  { name: "Duchy of Mirandola", color: "#66bf40", aliases: ["미란돌라 공국"] },
+    TUSC:  { name: "Grand Duchy of Tuscany", color: "#66bf40", aliases: ["토스카나 대공국"] },
+    NEUC:  { name: "Principality of Neuchâtel", color: "#84bf40", aliases: ["뇌샤텔 공국"] },
+    VALA:  { name: "Republic of Valais", color: "#84bf40", aliases: ["발레 공화국"] },
+    SWIC:  { name: "Swiss Confederacy", color: "#84bf40", aliases: ["스위스 연방"] },
+    TLGS:  { name: "Three Leagues", color: "#84bf40", aliases: ["삼동맹"] },
+    IRCC:  { name: "Irish Catholic Confederation", color: "#bfac40", aliases: ["아일랜드 가톨릭 연맹"] },
   },
 
   countryAssignments: {

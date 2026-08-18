@@ -177,7 +177,12 @@ app.get("/api/ui-settings", (_req, res) => {
 //    top languages so common strings never need an AI call;
 //  - saved packs (server/data/lang/<code>.json) accumulate every translation
 //    generated at runtime. They live under server/data, which the update
-//    script never touches, so they survive updates. Saved entries win.
+//    script never touches, so they survive updates.
+// SHIPPED ENTRIES WIN (2026-08-18). It was the other way, and that let each
+// PC's AI guesses shadow the curated pack forever — "몬테네그로 사자백제"
+// survived every correction because the fix landed in git and the hallucination
+// lived in server/data. Curation beats accumulation; the saved pack now only
+// fills strings the shipped pack does not carry (its actual job).
 const shippedLangDir = fs.existsSync(path.join(distDir, "lang"))
   ? path.join(distDir, "lang")
   : path.join(__dirname, "../public/lang");
@@ -204,7 +209,7 @@ app.get("/api/lang/:code", (req, res) => {
   if (!isLangCode(code)) {
     return sendError(res, 400, "Invalid language code.");
   }
-  res.json({ ...readLangPack(shippedLangDir, code), ...readLangPack(savedLangDir, code) });
+  res.json({ ...readLangPack(savedLangDir, code), ...readLangPack(shippedLangDir, code) });
 });
 
 app.put("/api/lang/:code", largeJsonParser, (req, res) => {
