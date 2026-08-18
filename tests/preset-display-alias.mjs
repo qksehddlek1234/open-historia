@@ -33,18 +33,16 @@ const SPECS = path.join(ROOT, "scripts", "presets");
 
 console.log("\nA polity's first alias is its Korean display name");
 
-// The gap list, by name. Every board here showed 0% on 2026-08-17 — these are
-// whole rosters awaiting Korean display names, not stragglers. Filling one is
-// spec work (medieval-1200 alone is 135 polities); until then those boards'
-// Korean screens come from the translation pack, which is the old behaviour,
-// not a new break.
-// bronze-1200bc and colonial-1650 left this list on 2026-08-17 — 59 display
-// names, and from that batch the convention guards them like everyone else.
-// mongol-1300 and roman-117 left on 2026-08-17 (65 names). medieval-1200 is
-// the last gap and is Cowork's batch #4 — when it lands, this list dies.
-const KNOWN_GAPS = new Set([
-  "medieval-1200",
-]);
+// THE GAP LIST IS EMPTY, AND THAT IS ITS FINISHED STATE, kept so the story
+// stays with the pin. Five boards showed 0% Hangul-first on 2026-08-17 — whole
+// rosters awaiting Korean display names, excused BY NAME so the list could
+// only shrink. It shrank on schedule: bronze-1200bc and colonial-1650 left the
+// same day (59 names, Claude Code), mongol-1300 and roman-117 followed (65,
+// Claude Code), and medieval-1200 — the largest, 135 names — landed from
+// Cowork on 2026-08-18 and killed the list. From here every board in the
+// fleet answers to the convention, and a polity written without a Hangul
+// first alias goes red the day it is written.
+const KNOWN_GAPS = new Set([]);
 
 test("every board outside the named gaps is 100% Hangul-first", async () => {
   const files = fs.readdirSync(SPECS).filter((f) => f.endsWith(".spec.mjs")).sort();
