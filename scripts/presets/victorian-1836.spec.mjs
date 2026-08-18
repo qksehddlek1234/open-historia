@@ -76,14 +76,18 @@ export default {
     faceOwners: {
       // Crown colony, taken from the French in 1800 and confirmed at Vienna.
       "Colony of Malta": "GBR",
-      // The Ionian Islands are NOT here any more — the face wearing that name is
-      // a misdrawn blob. Measured 2026-08-17: bbox [20.72,36.39 → 24.09,39.05],
-      // which reaches ATHENS and the whole Peloponnese but never touches Corfu
-      // (19.9°E). Owning it to GBR put the Kingdom of Greece's own capital under
-      // the United Kingdom — Cowork caught it when the Greek label sat at 40°N.
-      // The face is excluded below and the real islands are granted by region
-      // (GRC.7.1_1 → GBR in regionAssignments). Ceded to Greece in 1864, which
-      // is still 28 years the wrong way — the OWNER was right, the face was not.
+      // A protectorate since 1815 — ceded to Greece in 1864, 28 years the wrong
+      // way. This row LEFT once (2026-08-17): the OLD assembly's face wearing this
+      // name was a misdrawn blob reaching Athens and never touching Corfu, and it
+      // put the Kingdom of Greece's capital under the United Kingdom. The 56-face
+      // assembly redrew it as an honest Corfu face (0.063 deg², [19.6,39.4 →
+      // 20.1,39.8]) and its old footprint became the Kingdom of Greece's own face,
+      // so the row returned with the promotion. GRC.7.1_1 → GBR stays in
+      // regionAssignments for the islands this small face does not reach.
+      "United States of the Ionian Islands": "GBR",
+      // Congress Poland: 1832년 유기법 이후 러시아 황제의 직할이다 — 스펙 지역
+      // 배정(폴란드 5칸 → RUS)과 면이 같은 답을 말하게 한다. 부하라·히바 전례.
+      "Congress Poland": "RUS",
       // Crown dependencies. Neither is IN the United Kingdom and both answer to
       // its Crown; with no line here they stand up as sovereign states — the
       // same fault tests/era-sovereignty.mjs pins for the 1946 Isle of Man.
@@ -92,10 +96,12 @@ export default {
     },
 
     excludeFaces: [
-      // 위 faceOwners 주석 참조 — 이름은 실재한 보호령인데 면은 남부 본토를 덮는
-      // 오형상이다. 크기 감사가 못 잡는 세 번째 부류이기도 하다: 이름에 크기
-      // 단어가 없다("United States of ..." — 도시국가·공국 티어 어디에도 안 걸림).
-      "United States of the Ionian Islands",
+      // 프랑스령 알제리 면(22.2deg², 내륙 33.4°N까지)은 1834년 법령의 **주장**을
+      // 그린다. 이 보드는 1836-01-01의 **실효**를 지역으로 그린다 — 프랑스는 연안
+      // 거점 7칸뿐이고 내륙은 압델카데르·콘스탄틴이다(보고 2의 수리). 면이 지역을
+      // 이기므로 이 면을 들이면 그 수리가 통째로 지워진다. 1914 Spanish Morocco와
+      // 같은 결정이다: 더 정확한 쪽을 남긴다.
+      "Algérie française",
     ],
 
     // ── 다뉴브 공국 셋을 오스만 면에서 빼낸다 ────────────────────────────
@@ -126,6 +132,15 @@ export default {
       // **막는다** — 프라이부르크(남부 바덴)·카를스루에·라인헤센팔츠에는 호엔촐레른이
       // 한 뼘도 없었다. 슈투트가르트·튀빙겐은 막지 않는다: 진짜 월경지가 거기 있고
       // 면이 이겨야 지그마링겐과 헤힝겐이 그려진다.
+      // 56면 조립에서 Reino de Portugal 면이 사라지고 España 면이 이베리아 전체
+      // (-9.5°W까지)를 덮는다 — 2000 보드가 실측했던 그 병이고 같은 울타리로 막는다.
+      // 포르투갈 소유권은 POR 국가 그랜트가 지키고, 스페인 면은 제 땅만 갖는다.
+      "España": ["PRT"],
+      // 56면 조립이 데려온 오스트리아 면이 갈리치아와 함께 **크라쿠프 자유시 칸**
+      // (POL.6)을 물었다 — 빈 회의가 세운 자유시는 1846년 병합까지 오스트리아가
+      // 아니다. 조립본에 Wolne Miasto Kraków 면이 따로 있으므로, 큰 면을 이 칸에서
+      // 물리면 작은 면과 KRA 지역 행이 자리를 되찾는다.
+      "Kaiserthum Oesterreich": ["POL.6"],
       "Hohenzollern-Sigmaringen": ["DEU.DE12", "DEU.DE13", "DEU.DEB3"],
       // 오만 면(55.2~59.8°E)이 동부 에미리트를 물고 있었다 — 실측: ARE 7칸 중 5칸이
       // Omani Empire로 갔다. 1836년 무스카트의 사이드 빈 술탄과 카와심(샤르자·
@@ -387,7 +402,7 @@ export default {
     // ── North Africa and the Sahel ───────────────────────────────────────────
     // "아프리카 토후국들이 구현 안 됨" — none of these had a roster row, so the
     // Maghreb, the Caliphate and the Senegambian kingdoms all drew as holes.
-    MOR: { name: "Sultanate of Morocco", color: "#662b00", aliases: ["모로코 술탄국", "Morocco", "Alaouite Sultanate", "Abd al-Rahman"] },
+    MOR: { name: "Sultanate of Morocco", color: "#662b00", aliases: ["모로코 술탄국", "Morocco", "Alaouite Sultanate", "Abd al-Rahman", "السلطنة الشريفة"] },
     TUN: { name: "Beylik of Tunis", color: "#9F0500", aliases: ["튀니스 베이국", "Tunis", "Husainid Tunis", "Mustafa Bey"] },
     TRI: { name: "Vilayet of Tripolitania", color: "#7d1b1b", aliases: ["트리폴리타니아", "Tripoli", "Ottoman Tripolitania"] },
     // Muhammad Bello's caliphate over the twin seats of Sokoto and Gwandu. Gobir

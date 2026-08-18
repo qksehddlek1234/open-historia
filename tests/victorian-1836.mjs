@@ -113,18 +113,16 @@ test("the crown dependencies and the two colonies are stated, not guessed", () =
   for (const face of ["Isle of Man", "Jersey", "Colony of Malta"]) {
     assert.equal(spec.eraGeometry.faceOwners?.[face], "GBR", `${face} answers to the Crown`);
   }
-  // The Ionian Islands left this list on 2026-08-17 WITHOUT leaving the claim.
-  // The face wearing that name is a misdrawn blob — bbox [20.72,36.39 →
-  // 24.09,39.05], which reaches Athens and never touches Corfu — and owning it
-  // put the Kingdom of Greece's capital under the United Kingdom. The islands
-  // are still stated, not guessed: the face is excluded and the REGION carries
-  // the Crown. Both halves are asserted, because either alone regresses —
-  // exclusion without the grant makes the islands read as sovereign Greece,
-  // the grant without the exclusion puts Athens back under the Crown.
-  assert.ok(spec.eraGeometry.excludeFaces?.includes("United States of the Ionian Islands"),
-    "the misdrawn Ionian face must stay excluded — it covers Athens, not Corfu");
+  // The Ionian row made a ROUND TRIP and both legs are recorded here. It left
+  // faceOwners on 2026-08-17 because the 46-face assembly's face wearing that
+  // name was a misdrawn blob (reached Athens, never touched Corfu — it put the
+  // Kingdom of Greece's capital under the United Kingdom) and it returned with
+  // the 56-face promotion, whose face is an honest 0.063 deg² Corfu. Through
+  // both states the CLAIM never moved: the islands are stated, not guessed.
+  assert.equal(spec.eraGeometry.faceOwners?.["United States of the Ionian Islands"], "GBR",
+    "the Corfu face answers to the Crown — if this face ever grows past the islands again, exclude it, do not delete this line");
   assert.equal(spec.regionAssignments?.["GRC.7.1_1"], "GBR",
-    "the real islands answer to the Crown by region");
+    "the islands the small face does not reach answer to the Crown by region");
 });
 
 test("the player's own country was among the 38 misses, for a dull reason", () => {
@@ -323,7 +321,10 @@ console.log("\nAnd the dump itself, when it is on disk");
 test("every assembled face finds an owner (skipped without the dump)", () => {
   // scripts/ohm/out/ is gitignored, so this pin is opportunistic by design: it
   // runs on a clone that has built the board and stays quiet on one that has
-  // not. The number it guards is 46/46, up from 8/46.
+  // not. The number it guards was 46/46 (up from 8/46); the 2026-08-17 promotion
+  // (Overpass transport + --resolve-conflicts, recipe in the report) took it to
+  // 56, of which one — Algérie française — dies BY NAME: it draws the 1834
+  // decree's claim and this board draws the 1836 reality by region.
   const dump = new URL("../scripts/ohm/out/era-borders-1836-01-01-z4.geojson", import.meta.url);
   if (!existsSync(dump)) { console.log("      (dump absent — assembler output is not tracked)"); return; }
   const faceOwners = Object.fromEntries(Object.entries(spec.eraGeometry.faceOwners ?? {})
@@ -339,7 +340,7 @@ test("every assembled face finds an owner (skipped without the dump)", () => {
     .filter((f) => !matchFace(f, index, faceOwners))
     .map((f) => f.properties?.name);
   assert.deepEqual(unmatched, [], "these faces are drawn and thrown away");
-  assert.equal(features.length, 46);
+  assert.equal(features.length, 56);
 });
 
 test("the first country grant rides into the world as `home` (skipped unbuilt)", () => {
