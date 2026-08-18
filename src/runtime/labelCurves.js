@@ -67,17 +67,21 @@ const pointAlong = (points, distance) => {
 
 // The largest change of direction between two neighbouring glyphs, were a
 // name of `glyphCount` glyphs laid along this path — the same padding and
-// spread layoutGlyphsAlongPath uses, glyphs treated as equal advances (close
-// enough to refuse a path; exact per-glyph widths only move the samples a
-// little). Called by buildClusterCurvePath as its last gate.
-const glyphStepDegrees = (points, length, glyphCount) => {
+// spread layoutGlyphsAlongPath uses (`spread` is the run the name will occupy
+// when the caller caps the glyph size — see maxPerEm there; the whole usable
+// path otherwise), glyphs treated as equal advances (close enough to refuse a
+// path; exact per-glyph widths only move the samples a little). Called by
+// buildClusterCurvePath as its last gate.
+const glyphStepDegrees = (points, length, glyphCount, spread) => {
   const padding = length * 0.08;
   const usable = length - padding * 2;
   if (!(usable > 0)) return 0;
+  const run = Number.isFinite(spread) ? Math.min(usable, spread) : usable;
+  const start = padding + (usable - run) / 2;
   let prev = null;
   let worst = 0;
   for (let i = 0; i < glyphCount; i += 1) {
-    const sample = pointAlong(points, padding + ((i + 0.5) / glyphCount) * usable);
+    const sample = pointAlong(points, start + ((i + 0.5) / glyphCount) * run);
     if (!sample) continue;
     if (prev !== null) {
       let d = Math.abs(sample.angle - prev);
@@ -327,7 +331,8 @@ export const buildClusterCurvePath = (rings, centroid, axisDeg, nameEm, options 
   // more than `maxGlyphStepDeg` apart. Round countries with short names are
   // most of what this catches, and they read fine flat.
   if (Number.isFinite(options.glyphCount) && options.glyphCount >= 2) {
-    const step = glyphStepDegrees(points, length, options.glyphCount);
+    const spread = Number.isFinite(options.maxPerEm) ? nameEm * options.maxPerEm : undefined;
+    const step = glyphStepDegrees(points, length, options.glyphCount, spread);
     if (step > (options.maxGlyphStepDeg ?? 30)) return null;
   }
 
@@ -347,6 +352,14 @@ export const buildClusterCurvePath = (rings, centroid, axisDeg, nameEm, options 
 // `sizeScale` is how the caller wants the glyph sized relative to the flat
 // label it replaces (the stock lane clamps 0.6–0.92 by how much room the path
 // leaves; the owner lane decides the same way — see Nations.jsx).
+//
+// `maxPerEm` caps how many units of path one em may take — one em at the
+// label's own weight, from a caller that will not draw the glyphs larger than
+// that. Without it the name always spreads across the whole usable path, and
+// a short name on a long path spreads into letters scattered along a bend
+// (which the caller then draws at its own weight anyway, so the spread was
+// only ever a gap). With it the name is laid at that size and CENTRED on the
+// path; a name that needs the whole path still gets it.
 export const layoutGlyphsAlongPath = (path, name, options = {}) => {
   if (!path?.points?.length) return null;
   const glyphs = Array.from(String(name ?? ""));
@@ -357,8 +370,10 @@ export const layoutGlyphsAlongPath = (path, name, options = {}) => {
   const padding = path.length * 0.08;
   const usable = path.length - padding * 2;
   if (!(usable > 0)) return null;
-  // Units of path per em — the whole name spreads across the usable length.
-  const perEm = usable / totalEm;
+  // Units of path per em — the whole name spreads across the usable length,
+  // or as much of it as the size cap allows, centred.
+  const perEm = Number.isFinite(options.maxPerEm) ? Math.min(usable / totalEm, options.maxPerEm) : usable / totalEm;
+  const start = padding + (usable - totalEm * perEm) / 2;
 
   // THE WHOLE LABEL FACES ONE WAY. The stock lane normalises each glyph's angle
   // into (−90, 90] on its own, and on a path that runs near vertical that
@@ -377,7 +392,7 @@ export const layoutGlyphsAlongPath = (path, name, options = {}) => {
   let cursorEm = 0;
   for (const glyph of glyphs) {
     const advance = nameWidthEm(glyph);
-    const centre = padding + (cursorEm + advance / 2) * perEm;
+    const centre = start + (cursorEm + advance / 2) * perEm;
     cursorEm += advance;
     if (glyph === " ") continue;
     const sample = pointAlong(path.points, centre);

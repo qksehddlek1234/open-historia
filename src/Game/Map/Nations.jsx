@@ -474,11 +474,17 @@ const projectedPieceOf = (geometry) => {
   }
   return projected;
 };
-const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation) => {
+const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation, { forShape = false } = {}) => {
   if (!cluster?.members?.length) return null;
   // Does the flat label fit? Then it stays flat — same reading the cap makes.
+  // Unless the caller has already found out otherwise: the placement pass asks
+  // again FOR THE SHAPE — a seat whose flat label is short enough and still
+  // will not sit on its land wherever it is put (see LABEL_CURVE_LAND_COVERAGE
+  // below). That name is short, so it is laid compact and centred on the path
+  // rather than spread along it (maxPerEm, below); the width-driven curve keeps
+  // its own layout, measured on the fleet as it stands.
   const flatFits = widestLineEm(name) <= NAME_FIT_EM * Math.sqrt(Math.max(1, tilt ? elongation : 1));
-  if (flatFits) return null;
+  if (flatFits && !forShape) return null;
 
   const rings = [];
   for (const index of cluster.members) {
@@ -490,19 +496,28 @@ const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation)
   const axisDeg = axisAngleOfMoments(cluster.axis);
   const glyphCount = Array.from(String(name)).filter((c) => c !== " ").length;
 
+  // One em at the seat's own weight, in path units: the glyphs never draw
+  // larger than that (see the clamp below), so a SHORT name must not be spread
+  // along the whole path as if they would — Honshu's four glyphs would land one
+  // per bend, scattered. For the shape-driven curve the layout is capped there
+  // and centred; the width-driven curve is left as measured (its names are
+  // long, and the spread rehearsal is what refuses the scattered ones).
+  const maxPerEm = forShape ? ownScale * TILE_UNITS_PER_EM_PER_SCALE : undefined;
   const path = buildClusterCurvePath(rings, centroid, axisDeg, nameWidthEm(name), {
     needed: true,
     glyphCount,
     // The path must hold the whole name at no less than the floor's size.
     minPathPerEm: LEADER_AREA_SCALE_FLOOR * TILE_UNITS_PER_EM_PER_SCALE,
+    maxPerEm,
   });
   if (!path) return null;
 
-  const laid = layoutGlyphsAlongPath(path, name);
+  const laid = layoutGlyphsAlongPath(path, name, { maxPerEm });
   if (!laid) return null;
 
   // Size to the path: the areaScale that puts exactly one em in laid.perEm
-  // tile units, clamped as described above.
+  // tile units, clamped as described above (maxPerEm already keeps it at or
+  // under ownScale; the floor still applies).
   const fillScale = laid.perEm / TILE_UNITS_PER_EM_PER_SCALE;
   const areaScale = Math.max(LEADER_AREA_SCALE_FLOOR, Math.min(ownScale, fillScale));
 
@@ -516,6 +531,38 @@ const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation)
     })),
   };
 };
+
+// One point feature per glyph, on its own layer (`country-labels-curved`).
+// Same face, size and colour as the flat label it replaces; `areaScale` is
+// what buildCountryTextSize reads, so the glyphs draw at the seat's own
+// weight, times how much of the flat size the path had room for.
+const curvedGlyphFeatures = (curved, id) => curved.glyphs.map((g) => ({
+  type: "Feature",
+  id: `owner-glyph-${id}-${g.index}`,
+  geometry: { type: "Point", coordinates: g.lngLat },
+  properties: {
+    glyph: g.glyph,
+    areaScale: curved.areaScale,
+    rotation: g.rotation,
+    tier: 0,
+    leader: 0,
+    curved: 1,
+    lat: g.lngLat[1],
+  },
+}));
+
+// A SEAT WHOSE FLAT LABEL WILL NOT SIT ON ITS LAND ANYWHERE gets the curve too.
+// The width gate above catches a name too long for its territory; it does not
+// catch a shape no straight name fits — Honshu's arc, Vietnam's S, a crescent
+// — where the flat label is short enough and still hangs off the land wherever
+// the placement pass puts it. Measured across the fleet after placement: 30
+// seats keep under 80% of their label on their own piece (Solomon Islands ×9,
+// the Empire of Japan ×4, French Indochina ×5, Nguyễn Vietnam ×2, Venice ×2,
+// Denmark 1200/1300, the Crusader states, Byzantium 1300, Hormuz, Aragon…);
+// nothing else comes near. Below this share of the label on land, the
+// placement pass offers the seat the curve — and if no path holds the name
+// (an archipelago has none), the flat label stays where it was placed.
+const LABEL_CURVE_LAND_COVERAGE = 0.8;
 
 const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null, leaderExtension = LEADER_EXTENSION_DEFAULT) => {
   const allFeatures = regionsFC?.features ?? [];
@@ -734,27 +781,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
         ? buildOwnerCurve(cluster, allFeatures, name, ownScale, tilt, elongation)
         : null;
       if (curved) {
-        // One point feature per glyph, on its own source and layer (see
-        // `owner-curved-label-source`). Same face, size and colour as the flat
-        // label it replaces; `areaScale` is what buildCountryTextSize reads, so
-        // the glyphs draw at the seat's own weight, times how much of the flat
-        // size the path had room for.
-        for (const g of curved.glyphs) {
-          features.push({
-            type: "Feature",
-            id: `owner-glyph-${id}-${g.index}`,
-            geometry: { type: "Point", coordinates: g.lngLat },
-            properties: {
-              glyph: g.glyph,
-              areaScale: curved.areaScale,
-              rotation: g.rotation,
-              tier: 0,
-              leader: 0,
-              curved: 1,
-              lat: g.lngLat[1],
-            },
-          });
-        }
+        features.push(...curvedGlyphFeatures(curved, id));
         id += 1;
         continue;
       }
@@ -844,6 +871,14 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           feature,
           members: anchor === merged ? merged.members : anchor.members,
           em: (index === 0 ? 1 : MINOR_LABEL_SCALE) * feature.properties.areaScale * TILE_UNITS_PER_EM_PER_SCALE,
+          // What the curve needs, should the seat turn out to need one.
+          seat: index === 0,
+          labelId: id - 1,
+          cluster,
+          name,
+          ownScale,
+          tilt,
+          elongation,
         });
       }
     }
@@ -886,7 +921,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     );
   };
   const boxes = new Map(features.map((feature) => [feature.id, boxOfFeature(feature)]));
-  for (const { feature, members, em } of pending) {
+  for (const { feature, members, em, seat, labelId, cluster, name, ownScale, tilt, elongation } of pending) {
     const polygons = [];
     for (const index of members) {
       const projected = projectedPieceOf(allFeatures[index]?.geometry);
@@ -904,6 +939,19 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       em,
       obstacles,
     });
+    // NO FLAT SPOT ON THIS SHAPE → the curve, if the shape has a path for it.
+    // The glyphs replace the flat feature under the same id and become the
+    // obstacles the labels placed after this one see.
+    if (seat && placed.landCoverage < LABEL_CURVE_LAND_COVERAGE) {
+      const curved = buildOwnerCurve(cluster, allFeatures, name, ownScale, tilt, elongation, { forShape: true });
+      if (curved) {
+        const glyphs = curvedGlyphFeatures(curved, labelId);
+        features.splice(features.indexOf(feature), 1, ...glyphs);
+        boxes.delete(feature.id);
+        for (const glyph of glyphs) boxes.set(glyph.id, boxOfFeature(glyph));
+        continue;
+      }
+    }
     if (!placed.moved) continue;
     const lngLat = tileToLngLat(placed.position, CURVE_TILE_EXTENT);
     feature.geometry.coordinates = lngLat;

@@ -812,7 +812,7 @@ test("the label sits where it fits — on its own piece, the least distance from
   assert.ok(placeLabelInPiece({ polygons: [diagonal], anchor: [60, 50], halfWidth: 40, halfHeight: 4, rotation: -45, em: 4 }).anchorCoverage < 0.3);
   // Nothing to fit into keeps the anchor.
   assert.deepEqual(placeLabelInPiece({ polygons: [], anchor: [1, 2], halfWidth: 1, halfHeight: 1, em: 1 }),
-    { position: [1, 2], coverage: 0, anchorCoverage: 0, moved: false });
+    { position: [1, 2], coverage: 0, anchorCoverage: 0, landCoverage: 0, moved: false });
   assert.equal(placeLabelInPiece({ polygons: [rect], anchor: [50, 20], halfWidth: 1, halfHeight: 1, em: 0 }).moved, false, "no em, no pull, no move");
   // The dials, as measured: 256 cells reads a ragged coast right; 0.03 per em
   // keeps a settled label settled and moves an unsettled one the least.
@@ -836,11 +836,11 @@ test("Nations.jsx places every flat label after it knows every label — obstacl
   // regions and its drawn em (tier-1 at MINOR_LABEL_SCALE) to a second pass
   // that runs once every leader label, glyph and flat label is known.
   assert.match(NATIONS, /const pending = \[\];/);
-  assert.match(NATIONS, /if \(!leader\) \{\n\s*pending\.push\(\{\n\s*feature,\n\s*members: anchor === merged \? merged\.members : anchor\.members,\n\s*em: \(index === 0 \? 1 : MINOR_LABEL_SCALE\) \* feature\.properties\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE,\n\s*\}\);\n\s*\}/,
-    "a flat label waits with the anchor piece's own region list and its drawn size");
+  assert.match(NATIONS, /if \(!leader\) \{\n\s*pending\.push\(\{\n\s*feature,\n\s*members: anchor === merged \? merged\.members : anchor\.members,\n\s*em: \(index === 0 \? 1 : MINOR_LABEL_SCALE\) \* feature\.properties\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE,\n(?:\s*\/\/.*\n)*\s*seat: index === 0,\n\s*labelId: id - 1,\n\s*cluster,\n\s*name,\n\s*ownScale,\n\s*tilt,\n\s*elongation,\n\s*\}\);\n\s*\}/,
+    "a flat label waits with the anchor piece's own region list, its drawn size, and what a curve would need");
   assert.match(NATIONS, /const boxes = new Map\(features\.map\(\(feature\) => \[feature\.id, boxOfFeature\(feature\)\]\)\);/,
     "every label the map draws is a box before any flat label is placed");
-  assert.match(NATIONS, /for \(const \{ feature, members, em \} of pending\) \{/);
+  assert.match(NATIONS, /for \(const \{ feature, members, em, seat, labelId, cluster, name, ownScale, tilt, elongation \} of pending\) \{/);
   assert.match(NATIONS, /const placed = placeLabelInPiece\(\{\n\s*polygons,\n\s*anchor: lngLatToTile\(feature\.geometry\.coordinates, CURVE_TILE_EXTENT\),\n\s*halfWidth: \(widestLineEm\(p\.name\) \/ 2\) \* em,\n\s*halfHeight: \(wrapNameLines\(p\.name\)\.length \* LABEL_LINE_HEIGHT_EM \* em\) \/ 2,\n\s*rotation: p\.rotation,\n\s*em,\n\s*obstacles,\n\s*\}\);/,
     "the label's own wrapped width, line count and tilt, in tile space, against every other box");
   assert.match(NATIONS, /if \(!placed\.moved\) continue;\n\s*const lngLat = tileToLngLat\(placed\.position, CURVE_TILE_EXTENT\);\n\s*feature\.geometry\.coordinates = lngLat;\n\s*p\.lat = lngLat\[1\];\n\s*boxes\.set\(feature\.id, boxOfFeature\(feature\)\);/,
@@ -851,6 +851,53 @@ test("Nations.jsx places every flat label after it knows every label — obstacl
   // own size — and the leader lane and curved lane themselves are not placed
   // again: `pending` only ever receives a flat label.
   assert.match(NATIONS, /if \(p\.curved === 1\) \{\n\s*const em = p\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE;\n\s*return labelBox\(centre, \(nameWidthEm\(p\.glyph\) \/ 2\) \* em, em \/ 2, p\.rotation\);\n\s*\}/);
+});
+
+test("a short name on a long path is laid compact and centred, not scattered — and only when asked", () => {
+  // The quarter-arc again. Two glyphs spread across it face 90° apart and are
+  // refused; the same two glyphs at a capped size sit together at the arc's
+  // middle, face nearly the same way, and pass.
+  const ring = bentBand();
+  const spread = buildClusterCurvePath([ring], bandCentroid, -45, 2, { needed: true, glyphCount: 2 });
+  assert.equal(spread, null, "spread across the arc: refused (as before)");
+  const compact = buildClusterCurvePath([ring], bandCentroid, -45, 2, { needed: true, glyphCount: 2, maxPerEm: 4 });
+  assert.ok(compact, "capped at 4 units an em, the two glyphs share the middle of the arc");
+  // The layout follows the same cap: the name occupies totalEm × maxPerEm of
+  // path, centred, instead of the whole usable length.
+  const laid = layoutGlyphsAlongPath(compact, "AB", { maxPerEm: 4 });
+  assert.ok(laid && Math.abs(laid.perEm - 4) < 1e-9, "one em is four units of path");
+  const loose = layoutGlyphsAlongPath(compact, "AB");
+  assert.ok(loose.perEm > laid.perEm * 5, "without the cap the same name spreads over the path");
+  const mid = (pts) => pts.reduce((a, g) => [a[0] + g.position[0] / pts.length, a[1] + g.position[1] / pts.length], [0, 0]);
+  const centreOfPath = compact.points[Math.floor(compact.points.length / 2)];
+  const [mx, my] = mid(laid.glyphs);
+  assert.ok(Math.hypot(mx - centreOfPath[0], my - centreOfPath[1]) < 15, `centred on the path: ${[mx, my]} vs ${centreOfPath}`);
+  // Nations.jsx asks for the compact layout only for the SHAPE-driven curve —
+  // the width-driven one is left exactly as measured on the fleet.
+  assert.match(NATIONS, /const maxPerEm = forShape \? ownScale \* TILE_UNITS_PER_EM_PER_SCALE : undefined;/);
+  assert.match(NATIONS, /const laid = layoutGlyphsAlongPath\(path, name, \{ maxPerEm \}\);/);
+});
+
+test("a seat whose flat label sits on its land nowhere gets the curve after placement", () => {
+  // placeLabelInPiece reports how much of the label is on the piece itself at
+  // the spot it chose, obstacles or no — the cue for the curve.
+  const P = (rings) => projectPolygon(rings, (point) => point);
+  const rect = P([[[0, 0], [100, 0], [100, 40], [0, 40], [0, 0]]]);
+  const clear = placeLabelInPiece({ polygons: [rect], anchor: [50, 20], halfWidth: 30, halfHeight: 6, rotation: 0, em: 10 });
+  assert.equal(clear.landCoverage, 1);
+  const busy = placeLabelInPiece({ polygons: [rect], anchor: [50, 20], halfWidth: 30, halfHeight: 6, rotation: 0, em: 10, obstacles: [labelBox([50, 20], 60, 30, 0)] });
+  assert.ok(busy.landCoverage >= busy.coverage, "land is what is left when the obstacles are put back");
+  assert.equal(busy.landCoverage, 1, "the rectangle is all land, however crowded");
+  const thin = P([[[0, 0], [100, 0], [100, 4], [0, 4], [0, 0]]]);
+  const spill = placeLabelInPiece({ polygons: [thin], anchor: [50, 2], halfWidth: 30, halfHeight: 6, rotation: 0, em: 10 });
+  assert.ok(spill.landCoverage < 0.5, `a label taller than its strip is mostly off it wherever it goes: ${spill.landCoverage}`);
+  // Wired in the placement pass, seat only, below the measured share; the
+  // glyphs replace the flat feature under its id and become obstacles.
+  assert.match(NATIONS, /const LABEL_CURVE_LAND_COVERAGE = 0\.8;/, "80% of the label on its land, measured across the fleet — 30 seats fall under it");
+  assert.match(NATIONS, /if \(seat && placed\.landCoverage < LABEL_CURVE_LAND_COVERAGE\) \{\n\s*const curved = buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation, \{ forShape: true \}\);\n\s*if \(curved\) \{\n\s*const glyphs = curvedGlyphFeatures\(curved, labelId\);\n\s*features\.splice\(features\.indexOf\(feature\), 1, \.\.\.glyphs\);\n\s*boxes\.delete\(feature\.id\);\n\s*for \(const glyph of glyphs\) boxes\.set\(glyph\.id, boxOfFeature\(glyph\)\);\n\s*continue;\n\s*\}\n\s*\}/);
+  assert.match(NATIONS, /if \(flatFits && !forShape\) return null;/, "the width gate still holds for the loop's own call");
+  assert.match(NATIONS, /const curved = !leader && index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
+    "…which is unchanged: no option, no compact layout");
 });
 
 console.log(`\n${pass} passed\n`);

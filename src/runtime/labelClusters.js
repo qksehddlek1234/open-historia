@@ -511,9 +511,12 @@ const coverageAt = (raster, [cx, cy], halfWidth, halfHeight, rotationDeg, along,
 // anchor the label would otherwise sit at, the label's half extents and
 // rotation, one em in the working plane, and the boxes of the other labels the
 // map will draw: the spot to draw the label at, with how much of it lands on
-// the piece there (`coverage`) and how much did at the anchor
-// (`anchorCoverage`). `moved` says whether the two spots differ. A piece the
-// raster cannot see (no polygons, or zero area) keeps the anchor.
+// free land there (`coverage` — the piece less the obstacles), how much did at
+// the anchor (`anchorCoverage`), and how much of it is on the piece itself at
+// that spot, obstacles or no (`landCoverage` — the caller's cue that no flat
+// label fits this shape and a curve should be tried). `moved` says whether the
+// two spots differ. A piece the raster cannot see (no polygons, or zero area)
+// keeps the anchor.
 export const placeLabelInPiece = ({ polygons, anchor, halfWidth, halfHeight, rotation = 0, em, obstacles = [] }, options = {}) => {
   const {
     cells = LABEL_FIT_CELLS,
@@ -521,7 +524,7 @@ export const placeLabelInPiece = ({ polygons, anchor, halfWidth, halfHeight, rot
     samplesAlong = LABEL_FIT_SAMPLES_ALONG,
     samplesAcross = LABEL_FIT_SAMPLES_ACROSS,
   } = options;
-  const keep = { position: anchor, coverage: 0, anchorCoverage: 0, moved: false };
+  const keep = { position: anchor, coverage: 0, anchorCoverage: 0, landCoverage: 0, moved: false };
   const polys = (polygons ?? []).filter((poly) => poly?.ringStart?.length >= 2 && poly.ringStart[1] - poly.ringStart[0] >= 3);
   if (!polys.length || !(halfWidth >= 0) || !(halfHeight >= 0) || !(em > 0)) return keep;
   let grid = cells;
@@ -531,10 +534,15 @@ export const placeLabelInPiece = ({ polygons, anchor, halfWidth, halfHeight, rot
     raster = rasterizePolygons(polys, grid);
   }
   if (!raster || !raster.count) return keep;
+  // The piece as land, before the obstacles are cut out of it.
+  const land = obstacles.length ? { ...raster, inside: raster.inside.slice() } : raster;
   eraseBoxes(raster, obstacles);
   const coverage = (pt) => coverageAt(raster, pt, halfWidth, halfHeight, rotation, samplesAlong, samplesAcross);
+  const landCoverage = (pt) => coverageAt(land, pt, halfWidth, halfHeight, rotation, samplesAlong, samplesAcross);
   const anchorCoverage = coverage(anchor);
-  if (anchorCoverage >= LABEL_FIT_SETTLED) return { position: anchor, coverage: anchorCoverage, anchorCoverage, moved: false };
+  if (anchorCoverage >= LABEL_FIT_SETTLED) {
+    return { position: anchor, coverage: anchorCoverage, anchorCoverage, landCoverage: landCoverage(anchor), moved: false };
+  }
 
   const { x0, y0, cell, cols, rows, inside } = raster;
   // The anchor is a candidate too, at zero pull: nothing moves unless somewhere
@@ -575,5 +583,11 @@ export const placeLabelInPiece = ({ polygons, anchor, halfWidth, halfHeight, rot
     const r1 = Math.min(rows - 1, bestRow + stride);
     for (let r = r0; r <= r1; r += 1) for (let c = c0; c <= c1; c += 1) consider(c, r);
   }
-  return { position: best.position, coverage: best.coverage, anchorCoverage, moved: best.position !== anchor };
+  return {
+    position: best.position,
+    coverage: best.coverage,
+    anchorCoverage,
+    landCoverage: landCoverage(best.position),
+    moved: best.position !== anchor,
+  };
 };
