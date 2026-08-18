@@ -146,8 +146,9 @@ Two constants (`World.jsx:44`) give the image-source corners:
 | `countries-source` | vector | `PMTILES_PROTOCOL_URLS.countries`, `maxzoom 8` | `!customFlag` | `countries-fill`, `countries-outline` |
 | `regions-source` | vector | `PMTILES_PROTOCOL_URLS.regions`, `maxzoom 8` | **never gated** | `regions-fill`, `regions-disputed`, `regions-outline` |
 | `custom-regions-source` | geojson | `enrichedCustomRegionData`, `tolerance 0` | inert unless `customActive` | `custom-regions-fill-far`, `custom-regions-hairline-far`, `custom-regions-disputed-far`, `custom-regions-fill`, `custom-regions-disputed`, `custom-regions-outline` |
-| `country-curved-label-source` | geojson | `activeCurvedLabelData` | — | `country-curved-labels` |
-| `country-point-label-source` | geojson | `activePointLabelData` | — | `country-labels` |
+| `country-leader-line-source` | geojson | `activeLeaderLineData` | — | `country-leader-lines` |
+| `country-curved-label-source` | geojson | `activeCurvedLabelData` (stock lane — empty on every built board) | — | `country-curved-labels` |
+| `country-point-label-source` | geojson | `activePointLabelData` (the owner lane, all ranks) | — | `country-labels`, `country-labels-leaders`, `country-labels-minor`, `country-labels-curved` (§7.2) |
 
 **`countries-source` is dead code by design.** Its `countries-fill` uses `fillStyle`, whose `match` is the only expression that keys on a country **code** (`["get","GID_0"]`). Because `customRegions` is forced true everywhere, `showStockCountries` (`worldKnown && !customFlag`) is always false and the source never mounts. It's left intact (not half-fixed) for a future dead-code sweep. The layer that actually paints the political map is `regions-fill` via `stockRegionsFillPaint`, which matches `GID_1` (a region id) and needs no code→name bridge.
 
@@ -225,43 +226,84 @@ Claimants come from `world.regionClaimants[id]` first (how the modern-world scen
 
 ## 7. Country / owner labels
 
-Two label render paths, selected by the world flag:
+Two label lanes exist in `Nations.jsx`; **one of them draws.** `normalizeRuntimeWorld` forces `customRegions` on every served world (24 of 24 built boards), so the `customFlag` branch is the whole of what a player sees, and the stock lane's sources stay empty everywhere:
 
-| State | Point labels | Curved labels |
-|---|---|---|
-| `!worldKnown` | empty | empty (no flash before load) |
-| `customFlag` (custom map) | `ownerLabelData` (per-owner) | empty |
-| stock world | `pointLabelData` | `curvedLabelData` |
+| State | Point labels | Leader lines | Curved glyphs |
+|---|---|---|---|
+| `!worldKnown` | empty | empty | empty (no flash before load) |
+| `customFlag` — **every built board** | `ownerLabelData` (owner lane, all four ranks below) | `ownerLeaderLineData` | inside `ownerLabelData` (`curved: 1` features) |
+| stock world (never reached) | `pointLabelData` | `leaderLineData` | `curvedLabelData` |
 
-### Stock labels — `src/runtime/countryLabels.js`
+The stock lane — `src/runtime/countryLabels.js`, `loadCountryLabelCollections` reading the z0 tile of `countries.pmtiles` — labels *modern* countries, which is wrong on scenario maps (it printed "Russia"/"Ukraine" over the USSR). It is kept for the shared geometry it exports (`lngLatToTile`, the area-moment axis helpers, `AXIS_ELONGATION_FLOOR`) and its own cache key (`country-labels-v3`); the owner lane below is what this section is about.
 
-`loadCountryLabelCollections({ force, ownedCodes })` reads the **z0 tile** of `countries.pmtiles`, decodes it, and for each country builds either a **curved** multi-glyph label (one Point feature per letter, following the country's principal axis — `buildCurvedLabelPath` + `buildCurvedLabelGlyphFeatures`) or a single **point** label when the shape is too compact/round to curve text along. Names run through `resolveCountryDisplayName` + `translateLabel` (labels are baked into map features, not DOM, so they must be pre-translated). `ownedCodes` filters out countries owning no territory this scenario (so modern names don't float over medieval land). Results are cached in runtime JSON, keyed on `tile-hash + byteLength + archiveUrl + language + owner-set` (`COUNTRY_LABELS_CACHE_KEY = "country-labels-v3"`; an empty build is served once but never cached, since an empty z0 read is almost always a degraded tile, not a label-less world).
+### 7.1 The owner lane — `buildOwnerLabelCollection` (`Nations.jsx`)
 
-### Owner labels for custom maps — `buildOwnerLabelCollection` (`Nations.jsx:343`)
+One label per **owner per contiguous territory**, built as a pure function of the region GeoJSON, `regionOwnershipOverrides`, `polityOverrides`, a name resolver, the memoized adjacency and the player's leader-line dial. It recomputes as ownership polls in, so **labels follow conquests**; `labelEpoch` (bumped on `i18n:updated`) forces a rebuild when translations land. The pure geometry lives in four runtime modules, tested without the map by `tests/label-leaders.mjs` (48 pins) and `tests/label-names.mjs`:
 
-The stock pipeline labels *modern* countries, which is wrong on scenario maps (it printed "Russia"/"Ukraine" over the USSR). Instead, one label per **owner per contiguous landmass**:
-
-1. `buildRegionAdjacency` (`Nations.jsx:278`) — which regions physically touch, by hashing every vertex on a ~11 m (`1e-4°`) grid. Geometry-only, so it's memoized per world and survives ownership changes.
-2. Union-find groups same-owner **adjacent** regions into one territory each. Contiguity (not distance) is what keeps a colony separate from its metropole (France's mainland vs French West Africa) while keeping a touching chain like Siberia a single label.
-3. `mergeOwnerClusters` then does a small centroid mop-up (`CLUSTER_JOIN_DEGREES = 10`) to fold islands into nearby mainland and heal adjacency near-misses.
-4. Each cluster becomes a Point feature named by `polityOverrides[owner].name || countryNameByCode.get(owner) || owner`, run through `resolveCountryDisplayName` + `translateLabel`, uppercased. Every owner keeps its largest cluster; extra clusters must clear `MIN_CLUSTER_AREA = 1.5` (deg²).
-
-`ownerLabelData` recomputes as `regionOwnershipOverrides` poll in, so **labels follow conquests**. A `labelEpoch` (bumped on the `i18n:updated` event) forces a rebuild when translations land.
-
-### Label layers & styling
-
-Both label sources feed `type:"symbol"` layers (`country-labels`, `country-curved-labels`). Shared config:
-
-| Property | Value |
+| Module | Owns |
 |---|---|
-| `text-font` | `labelFontStack` = `[world.labelFont || "Impact", "Arial Black", "sans-serif"]` (drawn locally as a CSS font-family — MapLibre v5 has no glyphs endpoint here) |
-| `text-size` | `buildCountryTextSize(1, isGlobe)` — exponential-in-zoom, scaled by each feature's baked `areaScale`, capped at 254 |
-| `text-color` / `text-halo-color` | `world.labelTextColor || "#FFFFFF"` / `world.labelHaloColor || "rgba(0,0,0,0.5)"` |
-| `text-opacity` | interp zoom `5→0.75, 8→0` (labels fade out as you zoom in and cities take over) |
-| `visibility` | `none` when `hideCountryLabels` map setting is on |
-| `text-pitch/rotation-alignment` | `"map"`, `text-keep-upright:false` |
+| `src/runtime/labelNames.js` | which of a polity's names prints (`pickDisplayAlias`) |
+| `src/runtime/labelClusters.js` | which regions touch (`buildRegionAdjacency`), which piece carries the label (`snapshotClusterPart` / `largestClusterPart`), which cluster is the seat (`seatIndex`), and where on the piece the label sits (`placeLabelInPiece`) |
+| `src/runtime/labelLeaders.js` | the promotion floor and leader-line placement (`buildLeaderPlacement`), name width in em (`nameWidthEm`, `wrapNameLines`, `widestLineEm`), the fit cap (`fitNameToTerritory`) |
+| `src/runtime/labelCurves.js` | the curved rung (`buildClusterCurvePath`, `layoutGlyphsAlongPath`, `tileToLngLat`) |
 
-**Globe text-size fix (issue #6):** globe projection oversizes a label's own high-latitude text relative to its outline. `GLOBE_LAT_CORRECTION = cos(feature.lat * π/180)` undoes it, applied via `buildCountryTextSize(..., correctForGlobe=true)` **only** in globe mode (the factor is visibly wrong in Mercator at high latitude). Every label feature carries its own `lat` for this — the reason `countryLabels.js` bumped its cache to `v3`.
+The steps, in the order the builder runs them:
+
+**1. Owner and name.** A region's owner is `regionOwnershipOverrides[id] ?? properties.owner`, canonicalised through `toCountryName` (an AI capture writes the code `"ESP"`, the seed writes the name `"Spain"`; both must land in one cluster). GADM's disputed slivers `Z01–Z09` print as `Disputed (<claimant>)` (`DISPUTED_TERRITORY_CLAIMANT`). The raw name is `polityOverrides[owner].name || countryNameByCode.get(owner) || owner`, and the resolver the component passes is **spec first**: `pickDisplayAlias(polityOverrides[owner].aliases, language) ?? translateLabel(resolveCountryDisplayName(raw, owner))`. On a Korean client that is the polity's first Hangul alias — the string the preset author wrote ("바이에른 왕국"), not the translation pack's guess ("바바리아 왕국") — and only a polity with no alias in the player's script (a Latin-script language, a base country with no polity entry) falls through to the old path. `tests/preset-display-alias.mjs` holds the fleet to the convention that `aliases[0]` is the Korean display name (decision 2026-08-17; every board has been filled). The result is uppercased.
+
+**2. One entry per region**: the centroid, area (deg²), bbox and area-moment axis of its **largest ring** (the axis is accumulated in tile space, where the text is drawn — reading member centroids instead stood SPAIN on end and laid ITALY flat).
+
+**3. Adjacency** — `buildRegionAdjacency` (`labelClusters.js`), geometry-only and memoized per world, so it survives ownership polls. Two regions touch when any two of their vertices lie within `REGION_ADJACENCY_DEGREES = 1e-2°`. It used to be a shared vertex on a 1e-4° grid, which is how GADM's provinces meet inside one country and not how two countries' outlines meet: measured on 1836, cross-border gaps are digitising noise under 1e-4° with a tail of river borders up to ~6e-3°, and the misses were real (Prussia's Polish provinces stop 2.2e-4° short of Brandenburg; Jutland and Schleswig 1.9e-3° apart). 1e-2° sits between the widest real border gap and the first same-owner pair that genuinely is apart (Incheon–Kaesong, 1.8e-2°), and it is only ever consumed *within* one owner. Flat typed-array grid, CSR-indexed, cells four epsilons wide: 1.7 s for 1836's 3.2 M vertices, against 2.6 s for the hash it replaced.
+
+**4. Clusters.** Union-find over same-owner adjacent regions gives one cluster per contiguous territory — contiguity, not distance, is what keeps a colony apart from its metropole (France vs French West Africa) while a touching chain like Siberia stays one label. `mergeOwnerClusters` then folds clusters whose centroids lie within `CLUSTER_JOIN_DEGREES = 10` (islands onto their mainland; at 3° Japan splits into three labels and Britain into two), and each merge keeps a snapshot of the pieces it folded — position, weight and region list — as `parts`.
+
+**5. Seat and tier.** Clusters sort largest first, then `seatIndex` moves the **home** cluster to the front: the preset builder writes each polity's `home` (the first country in its grants — `"GBR"` for Britain, `"DNK"` for Denmark) and the seat is the cluster holding the most regions cut from that country. Before this the seat was simply the largest cluster, which named an empire after its biggest possession (59 cases across the fleet: Denmark's seat was Greenland on six boards, 1836 Britain's the Columbia District, Portugal's Mozambique). Index 0 is the seat — `tier: 0`, full weight, the only cluster offered the leader line and the curve; everything after it is a possession, `tier: 1`, and must clear `MIN_CLUSTER_AREA = 1.5` deg² (every owner keeps its seat regardless). A polity without a home keeps the largest.
+
+**6. Anchor.** The label's provisional position is the centroid of the cluster's **largest contiguous piece** (`largestClusterPart`), not the merged centroid — which for an archipelago is the sea and for a country with an exclave leans toward it (Bavaria's label sat west toward the Palatinate, on Württemberg's; Two Sicilies' in the Tyrrhenian). Only the position comes from the piece; size, tier, tilt and the rings a curve may run through still read the whole cluster.
+
+**7. Size, and the ladder.** `ownScale = √area × 17500` is the label's weight (`buildCountryTextSize` draws it at `areaScale × 2^(zoom − 16)` px). Its tilt is the cluster's principal axis when the axis means something — elongation ≥ `AXIS_ELONGATION_FLOOR = 1.4`, read off wwii-1935's 109 seats — else 0. Then three rungs, each the original's:
+
+| Rung | When | What is emitted |
+|---|---|---|
+| **Leader line** | seat only, `ownScale < LEADER_AREA_SCALE_FLOOR = 20000` (San Marino scores 589; Danzig 9,116) | `buildLeaderPlacement` puts the label outside the shape, horizontal, at `LEADER_LABEL_AREA_SCALE = 30000`, on a hairline from the territory's edge (`leaderLines` collection); `labelLineExtension` (a map setting, default `LEADER_EXTENSION_DEFAULT = 0.5`) is how far out |
+| **Curved** | seat only, no leader, and the flat name would not fit: `widestLineEm(name) > NAME_FIT_EM × √elongation` | `buildOwnerCurve` traces a centreline through the cluster's own rings along the same axis, and `layoutGlyphsAlongPath` emits **one Point feature per glyph** (`curved: 1`), sized to fill the path within `[LEADER_AREA_SCALE_FLOOR, ownScale]`; no curve if even the floor will not fit — GRAND-HESSE and SAXE-WEIMAR on the original's 1836 board are this rung |
+| **Flat** | everything else | one Point feature at `fitNameToTerritory(ownScale, name, tilt ? elongation : 1)` — the size at which the *player's* string (the alias, wrapped as MapLibre wraps it) fits across the territory, never below the floor |
+
+A **possession prints at its own weight** — the rank cue is the minor layer's `MINOR_LABEL_SCALE = 0.6`, not a cap. There was a cap (a repeat could not out-print the seat); it never bit while the seat was the largest cluster and bit hard once the seat was the home cluster (Greenland's DENMARK fell to a tenth of its size). Checked against the original on 2026-08-18: it caps nothing — DENMARK is drawn across Greenland at Greenland's size while Denmark proper carries no name at that zoom.
+
+**8. Placement — `placeLabelInPiece`.** The anchor is a good spot only while the piece is convex; it is in Bosnia for Croatia, in Sweden for Norway, inside Lesotho for South Africa, in the Ogaden for Somalia, and on the fleet's 2,947 flat labels only 61% sat wholly on their own land at the anchor (77 had the anchor off it altogether). So the builder makes a second pass once every label is known: it rasterises the piece — its member regions' largest polygons, projected once per world into tile space (`projectedPieceOf`, a `WeakMap`) and scan-filled `LABEL_FIT_CELLS = 256` wide — erases every other label box the map will draw (leader labels, curved glyphs, the other flat labels at their current spots) as off-land, and samples the label's own rectangle (wrapped width × `wrapNameLines(name).length × LABEL_LINE_HEIGHT_EM`, at its tilt, 21 × 5 points) against it. A label ≥ 99.9% on its land stays exactly where it is; otherwise it moves to the spot maximising `coverage − LABEL_FIT_PULL (0.03) × distance in em` — the least move that fixes it, searched only within the reach where the pull can still lose. The pole of inaccessibility was measured and rejected: it maximises an inscribed circle and drifts to the roundest bulge, where a long tilted label wants the middle of the long axis. Fleet, with this code: wholly-inside 61% → 88%, mean 94% → 99%, 39% of labels move (median 0.48 em, p90 1.9 em), label-on-label overlaps 34 → 2, leader labels covered by a neighbour's name 66 → 36. The pass is ~100 ms per rebuild on 1836 (the builder is ~550 ms without it); the leader line and the curved rung are not re-placed.
+
+**9. Output.** `{ labels, leaderLines }` — the label features carry `name` (or `glyph`), `areaScale`, `rotation`, `tier`, `leader`, `curved` and `lat` (for the globe correction); the leader lines carry `name` and `ownScale`. Two collections because they are two sources.
+
+### 7.2 Layers & styling
+
+| Source | Data | Layers |
+|---|---|---|
+| `country-leader-line-source` | `activeLeaderLineData` | `country-leader-lines` — `line`, the label colour at half strength, fading on **how big the country draws** (`ownScale × 2^(zoom−16)`: 0.38 at 20 → 0 at 60), not on zoom |
+| `country-curved-label-source` | `activeCurvedLabelData` (stock lane; empty on every built board) | `country-curved-labels` |
+| `country-point-label-source` | `activePointLabelData` | four `symbol` layers filtered on the property that names each rank — see below |
+
+**Four layers, one source**, because `text-allow-overlap` is layout-only and constant-only (a data expression there is rejected on every style pass and every label falls back to `false`), and size, halo and `text-field` are per-layer too:
+
+| Layer | Filter | Layout / paint difference | Overlap |
+|---|---|---|---|
+| `country-labels` | `leader != 1 && tier != 1 && curved != 1` | full size, halo 1 | **allowed** — a country standing on its own ground always draws |
+| `country-labels-leaders` | `leader == 1` | full size, horizontal | culled — 71 promoted labels world-wide, most of them islands packed into the Caribbean and the Pacific, would smear |
+| `country-labels-minor` | `tier == 1 && …` | `text-size × MINOR_LABEL_SCALE`, halo 0.5 (a 1 px halo on a 40%-smaller face reads as a bolder blob) | culled, and **drawn last** so a repeat yields to the country's own name |
+| `country-labels-curved` | `curved == 1` | `text-field: glyph`, per-glyph `rotation` | allowed |
+
+Shared layout (`pointLabelLayoutBase`): `text-font` = `[world.labelFont || "Impact", "Arial Black", "sans-serif"]` (a CSS font-family drawn locally — MapLibre v5 has no glyphs endpoint here); `text-size` = `buildCountryTextSize(1, isGlobe)`, exponential in zoom, scaled by each feature's baked `areaScale`, capped at 254; `text-rotate` = `["get","rotation"]`; `text-letter-spacing` = `LABEL_LETTER_SPACING = 0.12` — **layout, not paint** (in paint MapLibre answered "unknown property" 76 times per page load and the tracking never reached the screen); `text-pitch-alignment`/`text-rotation-alignment` `"map"`, `text-keep-upright: false`; `visibility: none` under the `hideCountryLabels` map setting. Paint: `world.labelTextColor || "#FFFFFF"`, halo `world.labelHaloColor || "rgba(0,0,0,0.5)"`, and **`text-opacity` flat 0.75** — it used to ramp to 0 by z8, which by the zoom a player reads Europe at made the country's own name three times fainter than the city labels beside it; the original draws LATVIA and BYELORUSSIAN SSR solid, and the size cap already stops a label smearing at deep zoom.
+
+**Globe text-size fix (issue #6):** globe projection oversizes a label's own high-latitude text relative to its outline. `GLOBE_LAT_CORRECTION = cos(feature.lat × π/180)` undoes it, applied via `buildCountryTextSize(…, correctForGlobe = true)` **only** in globe mode (the factor is visibly wrong in Mercator). Every label feature carries its own `lat` for this — the placement pass moves it with the label.
+
+### 7.3 Measuring, and the units
+
+Everything above was set by measurement rather than by eye, and the numbers are in the code comments and `docs/WORKLOG.md` (2026-08-16 → 18). What to remember when re-measuring:
+
+- **Name width is measured in em, wrapped as MapLibre wraps.** `text-max-width` defaults to 10 em (Nations.jsx does not set it) and `text-line-height` to 1.2 em (`LABEL_MAX_WIDTH_EM`, `LABEL_LINE_HEIGHT_EM`); a full-width Hangul glyph is 1 em, an upper-case Latin glyph 0.55 (`NAME_FIT_CHAR_WIDTH`), plus the tracking. `NAME_FIT_EM ≈ 4.76` em is how many em cross a territory of the label's own weight; measure the string the player sees (the alias), not the English key.
+- **One em is `areaScale / 8192` tile units** (extent 4096) — the same at every zoom, because text and map both scale by `2^z` — so overlap and fit are measured in tile space without picking a zoom; tier-1 is `× 0.6`. Rotation in that plane is MapLibre's clockwise `text-rotate`.
+- **Pass the adjacency**, or the clusters are not the game's; the builder's own probe (the pure section of `Nations.jsx` run in Node against `regions.geojson` + `world.json`) is how the fleet numbers were taken. Boards without their own `regions.geojson` borrow Modern Day's (`libraryStore.js`).
+- The original (paxhistoria.co) is the reference for *what* to draw — prefixes ("KINGDOM OF BAVARIA"), the curved rung, uncapped possessions, letterspacing — and this lane departs from it exactly once, by decision: the original prints a label at its centroid (UNITED KINGDOM and JAPAN in the Pacific), this one at the nearest spot where the name sits on the land it names.
 
 ---
 
@@ -351,7 +393,7 @@ Sun/star/lighting math is in `globeSunMath.js`, `globeCanvasLighting.js`, `globe
 | Crossfade band z5.5–6.5 | `FAR_FILL_FADE`/`TILE_FILL_FADE` | Seed extracted at tile-zoom 5; hand off just past it |
 | Pixel-ratio switch z4.5 / z5 | `applyDynamicPixelRatio` | Soften the whole-world view; hysteresis prevents flapping |
 | Cities `minzoom 3.4`, city thresholds step by zoom | `Cities.jsx` | Thin out symbols as you zoom out |
-| Label `text-opacity` fades to 0 by z8 | `labelLayerPaint` | Country/owner labels hand the screen to city labels on zoom in |
+| Label `text-opacity` flat 0.75, `text-size` capped at 254 px | `labelLayerPaint`, `buildCountryTextSize` | Country/owner labels no longer fade on zoom in (the original draws them solid; measured at z≈6.8 the old ramp left them three times fainter than the city labels) — the size cap is what stops a name smearing at deep zoom |
 | Markers labels `minzoom 2.6` | `MarkersLayer.jsx` | Structure names appear slightly earlier than cities |
 
 ---
@@ -364,7 +406,9 @@ world.json ──(useWorldState, 5s)──► customRegions, regionOwnershipOver
    │                                 labelFont/Color, basemap, background, units
    │
    ├─► Nations.jsx ──► enrichedCustomRegionData (_fillColor/_stripes baked in)
-   │                   ownerLabelData (per-owner, follows conquests)
+   │                   ownerLabelData + ownerLeaderLineData (per-owner, follows
+   │                   conquests; adjacency memoized on the geometry, each label
+   │                   placed on its own piece — §7)
    │                   stockRegionsFillPaint (GID_1 → owner colour)
    │
    ├─► useCustomBackground ──► buildWorldStyle (image/vector/placeholder/ESRI)
