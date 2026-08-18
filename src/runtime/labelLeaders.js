@@ -54,10 +54,9 @@ export const LEADER_EXTENSION_DEFAULT = 0.5;
 // micro-states all leaning the same way reads as deliberate typography, where
 // per-shape "best side" logic reads as scatter. Up-and-right is also where an
 // atlas puts them.
-export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, extensionDeg) => {
-  if (!Array.isArray(ringLngLat) || ringLngLat.length < 3) return null;
-
-  const [cx, cy] = centroid;
+// The way out: the shape's minor axis, northern (else eastern) side, as a unit
+// vector in lng/lat.
+const leaderDirection = (principalAngleDeg) => {
   // Tile-space axis is (cos θ, sin θ); its normal is (-sin θ, cos θ). Tile y
   // grows southward, so (dx, dy) becomes (dx, -dy) in lng/lat.
   const rad = principalAngleDeg * (Math.PI / 180);
@@ -72,21 +71,62 @@ export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, ex
     nx = -nx;
     ny = -ny;
   }
+  return [nx, ny];
+};
 
-  // How far the shape itself reaches along that normal, so the line starts
+// The label and the line's start along one direction: past the shape's reach
+// that way, then the extension.
+const leaderPlacementAlong = (ringLngLat, [cx, cy], [nx, ny], extensionDeg) => {
+  // How far the shape itself reaches along that direction, so the line starts
   // clear of the polygon rather than inside it.
   let reach = 0;
   for (const [px, py] of ringLngLat) {
     const projected = ((px - cx) * nx) + ((py - cy) * ny);
     if (projected > reach) reach = projected;
   }
-
   const distance = reach + Math.max(0, extensionDeg);
   const anchor = [cx + (nx * distance), cy + (ny * distance)];
   // Clamp off the poles: Mercator cannot draw them and a label pushed past
   // ±85° lands nowhere.
   anchor[1] = clamp(anchor[1], -84, 84);
   return { anchor, edge: [cx + (nx * reach), cy + (ny * reach)] };
+};
+
+export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, extensionDeg) => {
+  if (!Array.isArray(ringLngLat) || ringLngLat.length < 3) return null;
+  return leaderPlacementAlong(ringLngLat, centroid, leaderDirection(principalAngleDeg), extensionDeg);
+};
+
+// EVERY WAY OUT, in the order to try them. The first is buildLeaderPlacement's
+// own answer — the convention above — and it stands unless it collides. What
+// collides: measured across the fleet (2026-08-18, tile-space boxes) 80 pairs
+// of leader labels overlap EACH OTHER — the Caribbean's islands, the German
+// small states, the Malay sultanates, each pair leaning the same way onto the
+// same spot — and 36 sit under a country's name; MapLibre culls the leader
+// layer, so one of every such pair is simply not drawn, on a lane built so that
+// small states get a name. So the label builder tries these in turn against
+// every box already on the map and takes the first that is clear: the other
+// side of the minor axis, then along the major axis both ways, then the four
+// diagonals; then the same eight again a half and a whole extension further
+// out. A label that finds nothing keeps the first — same as before.
+export const LEADER_EXTENSION_STEPS = [1, 1.5, 2];
+export const leaderPlacementCandidates = (ringLngLat, centroid, principalAngleDeg, extensionDeg) => {
+  if (!Array.isArray(ringLngLat) || ringLngLat.length < 3) return [];
+  const [nx, ny] = leaderDirection(principalAngleDeg);
+  // The major axis in lng/lat (tile (cos θ, sin θ) → (cos θ, −sin θ)).
+  const rad = principalAngleDeg * (Math.PI / 180);
+  const ax = Math.cos(rad);
+  const ay = -Math.sin(rad);
+  const unit = ([x, y]) => { const l = Math.hypot(x, y) || 1; return [x / l, y / l]; };
+  const directions = [
+    [nx, ny], [-nx, -ny], [ax, ay], [-ax, -ay],
+    unit([nx + ax, ny + ay]), unit([nx - ax, ny - ay]), unit([-nx + ax, -ny + ay]), unit([-nx - ax, -ny - ay]),
+  ];
+  const out = [];
+  for (const step of LEADER_EXTENSION_STEPS) {
+    for (const direction of directions) out.push(leaderPlacementAlong(ringLngLat, centroid, direction, Math.max(0, extensionDeg) * step));
+  }
+  return out;
 };
 
 // ── AND LABELS THAT FIT INSIDE, BUT ONLY BECAUSE THEIR NAME IS SHORT ─────────

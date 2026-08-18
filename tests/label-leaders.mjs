@@ -25,12 +25,12 @@ const SETTINGS = read("src/Game/GameUI/settings.jsx");
 const {
   buildLeaderPlacement, LEADER_AREA_SCALE_FLOOR, LEADER_LABEL_AREA_SCALE, LEADER_EXTENSION_DEFAULT,
   fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, LABEL_LINE_HEIGHT_EM,
-  nameWidthEm, widestLineEm, wrapNameLines,
+  nameWidthEm, widestLineEm, wrapNameLines, leaderPlacementCandidates, LEADER_EXTENSION_STEPS,
 } = await import("../src/runtime/labelLeaders.js");
 const { buildClusterCurvePath, layoutGlyphsAlongPath } = await import("../src/runtime/labelCurves.js");
 const {
   REGION_ADJACENCY_DEGREES, buildRegionAdjacency, snapshotClusterPart, largestClusterPart, seatIndex,
-  LABEL_FIT_CELLS, LABEL_FIT_PULL, largestPolygonOf, labelBox, projectPolygon, placeLabelInPiece,
+  LABEL_FIT_CELLS, LABEL_FIT_PULL, largestPolygonOf, labelBox, projectPolygon, placeLabelInPiece, boxesOverlap,
 } = await import("../src/runtime/labelClusters.js");
 const CLUSTERS = read("src/runtime/labelClusters.js");
 
@@ -707,7 +707,7 @@ test("the label sits on the largest contiguous piece, and only the position move
   assert.equal(largestClusterPart(bare), bare, "empty parts → itself");
   // Wired that way in Nations.jsx: the merge snapshots, the loop anchors, and
   // the anchored view keeps everything but cx/cy from the merged cluster.
-  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*labelBox,\n\s*largestClusterPart,\n\s*largestPolygonOf,\n\s*placeLabelInPiece,\n\s*projectPolygon,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
+  assert.match(NATIONS, /import \{\n\s*boxesOverlap,\n\s*buildRegionAdjacency,\n\s*labelBox,\n\s*largestClusterPart,\n\s*largestPolygonOf,\n\s*placeLabelInPiece,\n\s*projectPolygon,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
   assert.match(NATIONS, /a\.parts \?\?= \[snapshotClusterPart\(a\)\];\n\s*b\.parts \?\?= \[snapshotClusterPart\(b\)\];\n\s*a\.parts\.push\(\.\.\.b\.parts\);/,
     "the merge remembers its pieces, snapshotted before the fold");
   assert.match(NATIONS, /const anchor = largestClusterPart\(merged\);\n\s*const cluster = anchor === merged \? merged : \{ \.\.\.merged, cx: anchor\.cx, cy: anchor\.cy \};/,
@@ -898,6 +898,43 @@ test("a seat whose flat label sits on its land nowhere gets the curve after plac
   assert.match(NATIONS, /if \(flatFits && !forShape\) return null;/, "the width gate still holds for the loop's own call");
   assert.match(NATIONS, /const curved = !leader && index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
     "…which is unchanged: no option, no compact layout");
+});
+
+test("a leader label that lands on another label tries the other ways out, in order", () => {
+  // A unit square, axis horizontal: the way out is north (the convention).
+  const corners = [[0, 0], [1, 0], [1, 1], [0, 1]];
+  const first = buildLeaderPlacement(corners, [0.5, 0.5], 0, 0.5);
+  const ways = leaderPlacementCandidates(corners, [0.5, 0.5], 0, 0.5);
+  assert.equal(ways.length, 8 * LEADER_EXTENSION_STEPS.length, "eight directions at each of the extension steps");
+  assert.deepEqual(ways[0], first, "the first candidate IS the convention — nothing moves that was clear");
+  assert.deepEqual(ways[1].anchor, [0.5, -0.5], "then the other side of the minor axis");
+  assert.deepEqual(ways[2].anchor.map((v) => +v.toFixed(9)), [1.5, 0.5], "then along the major axis…");
+  assert.deepEqual(ways[3].anchor.map((v) => +v.toFixed(9)), [-0.5, 0.5], "…both ways");
+  const diagonal = ways[4].anchor;
+  assert.ok(diagonal[0] > 1 && diagonal[1] > 1, `then the diagonals: ${diagonal}`);
+  assert.deepEqual(ways[8].anchor, [0.5, 1.75], "the second lap sits half an extension further out");
+  assert.deepEqual(ways[16].anchor, [0.5, 2], "the third a whole one");
+  assert.deepEqual(leaderPlacementCandidates([[0, 0]], [0, 0], 0, 0.5), [], "no shape, no ways");
+  assert.deepEqual(LEADER_EXTENSION_STEPS, [1, 1.5, 2]);
+  // Boxes: the collision test the pass uses.
+  const a = labelBox([0, 0], 5, 2, 0);
+  assert.equal(boxesOverlap(a, labelBox([4, 0], 5, 2, 0)), true, "side by side and touching over 6 units");
+  assert.equal(boxesOverlap(a, labelBox([11, 0], 5, 2, 0)), false, "clear by a unit");
+  assert.equal(boxesOverlap(a, labelBox([0, 5], 5, 2, 0)), false, "clear vertically");
+  assert.equal(boxesOverlap(a, labelBox([7, 3], 5, 2, 45)), true, "a turned box reaching in");
+  assert.equal(boxesOverlap(a, labelBox([9, 4], 5, 0.5, 90)), false, "a turned box whose bounds meet but whose body does not");
+  assert.equal(boxesOverlap(null, a), false);
+  // Wired in Nations.jsx: after every flat label is placed, each leader label
+  // is checked against every other box and, only if it collides, walks the
+  // candidates; the line follows. Measured across the fleet: leader labels
+  // on each other 80 pairs → 4, under a country's name 36 → 3, 96 of 548 moved.
+  assert.match(NATIONS, /const pendingLeaders = \[\];/);
+  assert.match(NATIONS, /pendingLeaders\.push\(\{\n\s*feature,\n\s*line: leaderLine,\n\s*corners: bboxCorners\(cluster\.bbox\),\n\s*centroid: \[cluster\.cx, cluster\.cy\],\n\s*tilt,\n\s*\}\);/);
+  assert.match(NATIONS, /for \(const \{ feature, line, corners, centroid, tilt \} of pendingLeaders\) \{/);
+  assert.match(NATIONS, /if \(clear\(boxes\.get\(feature\.id\)\)\) continue;\n\s*for \(const candidate of leaderPlacementCandidates\(corners, centroid, tilt, leaderExtension\)\) \{/,
+    "a clear leader label keeps the convention; a colliding one walks the ways out");
+  assert.match(NATIONS, /if \(!clear\(box\)\) continue;\n\s*feature\.geometry\.coordinates = candidate\.anchor;\n\s*p\.lat = candidate\.anchor\[1\];\n\s*if \(line\) line\.geometry\.coordinates = \[candidate\.edge, candidate\.anchor\];\n\s*boxes\.set\(feature\.id, box\);\n\s*break;/,
+    "the first clear way wins, and the line moves with the label");
 });
 
 console.log(`\n${pass} passed\n`);

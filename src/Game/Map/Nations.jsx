@@ -46,6 +46,7 @@ import {
   NAME_FIT_EM,
   buildLeaderPlacement,
   fitNameToTerritory,
+  leaderPlacementCandidates,
   nameWidthEm,
   widestLineEm,
   wrapNameLines,
@@ -64,6 +65,7 @@ import { pickDisplayAlias } from "../../runtime/labelNames.js";
 // Which regions touch, which piece of a merged territory carries its label,
 // and where on that piece the label sits.
 import {
+  boxesOverlap,
   buildRegionAdjacency,
   labelBox,
   largestClusterPart,
@@ -673,8 +675,10 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
   const features = [];
   const leaderFeatures = [];
   // Flat labels waiting for the placement pass below, with the piece each one
-  // must stay inside of.
+  // must stay inside of; and leader labels waiting for theirs, with what a
+  // second way out needs.
   const pending = [];
+  const pendingLeaders = [];
   let id = 0;
   for (const [owner, roots] of perOwner) {
     // Islands still join their nearby mainland (and any adjacency near-miss
@@ -749,18 +753,20 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       const leader = index === 0 && ownScale < LEADER_AREA_SCALE_FLOOR && cluster.bbox
         ? buildLeaderPlacement(bboxCorners(cluster.bbox), [cluster.cx, cluster.cy], tilt, leaderExtension)
         : null;
+      let leaderLine = null;
       if (leader) {
         // From the territory's own edge out to the label, not from its centre:
         // starting at the edge keeps the stroke off a country two pixels wide
         // instead of covering it.
-        leaderFeatures.push({
+        leaderLine = {
           type: "Feature",
           id: `owner-leader-${id}`,
           geometry: { type: "LineString", coordinates: [leader.edge, leader.anchor] },
           // ownScale rides along so the line can fade on how big the COUNTRY is
           // on screen rather than on zoom alone — see leaderLinePaint.
           properties: { name, ownScale },
-        });
+        };
+        leaderFeatures.push(leaderLine);
       }
 
       // TOO WIDE TO FIT FLAT → the label BENDS along the territory.
@@ -880,6 +886,14 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           tilt,
           elongation,
         });
+      } else {
+        pendingLeaders.push({
+          feature,
+          line: leaderLine,
+          corners: bboxCorners(cluster.bbox),
+          centroid: [cluster.cx, cluster.cy],
+          tilt,
+        });
       }
     }
   }
@@ -957,6 +971,42 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     feature.geometry.coordinates = lngLat;
     p.lat = lngLat[1];
     boxes.set(feature.id, boxOfFeature(feature));
+  }
+
+  // A LEADER LABEL THAT LANDS ON ANOTHER LABEL TRIES THE OTHER WAYS OUT. The
+  // leader layer is collision-culled (a stack of Caribbean islands must not
+  // smear), so a leader label under a country's name or under its neighbour's
+  // leader label is not drawn at all — and measured across the fleet, 80 pairs
+  // of leader labels sat on each other (Selangor on Negeri Sembilan, Modena on
+  // Parma, Lippe on Schaumburg-Lippe, Lübeck on Bremen, ten pairs of Antilles)
+  // and 36 under a country's name (San Marino under ITALY on thirteen boards).
+  // Now that every other label is placed, each leader label is checked in turn
+  // against every box on the map, its own excluded, and moves to the first of
+  // leaderPlacementCandidates' ways out that is clear — the same lean stays
+  // wherever it was already clear, so the convention holds and only the
+  // collisions move. The line follows the label to its new anchor.
+  for (const { feature, line, corners, centroid, tilt } of pendingLeaders) {
+    const p = feature.properties;
+    const clear = (box) => {
+      for (const [otherId, other] of boxes) if (otherId !== feature.id && boxesOverlap(box, other)) return false;
+      return true;
+    };
+    if (clear(boxes.get(feature.id))) continue;
+    for (const candidate of leaderPlacementCandidates(corners, centroid, tilt, leaderExtension)) {
+      const em = p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
+      const box = labelBox(
+        lngLatToTile(candidate.anchor, CURVE_TILE_EXTENT),
+        (widestLineEm(p.name) / 2) * em,
+        (wrapNameLines(p.name).length * LABEL_LINE_HEIGHT_EM * em) / 2,
+        0,
+      );
+      if (!clear(box)) continue;
+      feature.geometry.coordinates = candidate.anchor;
+      p.lat = candidate.anchor[1];
+      if (line) line.geometry.coordinates = [candidate.edge, candidate.anchor];
+      boxes.set(feature.id, box);
+      break;
+    }
   }
 
   // Two collections, because they are two sources: the labels go into the point

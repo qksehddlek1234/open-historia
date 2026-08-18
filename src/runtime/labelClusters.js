@@ -357,6 +357,28 @@ export const labelBox = ([cx, cy], halfWidth, halfHeight, rotationDeg = 0) => {
   return { corners, minX, minY, maxX, maxY };
 };
 
+// Do two label boxes overlap? Separating-axis test on the eight edge normals,
+// after the bounds have failed to keep them apart.
+export const boxesOverlap = (a, b) => {
+  if (!a || !b || a.maxX < b.minX || b.maxX < a.minX || a.maxY < b.minY || b.maxY < a.minY) return false;
+  for (const box of [a, b]) {
+    for (let i = 0; i < 4; i += 1) {
+      const [x1, y1] = box.corners[i];
+      const [x2, y2] = box.corners[(i + 1) % 4];
+      const axisX = -(y2 - y1);
+      const axisY = x2 - x1;
+      let minA = Infinity;
+      let maxA = -Infinity;
+      let minB = Infinity;
+      let maxB = -Infinity;
+      for (const [px, py] of a.corners) { const d = px * axisX + py * axisY; if (d < minA) minA = d; if (d > maxA) maxA = d; }
+      for (const [px, py] of b.corners) { const d = px * axisX + py * axisY; if (d < minB) minB = d; if (d > maxB) maxB = d; }
+      if (maxA < minB || maxB < minA) return false;
+    }
+  }
+  return true;
+};
+
 const pointInRing = (pt, ring) => {
   let inside = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
