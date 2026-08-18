@@ -40,10 +40,10 @@ console.log("\nA polity's first alias is its Korean display name");
 // not a new break.
 // bronze-1200bc and colonial-1650 left this list on 2026-08-17 — 59 display
 // names, and from that batch the convention guards them like everyone else.
+// mongol-1300 and roman-117 left on 2026-08-17 (65 names). medieval-1200 is
+// the last gap and is Cowork's batch #4 — when it lands, this list dies.
 const KNOWN_GAPS = new Set([
   "medieval-1200",
-  "mongol-1300",
-  "roman-117",
 ]);
 
 test("every board outside the named gaps is 100% Hangul-first", async () => {
