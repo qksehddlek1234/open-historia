@@ -97,6 +97,8 @@ export default {
     // 여러 주체를 통째로 덮는다.** 이름 매칭이 아니라 면의 범위가 문제라, 별칭을
     // 더 붙여도 그대로다.
     excludeFaces: [
+      // 미 해군 기지는 나라가 아니다 — 필리핀은 1946년 독립했고 기지는 조차지다.
+      "U.S. Naval Base Subic Bay",
       // 인도 408개 구를 파키스탄으로 넘긴다 — 아대륙 전체다. **범인은 rung-1의
       // `Dominion of Pakistan`이다**(rung-3 `Pakistan`을 먼저 뺐는데 408건이
       // 그대로 남아서 알았다): 1935·1950 유럽에서 본 것과 같은 미폐합 덩어리로,
@@ -131,6 +133,30 @@ export default {
     },
 
     faceOwners: {
+      // ── 광역 재조립(2026-08-18, 창 -15,5,145,75 — 유럽만 덮던 옛 창이 아시아
+      // rung-1을 잘랐던 것의 수리)이 데려온 식민지·보호령들. 1950-01-01의 주인으로
+      // 잇는다 — 지역 광역 폴리티(BWA·BEA·AOF·AEF)가 로스터에 이미 있는 곳은
+      // 그쪽으로, 나머지는 본국으로.
+      "英屬香港 British Hong Kong": "GBR",
+      "Colony of North Borneo": "GBR", "Colony of Sarawak": "GBR",
+      "Protectorate of Brunei": "GBR", "Crown Colony of Malacca": "GBR",
+      "Persekutuan Tanah Melayu": "GBR", // 말라야 연방 1948 — 영국 보호
+      "Aden Protectorate": "GBR", "سلطنة لحج": "GBR", // 라헤지는 아덴 보호령 안
+      "Anglo-Egyptian Sudan": "GBR", // 공동통치 — 실효는 영국
+      "British Military Administration of Somaliland": "GBR",
+      "British Kenya": "BEA", "Protectorate of Uganda": "BEA",
+      "Colony and Protectorate of Nigeria": "BWA", "Gold Coast Colony": "BWA",
+      "Ashanti Colony": "BWA", "Northern Territories": "BWA",
+      "British Togoland": "BWA", "British Cameroons": "BWA",
+      "Gambia Colony and Protectorate": "BWA", "Sierra Leone Protectorate": "BWA",
+      "French Cameroon": "AEF", "Colonie du Oubangui-Chari-Tchad": "AEF",
+      "Siin": "AOF", // 신(시네) — 1950 프랑스령 서아프리카 안의 전통 왕국
+      "Goa Portuguesa": "POR", "Guiné Portuguesa": "POR",
+      // 하이데라바드 번왕국 — 1948-09 폴로 작전으로 인도가 병합했다. 1950-01엔 인도다.
+      "Princely State of Hyderabad": "IND",
+      // 독립국 둘 — 지역 패스 어휘로.
+      "Republica Populară Română": "Romania",
+      "République syrienne": "Syria", // 1946 독립
       // ── 유럽 인민공화국들: 주권국이고 이 보드는 현대 주권을 그대로 쓴다 ──
       "Magyar Népköztársaság": "Hungary",
       "Народна република България": "Bulgaria",

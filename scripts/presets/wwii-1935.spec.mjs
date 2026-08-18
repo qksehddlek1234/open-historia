@@ -131,6 +131,13 @@ export default {
     },
 
     faceOwners: {
+      // ── 2026-08-18 재조립(Overpass + resolve + 오버라이드)이 데려온 위임통치령 둘.
+      // 옛 조립에선 지중해 복합체에 갇혀 있던 면들이다 — 재조립이 12개국 융합을
+      // 풀면서 각자 면을 얻었고, 이 둘만 로스터에 이름이 없다.
+      "Palestine Mandate": "GBR", // 영국 위임통치 팔레스타인 (1920 산레모)
+      // 시리아 면은 해소 기록으로 레바논을 삼켰다(권위 거부가 LBN 지역을 지킨다) —
+      // 면의 주인은 위임통치국 프랑스다.
+      "République syrienne": "FRA",
       // The face is named for the province and the province was German — it is
       // the eastern half of the shape the board was reported for, the one the
       // Polish Corridor separates from the rest of the Reich. Left unmatched it

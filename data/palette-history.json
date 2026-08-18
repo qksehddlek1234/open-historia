@@ -1630,6 +1630,9 @@
       ]
     },
     "coldwar-1946": {
+      "Algeria": [
+        "40bf5e"
+      ],
       "Allied-occupied Austria": [
         "b8b8c8"
       ],
@@ -1677,6 +1680,9 @@
       "Byelorussian SSR": [
         "8d5236",
         "932828"
+      ],
+      "Chad": [
+        "acbf40"
       ],
       "Commonwealth of Australia": [
         "d07a5a"
@@ -1804,6 +1810,12 @@
         "9a8aaa",
         "b44848"
       ],
+      "Mali": [
+        "5ebf40"
+      ],
+      "Mauritania": [
+        "bf40b9"
+      ],
       "Moldavian SSR": [
         "9c3232",
         "b08a7a"
@@ -1811,11 +1823,17 @@
       "Mongolian People's Republic": [
         "a85454"
       ],
+      "Morocco": [
+        "40bf5e"
+      ],
       "Nepal": [
         "4dbf40"
       ],
       "Netherlands": [
         "e08a2e"
+      ],
+      "Niger": [
+        "40bf68"
       ],
       "Oman": [
         "7340bf"
@@ -1825,6 +1843,9 @@
       ],
       "Portugal": [
         "2e7d6b"
+      ],
+      "Qatar": [
+        "bf6a40"
       ],
       "Republic of China": [
         "4a6db5"
@@ -1871,6 +1892,9 @@
       ],
       "Union of South Africa": [
         "a87a5a"
+      ],
+      "United Arab Emirates": [
+        "8c40bf"
       ],
       "United States": [
         "4a8f7a"
@@ -9981,6 +10005,9 @@
       "Liberia": [
         "9d40bf"
       ],
+      "Libya": [
+        "8e40bf"
+      ],
       "Liechtenstein": [
         "40bf51"
       ],
@@ -10068,6 +10095,9 @@
       ],
       "Travancore and Cochin": [
         "b0937f"
+      ],
+      "Tunisia": [
+        "40bf9b"
       ],
       "Turkmen SSR": [
         "b08a4a"

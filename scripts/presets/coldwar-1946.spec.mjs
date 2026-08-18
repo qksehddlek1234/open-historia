@@ -49,6 +49,13 @@ export default {
   // faces; absent the dump it builds exactly as before, and says so.
   eraGeometry: {
     date: "1946-03-05",
+    // 명시 핀 — 자동 발견은 날짜 어간(1946-03-05)만 보는데, 재조립본(2026-08-18,
+    // Overpass + resolve + 오버라이드, 레시피는 리포트에)의 라인 덤프가 1946-01-01
+    // 창으로 수확됐다. 1946년 1~3월 사이 유럽 국경 변화는 없다(파리 조약은 1947) —
+    // 날짜가 아니라 파일을 고르는 것이고, 1935가 같은 이유로 못 박은 그 규칙이다.
+    // 하이브리드는 world_1945 백필: 종전 국경이 사실상 1945년에 섰다(포츠담·오데르-
+    // 나이세). 1946-03과의 차이는 rung-1이 정밀하게 덮는 유럽 밖 이야기다.
+    file: "scripts/ohm/out/era-borders-1946-01-01-z4-hybrid.geojson",
     window: [-15, 30, 50, 72],
     // 2026-08-14 면 검수 (39면 전수). 첫 검증 빌드(08-13)의 재배정 221건에는
     // 발트→루마니아가 섞여 있었다 — 아래 잔여 메가면이 원인. 그날 목록을
@@ -67,7 +74,19 @@ export default {
       // 첫 빌드 실측: 동독 NUTS 8개 지역이 소련→미국으로 가고 있었다.
       // 기하의 실제 보유자에게 준다. (영국 지대 면은 진짜 — 함부르크·쾰른
       // 안, 베를린·뮌헨 밖 실측.)
+      // 재조립(2026-08-18) 뒤에도 점 검사로 재확인했다: 여전히 베를린·라이프치히
+      // 안, 뮌헨·프랑크푸르트 밖 — 거짓말이 데이터에 그대로 있다. 행 유지.
       "American occupation zone in Germany": "SOV",
+      // ── world_1945 백필(첫 1946 하이브리드)이 데려온 여섯 — 점령구역과 군정.
+      // rung-3의 독일 구역 셋은 이름이 정직하다(rung-1 미국 지대와 달리).
+      "Germany (UK)": "GBR",
+      "Germany (USA)": "USA",
+      "Germany (France)": "FRA",
+      // 자르 보호령 — 파리가 경제 분리 중, 스펙도 DEU.12_1을 FRA에 준다.
+      "Saar Protectorate": "FRA",
+      // 리비아 군정 둘 — rung-1의 British Military Administration과 같은 답.
+      "Cyraneica (UK Lybia)": "GBR",
+      "Tripolitana (UK Lybia)": "GBR",
       "British occupation zone in Germany": "GBR",
       "British Cyprus": "GBR",
       "British Military Administration of Libya": "GBR", // 트리폴리타니아·키레나이카 군정 1943-51

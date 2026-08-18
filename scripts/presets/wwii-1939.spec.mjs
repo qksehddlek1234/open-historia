@@ -83,7 +83,15 @@ export default {
     // 41x45 degrees, six times the next-largest face and reaching from the
     // Balkans to Central Asia, carrying Iran's label because Iran's is the one
     // that happens to sit in it. Not a country; excluded by name.
-    excludeFaces: ["ایران"],
+    excludeFaces: [
+      // world_1938의 연대 어긋남 둘 — 1939-09-01에 존재하지 않는 나라.
+      // 체코슬로바키아는 1939-03에 해체됐다(보헤미아-모라바 보호령 + 슬로바키아).
+      // rung-1이 그 해체를 정밀하게 그리고 있고(CZE 14칸 = Germany), 이 면을
+      // 들이면 1938년 국경이 그 위를 덮는다.
+      "Czechoslovakia",
+      // 빈 샬란 토후국(루왈라 베두인)은 1930년대에 독립 정권이 아니다 — 그 사막은
+      // 프랑스령 시리아·트란스요르단·사우디가 나눠 쥔다.
+      "Emirate of Bin Shal'an","ایران"],
     // Borders this dump fused across where the other side has no label to mark
     // the fusion. Measured: the German face covers Midtjylland 97.8%,
     // Syddanmark 67.8% and Nordjylland 35.2% — Jutland leaked into the Reich
@@ -105,6 +113,20 @@ export default {
       "Protectorate of Kuwait": "GBR",
       "Protectorate of Qatar": "GBR",
       "Trucial States": "GBR",
+      // ── world_1938 백필(첫 1939 하이브리드, 2026-08-18)이 데려온 것들.
+      // rung-3의 이름은 1938년 어휘라 1939-09-01과 몇 곳에서 어긋난다 — 어긋난
+      // 것은 아래 excludeFaces에서 이름으로 죽고, 맞는 것만 여기서 잇는다.
+      "Trucial Oman": "GBR", // rung-1 Trucial States와 같은 답
+      "Algeria (France)": "FRA", // 1939 알제리는 프랑스 일체령
+      "Morocco (France)": "FRA",
+      "Mandatory Palestine (GB)": "GBR",
+      "Syria (France)": "FRA",
+      // 이라크는 1932년 독립 — rung-1 아랍명 행과 같은 답. 자료의 "Mesopotamia"는
+      // 1938년에도 낡은 이름이지만 면이 덮는 땅이 이라크인 것은 맞다.
+      "Mesopotamia (GB)": "Iraq",
+      // 헤자즈·하일: 1925·1921년에 사우드가 정복했다 — 1939년엔 사우디아라비아다.
+      "Hejaz": "Saudi Arabia",
+      "Hail": "Saudi Arabia",
       "Sultanate of Muscat and Oman": "GBR", // treaty state inside the British system
       // A Crown dependency, not a sovereign state — the dump gives it a face of
       // its own and it re-owned all 21 of GADM's Manx parishes back to "Isle of
