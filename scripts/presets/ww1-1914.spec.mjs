@@ -87,6 +87,25 @@ export default {
       // 지역 패스와 같은 어휘(COUNTRY_NAMES)로 맞춘다.
       "Protectorate of Kuwait": "Kuwait", // 1913 영국-오스만 협약의 자치 셰이크국
       "Sultanate of Muscat and Oman": "Oman",
+
+      // ── 2026-08-18 재조립(Overpass + resolve + 오버라이드, 레시피는 리포트에)이
+      // 데려온 로스터 밖 주권국 열 — 이 보드는 unassignedKeepModernOwner라 현대명
+      // 어휘로 잇는다(위 쿠웨이트·오만 전례). 전부 1914-07-28에 실존한다.
+      // 같은 재조립이 Norge 융합면(중부 스웨덴을 물던 것)을 고쳤다 — 이오니아처럼
+      // 파이프라인 진화가 치유한 두 번째 사례라, 옛 조립으로 돌아가면 안 된다.
+      "Norge": "Norway",
+      "Sverige": "Sweden",
+      "Danmark": "Denmark",
+      "Schweiz": "Switzerland",
+      "Lëtzebuerg": "Luxembourg",
+      "Liechtenstein": "Liechtenstein",
+      "San Marino": "San Marino",
+      "Andorra": "Andorra",
+      // 알바니아 공국 — 1914-02 비트의 빌헬름 공. 개장일(7-28)에 실존한다.
+      "Principata e Shqipërisë": "Albania",
+      // 왕관령 — 1836·1946 보드와 같은 처리: 안 이으면 주권국으로 읽힌다.
+      "Isle of Man": "United Kingdom",
+      "Βασίλειον τῆς Ἑλλάδος": "Greece",
     },
 
     // rung-3의 이탈리아 면은 1914년이 아니라 **1919년 국경**을 그린다. 실측하니
@@ -94,6 +113,9 @@ export default {
     // 면을 버리기엔 반도 전체가 아깝고 지역 배정으로는 못 막으므로(면이 배정을
     // 이긴다) 틀린 곳만 울타리로 막는다.
     faceKeepOut: {
+      // España 면이 이베리아 전체(-9.5°W)를 덮는다 — 1836·2000과 같은 병, 세 번째
+      // 같은 처방. 포르투갈 면이 조립에 없어 울타리 없이는 포르투갈이 스페인이 된다.
+      "España": ["PRT"],
       "Kingfom of Italy": [
         // 산마리노는 1914년에도 오늘도 독립 공화국이다. 면이 반도를 통으로 칠하면서
         // 7칸을 삼켰다. 로스터 밖이라 `unassignedKeepModernOwner`가 이름을 지킨다.
