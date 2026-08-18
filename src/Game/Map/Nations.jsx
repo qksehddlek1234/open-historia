@@ -33,24 +33,23 @@ import {
   lngLatToTile,
   loadCountryLabelCollections,
 } from "../../runtime/countryLabels.js";
-// Pure geometry, no DOM. The owner lane promotes below the SAME floor the stock
-// lane uses and places the label the same way, so it takes those constants from
-// here rather than restating them — two floors would drift apart the first time
-// either was tuned.
+// Pure geometry, no DOM: how wide a name is, how it wraps, and how far it
+// shrinks to fit the shape it names. The leader-line half of that module is
+// the stock lane's now — the owner lane retired leader labels on 2026-08-18
+// (see the sizing note in the label loop below), so nothing here promotes.
 import {
   LABEL_LETTER_SPACING,
   LABEL_LINE_HEIGHT_EM,
-  LEADER_AREA_SCALE_FLOOR,
-  LEADER_EXTENSION_DEFAULT,
-  LEADER_LABEL_AREA_SCALE,
   NAME_FIT_EM,
-  buildLeaderPlacement,
   fitNameToTerritory,
-  leaderPlacementCandidates,
   nameWidthEm,
   widestLineEm,
   wrapNameLines,
 } from "../../runtime/labelLeaders.js";
+// The label layers' paint expressions that depend on zoom AND the feature —
+// pure, so tests can hand them to MapLibre's own validator (the leader-line
+// opacity was invalid for weeks with nothing able to ask).
+import { buildCountryTextOpacity, buildLeaderLineOpacity } from "../../runtime/labelPaint.js";
 // The owner lane's own curved labels — see labelCurves.js for why the stock
 // lane's builder behind `!customFlag` could not simply be switched on.
 import {
@@ -65,7 +64,6 @@ import { pickDisplayAlias } from "../../runtime/labelNames.js";
 // Which regions touch, which piece of a merged territory carries its label,
 // and where on that piece the label sits.
 import {
-  boxesOverlap,
   buildRegionAdjacency,
   labelBox,
   largestClusterPart,
@@ -114,6 +112,11 @@ const buildCountryTextSize = (multiplier = 1, correctForGlobe = false) => {
   ];
 };
 
+// A LABEL FADES IN AS IT REACHES LEGIBLE SIZE ON SCREEN, AND OUT AS IT
+// OUTGROWS THE SCREEN — buildCountryTextOpacity, in labelPaint.js with the
+// measurements (the original's, 2026-08-18) and the reason it is written as a
+// composite. It reads the same multiplier and globe correction text-size does,
+// so the window is in the px the label actually draws at.
 // The second rank of label — an owner's outlying clusters (countryLabels.js
 // explains what tier is). Not a number invented for this: 0.6 is the measured
 // floor of the curved-label size scale in countryLabels.js, the smallest this
@@ -334,34 +337,6 @@ const ringAxisMoments = (ring) => {
   return moments;
 };
 
-// One region's extent in lng/lat, kept as [minX, minY, maxX, maxY] so clusters
-// can union it while they fold. Used only by the leader-line placement.
-const ringBbox = (ring) => {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const [x, y] of ring) {
-    if (x < minX) minX = x;
-    if (y < minY) minY = y;
-    if (x > maxX) maxX = x;
-    if (y > maxY) maxY = y;
-  }
-  return [minX, minY, maxX, maxY];
-};
-
-const unionBbox = (a, b) => [
-  Math.min(a[0], b[0]), Math.min(a[1], b[1]),
-  Math.max(a[2], b[2]), Math.max(a[3], b[3]),
-];
-
-// The four corners, in the shape buildLeaderPlacement wants — it projects every
-// point it is given onto the outward normal and keeps the furthest, so a corner
-// list answers "how far does this territory reach that way" exactly.
-const bboxCorners = ([minX, minY, maxX, maxY]) => [
-  [minX, minY], [maxX, minY], [maxX, maxY], [minX, maxY],
-];
-
 const ringCentroidLngLat = (ring) => {
   let x = 0;
   let y = 0;
@@ -415,11 +390,8 @@ const mergeOwnerClusters = (clusters, joinDeg) => {
           a.cy = (a.cy * a.area + b.cy * b.area) / total;
           a.area = total;
           // The axis travels with the merge, or an island joining its mainland
-          // would silently drop out of the angle the label is drawn at. The
-          // extent travels for the same reason: a leader line measured from
-          // half a territory starts inside the other half.
+          // would silently drop out of the angle the label is drawn at.
           if (a.axis && b.axis) addAxisMoments(a.axis, b.axis);
-          if (a.bbox && b.bbox) a.bbox = unionBbox(a.bbox, b.bbox);
           if (a.members && b.members) a.members.push(...b.members);
           clusters.splice(j, 1);
           merged = true;
@@ -448,10 +420,14 @@ const DISPUTED_TERRITORY_CLAIMANT = {
 // what fits across the territory). Along a curve there is more room — the path
 // is the shape's whole length, not its width — so the glyphs can be larger
 // than the capped flat label and still stay inside. They are sized to fill the
-// path's usable length, clamped to [floor, ownScale]: never bigger than the
-// country's own weight, never smaller than a country label may go (the same
-// LEADER_AREA_SCALE_FLOOR the cap stops at). If even the floor is too big for
-// the path, there is no curve — the leader line or the flat cap answers.
+// path's usable length, capped at ownScale: never bigger than the country's
+// own weight, and — since 2026-08-18 — as small as the path demands. There was
+// a floor (LEADER_AREA_SCALE_FLOOR: a path that could not hold the name at
+// that size gave no curve, and the leader line answered); the player retired
+// the leader lane in favour of the original's current rule, every name inside
+// its own shape at whatever size that takes, so a long name on a small long
+// country now bends along it small — LAO PEOPLE'S DEMOCRATIC REPUBLIC as the
+// original draws it — and fades in with the zoom (buildCountryTextOpacity).
 //
 // The path is traced in tile space (where the axis is measured — see
 // lngLatToTile in countryLabels.js) and the glyph positions come back to
@@ -505,11 +481,13 @@ const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation,
   // and centred; the width-driven curve is left as measured (its names are
   // long, and the spread rehearsal is what refuses the scattered ones).
   const maxPerEm = forShape ? ownScale * TILE_UNITS_PER_EM_PER_SCALE : undefined;
+  // No minimum path length is passed (minPathPerEm): the path is never too
+  // short for the name, the glyphs are sized to it (below). The shape gates in
+  // buildClusterCurvePath — width ratio, kink, the glyph-step rehearsal —
+  // still decide whether a curve reads.
   const path = buildClusterCurvePath(rings, centroid, axisDeg, nameWidthEm(name), {
     needed: true,
     glyphCount,
-    // The path must hold the whole name at no less than the floor's size.
-    minPathPerEm: LEADER_AREA_SCALE_FLOOR * TILE_UNITS_PER_EM_PER_SCALE,
     maxPerEm,
   });
   if (!path) return null;
@@ -518,10 +496,10 @@ const buildOwnerCurve = (cluster, allFeatures, name, ownScale, tilt, elongation,
   if (!laid) return null;
 
   // Size to the path: the areaScale that puts exactly one em in laid.perEm
-  // tile units, clamped as described above (maxPerEm already keeps it at or
-  // under ownScale; the floor still applies).
+  // tile units, capped at the seat's own weight (maxPerEm already keeps the
+  // shape-driven layout there). No floor — see the sizing note above.
   const fillScale = laid.perEm / TILE_UNITS_PER_EM_PER_SCALE;
-  const areaScale = Math.max(LEADER_AREA_SCALE_FLOOR, Math.min(ownScale, fillScale));
+  const areaScale = Math.min(ownScale, fillScale);
 
   return {
     areaScale,
@@ -566,7 +544,7 @@ const curvedGlyphFeatures = (curved, id) => curved.glyphs.map((g) => ({
 // (an archipelago has none), the flat label stays where it was placed.
 const LABEL_CURVE_LAND_COVERAGE = 0.8;
 
-const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null, leaderExtension = LEADER_EXTENSION_DEFAULT) => {
+const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameResolver, adjacency = null) => {
   const allFeatures = regionsFC?.features ?? [];
   const countryNameByCode = new Map(); // gid0 -> modern country name (fallback labels)
   const ownerByIndex = new Array(allFeatures.length).fill("");
@@ -590,15 +568,10 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       c: ringCentroidLngLat(best.ring),
       area: best.area,
       moments: ringAxisMoments(best.ring),
-      // How far the territory reaches, for the leader-line placement below. A
-      // bounding box rather than the rings themselves because the cluster is a
-      // FOLD: by the time the direction is known the rings are long gone, and
-      // four corners union in a line where a ring list would have to be carried
-      // through the whole union-find. It reads slightly LARGE for a shape that
-      // is not a rectangle, which is the safe direction — a label that starts a
-      // little far out is still legible; one that starts short sits on top of
-      // the country it is naming.
-      bbox: ringBbox(best.ring),
+      // (A bounding box used to ride along here for the leader-line placement
+      // — how far the territory reaches, unioned through the fold. Gone with
+      // that lane, 2026-08-18; the rings are read back from allFeatures where
+      // a shape is needed.)
     };
   }
 
@@ -652,7 +625,6 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       // The label's ANGLE rides along, accumulated (see the rotation note
       // below). A running centroid cannot say which way a territory lies.
       addAxisMoments(cluster.axis, entry.moments);
-      cluster.bbox = unionBbox(cluster.bbox, entry.bbox);
       cluster.members.push(index);
     } else {
       roots.set(root, {
@@ -660,25 +632,21 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
         cy: entry.c[1],
         area: entry.area,
         axis: entry.moments,
-        bbox: entry.bbox,
         // WHICH REGIONS, not their rings. The curved lane below needs the
-        // cluster's outline to trace a centreline through it, and the bbox
-        // note above is right that carrying rings through the fold is a lot
-        // of vertices for something almost no cluster uses. Indices are four
-        // bytes each; the rings are read back from allFeatures only for the
-        // handful of seats whose flat label will not fit.
+        // cluster's outline to trace a centreline through it, and carrying
+        // rings through the fold is a lot of vertices for something few
+        // clusters use. Indices are four bytes each; the rings are read back
+        // from allFeatures for the seats whose flat label will not fit, and
+        // the placement pass projects each piece once (projectedPieceOf).
         members: [index],
       });
     }
   }
 
   const features = [];
-  const leaderFeatures = [];
   // Flat labels waiting for the placement pass below, with the piece each one
-  // must stay inside of; and leader labels waiting for theirs, with what a
-  // second way out needs.
+  // must stay inside of.
   const pending = [];
-  const pendingLeaders = [];
   let id = 0;
   for (const [owner, roots] of perOwner) {
     // Islands still join their nearby mainland (and any adjacency near-miss
@@ -726,64 +694,43 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
         ? axisAngleOfMoments(cluster.axis)
         : 0;
 
-      // TOO SMALL TO HOLD ITS OWN NAME → the label goes outside, on a line.
+      // TOO SMALL TO HOLD ITS OWN NAME → the name gets SMALLER, and stays in.
       //
-      // This is countryLabels.js's rule, reached from the lane that actually
-      // draws. That lane has the same promotion and has never run: it lives
-      // behind `!customFlag`, and normalizeRuntimeWorld forces customRegions
-      // onto every served world (24 of 24 built boards). So the feature
-      // tests/label-leaders.mjs was written for — Danzig, Memel, Luxembourg,
-      // Andorra, Liechtenstein, San Marino, Monaco, the Vatican — has never
-      // reached a pixel, on any board, since the day it was written.
-      //
-      // Counted on the built boards against that lane's own floor, by summing
-      // each owner's regions the way this builder does: wwii-1935 promotes 6 of
-      // 109 owners, victorian-1836 15 of 59, magna-1444 19 of 157, korea-1950 7
-      // of 115. SAN MARINO scores 589 against a floor of 20,000 — at the zoom a
-      // player reads Europe, a label under a pixel wide. FREE CITY OF DANZIG is
-      // 9,116, which is the case the 1935 board was reported for. Thirteen of
-      // 1836's fifteen are states added to that board the same week, which is
-      // what turned a dark feature into a load-bearing one.
-      //
-      // ONLY THE SEAT (index 0). A possession below the floor is a repeat of a
-      // name the map already carries at full size somewhere else, and pulling
-      // every such repeat out on its own line would draw a hairline to each of
-      // the British Empire's fourteen. The rule is about a country that cannot
-      // show its name at all, and a possession is never that.
-      const leader = index === 0 && ownScale < LEADER_AREA_SCALE_FLOOR && cluster.bbox
-        ? buildLeaderPlacement(bboxCorners(cluster.bbox), [cluster.cx, cluster.cy], tilt, leaderExtension)
-        : null;
-      let leaderLine = null;
-      if (leader) {
-        // From the territory's own edge out to the label, not from its centre:
-        // starting at the edge keeps the stroke off a country two pixels wide
-        // instead of covering it.
-        leaderLine = {
-          type: "Feature",
-          id: `owner-leader-${id}`,
-          geometry: { type: "LineString", coordinates: [leader.edge, leader.anchor] },
-          // ownScale rides along so the line can fade on how big the COUNTRY is
-          // on screen rather than on zoom alone — see leaderLinePaint.
-          properties: { name, ownScale },
-        };
-        leaderFeatures.push(leaderLine);
-      }
+      // Until 2026-08-18 a seat under LEADER_AREA_SCALE_FLOOR went out on a
+      // leader line at a fixed size (LEADER_LABEL_AREA_SCALE, 30,000 — bigger
+      // than the floor, so a micro-state's name out on its line stood nearly
+      // as tall as Johor's inside Johor). That lane, its placement pass and
+      // its measurements are in git (a229c5a … ed2d954) and in the stock lane
+      // it was copied from. The player retired it here, against the original
+      // as it draws today (checked the same day, its 2020 board): EVERY name
+      // is inside its own country, sized to it — KINGDOM OF CAMBODIA on two
+      // small lines, LAO PEOPLE'S DEMOCRATIC REPUBLIC tiny along Laos, JAPAN
+      // large along Honshu — and no name is drawn out on a line at a size the
+      // country did not earn. So the rule is one rule for every seat: size by
+      // area, shrink to fit the shape (fitNameToTerritory, no floor now), bend
+      // along it when the shape has the length for it, and place it on the
+      // land. What keeps a shrunken name from being a smudge at reading zoom
+      // is the paint: text-opacity fades a label in as it reaches legible size
+      // on screen (buildCountryTextOpacity), so Luxembourg's name is absent at
+      // the zoom that shows Europe and present, in place, at the zoom that
+      // shows Luxembourg — which is exactly the original's REPUBLIC OF KOREA.
 
       // TOO WIDE TO FIT FLAT → the label BENDS along the territory.
       //
-      // The rung between the leader line and the flat label, and the one the
-      // original actually uses for GRAND-HESSE and SAXE-WEIMAR (seen on its
-      // 1836 board). Only the SEAT, like the leader line and for the same
-      // reason; and only where the flat label would not fit — a name that
-      // fits stays flat, however elegant a curve the shape could carry, because
-      // a bend a reader cannot see the reason for reads as a mistake.
+      // The rung before the flat label, and the one the original actually
+      // uses for GRAND-HESSE and SAXE-WEIMAR (seen on its 1836 board). Only the
+      // SEAT — a possession is a repeat of a name the map already carries at
+      // full size somewhere else; and only where the flat label would not fit —
+      // a name that fits stays flat, however elegant a curve the shape could
+      // carry, because a bend a reader cannot see the reason for reads as a
+      // mistake.
       //
       // The path is traced through the cluster's own outline (its member rings
       // read back from allFeatures — see `members`), along the SAME area-moment
       // axis the flat label tilts to, so the two never disagree on which way
       // the country runs. labelCurves.js explains why the stock lane's builder
       // could not be reused as-is.
-      const curved = !leader && index === 0
+      const curved = index === 0
         ? buildOwnerCurve(cluster, allFeatures, name, ownScale, tilt, elongation)
         : null;
       if (curved) {
@@ -795,7 +742,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       const feature = {
         type: "Feature",
         id: `owner-label-${id++}`,
-        geometry: { type: "Point", coordinates: leader ? leader.anchor : [cluster.cx, cluster.cy] },
+        geometry: { type: "Point", coordinates: [cluster.cx, cluster.cy] },
         properties: {
           name,
           // A POSSESSION PRINTS AT ITS OWN WEIGHT — the rank cue is the minor
@@ -811,18 +758,16 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // the Cape 84k under Britain's 112k); only an extreme area gap breaks
           // it (Greenland 5.8× Denmark), and there the original does the same.
           //
-          // Out on a line the label is no longer describing an area it sits in,
-          // so it stops being sized by one and draws to be read.
-          //
-          // …AND INSIDE, IT HAS TO FIT. See fitNameToTerritory: sizing by area
-          // alone never measures the name, and a wide name drew wider than the
+          // …AND IT HAS TO FIT. See fitNameToTerritory: sizing by area alone
+          // never measures the name, and a wide name drew wider than the
           // country it names. `name` here is what the resolver returned — the
           // Korean alias on a Korean client — and the fit measures THAT string
           // in em, with MapLibre's wrapping applied, so it is capping the label
-          // the player sees and not the English one the spec is keyed by.
-          areaScale: leader
-            ? LEADER_LABEL_AREA_SCALE
-            : fitNameToTerritory(ownScale, name, tilt ? elongation : 1),
+          // the player sees and not the English one the spec is keyed by. No
+          // floor under the fit (see the sizing note above the loop): a small
+          // country's long name gets small, and the paint fades it in with the
+          // zoom.
+          areaScale: fitNameToTerritory(ownScale, name, tilt ? elongation : 1),
           // THE LABEL LIES ALONG THE TERRITORY, and this used to be hardcoded
           // flat. Reported symptom: BELGIAN CONGO and BRITISH EAST AFRICA
           // overprinting each other on the 1935 map. Both are single clusters,
@@ -853,18 +798,16 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
           // a round country's axis is noise, and BELGIAN CONGO — the label this
           // whole change was reported for — stood vertical on the strength of
           // an elongation of 1.10.
-          //
-          // A LEADER LABEL IS HORIZONTAL. Tilting it to the principal axis of a
-          // shape it is no longer standing on reads as a mistake — the same
-          // call countryLabels.js makes for the same reason.
-          rotation: leader ? 0 : tilt,
+          rotation: tilt,
           tier: index === 0 ? 0 : 1,
-          // Which layer draws it. The three label layers share one source and
-          // filter on this, so the property has to be present on every feature
-          // rather than only on the promoted ones.
-          leader: leader ? 1 : 0,
+          // Which layer draws it. The label layers share one source and filter
+          // on this, so the property has to be present on every feature. The
+          // owner lane emits no leader labels since 2026-08-18 (see above);
+          // the property stays because the layers, shared with the stock lane,
+          // route on it.
+          leader: 0,
           // See GLOBE_LAT_CORRECTION — same globe text-size fix (issue #6).
-          lat: leader ? leader.anchor[1] : cluster.cy,
+          lat: cluster.cy,
         },
       };
       features.push(feature);
@@ -872,29 +815,19 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       // draw is known. It carries the regions of the piece it is anchored on
       // (the anchor's own list when the cluster merged, the cluster's when it
       // did not) and its drawn size: tier-1 draws at MINOR_LABEL_SCALE.
-      if (!leader) {
-        pending.push({
-          feature,
-          members: anchor === merged ? merged.members : anchor.members,
-          em: (index === 0 ? 1 : MINOR_LABEL_SCALE) * feature.properties.areaScale * TILE_UNITS_PER_EM_PER_SCALE,
-          // What the curve needs, should the seat turn out to need one.
-          seat: index === 0,
-          labelId: id - 1,
-          cluster,
-          name,
-          ownScale,
-          tilt,
-          elongation,
-        });
-      } else {
-        pendingLeaders.push({
-          feature,
-          line: leaderLine,
-          corners: bboxCorners(cluster.bbox),
-          centroid: [cluster.cx, cluster.cy],
-          tilt,
-        });
-      }
+      pending.push({
+        feature,
+        members: anchor === merged ? merged.members : anchor.members,
+        em: (index === 0 ? 1 : MINOR_LABEL_SCALE) * feature.properties.areaScale * TILE_UNITS_PER_EM_PER_SCALE,
+        // What the curve needs, should the seat turn out to need one.
+        seat: index === 0,
+        labelId: id - 1,
+        cluster,
+        name,
+        ownScale,
+        tilt,
+        elongation,
+      });
     }
   }
 
@@ -908,17 +841,16 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
   // it samples the label's own rectangle against a raster of the piece and, if
   // the label does not sit wholly on the piece, moves it the shortest way to the
   // spot where the most of it does (fleet: wholly-inside 61% → 87%, mean 94% →
-  // 99%, median move half an em). Every other label box the map draws — leader
-  // labels, curved glyphs, the other flat labels at their current spots — is an
-  // obstacle, so the move never lands on a small neighbour's leader label; that
-  // is why this runs as a second pass, after the loop that decides them all.
-  // Labels are placed in emission order and each sees the ones already moved.
+  // 99%, median move half an em). Every other label box the map draws — curved
+  // glyphs, the other flat labels at their current spots — is an obstacle, so
+  // the move never lands on a small neighbour's name; that is why this runs as
+  // a second pass, after the loop that decides them all. Labels are placed in
+  // emission order and each sees the ones already moved.
   //
   // In tile space (CURVE_TILE_EXTENT), where a label's box is the same at every
   // zoom and `rotation` is what MapLibre draws; the answer comes back through
-  // tileToLngLat like the curved glyphs do. Only the seat's leader line and the
-  // curved lane are untouched: one is not on the piece at all, the other is
-  // already threaded through it.
+  // tileToLngLat like the curved glyphs do. Only the curved lane is untouched:
+  // it is already threaded through the piece.
   const boxOfFeature = (feature) => {
     const p = feature.properties;
     const centre = lngLatToTile(feature.geometry.coordinates, CURVE_TILE_EXTENT);
@@ -926,7 +858,7 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
       const em = p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
       return labelBox(centre, (nameWidthEm(p.glyph) / 2) * em, em / 2, p.rotation);
     }
-    const em = (p.leader === 1 ? 1 : p.tier === 1 ? MINOR_LABEL_SCALE : 1) * p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
+    const em = (p.tier === 1 ? MINOR_LABEL_SCALE : 1) * p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
     return labelBox(
       centre,
       (widestLineEm(p.name) / 2) * em,
@@ -973,47 +905,14 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     boxes.set(feature.id, boxOfFeature(feature));
   }
 
-  // A LEADER LABEL THAT LANDS ON ANOTHER LABEL TRIES THE OTHER WAYS OUT. The
-  // leader layer is collision-culled (a stack of Caribbean islands must not
-  // smear), so a leader label under a country's name or under its neighbour's
-  // leader label is not drawn at all — and measured across the fleet, 80 pairs
-  // of leader labels sat on each other (Selangor on Negeri Sembilan, Modena on
-  // Parma, Lippe on Schaumburg-Lippe, Lübeck on Bremen, ten pairs of Antilles)
-  // and 36 under a country's name (San Marino under ITALY on thirteen boards).
-  // Now that every other label is placed, each leader label is checked in turn
-  // against every box on the map, its own excluded, and moves to the first of
-  // leaderPlacementCandidates' ways out that is clear — the same lean stays
-  // wherever it was already clear, so the convention holds and only the
-  // collisions move. The line follows the label to its new anchor.
-  for (const { feature, line, corners, centroid, tilt } of pendingLeaders) {
-    const p = feature.properties;
-    const clear = (box) => {
-      for (const [otherId, other] of boxes) if (otherId !== feature.id && boxesOverlap(box, other)) return false;
-      return true;
-    };
-    if (clear(boxes.get(feature.id))) continue;
-    for (const candidate of leaderPlacementCandidates(corners, centroid, tilt, leaderExtension)) {
-      const em = p.areaScale * TILE_UNITS_PER_EM_PER_SCALE;
-      const box = labelBox(
-        lngLatToTile(candidate.anchor, CURVE_TILE_EXTENT),
-        (widestLineEm(p.name) / 2) * em,
-        (wrapNameLines(p.name).length * LABEL_LINE_HEIGHT_EM * em) / 2,
-        0,
-      );
-      if (!clear(box)) continue;
-      feature.geometry.coordinates = candidate.anchor;
-      p.lat = candidate.anchor[1];
-      if (line) line.geometry.coordinates = [candidate.edge, candidate.anchor];
-      boxes.set(feature.id, box);
-      break;
-    }
-  }
-
   // Two collections, because they are two sources: the labels go into the point
-  // source the three label layers share, the lines into their own.
+  // source the label layers share, the lines into their own. The owner lane
+  // draws no leader lines since 2026-08-18 (see the sizing note in the loop);
+  // the collection stays, empty, because the source and its layer are shared
+  // with the stock lane and the caller reads it either way.
   return {
     labels: { type: "FeatureCollection", features },
-    leaderLines: { type: "FeatureCollection", features: leaderFeatures },
+    leaderLines: { type: "FeatureCollection", features: [] },
   };
 };
 
@@ -1166,9 +1065,10 @@ const WorldMap = ({ isGlobe = false }) => {
     [customActive, regionData],
   );
 
-  // labelLineExtension is a player dial, so it belongs in the deps: moving it
-  // moves where a promoted label sits, which is baked in here rather than in a
-  // layer (see the note on the setting above).
+  // (labelLineExtension, the player's leader-line dial, was a dependency here
+  // while the owner lane promoted small states onto lines; the lane retired
+  // those on 2026-08-18 — see the sizing note in the label loop — so the dial
+  // now reaches only the stock lane below.)
   //
   // The name a label prints comes from the SPEC first: the polity's first
   // alias in the player's script (a Korean player reads "바이에른 왕국", the
@@ -1187,11 +1087,10 @@ const WorldMap = ({ isGlobe = false }) => {
       (raw, owner) => pickDisplayAlias(polityOverrides?.[owner]?.aliases, language)
         ?? translateLabel(resolveCountryDisplayName(raw, owner)),
       regionAdjacency,
-      labelLineExtension,
     );
     // labelEpoch: rebuild once new translations land (the fallback path only).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customActive, regionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelLineExtension, labelEpoch]);
+  }, [customActive, regionData, regionOwnershipOverrides, polityOverrides, regionAdjacency, labelEpoch]);
   const ownerLabelData = ownerLabels?.labels ?? EMPTY_FEATURE_COLLECTION;
   const ownerLeaderLineData = ownerLabels?.leaderLines ?? EMPTY_FEATURE_COLLECTION;
 
@@ -2069,22 +1968,28 @@ const WorldMap = ({ isGlobe = false }) => {
   // be". A micro-state keeps its line far deeper in than z8; a country near the
   // promotion floor loses it early, which is the original intent. Only promoted
   // shapes have lines at all, so this only ever spans ownScale < 20,000.
+  //
+  // WRITTEN AS A COMPOSITE (buildLeaderLineOpacity, labelPaint.js), NOT AS
+  // ARITHMETIC ON ["zoom"]. The first version put ["zoom"] inside the product,
+  // and MapLibre rejects that ("zoom" expression may only be used as input to
+  // a top-level "step" or "interpolate") — the layer was never added, the
+  // console said so once per style pass, and every leader line on every board
+  // was invisible for as long as that expression stood (found on the live
+  // screen 2026-08-18). The owner lane draws no leader lines any more (its
+  // collection is empty — see the label loop), so this layer now serves the
+  // stock lane; it has to be valid all the same, or the console keeps saying
+  // so — and now tests/label-leaders.mjs asks MapLibre's validator directly.
   const leaderLinePaint = useMemo(() => ({
     "line-color": labelTextColor || "#FFFFFF",
     "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.5, 6, 0.9, 8, 1.2],
-    "line-opacity": [
-      "interpolate", ["linear"],
-      ["*", ["coalesce", ["get", "ownScale"], 0], ["^", 2, ["-", ["zoom"], 16]]],
-      20, 0.38,
-      60, 0,
-    ],
+    "line-opacity": buildLeaderLineOpacity(),
   }), [labelTextColor]);
 
   const labelLayerPaint = useMemo(() => ({
     "text-color": labelTextColor || "#FFFFFF",
     "text-halo-color": labelHaloColor || "rgba(0, 0, 0, 0.5)",
     "text-halo-width": 1,
-    // A COUNTRY LABEL DOES NOT FADE OUT AS YOU ZOOM IN.
+    // A COUNTRY LABEL FADES ON ITS OWN SIZE ON SCREEN, NOT ON ZOOM.
     //
     // This used to ramp 0.75 at z5 down to 0 at z8, so the closer the player
     // got the fainter the country's own name became — and the city names beside
@@ -2094,13 +1999,18 @@ const WorldMap = ({ isGlobe = false }) => {
     // solid, while this curve was at 0.30 there — three times fainter than the
     // thing it is supposed to outrank. That inversion IS the reported "province
     // and country labels are the same weight": by the zoom a player reads at,
-    // the country label had faded into the city labels' range.
-    //
-    // Flat, because the original is flat. The guard against a label smearing
-    // across the screen at deep zoom is the 254 cap already inside
-    // buildCountryTextSize, which is measured; a second guard that dimmed the
-    // label was doing a size job with an opacity dial.
-    "text-opacity": 0.75,
+    // the country label had faded into the city labels' range. So it went
+    // flat, "because the original is flat" — and it is, across the whole band
+    // a name is legible in. What that measurement did not reach is either end
+    // of the band: the original fades a name OUT as it outgrows the screen
+    // (JAPAN across Honshu, half gone at ~150 px) and IN as it reaches reading
+    // size (REPUBLIC OF KOREA, absent at 6 px, back at 12) — measured
+    // 2026-08-18, see labelPaint.js. Both are ramps in the label's own px,
+    // which is why they never touched LATVIA at z6.8 and why a zoom ramp could
+    // never have been right. buildCountryTextOpacity is that window, at the
+    // 0.75 the flat value measured; the 254 cap in buildCountryTextSize is
+    // still the guard against a label smearing at a zoom no window covers.
+    "text-opacity": buildCountryTextOpacity(1, isGlobe ? GLOBE_LAT_CORRECTION : null, 0.75),
     // TRACKING LIVES IN LAYOUT, NOT HERE. It was written into this paint object
     // and MapLibre answered "unknown property text-letter-spacing" on every
     // style pass — 76 errors in one page load (4 label layers × 19 passes) — and
@@ -2108,17 +2018,20 @@ const WorldMap = ({ isGlobe = false }) => {
     // was never on screen. Same bucket mistake as text-allow-overlap earlier
     // today: layout properties are rejected silently-ish from paint. The value
     // now sits in pointLabelLayoutBase and the curved layout beside it.
-  }), [labelHaloColor, labelTextColor]);
+  }), [labelHaloColor, labelTextColor, isGlobe]);
 
   // Halo is the other half of weight. A 1px halo around a name set 40% smaller
   // is proportionally twice the outline, which is what makes a shrunken heavy
   // face read as a bolder blob rather than a quieter label — the exact thing
   // reported ("province and country labels are the same weight"). Halving it
-  // keeps the halo the same fraction of the glyph it wraps.
+  // keeps the halo the same fraction of the glyph it wraps. And the fade window
+  // reads the size this rank actually draws at — MINOR_LABEL_SCALE of the
+  // areaScale — or a repeat would fade in 40% too early.
   const minorLabelLayerPaint = useMemo(() => ({
     ...labelLayerPaint,
     "text-halo-width": 0.5,
-  }), [labelLayerPaint]);
+    "text-opacity": buildCountryTextOpacity(MINOR_LABEL_SCALE, isGlobe ? GLOBE_LAT_CORRECTION : null, 0.75),
+  }), [labelLayerPaint, isGlobe]);
 
   return (
     <>

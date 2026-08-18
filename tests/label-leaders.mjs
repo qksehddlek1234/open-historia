@@ -27,6 +27,9 @@ const {
   fitNameToTerritory, NAME_FIT_LETTERS, NAME_FIT_EM, LABEL_MAX_WIDTH_EM, LABEL_LINE_HEIGHT_EM,
   nameWidthEm, widestLineEm, wrapNameLines, leaderPlacementCandidates, LEADER_EXTENSION_STEPS,
 } = await import("../src/runtime/labelLeaders.js");
+const {
+  LABEL_FADE_IN_PX, LABEL_FADE_OUT_PX, LEADER_LINE_OPACITY_RAMP, buildCountryTextOpacity, buildLeaderLineOpacity, fadeWindowOf,
+} = await import("../src/runtime/labelPaint.js");
 const { buildClusterCurvePath, layoutGlyphsAlongPath } = await import("../src/runtime/labelCurves.js");
 const {
   REGION_ADJACENCY_DEGREES, buildRegionAdjacency, snapshotClusterPart, largestClusterPart, seatIndex,
@@ -156,13 +159,13 @@ test("the map draws the line under the labels and fades it with them", () => {
   // — a leader is punctuation for a label that has been moved off its country.
   // What changed is the dial: it was a zoom ramp (z5 0.38 → z8 0) and is now the
   // country's own on-screen size, because zoom was a poor proxy for "fills the
-  // screen" and a cluster of small states at z6.6 lost every line to it. See
-  // the pin at the end of this file. The label itself no longer fades (see
-  // labelLayerPaint), so the invariant here — the line never outlives its text
-  // — is satisfied with room to spare.
+  // screen" and a cluster of small states at z6.6 lost every line to it. The
+  // expression itself lives in labelPaint.js now (buildLeaderLineOpacity), where
+  // MapLibre's validator can be asked about it — see the pins at the end of
+  // this file for why that mattered.
   const paint = NATIONS.slice(NATIONS.indexOf("const leaderLinePaint"), NATIONS.indexOf("const labelLayerPaint"));
-  assert.match(paint, /20, 0\.38,/);
-  assert.match(paint, /60, 0,/);
+  assert.match(paint, /"line-opacity": buildLeaderLineOpacity\(\),/);
+  assert.deepEqual(LEADER_LINE_OPACITY_RAMP, [20, 0.38, 60, 0], "0.38 at 20 px of country, gone at 60");
   // Hiding country labels hides their leader lines too — now the FIRST test in
   // that expression, because which collection follows depends on the lane.
   assert.match(NATIONS, /const activeLeaderLineData = !worldKnown \|\| mapDisplaySettings\.hideCountryLabels/);
@@ -335,45 +338,56 @@ test("THE GATE IS GONE — each lane brings its own lines", () => {
   assert.match(expression, /:\s*leaderLineData/, "and the stock world its own");
 });
 
-test("…and it takes the stock lane's constants rather than restating them", () => {
-  // Two floors drift apart the first time either is tuned.
+test("…and the owner lane no longer imports the leader half of that module — it RETIRED leader labels", () => {
+  // 2026-08-18, the player's call against the original as it draws today:
+  // every name inside its own country, sized to it, none out on a line at a
+  // fixed size. The owner lane takes only the fit and width helpers now; the
+  // floor, the fixed leader size and the placement belong to the stock lane.
   const imports = NATIONS.slice(0, NATIONS.indexOf("ensurePmtilesProtocol()"));
-  assert.match(imports, /LEADER_AREA_SCALE_FLOOR/);
-  assert.match(imports, /LEADER_LABEL_AREA_SCALE/);
-  assert.match(imports, /LEADER_EXTENSION_DEFAULT/);
-  assert.match(imports, /buildLeaderPlacement/);
   assert.match(imports, /from "\.\.\/\.\.\/runtime\/labelLeaders\.js"/);
+  assert.match(imports, /fitNameToTerritory/);
+  assert.doesNotMatch(imports, /LEADER_AREA_SCALE_FLOOR/);
+  assert.doesNotMatch(imports, /LEADER_LABEL_AREA_SCALE/);
+  assert.doesNotMatch(imports, /LEADER_EXTENSION_DEFAULT/);
+  assert.doesNotMatch(imports, /buildLeaderPlacement/);
+  assert.doesNotMatch(imports, /leaderPlacementCandidates/);
 });
 
-test("ONLY THE SEAT IS PROMOTED — a possession is a repeat, not a lost name", () => {
-  // Pulling every under-floor possession onto its own line would draw a
-  // hairline to each of the British Empire's fourteen, for a name the map
-  // already carries at full size somewhere else.
-  const at = NATIONS.indexOf("const leader = index === 0");
-  assert.notEqual(at, -1, "the promotion must test the seat");
-  assert.match(NATIONS.slice(at, at + 200), /ownScale < LEADER_AREA_SCALE_FLOOR/);
-});
-
-test("a promoted owner label leaves its shape the way the stock one does", () => {
+test("NO SEAT IS PROMOTED — a small country's name gets small and stays inside", () => {
+  // The whole of what the leader lane did in this file is gone: no promotion
+  // test, no anchor off the shape, no fixed size, no horizontal override, no
+  // pending list of leader labels, no placement pass, no line features. Every
+  // feature still carries `leader: 0` because the layers, shared with the stock
+  // lane, route on the property.
   const block = NATIONS.slice(NATIONS.indexOf("const buildOwnerLabelCollection"),
     NATIONS.indexOf("const WorldMap"));
-  assert.match(block, /coordinates: leader \? leader\.anchor/, "it sits at the anchor");
-  assert.match(block, /areaScale: leader\s*\n?\s*\? LEADER_LABEL_AREA_SCALE/, "and draws to be read");
-  assert.match(block, /rotation: leader \? 0 : tilt/, "horizontal once it is off its shape");
-  assert.match(block, /lat: leader \? leader\.anchor\[1\]/, "globe correction follows the anchor");
-  assert.match(block, /leader: leader \? 1 : 0/, "and every feature carries the routing property");
+  assert.doesNotMatch(block, /ownScale < LEADER_AREA_SCALE_FLOOR/, "no promotion test");
+  assert.doesNotMatch(block, /buildLeaderPlacement\(/, "no anchor off the shape");
+  assert.doesNotMatch(block, /\? LEADER_LABEL_AREA_SCALE/, "no fixed size");
+  assert.doesNotMatch(block, /pendingLeaders/, "no pending list of leader labels");
+  assert.doesNotMatch(block, /leaderPlacementCandidates\(/, "no placement pass");
+  assert.doesNotMatch(block, /leaderFeatures/, "no line features");
+  assert.match(block, /geometry: \{ type: "Point", coordinates: \[cluster\.cx, cluster\.cy\] \}/,
+    "every label starts on its own piece");
+  assert.match(block, /areaScale: fitNameToTerritory\(ownScale, name, tilt \? elongation : 1\),/,
+    "and is sized to its own country, fit to the shape");
+  assert.match(block, /rotation: tilt,/, "along its own axis");
+  assert.match(block, /leader: 0,/, "and never routed to the leader layer");
+  assert.match(block, /leaderLines: \{ type: "FeatureCollection", features: \[\] \},/,
+    "the owner lane's line collection is empty by construction");
 });
 
-test("the extent is carried through the fold, or the line starts inside", () => {
-  // The cluster is a fold and the rings are gone by the time the direction is
-  // known, so a bounding box rides along — through the union-find AND through
-  // the island merge, which is where an axis was nearly lost once already.
+test("the extent no longer rides the fold — it only ever served the leader line", () => {
+  // A bounding box was carried through the union-find and the island merge so
+  // the leader placement could ask "how far does this territory reach that
+  // way". Nothing asks now; the rings are read back from allFeatures where a
+  // shape is needed (the curve, the placement raster). The AXIS still travels.
   const block = NATIONS.slice(NATIONS.indexOf("const buildOwnerLabelCollection"),
     NATIONS.indexOf("const WorldMap"));
-  assert.match(block, /bbox: ringBbox\(best\.ring\)/);
-  assert.match(block, /cluster\.bbox = unionBbox\(cluster\.bbox, entry\.bbox\)/);
-  assert.match(NATIONS, /if \(a\.bbox && b\.bbox\) a\.bbox = unionBbox\(a\.bbox, b\.bbox\)/,
-    "and through mergeOwnerClusters");
+  assert.doesNotMatch(block, /ringBbox\(/);
+  assert.doesNotMatch(NATIONS, /const unionBbox/);
+  assert.match(NATIONS, /if \(a\.axis && b\.axis\) addAxisMoments\(a\.axis, b\.axis\);/,
+    "the axis still travels with the merge");
 });
 
 test("bbox corners answer 'how far that way' exactly", () => {
@@ -390,13 +404,13 @@ test("bbox corners answer 'how far that way' exactly", () => {
   assert.ok(fromCorners.anchor[1] > 44, `${fromCorners.anchor[1]} is still inside`);
 });
 
-test("the player's extension dial reaches the owner lane", () => {
-  // Baked into the geometry at build time, so the dial has to be a dependency
-  // of the memo or moving it moves nothing until the world reloads.
-  assert.match(NATIONS, /regionAdjacency,\n\s*labelLineExtension,\n\s*\);/,
-    "passed to the builder");
-  assert.match(NATIONS, /regionAdjacency, labelLineExtension, labelEpoch\]/,
-    "and in the memo's deps");
+test("the player's extension dial no longer reaches the owner lane — only the stock one", () => {
+  // It was a dependency of the owner memo while small states went out on
+  // lines. With the lane retired the dial moves nothing there, so it is out
+  // of the call and out of the deps; the stock lane's loader still takes it.
+  assert.doesNotMatch(NATIONS, /regionAdjacency,\n\s*labelLineExtension,\n\s*\);/);
+  assert.match(NATIONS, /regionAdjacency, labelEpoch\]/, "the memo's deps");
+  assert.match(NATIONS, /leaderExtension: labelLineExtension/, "the stock loader still takes the dial");
 });
 
 console.log("\nA label has to fit inside the country it names");
@@ -484,29 +498,52 @@ test("lying along the long axis buys room — but only where the label turns", (
     "and the caller only spends it when the label actually turns");
 });
 
-test("the floor holds — a name is never shrunk into a province label", () => {
-  // Below LEADER_AREA_SCALE_FLOOR a country's name reads at a province's
-  // weight, a fault the label paint has already had to fix once. A 60-letter
-  // name would ask for a twelfth of the size; it gets the floor instead.
-  assert.equal(fitNameToTerritory(120000, "A".repeat(60)), LEADER_AREA_SCALE_FLOOR);
-  // …and a label already below the floor is not pushed further down by it.
-  assert.equal(fitNameToTerritory(9000, "A".repeat(60)), 9000);
+test("THE FLOOR IS GONE — a name shrinks as far as its shape demands", () => {
+  // Until 2026-08-18 the fit stopped at LEADER_AREA_SCALE_FLOOR ("a name that
+  // still will not fit there stays too wide rather than going unreadable"),
+  // and a seat under the floor went out on a leader line at a fixed size. The
+  // player chose the original's current rule instead: every name inside its
+  // own country at whatever size that takes; the label paint fades it in as
+  // it reaches legible size (see the fade pins below). So a 60-letter name on
+  // a 120,000 country asks for a twelfth of the size and GETS it, and a small
+  // country's long name goes below the old floor rather than over its border.
+  const width60 = widestLineEm("A".repeat(60));
+  const expected = 120000 * (NAME_FIT_EM / width60);
+  assert.ok(Math.abs(fitNameToTerritory(120000, "A".repeat(60)) - expected) < 1e-6);
+  assert.ok(fitNameToTerritory(120000, "A".repeat(60)) < LEADER_AREA_SCALE_FLOOR,
+    "well under the floor that used to catch it");
+  assert.ok(fitNameToTerritory(9000, "A".repeat(60)) < 9000, "and a small country shrinks too");
+  assert.equal(fitNameToTerritory(9000, "AB"), 9000, "a name that fits is left alone, as before");
 });
 
-test("the leader line fades on the COUNTRY's size, not on zoom", () => {
+test("the leader line fades on the COUNTRY's size, not on zoom — and the expression is one MapLibre accepts", () => {
   // The old ramp was z5 0.38 → z8 0, which put every line at 0.18 by z6.6 — the
   // zoom a player reads a cluster of small states at, and the zoom the overlap
   // was reported from. Andorra on an empty coast showed; the same line in
   // central Germany did not. The reason for fading was never zoom, it was "the
   // shape is now big enough to point at itself", so that is what it reads.
-  assert.match(NATIONS, /\["\*", \["coalesce", \["get", "ownScale"\], 0\], \["\^", 2, \["-", \["zoom"\], 16\]\]\]/,
-    "opacity interpolates on the country's own on-screen size");
+  //
+  // BUT NOT AS ARITHMETIC ON ["zoom"]. That was the first version —
+  // ["*", ownScale, ["^", 2, ["-", ["zoom"], 16]]] as the interpolate input —
+  // and MapLibre refuses it: "zoom" may only be the input of a TOP-LEVEL step
+  // or interpolate. The layer was never added; every leader line on every
+  // board was invisible, and the console said why once per style pass (found
+  // on the live screen 2026-08-18). The valid shape is the composite: a
+  // top-level interpolate on ["zoom"] whose output at each integer zoom is the
+  // data expression with that zoom's 2^(z−16) already a number.
+  const expr = buildLeaderLineOpacity();
+  assert.doesNotMatch(JSON.stringify(expr).slice(30), /"zoom"/, "no [\"zoom\"] anywhere but the top");
+  assert.equal(expr[0], "interpolate");
+  assert.deepEqual(expr[2], ["zoom"]);
+  assert.equal(expr.length, 3 + 25 * 2, "one output per integer zoom, 0..24");
+  assert.deepEqual(expr[3 + 16 * 2 + 1], ["interpolate", ["linear"], ["*", ["coalesce", ["get", "ownScale"], 0], 1], 20, 0.38, 60, 0],
+    "each output interpolates on the country's own on-screen size at that zoom (an em is areaScale px at z16)");
   assert.doesNotMatch(NATIONS, /"line-opacity": \[\s*\n?\s*"interpolate", \["linear"\], \["zoom"\],\s*\n?\s*5, 0\.38/,
     "the zoom ramp is gone, not left sitting beside it");
-  // And the builder has to ship the property, or the coalesce reads 0 for every
-  // line and they all draw at full strength forever.
-  assert.match(NATIONS, /properties: \{ name, ownScale \}/,
-    "ownScale rides on the line feature");
+  assert.doesNotMatch(NATIONS, /\["\^", 2, \["-", \["zoom"\], 16\]\]/, "and the arithmetic-on-zoom form is gone from Nations.jsx");
+  // The composite helper itself: integer stops 0..24, linear, on ["zoom"].
+  const PAINT = read("src/runtime/labelPaint.js");
+  assert.match(PAINT, /export const perZoomStops = \(outputAt\) => \{\n\s*const stops = \[\];\n\s*for \(let zoom = 0; zoom <= 24; zoom \+= 1\) stops\.push\(zoom, outputAt\(zoom\)\);\n\s*return \["interpolate", \["linear"\], \["zoom"\], \.\.\.stops\];/);
 });
 
 console.log("\nA label that BENDS along the country — the owner lane's own curve");
@@ -615,12 +652,13 @@ test("a round country stays flat, and so does one whose glyphs would scatter", (
 });
 
 test("the owner lane wires the curve as its own rung, on its own layer", () => {
-  // Between the leader line and the flat label; only the seat; only when the
-  // flat label would not fit; one feature per glyph tagged `curved`; and the
-  // three text-field:name layers exclude those glyphs or every glyph prints
-  // the whole name.
-  assert.match(NATIONS, /const curved = !leader && index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
-    "the rung sits after the leader line and before the flat label");
+  // Before the flat label; only the seat; only when the flat label would not
+  // fit; one feature per glyph tagged `curved`; and the three text-field:name
+  // layers exclude those glyphs or every glyph prints the whole name. (It sat
+  // between the leader line and the flat label until the owner lane retired
+  // leader labels, 2026-08-18.)
+  assert.match(NATIONS, /const curved = index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
+    "the rung sits before the flat label, seat only");
   assert.match(NATIONS, /const flatFits = widestLineEm\(name\) <= NAME_FIT_EM \* Math\.sqrt/,
     "and only fires when the flat label would not fit");
   assert.match(NATIONS, /id="country-labels-curved"[\s\S]*?filter=\{\["==", \["get", "curved"\], 1\]\}/,
@@ -707,7 +745,8 @@ test("the label sits on the largest contiguous piece, and only the position move
   assert.equal(largestClusterPart(bare), bare, "empty parts → itself");
   // Wired that way in Nations.jsx: the merge snapshots, the loop anchors, and
   // the anchored view keeps everything but cx/cy from the merged cluster.
-  assert.match(NATIONS, /import \{\n\s*boxesOverlap,\n\s*buildRegionAdjacency,\n\s*labelBox,\n\s*largestClusterPart,\n\s*largestPolygonOf,\n\s*placeLabelInPiece,\n\s*projectPolygon,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/);
+  assert.match(NATIONS, /import \{\n\s*buildRegionAdjacency,\n\s*labelBox,\n\s*largestClusterPart,\n\s*largestPolygonOf,\n\s*placeLabelInPiece,\n\s*projectPolygon,\n\s*seatIndex,\n\s*snapshotClusterPart,\n\} from "\.\.\/\.\.\/runtime\/labelClusters\.js";/,
+    "(boxesOverlap left the list with the leader pass, 2026-08-18)");
   assert.match(NATIONS, /a\.parts \?\?= \[snapshotClusterPart\(a\)\];\n\s*b\.parts \?\?= \[snapshotClusterPart\(b\)\];\n\s*a\.parts\.push\(\.\.\.b\.parts\);/,
     "the merge remembers its pieces, snapshotted before the fold");
   assert.match(NATIONS, /const anchor = largestClusterPart\(merged\);\n\s*const cluster = anchor === merged \? merged : \{ \.\.\.merged, cx: anchor\.cx, cy: anchor\.cy \};/,
@@ -753,7 +792,7 @@ test("a possession prints at its own weight — the original caps nothing, and n
   // name at that zoom. The rank cue is the minor layer's 0.6, not a cap.
   assert.doesNotMatch(NATIONS, /Math\.min\(ownScale, seatScale\)/, "the cap is gone");
   assert.doesNotMatch(NATIONS, /const seatScale =/, "and nothing else reads a seat weight");
-  assert.match(NATIONS, /areaScale: leader\n\s*\? LEADER_LABEL_AREA_SCALE\n\s*: fitNameToTerritory\(ownScale, name, tilt \? elongation : 1\),/,
+  assert.match(NATIONS, /areaScale: fitNameToTerritory\(ownScale, name, tilt \? elongation : 1\),/,
     "seat and possession alike are sized by their own territory, then fitted to their own name");
   assert.match(NATIONS, /const MINOR_LABEL_SCALE = 0\.6;/, "the repeat still prints lighter");
 });
@@ -834,10 +873,12 @@ test("the label sits where it fits — on its own piece, the least distance from
 test("Nations.jsx places every flat label after it knows every label — obstacles first", () => {
   // The loop collects, the pass places: a flat label carries its piece's
   // regions and its drawn em (tier-1 at MINOR_LABEL_SCALE) to a second pass
-  // that runs once every leader label, glyph and flat label is known.
+  // that runs once every glyph and flat label is known. Every flat label
+  // waits — there is no leader branch to skip any more (2026-08-18).
   assert.match(NATIONS, /const pending = \[\];/);
-  assert.match(NATIONS, /if \(!leader\) \{\n\s*pending\.push\(\{\n\s*feature,\n\s*members: anchor === merged \? merged\.members : anchor\.members,\n\s*em: \(index === 0 \? 1 : MINOR_LABEL_SCALE\) \* feature\.properties\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE,\n(?:\s*\/\/.*\n)*\s*seat: index === 0,\n\s*labelId: id - 1,\n\s*cluster,\n\s*name,\n\s*ownScale,\n\s*tilt,\n\s*elongation,\n\s*\}\);\n\s*\}/,
+  assert.match(NATIONS, /features\.push\(feature\);\n(?:\s*\/\/.*\n)*\s*pending\.push\(\{\n\s*feature,\n\s*members: anchor === merged \? merged\.members : anchor\.members,\n\s*em: \(index === 0 \? 1 : MINOR_LABEL_SCALE\) \* feature\.properties\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE,\n(?:\s*\/\/.*\n)*\s*seat: index === 0,\n\s*labelId: id - 1,\n\s*cluster,\n\s*name,\n\s*ownScale,\n\s*tilt,\n\s*elongation,\n\s*\}\);/,
     "a flat label waits with the anchor piece's own region list, its drawn size, and what a curve would need");
+  assert.doesNotMatch(NATIONS, /if \(!leader\) \{/, "no flat label is exempt from placement");
   assert.match(NATIONS, /const boxes = new Map\(features\.map\(\(feature\) => \[feature\.id, boxOfFeature\(feature\)\]\)\);/,
     "every label the map draws is a box before any flat label is placed");
   assert.match(NATIONS, /for \(const \{ feature, members, em, seat, labelId, cluster, name, ownScale, tilt, elongation \} of pending\) \{/);
@@ -847,9 +888,9 @@ test("Nations.jsx places every flat label after it knows every label — obstacl
     "a moved label moves its globe latitude with it and becomes the obstacle it now is");
   assert.match(NATIONS, /const projectedPieceCache = new WeakMap\(\);/, "regions are projected once per world, not once per rebuild");
   assert.match(NATIONS, /const projected = projectedPieceOf\(allFeatures\[index\]\?\.geometry\);/);
-  // Curved glyphs and leader labels are obstacles too — a box each, at their
-  // own size — and the leader lane and curved lane themselves are not placed
-  // again: `pending` only ever receives a flat label.
+  // Curved glyphs are obstacles too — a box each, at their own size — and the
+  // curved lane itself is not placed again: `pending` only ever receives a
+  // flat label.
   assert.match(NATIONS, /if \(p\.curved === 1\) \{\n\s*const em = p\.areaScale \* TILE_UNITS_PER_EM_PER_SCALE;\n\s*return labelBox\(centre, \(nameWidthEm\(p\.glyph\) \/ 2\) \* em, em \/ 2, p\.rotation\);\n\s*\}/);
 });
 
@@ -896,7 +937,7 @@ test("a seat whose flat label sits on its land nowhere gets the curve after plac
   assert.match(NATIONS, /const LABEL_CURVE_LAND_COVERAGE = 0\.8;/, "80% of the label on its land, measured across the fleet — 30 seats fall under it");
   assert.match(NATIONS, /if \(seat && placed\.landCoverage < LABEL_CURVE_LAND_COVERAGE\) \{\n\s*const curved = buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation, \{ forShape: true \}\);\n\s*if \(curved\) \{\n\s*const glyphs = curvedGlyphFeatures\(curved, labelId\);\n\s*features\.splice\(features\.indexOf\(feature\), 1, \.\.\.glyphs\);\n\s*boxes\.delete\(feature\.id\);\n\s*for \(const glyph of glyphs\) boxes\.set\(glyph\.id, boxOfFeature\(glyph\)\);\n\s*continue;\n\s*\}\n\s*\}/);
   assert.match(NATIONS, /if \(flatFits && !forShape\) return null;/, "the width gate still holds for the loop's own call");
-  assert.match(NATIONS, /const curved = !leader && index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
+  assert.match(NATIONS, /const curved = index === 0\n\s*\? buildOwnerCurve\(cluster, allFeatures, name, ownScale, tilt, elongation\)/,
     "…which is unchanged: no option, no compact layout");
 });
 
@@ -924,17 +965,112 @@ test("a leader label that lands on another label tries the other ways out, in or
   assert.equal(boxesOverlap(a, labelBox([7, 3], 5, 2, 45)), true, "a turned box reaching in");
   assert.equal(boxesOverlap(a, labelBox([9, 4], 5, 0.5, 90)), false, "a turned box whose bounds meet but whose body does not");
   assert.equal(boxesOverlap(null, a), false);
-  // Wired in Nations.jsx: after every flat label is placed, each leader label
-  // is checked against every other box and, only if it collides, walks the
-  // candidates; the line follows. Measured across the fleet: leader labels
-  // on each other 80 pairs → 4, under a country's name 36 → 3, 96 of 548 moved.
-  assert.match(NATIONS, /const pendingLeaders = \[\];/);
-  assert.match(NATIONS, /pendingLeaders\.push\(\{\n\s*feature,\n\s*line: leaderLine,\n\s*corners: bboxCorners\(cluster\.bbox\),\n\s*centroid: \[cluster\.cx, cluster\.cy\],\n\s*tilt,\n\s*\}\);/);
-  assert.match(NATIONS, /for \(const \{ feature, line, corners, centroid, tilt \} of pendingLeaders\) \{/);
-  assert.match(NATIONS, /if \(clear\(boxes\.get\(feature\.id\)\)\) continue;\n\s*for \(const candidate of leaderPlacementCandidates\(corners, centroid, tilt, leaderExtension\)\) \{/,
-    "a clear leader label keeps the convention; a colliding one walks the ways out");
-  assert.match(NATIONS, /if \(!clear\(box\)\) continue;\n\s*feature\.geometry\.coordinates = candidate\.anchor;\n\s*p\.lat = candidate\.anchor\[1\];\n\s*if \(line\) line\.geometry\.coordinates = \[candidate\.edge, candidate\.anchor\];\n\s*boxes\.set\(feature\.id, box\);\n\s*break;/,
-    "the first clear way wins, and the line moves with the label");
+  // It WAS wired in Nations.jsx (C-1, ed2d954: after every flat label was
+  // placed, each leader label walked these candidates if it collided, and the
+  // line followed — fleet: leader labels on each other 80 pairs → 4). The
+  // owner lane retired leader labels the same day (see "NO SEAT IS PROMOTED"
+  // above), so the pass went with them; the generator stays, pure and pinned,
+  // for the stock lane that still promotes.
+  assert.doesNotMatch(NATIONS, /pendingLeaders/);
+  assert.doesNotMatch(NATIONS, /leaderPlacementCandidates/);
+});
+
+console.log("\nA name shrinks to its country and fades in with the zoom — labelPaint.js and the sizing rule");
+
+test("THE CURVE HAS NO FLOOR EITHER — glyphs shrink to the path, capped at the seat's own weight", () => {
+  // buildOwnerCurve used to refuse a path that could not hold the name at
+  // LEADER_AREA_SCALE_FLOOR (minPathPerEm) and clamp the glyph size to that
+  // floor; the leader line answered below it. With the lane retired the path
+  // sizes the glyphs, however small — LAO PEOPLE'S DEMOCRATIC REPUBLIC along
+  // Laos, as the original draws it — and only the shape gates in
+  // buildClusterCurvePath (width ratio, kink, glyph step) still say no.
+  const at = NATIONS.indexOf("const buildOwnerCurve = ");
+  const block = NATIONS.slice(at, NATIONS.indexOf("const curvedGlyphFeatures", at));
+  assert.doesNotMatch(block, /minPathPerEm: /, "no minimum path length per em");
+  assert.doesNotMatch(block, /Math\.max\(LEADER_AREA_SCALE_FLOOR/, "no floor under the glyph size");
+  assert.match(block, /const areaScale = Math\.min\(ownScale, fillScale\);/, "sized to the path, capped at own weight");
+});
+
+test("the fade window is the original's, measured, in the label's own on-screen px", () => {
+  assert.deepEqual(LABEL_FADE_IN_PX, [6, 12], "absent at 6 px, full at 12 — REPUBLIC OF KOREA on the original");
+  assert.deepEqual(LABEL_FADE_OUT_PX, [100, 200], "full to 100 px, gone at 200 — JAPAN across Honshu on the original");
+  // The window as an expression of px, and the composite around it: one
+  // output per integer zoom, 0..24, on ["zoom"], with 2^(z−16) already a
+  // number in each — never ["zoom"] inside arithmetic.
+  const expr = buildCountryTextOpacity(1, null, 0.75);
+  assert.equal(expr[0], "interpolate");
+  assert.deepEqual(expr[2], ["zoom"]);
+  assert.equal(expr.length, 3 + 25 * 2, "integer stops 0..24");
+  assert.equal(expr[3], 0);
+  assert.equal(expr[expr.length - 2], 24);
+  assert.doesNotMatch(JSON.stringify(expr).slice(30), /"zoom"/, "[\"zoom\"] appears once, at the top");
+  const at16 = expr[3 + 16 * 2 + 1];
+  assert.deepEqual(at16, ["*", 0.75, fadeWindowOf(["*", 1, ["*", ["get", "areaScale"], 1]])], "at z16 an em is areaScale px");
+  // A minor label reads its own drawn size — MINOR_LABEL_SCALE of the areaScale.
+  const minor = buildCountryTextOpacity(0.6, null, 0.75);
+  assert.deepEqual(minor[3 + 16 * 2 + 1], ["*", 0.75, fadeWindowOf(["*", 0.6, ["*", ["get", "areaScale"], 1]])]);
+  // On the globe the correction expression multiplies in, as it does in text-size.
+  const globe = buildCountryTextOpacity(1, ["cos", ["get", "lat"]], 0.75);
+  assert.deepEqual(globe[3 + 16 * 2 + 1], ["*", 0.75, fadeWindowOf(["*", ["*", 1, ["cos", ["get", "lat"]]], ["*", ["get", "areaScale"], 1]])]);
+});
+
+test("…and MapLibre accepts every one of them — the validator that would have caught the leader line", async () => {
+  // @maplibre/maplibre-gl-style-spec ships with maplibre-gl. createPropertyExpression
+  // is what the style validator runs: it is the call that says '"zoom"
+  // expression may only be used as input to a top-level "step" or "interpolate"'
+  // — the error the first leader-line opacity produced on every style pass, on
+  // a layer nothing in this file could import. Now the expressions are pure
+  // and this asks. If the package is not resolvable (a checkout without
+  // node_modules) the structural pins above still stand; say so and move on.
+  let spec;
+  try { spec = await import("@maplibre/maplibre-gl-style-spec"); } catch { console.log("  (style-spec not installed here — MapLibre validation skipped)"); return; }
+  const { createPropertyExpression, latest } = spec;
+  const globe = ["cos", ["*", ["coalesce", ["get", "lat"], 0], Math.PI / 180]];
+  for (const [name, expr, propertySpec] of [
+    ["text-opacity", buildCountryTextOpacity(1, null, 0.75), latest.paint_symbol["text-opacity"]],
+    ["text-opacity (globe)", buildCountryTextOpacity(1, globe, 0.75), latest.paint_symbol["text-opacity"]],
+    ["text-opacity (minor)", buildCountryTextOpacity(0.6, null, 0.75), latest.paint_symbol["text-opacity"]],
+    ["line-opacity", buildLeaderLineOpacity(), latest.paint_line["line-opacity"]],
+  ]) {
+    const result = createPropertyExpression(expr, propertySpec);
+    assert.equal(result.result, "success", `${name}: ${JSON.stringify(result.value?.map?.((e) => e.message))}`);
+    assert.equal(result.value.kind, "composite", `${name} depends on zoom and on the feature`);
+  }
+  // …and the old expression is exactly what it refuses.
+  const old = createPropertyExpression(
+    ["interpolate", ["linear"], ["*", ["coalesce", ["get", "ownScale"], 0], ["^", 2, ["-", ["zoom"], 16]]], 20, 0.38, 60, 0],
+    latest.paint_line["line-opacity"],
+  );
+  assert.equal(old.result, "error");
+  assert.match(old.value[0].message, /top-level "step" or "interpolate"/);
+  // Values, read back the way the renderer would: a leader-sized label
+  // (30,000) at the Malay view (z6.83, 52 px) is solid; at z8.5 (166 px) it is
+  // two thirds gone; a 3,000 micro-state is absent at z7 (6 px) and in at z8
+  // (12 px); a 105k possession at ×0.6 and z7.6 (186 px) is nearly gone.
+  const evaluate = (expr, zoom, properties) => createPropertyExpression(expr, latest.paint_symbol["text-opacity"]).value.evaluate({ zoom }, { type: "Point", properties });
+  const t0 = buildCountryTextOpacity(1, null, 0.75);
+  assert.equal(evaluate(t0, 6.83, { areaScale: 30000 }), 0.75);
+  assert.ok(Math.abs(evaluate(t0, 8.5, { areaScale: 30000 }) - 0.31) < 0.02);
+  assert.equal(evaluate(t0, 7, { areaScale: 3000 }), 0);
+  assert.ok(evaluate(t0, 8, { areaScale: 3000 }) > 0.7);
+  const t1 = buildCountryTextOpacity(0.6, null, 0.75);
+  assert.ok(evaluate(t1, 7.6, { areaScale: 104918 }) < 0.25);
+  const line = createPropertyExpression(buildLeaderLineOpacity(), latest.paint_line["line-opacity"]).value;
+  assert.equal(line.evaluate({ zoom: 8 }, { type: "LineString", properties: { ownScale: 3157 } }), 0.38, "a micro-state keeps its line");
+  assert.ok(line.evaluate({ zoom: 8 }, { type: "LineString", properties: { ownScale: 14387 } }) < 0.2, "a country nearing reading size loses it");
+});
+
+test("Nations.jsx paints every label layer with the window, in the size that layer draws at", () => {
+  assert.match(NATIONS, /import \{ buildCountryTextOpacity, buildLeaderLineOpacity \} from "\.\.\/\.\.\/runtime\/labelPaint\.js";/);
+  const paint = NATIONS.slice(NATIONS.indexOf("const labelLayerPaint"), NATIONS.indexOf("const minorLabelLayerPaint"));
+  assert.match(paint, /"text-opacity": buildCountryTextOpacity\(1, isGlobe \? GLOBE_LAT_CORRECTION : null, 0\.75\),/,
+    "the country, leader and curved layers: full size, the flat 0.75 as the peak");
+  assert.doesNotMatch(paint, /"text-opacity": 0\.75,/, "the flat value is the peak now, not the property");
+  const minor = NATIONS.slice(NATIONS.indexOf("const minorLabelLayerPaint"), NATIONS.indexOf("return (", NATIONS.indexOf("const minorLabelLayerPaint")));
+  assert.match(minor, /"text-opacity": buildCountryTextOpacity\(MINOR_LABEL_SCALE, isGlobe \? GLOBE_LAT_CORRECTION : null, 0\.75\),/,
+    "the minor layer reads the size it draws at, or a repeat fades in 40% early");
+  assert.match(NATIONS, /"line-opacity": buildLeaderLineOpacity\(\),/);
+  assert.match(NATIONS, /\}\), \[labelHaloColor, labelTextColor, isGlobe\]\);/, "isGlobe is a dependency of the paint now");
 });
 
 console.log(`\n${pass} passed\n`);

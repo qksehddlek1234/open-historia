@@ -29,6 +29,15 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 // (18,400) and everything smaller on a line, and leaves Belgium (32,000),
 // Albania (32,000), the Netherlands (33,000) and Denmark (39,000) drawing their
 // names inside themselves, which they comfortably can.
+//
+// WHO STILL USES IT. The stock lane (countryLabels.js) — which is behind
+// !customFlag and has not drawn on a built board. The OWNER lane, the one that
+// draws, RETIRED its leader labels on 2026-08-18: the player chose the
+// original's current answer — size every name to its own country and print it
+// inside, at whatever size that takes, no name out on a line at a fixed size —
+// so Nations.jsx no longer promotes below this floor and fitNameToTerritory no
+// longer stops at it. The constants and the placement stay for the lane that
+// still asks for them, and for the record of what was measured.
 export const LEADER_AREA_SCALE_FLOOR = 20000;
 
 // What the label draws at once it is out on a line. Roughly Albania's own
@@ -109,6 +118,12 @@ export const buildLeaderPlacement = (ringLngLat, centroid, principalAngleDeg, ex
 // side of the minor axis, then along the major axis both ways, then the four
 // diagonals; then the same eight again a half and a whole extension further
 // out. A label that finds nothing keeps the first — same as before.
+//
+// Not wired to a drawing lane since 2026-08-18: the owner lane retired leader
+// labels the same day (see LEADER_AREA_SCALE_FLOOR), so this pass went with
+// them — Nations.jsx no longer emits a leader label to place. Kept, pure and
+// pinned, because the stock lane still promotes and this is the collision
+// answer it lacks if it ever runs; git holds the wiring (C-1, ed2d954).
 export const LEADER_EXTENSION_STEPS = [1, 1.5, 2];
 export const leaderPlacementCandidates = (ringLngLat, centroid, principalAngleDeg, extensionDeg) => {
   if (!Array.isArray(ringLngLat) || ringLngLat.length < 3) return [];
@@ -266,11 +281,19 @@ export const fitNameToTerritory = (areaScale, name, elongation = 1) => {
   // country cannot spend that length, so the caller passes 1 there.
   const fit = (NAME_FIT_EM * Math.sqrt(Math.max(1, elongation))) / width;
   if (!(fit < 1)) return areaScale;
-  // THE FLOOR. Below this a country's name reads at the weight of a province's,
-  // which is a fault the label paint has already had to fix once. It is the
-  // same line the leader-line rule draws — the size at which a name stops being
-  // legible as a country — so a name that still will not fit there stays too
-  // wide rather than going unreadable. Past that point the problem is the
-  // length of the name, and size cannot solve it.
-  return Math.max(Math.min(areaScale, LEADER_AREA_SCALE_FLOOR), areaScale * fit);
+  // NO FLOOR: the name shrinks as far as the shape demands. There was one —
+  // LEADER_AREA_SCALE_FLOOR, "a name that still will not fit there stays too
+  // wide rather than going unreadable" — and it was the wrong trade, decided
+  // by the player on 2026-08-18 against the original as it now draws: every
+  // country's name inside its own shape at whatever size that takes (Cambodia's
+  // KINGDOM OF CAMBODIA on two small lines, LAO PEOPLE'S DEMOCRATIC REPUBLIC
+  // tiny along Laos), and no name drawn wider than the country it names. What
+  // keeps a shrunken name from being a smudge at reading zoom is the label
+  // paint, not this: text-opacity fades a label in as it reaches legible size
+  // on screen (buildCountryTextOpacity in Nations.jsx), so a small country's
+  // name is simply absent until the player zooms to where it can be read, and
+  // then it is there, in place, at the country's own weight. That is what the
+  // original does too — REPUBLIC OF KOREA is gone at the zoom that shows JAPAN
+  // across Honshu, and back at the next step in.
+  return areaScale * fit;
 };

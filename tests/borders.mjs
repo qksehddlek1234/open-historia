@@ -433,7 +433,7 @@ test("a country label outranks a city label at the zoom a player reads at", () =
   const at = NATIONS.indexOf("const labelLayerPaint");
   assert.notEqual(at, -1);
   const paint = NATIONS.slice(at, NATIONS.indexOf("}), [labelHaloColor", at));
-  assert.match(paint, /"text-opacity": 0\.75/, "the country label must not fade with zoom");
+  assert.match(paint, /"text-opacity": buildCountryTextOpacity\(1, isGlobe \? GLOBE_LAT_CORRECTION : null, 0\.75\)/, "the country label does not fade with zoom — it fades on its own on-screen size, peak 0.75 (labelPaint.js)");
   assert.doesNotMatch(paint, /"text-opacity": \[/, "no zoom ramp may return to this property");
 
   // TRACKING IS THE OTHER HALF, AND IT LIVES IN LAYOUT. This pin first asked

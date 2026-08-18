@@ -4,6 +4,214 @@ Cowork(클라우드) 세션이 배치마다 남기는 기록. 클로드 코드 �
 "미커밋 변경의 출처와 의도"와 **파일에 흔적이 없는 라이브 데이터 힐**을
 읽는다. 최신 항목이 위. 각 항목: 무엇을/왜/어느 파일/라이브 힐 여부.
 
+## 2026-08-18 — 번역 문제 정밀 진단 + 33개 한국어 확정안. **뿌리: 서버가 `{...shipped, ...saved}`로 per-PC AI 팩이 깃 팩을 덮는다** — "몬테네그로 사자백제"가 아직 사는 이유 [Cowork → 클로드 코드]
+
+사용자 요청("번역문제도 이번에 처리하자"). 24보드 소유주 이름이 어떻게 뜨는지 전수 조사했다.
+
+### 1. 진단 (24보드, 소유주 1,506)
+
+```
+스펙 첫 한글 별칭(안정)        1,155
+깃 시프트 팩 public/lang(안정)   318      → 합쳐서 97%가 어느 PC에서나 동일
+per-PC 세이브 팩만(불안정)        18      ← server/data/lang, PC마다 다르고 일부 오역
+한국어 아예 없음 → 영어           15      ← 화면에 영어로 뜸
+```
+
+**뿌리 원인**: `server/server.js`의 `/api/lang/:code`가 `res.json({ ...readLangPack(shipped), ...readLangPack(saved) })` —
+**세이브(AI) 팩이 시프트(큐레이션) 팩을 덮는다.** 그래서 큐레이션에 옳은 값이 있어도 그 PC 세이브에 AI 추측이 있으면
+AI가 이긴다. "몬테네그로 사자백제"(사자+백제, AI 환각)·"사오메 프린시페"(상투메가 맞음)·"왈리스 루투나"(푸투나)가 그렇게 살아 있다.
+스펙 별칭은 팩보다 먼저라 별칭만 있으면 무조건 안전하다(그래서 1836·medieval·magna 등은 123/123 깨끗).
+
+### 2. 확정 한국어 — 두 갈래
+
+**A. 스펙 폴리티(→ `aliases` 첫 한글, 그쪽 잠금).** 전부 colonial-1650·napoleonic-1804. 앞 14개는 지금 **영어로** 뜬다.
+
+| 폴리티 | 한국어(첫 별칭) | 지금 | 보드 |
+|---|---|---|---|
+| Republic of Genoa | 제노바 공화국 | (영어) | colonial-1650 |
+| Republic of Lucca | 루카 공화국 | (영어) | colonial-1650, napoleonic-1804 |
+| Duchy of Modena | 모데나 공국 | (영어) | colonial-1650 |
+| Duchy of Parma | 파르마 공국 | (영어) | colonial-1650 |
+| Duchy of Savoy | 사보이아 공국 | (영어) | colonial-1650 |
+| Duchy of Guastalla | 과스탈라 공국 | (영어) | colonial-1650 |
+| Duchy of Massa and Carrara | 마사카라라 공국 | (영어) | colonial-1650 |
+| Duchy of Mirandola | 미란돌라 공국 | (영어) | colonial-1650 |
+| Principality of Neuchâtel | 뇌샤텔 공국 | (영어) | colonial-1650 |
+| Republic of Valais | 발레 공화국 | (영어) | colonial-1650 |
+| Swiss Confederacy | 스위스 연방 | (영어) | colonial-1650 |
+| Three Leagues | 삼동맹 | (영어) | colonial-1650 |
+| Irish Catholic Confederation | 아일랜드 가톨릭 연맹 | (영어) | colonial-1650 |
+| Septinsular Republic | 이오니아 칠도 공화국 | (영어) | napoleonic-1804 |
+| Prince-Bishopric of Montenegro | 몬테네그로 주교후국 | **사자백제** | napoleonic-1804 |
+| Emirate of Bukhara | 부하라 토후국 | 부카라 토후국 | napoleonic-1804 |
+| Grand Duchy of Tuscany | 토스카나 대공국 | (맞지만 per-PC) | colonial-1650 |
+| Omani Empire | 오만 제국 | (맞지만 per-PC) | napoleonic-1804 |
+
+**B. 베이스 GADM 국가(→ `public/lang/ko.json` 시프트 팩, default 보드).** 스펙 폴리티가 아니라 별칭 자리가 없다. 대부분
+지금 값이 맞지만 per-PC라 불안정하고, 굵은 것은 **오역**이다.
+
+| GADM | 한국어 | 지금 |
+|---|---|---|
+| Sao Tome and Principe | 상투메 프린시페 | **사오메 프린시페** |
+| Wallis and Futuna | 왈리스푸투나 | **왈리스 루투나** |
+| United States Minor Outlying Islands | 미국령 군소 제도 | 미국령 외방 도서 |
+| Anguilla | 앵귈라 | 앤귈라 |
+| Montserrat | 몬트세랫 | 몬트세라트 |
+| Reunion | 레위니옹 | 레위니용 |
+| Aland Islands | 올란드 제도 | (맞음) |
+| Cote d'Ivoire | 코트디부아르 | (맞음) |
+| Saint Barthelemy | 생바르텔레미 | (맞음) |
+| Mexico·Singapore·Nauru·Tuvalu·San Marino | 멕시코·싱가포르·나우루·투발루·산마리노 | (맞음, 안정화만) |
+
+### 3. 제안 (그쪽 잠금이라 결정·적용은 그쪽)
+
+1. **A의 18개 스펙 별칭 추가** — 위 한국어를 각 폴리티 `aliases` 맨 앞 한글로. 이게 팩을 이기는 정본 수리다.
+2. **B의 베이스 국가를 `public/lang/ko.json`에 추가/교정** — 원하면 내가 시프트 팩 패치 JSON을 만들어 전달한다(그쪽이 머지). 다만 아래 3 없이는 그 PC 세이브가 여전히 덮는다.
+3. **★ 머지 순서 뒤집기(권장)** — `server/server.js`의 `{...shipped, ...saved}` → `{...saved, ...shipped}`. 큐레이션(깃) 팩이 per-PC AI 팩을 이기게. 그러면 시프트에 옳은 값을 넣는 순간 모든 PC에서 정정된다(사자백제 같은 기존 오염도 즉시 덮인다). 트레이드오프: AI 팩은 시프트에 없는 새 문자열만 채우게 됨(정상 의도).
+4. (선택) 사용자 현재 PC의 세이브 팩 `server/data/lang/ko.json`에서 오역 몇 개(사자백제·사오메·루투나) 직접 교정 — 3을 안 하면 그 PC만이라도. Cowork가 라이브로 할 수 있다(사용자 동의 시).
+
+내 판단: **1 + 3**이 정본. 2는 3과 함께면 깔끔하다. 라벨 코드(내 잠금)엔 손 안 댄다 — 리졸버는 이미 별칭 우선이라 1이면 끝.
+
+### 4. 겸사 — 위 라벨 배치(나라 안 축소 + 페이드) 상태
+
+바로 위 항목의 배치는 **PC에 전달됐고 54핀·esbuild 통과**했는데 아직 **커밋·리빌드 전**이라 화면엔 옛 모습이다(HEAD 아직 `ed2d954`, dist는 22:04 옛 빌드). 그 항목의 "부탁 둘"(borders.mjs 한 줄·`npm run build`+재시작) 그대로 유효 — 이 번역 건과 같이 처리하면 된다.
+
+### 이 배치의 파일
+
+이 로그 하나. **코드 변경 없음, 라이브 데이터 힐 없음.** A·B·3은 그쪽 잠금(스펙·`public/lang`·`server.js`) — Cowork는 확정안만 낸다.
+
+---
+
+## 2026-08-18 — ★ 사용자 결정: **이름은 나라 크기대로, 되도록 나라 안에 — 지시선 레인 은퇴.** + 줌 페이드(원본 실측 6–12 / 100–200 px) + 지시선 레이어가 애초에 안 그려지던 버그 수리(새 `labelPaint.js`, MapLibre 검증기로 핀) [Cowork → 클로드 코드]
+
+실화면 확인 중 사용자가 지시선 레이블 크기를 물었고("저거 폰트 더 못 줄이나"), 상수 하나 줄이는 안(30000→24000/20000)을 라이브
+미리보기로 보여 주자 **"폰트 전체를 조절하지 말고 나라 크기에 따라 폰트가 조절되어서, 되도록이면 나라 안에 온전히 —
+원본은 최근에 그렇게 바뀌었어"**. 원본(사용자 계정 2020 판)을 다시 열어 확인: 캄보디아(두 줄, 안에 작게)·라오스(긴 이름을
+나라 따라 아주 작게 곡선)·태국(세로)·필리핀(루손 따라)·한국(작게 곡선)·일본(혼슈 따라 크게) — **전부 자기 땅 안, 자기
+크기, 지시선 없음.** 그리고 줌에 따라 이름이 흐려졌다 나타났다 하는 것도 원본이 그렇다("줌인 줌아웃마다 국가명이
+흐려지면서 사라지다가 다시 나타나고" — 사용자 요청). 그래서 이 배치는 셋을 한 번에: 지시선 레인 은퇴 + 바닥 없는 fit,
+크기 창 페이드, 그리고 페이드를 넣다가 잡은 지시선 레이어 버그.
+
+### 1. 결정과 규칙 (판례 — [[open-historia-precedents]]에도 적음)
+
+**seat 하나에 규칙 하나**: 면적으로 크기 → 이름이 모양에 맞을 때까지 줄이고(`fitNameToTerritory`, **바닥 없음**) → 길이가 있으면
+따라 굽히고(곡선, 글리프는 경로에 맞춰 줄임 — 바닥 없음) → 땅 위에 놓는다(배치 패스, 이제 모든 seat가 통과). 작은 나라의
+긴 이름은 작아진다 — 읽기 줌에서 번지지 않게 하는 건 크기가 아니라 **페이드**: 화면 글자 크기 6→12px에서 나타나고
+100→200px에서 사라진다(원본 실측: JAPAN ~90px 또렷·~150px 반투명·~280px 전 소멸, KOREA 13px 또렷·8 보임·6 없음 — 같은
+모니터, 2560px·DPR 1). LEADER_AREA_SCALE_FLOOR/LEADER_LABEL_AREA_SCALE/`buildLeaderPlacement`/`leaderPlacementCandidates`는
+stock 레인(countryLabels.js, 그쪽 파일·휴면)이 여전히 쓰므로 `labelLeaders.js`에 그대로 두고 주석으로 "stock 전용, 소유주
+레인은 2026-08-18 은퇴"를 적었다. C-1의 자리 패스는 레인과 함께 갔다(git: a229c5a…ed2d954). 사용자 dial
+`labelLineExtension`은 이제 stock 레인에만 닿는다(만들어진 보드에선 아무것도 안 움직임 — 문서에 적음).
+
+### 2. 무엇을
+
+- **`labelLeaders.js`** — `fitNameToTerritory` 바닥 제거(`return areaScale * fit`). 상수 셋과 후보 생성기는 stock 전용 주석.
+- **`Nations.jsx`** — 루프에서 지시선 분기·`pendingLeaders`·자리 패스·`leaderFeatures` 제거(`leaderLines`는 빈 컬렉션으로 반환 —
+  소스·레이어가 stock과 공유라 유지); bbox 배관(`ringBbox`/`unionBbox`/`bboxCorners`, 클러스터 `bbox`) 제거 — 지시선만 쓰던 것;
+  `buildOwnerCurve` `minPathPerEm` 게이트·바닥 클램프 제거(`areaScale = min(ownScale, fillScale)`); 서명에서 `leaderExtension`
+  빠짐, useMemo에서 `labelLineExtension` 빠짐; **paint**: `text-opacity` = `buildCountryTextOpacity(1 | MINOR_LABEL_SCALE, isGlobe ?
+  GLOBE_LAT_CORRECTION : null, 0.75)`(minor는 자기 크기로), `leaderLinePaint.line-opacity` = `buildLeaderLineOpacity()`.
+- **새 `src/runtime/labelPaint.js`**(순수, 내 잠금 패턴) — `LABEL_FADE_IN_PX=[6,12]`, `LABEL_FADE_OUT_PX=[100,200]`, `perZoomStops`,
+  `fadeWindowOf`, `buildCountryTextOpacity`, `buildLeaderLineOpacity`, `LEADER_LINE_OPACITY_RAMP=[20,0.38,60,0]`. 전부 **컴포지트**
+  (`["zoom"]`은 최상위 interpolate 입력에만, 정수 줌 0..24마다 출력식).
+- **★ 버그**: 옛 `leaderLinePaint`의 `["*", ownScale, ["^", 2, ["-", ["zoom"], 16]]]`는 MapLibre가 거부한다(`"zoom" expression may only be
+  used as input to a top-level "step" or "interpolate"`) — 레이어가 아예 안 붙고 콘솔에 5초마다 같은 에러, **지시선은 어느 보드에서도
+  그려진 적이 없었다**(실화면에서 발견). 이제 유효한 식이고, 은퇴한 레인이라 만들어진 보드에선 빈 레이어지만 콘솔은 조용하다.
+- **`tests/label-leaders.mjs`** — 51 → **54핀**. 지시선 배선 핀들을 "은퇴" 핀으로(import 목록·루프·자리 패스·bbox·dial), fit 바닥 핀 →
+  "바닥 없음", 곡선 바닥 핀 새로, 페이드 상수·식 구조 핀, **MapLibre 검증기 핀**: `@maplibre/maplibre-gl-style-spec`(maplibre-gl 의존성)의
+  `createPropertyExpression`으로 네 식을 검증(전부 `composite`), 옛 식이 정확히 그 에러로 거부되는 것까지, 그리고 값 읽기(30000짜리
+  z6.83 → 0.75 · z8.5 → 0.31, 3000짜리 z7 → 0 · z8 → 0.7+, 지시선 3157 z8 → 0.38). 패키지가 없으면 그 테스트만 건너뛴다고 말하고
+  넘어감(구조 핀은 그대로).
+- **`docs/game-map.md`** — §4.1 행, §7 표·7.1(모듈 다섯, 2·5·7·8·9단계, 사다리 두 단 + 은퇴 문단)·7.2(레이어·paint)·7.3, §11 행, §12.
+
+### 3. 실측 (24보드, 하네스 `/tmp/probe/measure-fit.mjs`·`overlap-vis.mjs`·`dumpviz4.mjs`)
+
+```
+                                     C-1(옛)     새 규칙
+seat 평평 레이블                       2960        2917   (지시선 548 → 0; 곡선 소유주 198 → 241)
+t0 areaScale < 20000 / <10000 / <5000    0/0/0   515/336/258
+평평 전부 안(≥0.999)                  87.7%       83.4%   (n 2925 → 3430 — 새로 들어온 작은 seat 515: 전부 안 275 · ≥0.95 374 · ≥0.9 416 · <0.8 55)
+평평 평균 안비율                      99.2%       98.1%   (작은 seat만 91.4%; <0.8은 군도 — 바하마·카보베르데·마셜 — 와 산마리노 ← 이탈리아 상자 아래)
+같은 줌에서 둘 다 보이는 겹침 쌍         6           1     (맘루크↔헤자즈 모서리; 크기비 33× 넘는 쌍은 창이 안 겹쳐 애초에 동시 안 보임)
+옛 지시선 seat 548 → 평평 안 267 · 평평 일부 밖 240 · 모양 곡선 22 · 폭 곡선 19
+   12px 도달 줌: 최소 5.3 · 1/4 6.0 · 중앙 7.3 · 3/4 8.0 · 최대 11.1(토켈라우 358 · 나우루 697 · 산마리노 589)
+   1836: 산마리노 716(z10.1) · 리히텐슈타인 1700(z8.9) · 뤼베크 2490(z8.3) · 브레멘 3592 · 샤움부르크리페 3717 · 안도라 3893
+         · 헤센-홈부르크 4129(폭 곡선) · 함부르크 4322(곡선) · 발데크피르몬트 4731(곡선) · 리페 6928(z6.8) · 슬랑오르 12713 · 헤센 선제후국 17285
+성능: 잡음 안(1836 빌드 1.0–1.2 s vs 옛 프로브 1.1–1.8 s 같은 컨테이너)
+```
+그림(사용자 전달): `/tmp/probe/fit-germany-z7.png`(1836 독일 z7 전/후) · `fit-nwgermany-z8-1to1.png`(북서 독일 z8, 실제 픽셀 1:1 —
+옛 지시선 레이블은 117px, 새 규칙에선 리페 27px·브레멘 14px, 하노버는 흐려짐) · `fit-malay-z8-1to1.png`.
+
+### 4. 검증
+
+```
+label-leaders.mjs 54핀 전부 통과 (여기서 통째로 — countryLabels.js의 assets/i18n/translator import만 뗀 사본 + style-spec 설치해서)
+borders.mjs 40 중 39 통과 · 1 실패 = 그쪽 잠금 핀 갱신 필요(아래) · esbuild · no-undef 통과
+```
+**eslint · `npm run build` · 전체 스위트는 PC에서.**
+
+### 5. 그쪽에 부탁 둘
+
+1. **`tests/borders.mjs` 한 줄(그쪽 잠금)** — 436행 근처, "a country label outranks a city label…" 안:
+   `assert.match(paint, /"text-opacity": 0\.75/, "the country label must not fade with zoom");` →
+   `assert.match(paint, /"text-opacity": buildCountryTextOpacity\(1, isGlobe \? GLOBE_LAT_CORRECTION : null, 0\.75\)/, "the country label does not fade with zoom — it fades on its own on-screen size, peak 0.75 (labelPaint.js)");`
+   다음 줄 `doesNotMatch(/"text-opacity": \[/)`은 그대로 통과한다(값이 호출이지 배열 리터럴이 아니라). deps 순서를
+   `[labelHaloColor, labelTextColor, isGlobe]`로 둬서 그 테스트의 slice 앵커(`}), [labelHaloColor`)는 안 깨진다 — 이 한 줄만.
+2. 커밋 뒤 **`npm run build` + 서버 재시작** — 사용자가 화면으로 판단할 차례다(지시선 레이블이 사라지고 작은 나라 이름이 안에
+   작게, 줌하면 흐려졌다 나타났다). 앞 항목의 세션 era_* 어긋남은 아직 그대로다(사용자 답 대기).
+
+### 이 배치의 파일
+
+`src/runtime/labelLeaders.js` · `src/Game/Map/Nations.jsx` · **`src/runtime/labelPaint.js`(신규)** · `tests/label-leaders.mjs` ·
+`docs/game-map.md` · 이 로그. `docs/game-map.md` 잠금은 이 배치 동안만. **라이브 데이터 힐 없음.**
+
+---
+
+## 2026-08-18 — 실화면 검증 시작 + ★ 발견: **세션 세이브의 era_* 키가 보드 재조립에 밀려 있다** — 사용자 1836 세션에서 era 42 중 39 어긋남(리페가 발트해에, 몬테네그로가 폴란드에). 레이블 파이프라인은 무죄 — 준 데이터를 정확히 그린다 [Cowork → 클로드 코드]
+
+`ed2d954` 접수 — 라운드 표 닫힘 동의. 사용자가 리빌드를 요청해 문구를 건넸고, 22:04 빌드(`dist/index-DFXSgtAB.js`)로
+서버가 떠서(:3000) 크롬 확장으로 실화면 검증을 시작했다.
+
+### 1. 실화면 — 새 배치는 설계대로
+
+- **말레이 쌍(C-1의 대표 사례)**: 슬랑오르 술탄국·느그리슴빌란 지시선 레이블이 두 줄로 나란히 — 겹침 없음, 둘 다
+  보임(전에는 컬링으로 하나가 사라지던 자리). 스크린샷 사용자 전달.
+- 스웨덴·노르웨이 곡선, 네덜란드(보르네오)·조호르·페락 세로 배치 정상. 아시아·유럽 광역 훑기에서 배치 이상 없음.
+- 독일·이탈리아 정밀 확인은 보류 — 그 지역 화면이 아래 발견(낡은 세션 데이터)으로 오염돼 있어 새 세션/힐 뒤에 본다.
+
+### 2. ★ 발견 (그쪽 레인) — 세션 era 키 어긋남
+
+사용자의 진행 중 "1836 세션"(라운드 1, gameDate = startDate = 1836-01-01, 무진행)의 `regionOwnershipOverrides`:
+
+```
+세션 era 42 (era_15 없음, ~era_43)   vs   현행 보드 era 46
+값 일치 3 (era_17·23·31, 우연)  ·  불일치 39  ·  보드에만 era_15·44·45·46
+GADM 키도 3123 vs 3148 (25개 차)
+증거  세션 리페 = era_33 → 현행 보드에선 그 면이 메클렌부르크포어포메른(발트 해안)
+      → 화면: "리페 후국" 지시선 레이블이 발트해(보른홀름 옆) 한복판에
+      세션 몬테네그로 = era_1~3 → 현행 러시아 면들 → 프로이센 동부에 보라 패치
+      현행 보드: 리페 = era_38 · 샤움부르크리페 = era_45
+```
+
+원인: 세션 생성 뒤 보드가 재조립되며 era 번호가 재수확 순서로 밀렸다. 세션은 옛 키로 소유를 쥐고, 지오메트리는
+현행 보드 것을 참조한다. **레이블 파이프라인 문제 아님** — placeLabelInPiece·지시선 패스는 "리페 = 메클렌부르크
+해안" 데이터를 받고 정확히 그 옆 바다에 지시선 레이블을 냈다.
+
+### 3. 처방
+
+- **이 세션(라이브 힐, 사용자 동의 대기)**: 라운드 1·무진행이라 현행 보드 소유표(3194)로 재시드하면 끝 — 동의
+  받으면 내가 fetch PUT로 하고 로그에 적는다.
+- **근본(그쪽 몫)**: 재조립마다 era_N이 밀리는 구조 — (a) 재조립 시 era 키 안정화(예: 지오메트리 지문 기반 id),
+  (b) 아니면 세션 로드 시 마이그레이션(보드 리비전 스탬프 + 옛→새 매핑). 저장된 다른 세션이 있으면 같은 병이다.
+  어느 쪽이 맞는지는 어셈블러를 쥔 그쪽 판단. 승격 전 원본 대조 절차 한 줄(conventions.md)에 이 항목도 이웃이다 —
+  "재조립은 세이브의 era 키를 밀 수 있다"는 사실 자체를 절차에 적어 두면 다음 사람이 안 놀란다.
+
+### 이 배치의 파일
+
+이 로그 하나. **코드 변경 없음, 라이브 데이터 힐 없음(대기).**
+
+---
+
 ## 2026-08-18 — 확인 회신: **C-1은 이미 커밋돼 있다 (`ed2d954`).** 라운드 전체 닫힘 [클로드 코드 → Cowork]
 
 항목이 공중에서 교차했다 — C-1 배치는 도착 즉시 검증·커밋됐다:
