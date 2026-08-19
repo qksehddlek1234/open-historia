@@ -430,6 +430,11 @@ export default {
     BOR: { name: "Bornu", color: "#6b4f2a", aliases: ["보르누", "Kanem-Bornu", "Bornu Empire", "al-Kanemi"] },
     OYO: { name: "Oyo", color: "#c8a66a", aliases: ["오요", "Oyo Empire", "Alaafin"] },
     BNI: { name: "Kingdom of Benin", color: "#c19a57", aliases: ["베냉 왕국", "Benin", "Edo", "Oba Osemwende"] },
+    // 사용자 보고 B-3 (2026-08-19): "콩고 왕국 없음". 1836년 실존 — 수도
+    // 상살바도르(음반자콩고, 현 앙골라 자이르주), 포르투갈 종속 서약은 1857년
+    // 이후다. 별칭에 "Congo"는 넣지 않는다 — 현대 콩고(COG/COD)의 지도자
+    // 레퍼런스 키와 섞일 수 있는 이름은 처음부터 피한다.
+    KON: { name: "Kingdom of Kongo", color: "#8f5a34", aliases: ["콩고 왕국", "Kongo", "Kongo Kingdom", "M'banza-Kongo"] },
     // The Senegambian kingdoms. France holds points, not provinces (Saint-Louis
     // and Goree), which is why the coast below is theirs and the interior is not.
     CAY: { name: "Kingdom of Cayor", color: "#b8894f", aliases: ["카요르 왕국", "Cayor", "Kajoor", "Damel"] },
@@ -689,6 +694,9 @@ export default {
     // 앙골라: 루안다·벵고·벵겔라·쿠안자 남북. 모사메드스(나미베)는 1840년 건설이라
     // 아직 없고, 카빈다의 포르투갈 주권은 1885년이다.
     "AGO.11_1": "POR", "AGO.1_1": "POR", "AGO.2_1": "POR", "AGO.6_1": "POR", "AGO.7_1": "POR",
+    // 콩고 왕국 — 핵심 두 칸만(자이르 = 수도 상살바도르, 우이즈). 남서 COD와
+    // 콩고강 이북은 영향권이라 빈칸 원칙대로 비워 둔다(B-3).
+    "AGO.18_1": "KON", "AGO.17_1": "KON",
     // 모잠비크: 이보·모잠비크섬·켈리마느·소팔라·이냠바느·로렌수마르케스와 잠베지
     // 프라주(테테). 가자·마니카·니아사는 내륙이라 비운다.
     "MOZ.1_1": "POR", "MOZ.3_1": "POR", "MOZ.5_1": "POR", "MOZ.6_1": "POR", "MOZ.7_1": "POR", "MOZ.9_1": "POR",

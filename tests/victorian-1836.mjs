@@ -180,7 +180,13 @@ test("every polity the spec declares can be answered", () => {
   // 묻는다. 그래서 사슬 어딘가에서 답하지만 표에는 없는 폴리티가 한쪽만
   // 통과했다. 지금은 알칼리파가 표에 있어 둘 다 통과하지만, 다음에 두 목록이
   // 갈리면 그건 결함이 아니라 이 차이일 수 있다.
-  const awaitingLeaderPack = [];
+  // ── 2026-08-19 세 번째 회차: 콩고 왕국 하나 (B-3) ────────────────────────
+  // 바레인 관찰의 첫 실제 사례로 두 목록이 갈렸다: early-modern 팩의 Kongo
+  // 행이 열린 창 + 센티널("(없음)")로 1836에 답하는 척해서 leaders.mjs의
+  // truthy 핀은 통과하지만, REFERENCE 표에 1836을 덮는 실제 통치자 행은 없다.
+  // 1836년의 왕은 기록마다 갈리는 구간이라(안드레 2세/앙리크 2세 사이)
+  // 지어내지 않는다 — 팩 레인 몫. 채워지면 이 이름은 떠나야 한다.
+  const awaitingLeaderPack = ["Kingdom of Kongo"];
   assert.deepEqual(unanswered.sort().filter((n) => !awaitingLeaderPack.includes(n)), [],
     "a name added here without a leader row is a to-do, not a decision");
   // 목록이 자기 원인보다 오래 살면 안 된다 — 답이 생긴 이름은 빠져야 한다.

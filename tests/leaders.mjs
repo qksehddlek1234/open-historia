@@ -327,6 +327,13 @@ await (async () => {
   // (2026-08-19 B-4의 Columbia Department는 여기 오지 않는다 — "Columbia
   // District" 별칭으로 레퍼런스가 즉시 답한다: 심프슨 총독. 새 폴리티가 전부
   // 이 목록에 실리는 게 아니라는 증거가 하나 더 늘었다.)
+  //
+  // (B-3의 Kingdom of Kongo도 여기엔 없다 — 그러나 Columbia와는 다른 이유다.
+  // early-modern 팩의 Kongo 행이 열린 창으로 1836까지 흘러오는데 그 내용이
+  // 센티널("(없음)") 하나라, 이 핀의 truthy 판정은 통과하고 빌드의 시딩
+  // (hasOfficeholder)은 미기록으로 남긴다. 진짜 공백은 보드 쪽 목록
+  // (tests/victorian-1836.mjs awaitingLeaderPack)이 쥔다 — 두 핀이 다른
+  // 질문을 한다는 바레인 관찰의 첫 실제 사례.)
   assert.deepEqual(failures, HANDOVER_2026_08_18,
     "every post-1444 preset polity must resolve — or stand in the named handover list, which may only shrink");
 
