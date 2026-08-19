@@ -697,10 +697,23 @@ if (m.coverImage) {
   }
 }
 
+// A REBUILD MUST NOT ERASE WHAT THE PLAYER DID. scenario.json accrues fields at
+// runtime that no spec knows: playCount / lastPlayedAt (the volatile meta pair —
+// src/runtime/web/account.js names them VOLATILE_META_FIELDS) and the original
+// createdAt. Rebuilding victorian-1836 on 2026-08-19 silently dropped
+// playCount 3 — caught only because the pre-rebuild folder had been copied
+// aside. Carried over from the existing file, never from the spec.
+const prevScenarioPath = path.join(scenarioDir, "scenario.json");
+let prevScenario = {};
+if (existsSync(prevScenarioPath)) {
+  try { prevScenario = JSON.parse(readFileSync(prevScenarioPath, "utf8")) ?? {}; } catch { prevScenario = {}; }
+}
 writeJson(path.join(scenarioDir, "scenario.json"), {
   accentColor: m.accentColor ?? "#7c3aed",
   coverImageContentType: coverContentType,
-  createdAt: now,
+  createdAt: prevScenario.createdAt ?? now,
+  ...(prevScenario.playCount != null ? { playCount: prevScenario.playCount } : {}),
+  ...(prevScenario.lastPlayedAt != null ? { lastPlayedAt: prevScenario.lastPlayedAt } : {}),
   // What the clock shows when the machine date is not a thing a player reads.
   // Only the deep-past boards need it: their dates are ISO extended years
   // ("-001199-01-01" is 1200 BCE) because that is the only form parsers accept,
