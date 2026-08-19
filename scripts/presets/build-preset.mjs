@@ -198,10 +198,43 @@ const polityName = (code) => String(spec.polities?.[code]?.name ?? code);
 const expandRegionKey = buildRegionKeyExpander(seedIds);
 
 const overrides = {};
+// THE CATALOG LAGS THE SEED, AND EMITTING ITS RAW IDS PLANTS GHOSTS. This loop
+// used to write ownership rows for whatever GID_1 the pmtiles catalog listed —
+// but for countries the seed has since subdivided (China's 31 provinces → 344
+// prefectures, Spain, France, Greece, Finland, Belgium, the UK's ONS counties)
+// those L1 ids no longer name any feature the map draws. victorian-1836 carried
+// 81 such rows (measured 2026-08-19): paint never reads them (the fill lanes key
+// off geojson features), but conquest and stat logic see regions that do not
+// exist. So a catalog id the seed dropped is TRANSLATED through the same
+// resolver regionAssignments already uses (L2 parent-segment / ONS / NUTS), and
+// one that cannot be translated is dropped WITH ITS NAME PRINTED — never
+// silently (절대원칙 1).
+const catalogGhostDrops = [];
+let catalogTranslated = 0;
 for (const [owner, gid0List] of Object.entries(spec.countryAssignments ?? {})) {
   for (const gid0 of gid0List) {
-    for (const gid1 of index.get(gid0) ?? []) overrides[gid1] = polityName(owner);
+    for (const gid1 of index.get(gid0) ?? []) {
+      if (seedIds.has(gid1)) { overrides[gid1] = polityName(owner); continue; }
+      // One id family in the catalog is simply MALFORMED: Ghana's rows read
+      // "GHA13_2" where the seed (and GADM) write "GHA.13_2" — the dot is
+      // missing, nothing else. Repaired only when the dotted form is a real
+      // seed id, so this cannot invent regions.
+      const dotted = gid1.replace(/^([A-Z]{3})(?=\d)/, "$1.");
+      if (dotted !== gid1 && seedIds.has(dotted)) {
+        catalogTranslated += 1;
+        overrides[dotted] = polityName(owner);
+        continue;
+      }
+      const targets = expandRegionKey(gid1).filter((t) => seedIds.has(t));
+      if (targets.length === 0) { catalogGhostDrops.push(`${gid1} (${polityName(owner)})`); continue; }
+      catalogTranslated += targets.length;
+      for (const target of targets) overrides[target] = polityName(owner);
+    }
   }
+}
+if (catalogTranslated > 0) console.log(`  [catalog] 시드가 세분화한 카탈로그 L1 → 하위 지역 번역 ${catalogTranslated}행`);
+if (catalogGhostDrops.length > 0) {
+  console.log(`  [catalog] ⚠ 시드에 표현이 없는 카탈로그 id ${catalogGhostDrops.length}건 버림 (유령 행 방지): ${catalogGhostDrops.join(", ")}`);
 }
 let legacyExpanded = 0;
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
