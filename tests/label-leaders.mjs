@@ -1118,4 +1118,21 @@ test("city names snap on and off by rank — a filter ladder, never a fade", () 
     "same wiring on the stock lane");
 });
 
+test("the tile fill's match fallback is transparent — the A-3 undercoat is gone", () => {
+  assert.match(NATIONS, /"fill-color": \["match", \["get", "GID_1"\], \.\.\.stops, "rgba\(0, 0, 0, 0\)"\],/,
+    "a tile feature the GeoJSON does not know paints NOTHING — its ground belongs to other geometry");
+  assert.doesNotMatch(NATIONS, /\.\.\.stops, NEUTRAL_LAND_COLOR\]/,
+    "the old NEUTRAL fallback was a 0.72 grey undercoat under every re-seeded country (measured ~0.92 vs 0.72)");
+});
+
+test("the coastline draws from the border file, thinner, and never stacks on a border", () => {
+  assert.match(NATIONS, /id="owner-coasts"/, "the coast has its own layer on the owner-border source");
+  assert.match(NATIONS, /filter=\{\["==", \["get", "kind"\], "coast"\]\}/,
+    "it draws exactly the builder's kind:\"coast\" segments (WORKLOG contract)");
+  assert.match(NATIONS, /id="owner-borders"\n          type="line"\n          filter=\{\["!=", \["get", "kind"\], "coast"\]\}/,
+    "…and the national-border layer excludes them, so the two weights never stack");
+  assert.match(NATIONS, /2, 0\.36 \* borderScale,\n              4, 0\.6 \* borderScale,/,
+    "0.6x the national line at every stop — thinner, the player's call (가늘게)");
+});
+
 console.log(`\n${pass} passed\n`);

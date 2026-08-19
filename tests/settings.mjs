@@ -509,10 +509,12 @@ test("A COUNTRY BORDER IS WEIGHTED BY ZOOM NOW, not a flat hairline", () => {
 });
 
 test("…and every border layer scales, provinces included", () => {
-  // 18 width stops across five layers, plus the 3 province OPACITY stops.
+  // 23 width stops across six layers, plus the 3 province OPACITY stops.
   // Was 16 before the national border was revived and the diverged-region
-  // border added — those brought 5 more width stops with them.
-  assert.equal((NATIONS.match(/\* borderScale/g) || []).length, 21);
+  // border added (+5), 21 until the owner-coasts layer landed (B-7,
+  // 2026-08-19: coastlines at 0.6× national weight — five more width stops,
+  // every one riding borderScale, which is exactly what this pin demands).
+  assert.equal((NATIONS.match(/\* borderScale/g) || []).length, 26);
   assert.match(NATIONS, /const borderScale = useDisplayScale\("borderWidth"\);/);
 });
 

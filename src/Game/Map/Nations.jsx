@@ -1745,7 +1745,23 @@ const WorldMap = ({ isGlobe = false }) => {
     }
     if (!stops.length) return { "fill-opacity": 0 };
     return {
-      "fill-color": ["match", ["get", "GID_1"], ...stops, NEUTRAL_LAND_COLOR],
+      // THE FALLBACK IS TRANSPARENT, NOT NEUTRAL — this was the wash-out
+      // (A-3, reported "줌인 할 때 프로빈스가 서서히 탈색"). The stops above
+      // name every region the GeoJSON knows; a tile feature that reaches the
+      // fallback is one whose ground the GeoJSON draws with OTHER geometry —
+      // an L1 shape whose country was re-seeded as NUTS/L2 (DEU.2_1 under
+      // Bavaria's DEU.DExx faces), or an era-replaced face. Painting those
+      // NEUTRAL_LAND_COLOR at 0.72 laid a grey undercoat beneath the
+      // tiled:false coat: measured on screen (2026-08-18, Vienna z6.8),
+      // single-coat Austria read 0.72 while double-coated Bavaria read ~0.92,
+      // and the contrast grew through the 5.5–6.5 crossfade — the "gradual
+      // bleach". Removing the stale ownership rows (B-8) could not fix this,
+      // because the stops never came from the ownership table — the fallback
+      // did the painting. Genuinely unowned land is NOT the fallback's job:
+      // an unowned region is in the stops with NEUTRAL_LAND_COLOR (the
+      // `owner ? … :` above), so the only thing transparency removes is the
+      // undercoat below land that other geometry already owns.
+      "fill-color": ["match", ["get", "GID_1"], ...stops, "rgba(0, 0, 0, 0)"],
       // Fades in as the seed-geometry far layer fades out — but never for a reshaped
       // region: its tile still holds the original shape, so painting it here would
       // double-fill the edited area over the GeoJSON that now owns it.
@@ -2251,8 +2267,43 @@ const WorldMap = ({ isGlobe = false }) => {
         <Layer
           id="owner-borders"
           type="line"
+          filter={["!=", ["get", "kind"], "coast"]}
           layout={{ "line-cap": "round", "line-join": "round" }}
           paint={countriesOutlinePaint}
+        />
+        {/* THE COASTLINE, AT A LIGHTER WEIGHT. The border file above carries
+            only edges where ownership CHANGES, so the sea edge — where there
+            is no neighbour to change to — was never drawn and every country
+            faded into the water with no stroke at all (reported 2026-08-18,
+            "해안가 국경 레이블이 안그려져있음"). The preset builder ships
+            coast segments in the same file tagged `kind: "coast"` (agreed in
+            the WORKLOG split, generator on the builder side); this layer
+            draws exactly those, and the filter above keeps them out of the
+            national-border layer so the two weights never stack.
+
+            THINNER THAN A BORDER, BY THE PLAYER'S CALL (2026-08-19,
+            "가늘게"): 0.6× the national line at every stop. A coast outlines
+            what a country IS where a border says where it ENDS against a
+            neighbour — the atlas convention the original follows draws the
+            first quieter than the second. Until the builder lands, no
+            feature carries the tag and this layer simply draws nothing. */}
+        <Layer
+          id="owner-coasts"
+          type="line"
+          filter={["==", ["get", "kind"], "coast"]}
+          layout={{ "line-cap": "round", "line-join": "round" }}
+          paint={{
+            "line-color": "#000",
+            "line-width": [
+              "interpolate", ["linear"], ["zoom"],
+              2, 0.36 * borderScale,
+              4, 0.6 * borderScale,
+              6, 0.9 * borderScale,
+              9, 1.32 * borderScale,
+              13, 1.8 * borderScale,
+            ],
+            "line-opacity": worldKnown ? 1 : 0,
+          }}
         />
       </Source>
 
