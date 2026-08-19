@@ -76,6 +76,41 @@ const customTierFilter = [
     [">=", ["zoom"], 5.8],
 ];
 
+// THE NAME COMES LATER THAN THE DOT, AND IT SNAPS — no fade. The player asked
+// for exactly this (2026-08-18, "프로빈스에도 줌페이드 기능 적용, 단 이번엔
+// 확대하고 축소할때 보이고 안보이고의 이중적 기능만"): city names should be
+// absent zoomed out and present zoomed in, on/off, not the country labels'
+// opacity ramp. A filter is the right tool rather than a text-opacity step,
+// because an invisible label still owns its collision box — names "shown" at
+// opacity 0 would go on deleting the neighbours the player CAN see.
+//
+// Ladder by authored rank, capitals exempt (a capital's name is why it is on
+// the map): tier 3 names from z5, tier 2 from z6, towns from z7. MapLibre
+// re-evaluates zoom inside a filter at integer zoom boundaries, so the steps
+// sit on integers to flip exactly where they claim to. The dots keep the
+// looser customTierFilter above — a dot says "a city is here" from far out,
+// and its name arrives as the player closes in, which is how an atlas reads.
+const customLabelTierFilter = [
+    "any",
+    ["==", ["get", "capital"], "primary"],
+    [">=", ["get", "tier"], 4],
+    ["all", [">=", ["get", "tier"], 3], [">=", ["zoom"], 5]],
+    ["all", [">=", ["get", "tier"], 2], [">=", ["zoom"], 6]],
+    [">=", ["zoom"], 7],
+];
+
+// The stock lane's same rule, ranked the only way that database can be: the
+// modern set has no authored tiers, so names wait on population where the
+// custom lane waits on rank. Capitals exempt, big cities (the ◆ threshold,
+// 2.5M) from z5, the rest from z6 — the DOTS still follow populationFilter,
+// which already staggers who exists at all by zoom.
+const stockLabelGateFilter = [
+    "any",
+    ["==", ["get", "capital"], "primary"],
+    ["all", [">=", ["get", "population"], 2500000], [">=", ["zoom"], 5]],
+    [">=", ["zoom"], 6],
+];
+
 // Capitals first, exactly as the stock layer does it, so an authored capital is
 // never the symbol that loses its patch to a larger neighbour.
 const customSortKey = [
@@ -169,7 +204,7 @@ const labelPaint = {
     "text-halo-width": 2,
 };
 
-const StockCities = ({ label, filter, fontStack }) => (
+const StockCities = ({ label, filter, labelFilter, fontStack }) => (
     <>
         <Source id="cities-source" type="vector" url={PMTILES_PROTOCOL_URLS.cities}>
             <Layer
@@ -190,7 +225,7 @@ const StockCities = ({ label, filter, fontStack }) => (
                 type="symbol"
                 source-layer="cities"
                 minzoom={3.4}
-                filter={filter}
+                filter={labelFilter}
                 layout={{
                     "symbol-sort-key": stockSortKey,
                     "text-field": label,
@@ -202,7 +237,17 @@ const StockCities = ({ label, filter, fontStack }) => (
                         3, 8,
                         10, 10,
                     ],
-                    "text-variable-anchor": ["top", "bottom", "left", "right"],
+                    // ONE ANCHOR, ALWAYS. This was text-variable-anchor over
+                    // [top, bottom, left, right]: MapLibre tries each spot in
+                    // order and takes the first that fits, so a name sat below
+                    // its dot here, beside it there, and JUMPED between spots
+                    // as neighbours came and went with zoom — the reported
+                    // "레이블이 들쭉날쭉". A name that cannot fit in ITS spot
+                    // is dropped by collision like any other, which reads far
+                    // calmer than a name that dodges. "top" anchors the text's
+                    // top edge at the offset point — the name hangs BELOW its
+                    // dot, radial-offset 0.7em of clearance, every time.
+                    "text-anchor": "top",
                 }}
                 paint={labelPaint}
             />
@@ -214,7 +259,7 @@ const StockCities = ({ label, filter, fontStack }) => (
 // fed from the scenario's cities.geojson and gated by the authored tier. Split
 // across two sources for the same reason as the stock layer — same `data` object,
 // so the second source costs a collision group and nothing else.
-const CustomCities = ({ data, label, filter, fontStack }) => (
+const CustomCities = ({ data, label, filter, labelFilter, fontStack }) => (
     <>
         <Source id="cities-source" type="geojson" data={data}>
             <Layer
@@ -247,7 +292,7 @@ const CustomCities = ({ data, label, filter, fontStack }) => (
                 id="cities-labels"
                 type="symbol"
                 minzoom={3.4}
-                filter={filter}
+                filter={labelFilter}
                 layout={{
                     "symbol-sort-key": customSortKey,
                     "text-field": label,
@@ -259,7 +304,9 @@ const CustomCities = ({ data, label, filter, fontStack }) => (
                         3, ["match", ["get", "tier"], 4, 9.5, 3, 9, 8],
                         10, 10,
                     ],
-                    "text-variable-anchor": ["top", "bottom", "left", "right"],
+                    // Same single anchor as the stock lane, same reason — see
+                    // the note there. The name hangs below its dot, always.
+                    "text-anchor": "top",
                 }}
                 paint={labelPaint}
             />
@@ -293,6 +340,16 @@ const Cities = () => {
         const hide = hidePromotedCitiesFilter(markers, cityRenames);
         return hide ? ["all", customTierFilter, hide] : customTierFilter;
     }, [markers, cityRenames]);
+    // The NAME layers take the dot filter plus the on/off ladder — a name never
+    // exists without its dot, and never before its rank's zoom.
+    const stockLabelFilter = React.useMemo(
+        () => ["all", stockFilter, stockLabelGateFilter],
+        [stockFilter],
+    );
+    const customLabelFilter = React.useMemo(
+        () => ["all", customFilter, customLabelTierFilter],
+        [customFilter],
+    );
 
     // The city set itself is static per scenario — fetched once when the flag (or
     // the runtime token behind the URL) changes.
@@ -319,9 +376,9 @@ const Cities = () => {
     // the custom set is still loading, show nothing rather than flash modern names.
     if (customFlag) {
         if (!customData || !customData.features.length) return null;
-        return <CustomCities data={customData} label={label} filter={customFilter} fontStack={fontStack} />;
+        return <CustomCities data={customData} label={label} filter={customFilter} labelFilter={customLabelFilter} fontStack={fontStack} />;
     }
-    return <StockCities label={label} filter={stockFilter} fontStack={fontStack} />;
+    return <StockCities label={label} filter={stockFilter} labelFilter={stockLabelFilter} fontStack={fontStack} />;
 };
 
 export default Cities;

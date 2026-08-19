@@ -339,11 +339,22 @@ test("NOTHING PROMOTED COSTS NOTHING", () => {
 test("both city layers take the filter, and both kinds of map", () => {
   // Both take fontStack too now (the original's map-text-font setting), but the
   // invariant here is the FILTER reaching both layers on both kinds of map.
-  assert.match(CITIES, /const StockCities = \(\{ label, filter, fontStack \}\) => \(/);
-  assert.match(CITIES, /const CustomCities = \(\{ data, label, filter, fontStack \}\) => \(/);
+  //
+  // Since A-2 (2026-08-19, Cowork) the label layers take a COMPOSED filter —
+  // the same base filter ∧ the rank on/off ladder — so "4 × filter={filter}"
+  // became 2 dots + 2 labels. The invariant did not change: the promoted-city
+  // hide must reach all four layers, and the two composition lines pinned last
+  // are what keep the base filter from falling out of the label side.
+  assert.match(CITIES, /const StockCities = \(\{ label, filter, labelFilter, fontStack \}\) => \(/);
+  assert.match(CITIES, /const CustomCities = \(\{ data, label, filter, labelFilter, fontStack \}\) => \(/);
   assert.match(CITIES, /const stockFilter = React\.useMemo\(/);
   assert.match(CITIES, /const customFilter = React\.useMemo\(/);
-  assert.equal((CITIES.match(/filter=\{filter\}/g) || []).length, 4, "shapes and labels, stock and custom");
+  assert.equal((CITIES.match(/filter=\{filter\}/g) || []).length, 2, "the dot layers, stock and custom");
+  assert.equal((CITIES.match(/filter=\{labelFilter\}/g) || []).length, 2, "the label layers, stock and custom");
+  assert.match(CITIES, /\["all", stockFilter, stockLabelGateFilter\]/,
+    "the stock label filter must compose the base filter, or promoted-city hiding dies on stock maps");
+  assert.match(CITIES, /\["all", customFilter, customLabelTierFilter\]/,
+    "the custom label filter must compose the base filter, or promoted-city hiding dies on custom maps");
 });
 
 test("the editor offers the search instead of saying it cannot be done", () => {

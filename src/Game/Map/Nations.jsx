@@ -357,7 +357,16 @@ const ringCentroidLngLat = (ring) => {
 // at the old 28° France's metropole merged with its African empire across the
 // Mediterranean and only the empire got named.
 const CLUSTER_JOIN_DEGREES = 10; // centroids closer than this merge into one label cluster
-const MIN_CLUSTER_AREA = 1.5; // in lng/lat degrees^2 — skips tiny extra islands
+// EVERY DETACHED PIECE GETS ITS NAME. There was an area gate here
+// (MIN_CLUSTER_AREA = 1.5 deg², "skips tiny extra islands") and it existed to
+// keep small repeats from littering the reading zoom — a size job the zoom-size
+// fade now does properly (labelPaint.js): a tiny exclave's repeat is sized by
+// its own area, so it is simply absent until the player zooms to where it can
+// be read. Retired 2026-08-19 on the player's call ("분리된 영토에도 국가명이
+// 띄워지게") — the original names every landmass, atlas-style. Measured across
+// the fleet: tier-1 repeats 513 → 1,378, build time inside noise (gate-sweep,
+// three-board bench). Zero-area degenerates (a cluster whose regions carry no
+// ring) still skip — that is a data guard, not a size gate.
 
 // Which regions physically touch — buildRegionAdjacency, in labelClusters.js.
 // It used to hash shared vertices on a 1e-4° grid, which is how GADM's own
@@ -674,9 +683,13 @@ const buildOwnerLabelCollection = (regionsFC, overrides, polityOverrides, nameRe
     // `tier` is that rank, and Nations.jsx draws the two from separate layers.
     for (let index = 0; index < clusters.length; index += 1) {
       const merged = clusters[index];
-      // Every owner keeps its largest cluster (tiny states still get a label);
-      // additional clusters must clear the size bar.
-      if (index > 0 && merged.area < MIN_CLUSTER_AREA) continue;
+      // Every cluster gets a label — the seat at tier 0, every detached piece
+      // as a tier-1 repeat, however small. The area bar that used to stand here
+      // is retired (see the note at CLUSTER_JOIN_DEGREES): the fade keeps a
+      // tiny repeat off the screen until it can be read, so the only thing a
+      // size gate bought was islands with no name at any zoom. Degenerate
+      // clusters (no measurable area — empty geometry) still skip.
+      if (index > 0 && !(merged.area > 0)) continue;
       // THE LABEL SITS ON THE LARGEST CONTIGUOUS PIECE. The merged centroid is
       // the sea for an archipelago and leans toward an exclave for a country
       // that has one — Bavaria's label sat west toward the Palatinate, on top

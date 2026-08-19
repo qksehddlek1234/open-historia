@@ -1073,4 +1073,49 @@ test("Nations.jsx paints every label layer with the window, in the size that lay
   assert.match(NATIONS, /\}\), \[labelHaloColor, labelTextColor, isGlobe\]\);/, "isGlobe is a dependency of the paint now");
 });
 
+// ── Every detached piece named, and city names that snap ─────────────────────
+// 2026-08-19, both on the player's call: "분리된 영토에도 국가명이 띄워지게" and
+// "프로빈스[도시] 레이블은 페이드 말고 보이고 안보이고만". The first retires the
+// tier-1 area gate (the fade is the size gate now); the second fixes the city
+// label anchor (variable-anchor was the reported "들쭉날쭉") and puts the names
+// on an integer-zoom on/off ladder, dots unchanged.
+console.log("\nEvery detached piece named; city names on one anchor, on/off by zoom");
+
+const CITIES = read("src/Game/Map/Cities.jsx");
+
+test("the tier-1 area gate is retired — only zero-area degenerates skip", () => {
+  assert.doesNotMatch(NATIONS, /const MIN_CLUSTER_AREA/,
+    "the constant is gone; the fade does the size job (labelPaint.js)");
+  assert.match(NATIONS, /if \(index > 0 && !\(merged\.area > 0\)\) continue;/,
+    "the only remaining skip is the data guard for empty geometry");
+  // The rule that spends this: fleet tier-1 repeats 513 -> 1,378, every one of
+  // them sized by its own area so the fade hides it until it can be read.
+});
+
+test("a city name sits on ONE anchor — the dodge list is gone from both lanes", () => {
+  assert.doesNotMatch(CITIES, /"text-variable-anchor":/,
+    "variable-anchor was the reported jumping (들쭉날쭉)");
+  assert.equal((CITIES.match(/"text-anchor": "top"/g) ?? []).length, 2,
+    "stock and custom label layers both anchor top — the name hangs below its dot");
+});
+
+test("city names snap on and off by rank — a filter ladder, never a fade", () => {
+  assert.match(CITIES, /\["all", \[">=", \["get", "tier"\], 3\], \[">=", \["zoom"\], 5\]\]/,
+    "tier 3 names from z5");
+  assert.match(CITIES, /\["all", \[">=", \["get", "tier"\], 2\], \[">=", \["zoom"\], 6\]\]/,
+    "tier 2 names from z6");
+  assert.match(CITIES, /customLabelTierFilter = \[[^;]*\[">=", \["zoom"\], 7\],\n\];/,
+    "towns from z7");
+  assert.match(CITIES, /"==", \["get", "capital"\], "primary"/,
+    "capitals are exempt — their name is why they are on the map");
+  assert.doesNotMatch(CITIES, /"text-opacity":/,
+    "on/off lives in the FILTER: an opacity-0 label would still own its collision box");
+  assert.match(CITIES, /filter=\{labelFilter\}/,
+    "the label layers take the gated filter…");
+  assert.match(CITIES, /\["all", customFilter, customLabelTierFilter\]/,
+    "…which is the dot filter AND the ladder, so a name never outlives its dot");
+  assert.match(CITIES, /\["all", stockFilter, stockLabelGateFilter\]/,
+    "same wiring on the stock lane");
+});
+
 console.log(`\n${pass} passed\n`);
