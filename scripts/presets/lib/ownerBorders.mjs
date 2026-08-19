@@ -97,6 +97,63 @@ const chainSegments = (segments) => {
   return parts;
 };
 
+// ── B-7 (2026-08-19): THE COAST COMES BACK, FOR THE CODES THAT LOST IT ──────
+//
+// "Where a code drops, its coastline goes with it; that is the price" — and the
+// user saw the price on screen (해안가 국경선 없음). The subset that needs
+// shipping is only the NON-intact codes' exterior (intact codes keep drawing
+// level-0 tiles, coast included, for free), and raw it is still enormous:
+// measured on victorian-1836, 1.06M segments ≈ 19MB against the frontier's
+// 1.4MB. Two knobs make it shippable, both measured before this was written:
+//
+//   simplify eps 0.02°   RDP on the chained runs. 0.01 keeps visibly more
+//                        detail at 3.3MB; the user chose 0.02 (1.89MB, "표준").
+//   min part diag 0.1°   70,301 chained parts collapse to 7,434 — the rest are
+//                        islets and pond shores invisible at the zooms where a
+//                        coastline outline reads. DROPPED PARTS ARE COUNTED in
+//                        meta.coast (침묵 캡 금지), never silently.
+//
+// The runtime side is Nations.jsx's owner-coasts layer (kind:"coast" at 0.6×
+// national weight, the user's "가늘게") — landed first, drawing nothing until
+// this feature exists in the file.
+const COAST_SIMPLIFY_EPS = 0.02;
+const COAST_MIN_PART_DIAG = 0.1;
+
+// Iterative Douglas-Peucker — the chained coast runs reach tens of thousands of
+// points and a recursive version would be flirting with the stack.
+const simplifyRun = (points, eps) => {
+  if (points.length < 3) return points;
+  const keep = new Uint8Array(points.length);
+  keep[0] = 1;
+  keep[points.length - 1] = 1;
+  const stack = [[0, points.length - 1]];
+  while (stack.length > 0) {
+    const [start, end] = stack.pop();
+    let maxDist = 0;
+    let maxAt = -1;
+    const [x1, y1] = points[start];
+    const [x2, y2] = points[end];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len2 = dx * dx + dy * dy;
+    for (let i = start + 1; i < end; i += 1) {
+      const [px, py] = points[i];
+      let dist;
+      if (len2 === 0) dist = Math.hypot(px - x1, py - y1);
+      else {
+        const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / len2));
+        dist = Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+      }
+      if (dist > maxDist) { maxDist = dist; maxAt = i; }
+    }
+    if (maxDist > eps && maxAt > 0) {
+      keep[maxAt] = 1;
+      stack.push([start, maxAt], [maxAt, end]);
+    }
+  }
+  return points.filter((_, i) => keep[i] === 1);
+};
+
 // features: the board's final region features (properties.owner / gid0 / kind).
 // Returns { collection, stats } — collection is ready to write as borders.geojson.
 export const buildOwnerBorders = (features) => {
@@ -133,13 +190,14 @@ export const buildOwnerBorders = (features) => {
   }
 
   const frontier = [];
-  let exterior = 0;
+  const exteriorSegments = [];
   let interior = 0;
   for (const segment of segments.values()) {
-    if (segment.j === -1) { exterior += 1; continue; }
+    if (segment.j === -1) { exteriorSegments.push(segment); continue; }
     if (owners[segment.i] === owners[segment.j]) { interior += 1; continue; }
     frontier.push(segment);
   }
+  const exterior = exteriorSegments.length;
 
   // WHICH COUNTRIES MAY KEEP DRAWING FROM THE TILES.
   //
@@ -230,6 +288,28 @@ export const buildOwnerBorders = (features) => {
   }
   const intact = [...present].filter((code) => !drawsFalseLine.has(code)).sort();
 
+  // The coast subset: exterior segments of regions whose code no longer draws
+  // its level-0 outline. An empty code (drawn/era-only geometry that never had
+  // a GADM parent) has no tile outline either, so it is included too.
+  const intactSet = new Set(intact);
+  const coastSegments = exteriorSegments.filter((segment) => !intactSet.has(codes[segment.i]));
+  let coastDroppedParts = 0;
+  let coastPoints = 0;
+  const coastParts = [];
+  for (const run of chainSegments(coastSegments)) {
+    let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+    for (const [x, y] of run) {
+      if (x < minX) minX = x;
+      if (y < minY) minY = y;
+      if (x > maxX) maxX = x;
+      if (y > maxY) maxY = y;
+    }
+    if (Math.hypot(maxX - minX, maxY - minY) < COAST_MIN_PART_DIAG) { coastDroppedParts += 1; continue; }
+    const simplified = simplifyRun(run, COAST_SIMPLIFY_EPS).map(([x, y]) => [round5(x), round5(y)]);
+    coastPoints += simplified.length;
+    coastParts.push(simplified);
+  }
+
   const parts = chainSegments(frontier).map((part) => part.map(([x, y]) => [round5(x), round5(y)]));
   const collection = {
     type: "FeatureCollection",
@@ -246,14 +326,34 @@ export const buildOwnerBorders = (features) => {
       neighbourPairs: neighbourCodes.size,
       segments: { frontier: frontier.length, interior, exterior, overCounted },
       parts: parts.length,
+      // The shipped coastline for non-intact codes (B-7). droppedSmallParts is
+      // the min-diag filter's count — a bounded coverage cut, so it is printed,
+      // never silent.
+      coast: {
+        segments: coastSegments.length,
+        parts: coastParts.length,
+        points: coastPoints,
+        droppedSmallParts: coastDroppedParts,
+        eps: COAST_SIMPLIFY_EPS,
+        minPartDiag: COAST_MIN_PART_DIAG,
+      },
     },
-    features: parts.length
-      ? [{
-        type: "Feature",
-        properties: { kind: "frontier" },
-        geometry: { type: "MultiLineString", coordinates: parts },
-      }]
-      : [],
+    features: [
+      ...(parts.length
+        ? [{
+          type: "Feature",
+          properties: { kind: "frontier" },
+          geometry: { type: "MultiLineString", coordinates: parts },
+        }]
+        : []),
+      ...(coastParts.length
+        ? [{
+          type: "Feature",
+          properties: { kind: "coast" },
+          geometry: { type: "MultiLineString", coordinates: coastParts },
+        }]
+        : []),
+    ],
   };
   return { collection, stats: collection.meta };
 };

@@ -53,12 +53,20 @@ test("a shared edge between two owners is the border; between one owner it is no
   assert.deepEqual(lines[0], [[0, 1], [1, 1], [2, 1]], "the run is the whole y=1 line");
 });
 
-test("no disagreement anywhere means no border file to draw", () => {
+test("no disagreement anywhere means no frontier line to draw", () => {
   const { collection, stats } = buildOwnerBorders(
     board(GRID.map(([id, gid0, , x, y]) => [id, gid0, "X", x, y])),
   );
   assert.equal(stats.segments.frontier, 0);
-  assert.deepEqual(collection.features, [], "an empty collection, not an empty line");
+  // This used to assert an EMPTY collection. Since B-7 the file may still carry
+  // a coast feature here — one polity over two codes makes both codes
+  // non-intact (the AAA|BBB line would be a modern-only lie), and a code that
+  // stops drawing level 0 loses its coastline unless this file ships it. That
+  // is the exact price B-7 exists to refund.
+  assert.ok(!collection.features.some((f) => f.properties.kind === "frontier"),
+    "no frontier feature without a disagreement");
+  assert.equal(collection.features.filter((f) => f.properties.kind === "coast").length, 1,
+    "the two non-intact codes' perimeter ships as coast");
 });
 
 test("unowned land is a side like any other — a state's edge against it is a border", () => {
@@ -125,6 +133,48 @@ test("a disputed pseudo-code never decides its claimant's outline", () => {
   const { stats } = buildOwnerBorders(board(disputed));
   assert.deepEqual(stats.intact, ["AAA", "BBB"], "the claimant keeps its coast");
   assert.ok(!stats.intact.includes("Z01"), "and the pseudo-code is not a country");
+});
+
+console.log("\nThe coast ships only where the tiles stopped drawing it (B-7)");
+
+test("an intact code's coast is NOT shipped — its tiles already draw it", () => {
+  // GRID's AAA and BBB are both intact (their shared border is an ownership
+  // change), so shipping their perimeter would double-draw every shoreline.
+  const { collection, stats } = buildOwnerBorders(board(GRID));
+  assert.equal(stats.coast.segments, 0);
+  assert.ok(!collection.features.some((f) => f.properties.kind === "coast"));
+});
+
+test("a non-intact code's coast ships, simplified, with its knobs on record", () => {
+  // The Angevin board again: X holds three squares across the AAA|BBB line, so
+  // both codes lose their level-0 outline — and this file must give the coast
+  // back or the realm has no shoreline at all.
+  const spanning = GRID.map(([id, gid0, owner, x, y]) => [id, gid0, id === "D" ? "X" : owner, x, y]);
+  const { collection, stats } = buildOwnerBorders(board(spanning));
+  assert.equal(stats.coast.segments, 8, "the whole 2x2 perimeter");
+  assert.equal(stats.coast.parts, 1, "chained into one ring");
+  const coast = collection.features.find((f) => f.properties.kind === "coast");
+  assert.ok(coast, "emitted as its own feature so the runtime can weight it apart");
+  // The knobs are data, not lore: the runtime and the next reader get the
+  // numbers this file was cut with.
+  assert.equal(stats.coast.eps, 0.02);
+  assert.equal(stats.coast.minPartDiag, 0.1);
+});
+
+test("an islet below the size floor is dropped AND counted, never silently", () => {
+  // A 0.01-degree speck belonging to a non-intact code: invisible at any zoom
+  // where a coastline outline reads, so it goes — but 침묵 캡 금지, the drop
+  // is a number in meta, not a mystery on a screenshot.
+  const speck = [[[5, 5], [5.01, 5], [5.01, 5.01], [5, 5.01], [5, 5]]];
+  const spanning = GRID.map(([id, gid0, owner, x, y]) => [id, gid0, id === "D" ? "X" : owner, x, y]);
+  const features = [...board(spanning), {
+    type: "Feature",
+    properties: { id: "S", gid0: "AAA", owner: "X" },
+    geometry: { type: "Polygon", coordinates: speck },
+  }];
+  const { stats } = buildOwnerBorders(features);
+  assert.equal(stats.coast.droppedSmallParts, 1, "the speck is counted out");
+  assert.equal(stats.coast.parts, 1, "the mainland ring still ships");
 });
 
 console.log("\nThe asset travels the same road as the geometry it outlines");

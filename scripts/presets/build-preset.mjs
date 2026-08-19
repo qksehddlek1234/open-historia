@@ -684,6 +684,14 @@ writeFileSync(
     `내부 ${stats.segments.interior} · 해안 ${stats.segments.exterior} · ` +
     `현대 윤곽 유지 ${stats.intact.length}/${stats.intactOf}개국 · ${Date.now() - t0}ms`,
   );
+  // B-7: 비-intact 코드의 해안 출하 수치. droppedSmallParts는 크기 바닥
+  // (minPartDiag)이 자른 개수 — 잘린 것은 여기서 세어져 인쇄된다.
+  if (stats.coast.segments > 0) {
+    console.log(
+      `[borders]   해안 출하(비-intact): ${stats.coast.segments}세그 → ${stats.coast.parts}줄 ` +
+      `${stats.coast.points}점 (eps ${stats.coast.eps}° · 잔조각 ${stats.coast.droppedSmallParts}개 계수 드롭)`,
+    );
+  }
   if (stats.segments.overCounted > 0) {
     // A segment with three regions on it has no two sides to compare, so the
     // third and beyond are dropped — counted here rather than swallowed.
