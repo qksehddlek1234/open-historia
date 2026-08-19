@@ -268,6 +268,42 @@ test("an islet below the size floor is dropped AND counted, never silently", () 
   assert.equal(stats.coast.parts, 1, "the mainland ring still ships");
 });
 
+test("a part with no vertex near real water is not a coast — the Utah rule", () => {
+  // 긁힘 species 3 (2026-08-19, third reopen of the same day): Utah's state
+  // border shipped as coastline in the middle of 1836 Mexico, with Nepal's
+  // outline and the dead DE/AT frontier beside it. "No neighbouring region"
+  // never meant "sea" — so the filter finally asks the definitional question
+  // against a Natural Earth vertex cloud. The big lake here is exactly the
+  // case the reference must carry lake shores for: it passes the size floor
+  // (Caspian rule), and only the water reference can say whether its shore is
+  // real water or a waterless artefact.
+  const bigLakeRegion = {
+    type: "Feature",
+    properties: { id: "A", gid0: "AAA", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [
+      [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]],
+      [[0.5, 0.5], [1.5, 0.5], [1.5, 1.5], [0.5, 1.5], [0.5, 0.5]],
+    ] },
+  };
+  const neighbour = {
+    type: "Feature",
+    properties: { id: "B", gid0: "BBB", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [[[2, 0], [3, 0], [3, 2], [2, 2], [2, 0]]] },
+  };
+  // Reference knows the sea beyond the outer perimeter — nothing about the lake.
+  const sea = { grid: 0.05, points: [[0, -2], [20, -2], [40, -2], [60, -2], [0, 42], [40, 42], [-2, 0], [-2, 20], [62, 20]] };
+  const dry = buildOwnerBorders([bigLakeRegion, neighbour], { coastReference: sea });
+  assert.equal(dry.stats.coast.waterlessDropped, 1, "the waterless lake ring is cut and counted");
+  assert.equal(dry.collection.features.find((f) => f.properties.kind === "coast").geometry.coordinates.length, 1,
+    "the outer perimeter — near the reference sea — still ships");
+  // Teach the reference the lake and the shore comes back: this is why
+  // build-coastline-reference.mjs merges NE lakes into the cloud.
+  const withLake = { grid: 0.05, points: [...sea.points, [10, 10], [30, 10], [30, 30], [10, 30]] };
+  const wet = buildOwnerBorders([bigLakeRegion, neighbour], { coastReference: withLake });
+  assert.equal(wet.stats.coast.waterlessDropped, 0);
+  assert.equal(wet.collection.features.find((f) => f.properties.kind === "coast").geometry.coordinates.length, 2);
+});
+
 console.log("\nThe asset travels the same road as the geometry it outlines");
 
 test("borders.geojson is registered as a scenario asset on both stores", () => {

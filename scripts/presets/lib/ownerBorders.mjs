@@ -222,6 +222,52 @@ const simplifyRun = (points, eps) => {
   return points.filter((_, i) => keep[i] === 1);
 };
 
+// ── 긁힘 3종 (2026-08-19, 셋째 재개): A COAST MUST BE NEAR WATER ─────────────
+//
+// Species 1 (clip seams) and 2 (lake/void rings) died and the file still
+// carried waterless "coastlines": Utah's state-border rectangle in the middle
+// of 1836 Mexico, Nepal's whole outline, the dead DE/AT frontier inside a
+// single-owner Reich. The mechanism is that "no neighbouring region" never
+// meant "sea" — era clipping rewrites ONE side of a border and leaves the
+// other side's original seed segments unpaired, and the seed itself carries
+// unpaired edges (disputed-area double polygons in Kashmir, Lesotho's
+// mismatched enclave rings, plain junction slop). Cowork measured 654 such
+// parts on 1836 with Natural Earth as ground truth, all inland.
+//
+// So the filter finally asks the definitional question: is there REAL WATER
+// near this part? options.coastReference is a snapped vertex cloud of the
+// Natural Earth 10m land boundary plus large lakes (public domain — see
+// build-coastline-reference.mjs); a part survives if any of its vertices sits
+// within WATER_NEAR_DEG of a reference point, and a part that does not is
+// dropped and counted. This subsumes species 1 and 2 conceptually, but those
+// filters stay: they are cheaper, exact where they apply, and redundancy here
+// is harmless (중복 안전).
+const WATER_NEAR_DEG = 0.25;
+
+const buildWaterQuery = (reference) => {
+  const grid = Number(reference?.grid);
+  const points = reference?.points;
+  if (!Number.isFinite(grid) || grid <= 0 || !Array.isArray(points) || points.length === 0) return null;
+  const cells = new Set();
+  for (const [cx, cy] of points) cells.add(cx * 200000 + cy);
+  const reach = Math.ceil(WATER_NEAR_DEG / grid);
+  // Chebyshev scan over the neighbourhood, tightened to (near-)Euclidean by an
+  // explicit distance check against the cell centre — the corner of the scan
+  // box is 0.35° out, which would quietly loosen the threshold by 40%.
+  const slack = WATER_NEAR_DEG + grid;
+  return (px, py) => {
+    const ci = Math.round(px / grid);
+    const cj = Math.round(py / grid);
+    for (let dx = -reach; dx <= reach; dx += 1) {
+      for (let dy = -reach; dy <= reach; dy += 1) {
+        if (!cells.has((ci + dx) * 200000 + (cj + dy))) continue;
+        if (Math.hypot((ci + dx) * grid - px, (cj + dy) * grid - py) <= slack) return true;
+      }
+    }
+    return false;
+  };
+};
+
 // features: the board's final region features (properties.owner / gid0 / kind).
 // options.seedSegmentKeys — the seed's own segment-key set ("x,y|x,y", smaller
 // key first, same shape as the internal map below). When given, a coast
@@ -231,9 +277,12 @@ const simplifyRun = (points, eps) => {
 // coast and the user saw them — dozens of short black scratches through
 // Austria and Podolia, tracing face joints and river-cut edges (2026-08-19).
 // Absent (the synthetic tests, callers without a seed), every candidate keeps.
+// options.coastReference — the water vertex cloud above; absent, the water
+// filter is off (synthetic tests, callers without the data file).
 // Returns { collection, stats } — collection is ready to write as borders.geojson.
 export const buildOwnerBorders = (features, options = {}) => {
   const seedSegmentKeys = options.seedSegmentKeys ?? null;
+  const nearWater = buildWaterQuery(options.coastReference);
   const owners = [];
   const codes = [];
   const land = [];
@@ -380,6 +429,7 @@ export const buildOwnerBorders = (features, options = {}) => {
   }
   let coastDroppedParts = 0;
   let coastVoidRings = 0;
+  let coastWaterless = 0;
   let coastPoints = 0;
   const coastParts = [];
   const coveredByLand = buildLandCoverage(features, land);
@@ -424,6 +474,9 @@ export const buildOwnerBorders = (features, options = {}) => {
       if (coveredByLand.anywhere(topX, topY + 0.01)) { coastVoidRings += 1; continue; }
     }
     const simplified = simplifyRun(run, COAST_SIMPLIFY_EPS).map(([x, y]) => [round5(x), round5(y)]);
+    // Species 3: no vertex near real water means this is not a coast, whatever
+    // its shape — open Kashmir chains and the closed Utah rectangle alike.
+    if (nearWater && !simplified.some(([x, y]) => nearWater(x, y))) { coastWaterless += 1; continue; }
     coastPoints += simplified.length;
     coastParts.push(simplified);
   }
@@ -458,6 +511,9 @@ export const buildOwnerBorders = (features, options = {}) => {
         // Closed rings around ground the board does not cover — lakes and void
         // pockets (scratch species 2), cut by the interior-point coverage test.
         voidRingsDropped: coastVoidRings,
+        // Parts with no vertex near real water (scratch species 3 — state
+        // borders, seed defects), cut against the Natural Earth reference.
+        waterlessDropped: coastWaterless,
         eps: COAST_SIMPLIFY_EPS,
         minPartDiag: COAST_MIN_PART_DIAG,
       },

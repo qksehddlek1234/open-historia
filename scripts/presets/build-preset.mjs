@@ -699,7 +699,14 @@ writeFileSync(
 // has to guess about, and guessing is what put the 2026 map over the Reich.
 {
   const t0 = Date.now();
-  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal, { seedSegmentKeys });
+  // The "where is water" reference for the coast filter (긁힘 3종). Committed
+  // derivative of Natural Earth 10m land+lakes (public domain) — absent, the
+  // water filter is off and that is SAID, not silent.
+  const COAST_REF_PATH = path.join(__dirname, "data", "coastline-reference.json");
+  let coastReference = null;
+  if (existsSync(COAST_REF_PATH)) coastReference = JSON.parse(readFileSync(COAST_REF_PATH, "utf8"));
+  else console.warn("[borders] ⚠ coastline-reference.json 없음 — 물 거리 필터 꺼짐 (build-coastline-reference.mjs로 생성)");
+  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal, { seedSegmentKeys, coastReference });
   writeFileSync(path.join(scenarioDir, "borders.geojson"), JSON.stringify(collection), "utf8");
   console.log(
     `[borders] 국경 세그먼트 ${stats.segments.frontier} → ${stats.parts}줄 · ` +
@@ -712,7 +719,8 @@ writeFileSync(
     console.log(
       `[borders]   해안 출하(비-intact): ${stats.coast.segments}세그 → ${stats.coast.parts}줄 ` +
       `${stats.coast.points}점 (eps ${stats.coast.eps}° · 잔조각 ${stats.coast.droppedSmallParts}개 · ` +
-      `클립 이음새 ${stats.coast.seamDropped}개 · 호수/틈 링 ${stats.coast.voidRingsDropped}개 계수 드롭)`,
+      `클립 이음새 ${stats.coast.seamDropped}개 · 호수/틈 링 ${stats.coast.voidRingsDropped}개 · ` +
+      `물 없는 파트 ${stats.coast.waterlessDropped}개 계수 드롭)`,
     );
   }
   if (stats.segments.overCounted > 0) {
