@@ -161,6 +161,40 @@ test("a non-intact code's coast ships, simplified, with its knobs on record", ()
   assert.equal(stats.coast.minPartDiag, 0.1);
 });
 
+test("a clip seam — an edge the seed never drew — is cut from the coast AND counted", () => {
+  // The 긁힘 report (2026-08-19): era clipping leaves micro-gaps between pieces,
+  // and both gap edges appear once, so they classified as coast and drew as
+  // dozens of inland scratches through Austria. The discriminator is exact:
+  // clipping preserves ORIGINAL vertices bit-identically, so a real shoreline
+  // is in the seed's own segment set and a seam is not. Measured on 1836:
+  // 1,060,116 candidates in the seed vs 2,631 not — the split is the scratches.
+  const spanning = GRID.map(([id, gid0, owner, x, y]) => [id, gid0, id === "D" ? "X" : owner, x, y]);
+  const boardFeatures = board(spanning);
+  // A seed that knows every perimeter edge EXCEPT the two on square A's west
+  // side — as if that edge pair were cut by a face rather than drawn.
+  const seedSegmentKeys = new Set();
+  const ringsOf = (g) => (g.type === "Polygon" ? g.coordinates : g.coordinates.flat());
+  for (const f of boardFeatures) {
+    for (const ring of ringsOf(f.geometry)) {
+      for (let i = 0; i + 1 < ring.length; i += 1) {
+        const ka = `${ring[i][0]},${ring[i][1]}`;
+        const kb = `${ring[i + 1][0]},${ring[i + 1][1]}`;
+        if (ka === kb) continue;
+        seedSegmentKeys.add(ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`);
+      }
+    }
+  }
+  seedSegmentKeys.delete("0,0|0,1");
+  const { stats } = buildOwnerBorders(boardFeatures, { seedSegmentKeys });
+  assert.equal(stats.coast.seamDropped, 1, "the not-in-seed edge is cut and counted");
+  assert.equal(stats.coast.segments, 7, "the seven real perimeter edges still ship");
+  // And without a seed set the filter stays out of the way (the tests above
+  // rely on this, and so does any caller that has no seed to offer).
+  const open = buildOwnerBorders(boardFeatures);
+  assert.equal(open.stats.coast.seamDropped, 0);
+  assert.equal(open.stats.coast.segments, 8);
+});
+
 test("an islet below the size floor is dropped AND counted, never silently", () => {
   // A 0.01-degree speck belonging to a non-intact code: invisible at any zoom
   // where a coastline outline reads, so it goes — but 침묵 캡 금지, the drop

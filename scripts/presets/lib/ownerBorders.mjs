@@ -155,8 +155,17 @@ const simplifyRun = (points, eps) => {
 };
 
 // features: the board's final region features (properties.owner / gid0 / kind).
+// options.seedSegmentKeys — the seed's own segment-key set ("x,y|x,y", smaller
+// key first, same shape as the internal map below). When given, a coast
+// candidate must be an edge THE SEED DREW: era clipping preserves original
+// vertices bit-identically, so a real shoreline passes, while a clip seam is
+// made of new vertices and fails. Without this filter the seams shipped as
+// coast and the user saw them — dozens of short black scratches through
+// Austria and Podolia, tracing face joints and river-cut edges (2026-08-19).
+// Absent (the synthetic tests, callers without a seed), every candidate keeps.
 // Returns { collection, stats } — collection is ready to write as borders.geojson.
-export const buildOwnerBorders = (features) => {
+export const buildOwnerBorders = (features, options = {}) => {
+  const seedSegmentKeys = options.seedSegmentKeys ?? null;
   const owners = [];
   const codes = [];
   const land = [];
@@ -192,8 +201,8 @@ export const buildOwnerBorders = (features) => {
   const frontier = [];
   const exteriorSegments = [];
   let interior = 0;
-  for (const segment of segments.values()) {
-    if (segment.j === -1) { exteriorSegments.push(segment); continue; }
+  for (const [key, segment] of segments.entries()) {
+    if (segment.j === -1) { exteriorSegments.push({ key, segment }); continue; }
     if (owners[segment.i] === owners[segment.j]) { interior += 1; continue; }
     frontier.push(segment);
   }
@@ -290,9 +299,17 @@ export const buildOwnerBorders = (features) => {
 
   // The coast subset: exterior segments of regions whose code no longer draws
   // its level-0 outline. An empty code (drawn/era-only geometry that never had
-  // a GADM parent) has no tile outline either, so it is included too.
+  // a GADM parent) has no tile outline either, so it is included too. The seam
+  // filter (see options above) then keeps only edges the seed drew — a dropped
+  // seam is COUNTED, never silent.
   const intactSet = new Set(intact);
-  const coastSegments = exteriorSegments.filter((segment) => !intactSet.has(codes[segment.i]));
+  let coastSeamDropped = 0;
+  const coastSegments = [];
+  for (const { key, segment } of exteriorSegments) {
+    if (intactSet.has(codes[segment.i])) continue;
+    if (seedSegmentKeys && !seedSegmentKeys.has(key)) { coastSeamDropped += 1; continue; }
+    coastSegments.push(segment);
+  }
   let coastDroppedParts = 0;
   let coastPoints = 0;
   const coastParts = [];
@@ -334,6 +351,9 @@ export const buildOwnerBorders = (features) => {
         parts: coastParts.length,
         points: coastPoints,
         droppedSmallParts: coastDroppedParts,
+        // Clip-seam edges the seed never drew (the inland scratches) — cut by
+        // the seedSegmentKeys filter, counted here.
+        seamDropped: coastSeamDropped,
         eps: COAST_SIMPLIFY_EPS,
         minPartDiag: COAST_MIN_PART_DIAG,
       },

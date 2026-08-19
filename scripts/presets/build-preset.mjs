@@ -153,10 +153,32 @@ const UK_LEGACY_KEYS = new Set(["GBR.1_1", "GBR.2_1", "GBR.3_1", "GBR.4_1"]);
 // this). Rejecting an id the seed holds would mean no spec could name a Chinese
 // prefecture or an Indian district until the tiles were regenerated — which is
 // a separate, heavy job. An id in EITHER is a real region.
-const seedIds = new Set(
-  (JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? [])
-    .map((feature) => String(feature?.properties?.id ?? "")),
-);
+const seedFeatures = JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? [];
+const seedIds = new Set(seedFeatures.map((feature) => String(feature?.properties?.id ?? "")));
+// The seed's SEGMENT set, for the coast builder's seam filter (B-7 긁힘 수리):
+// a real coast edge is an edge the seed itself drew — clipping preserves those
+// vertices bit-identically — while an era-clip seam is made of NEW vertices.
+// Measured on victorian-1836 before this was wired: 1,060,116 coast candidates
+// in the seed vs 2,631 not (99.75% : 0.25%, the scratches all on the far side).
+const seedSegmentKeys = new Set();
+{
+  const seedRingsOf = (geometry) => {
+    if (geometry?.type === "Polygon") return geometry.coordinates ?? [];
+    if (geometry?.type === "MultiPolygon") return (geometry.coordinates ?? []).flat();
+    return [];
+  };
+  for (const feature of seedFeatures) {
+    for (const ring of seedRingsOf(feature?.geometry)) {
+      if (!ring) continue;
+      for (let i = 0; i + 1 < ring.length; i += 1) {
+        const ka = `${ring[i][0]},${ring[i][1]}`;
+        const kb = `${ring[i + 1][0]},${ring[i + 1][1]}`;
+        if (ka === kb) continue;
+        seedSegmentKeys.add(ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`);
+      }
+    }
+  }
+}
 for (const [gid1, owner] of Object.entries(spec.regionAssignments ?? {})) {
   // The four legacy UK level-1 keys stay valid: the builder expands them into
   // the ONS counties that replaced them (see step 2).
@@ -677,7 +699,7 @@ writeFileSync(
 // has to guess about, and guessing is what put the 2026 map over the Reich.
 {
   const t0 = Date.now();
-  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal);
+  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal, { seedSegmentKeys });
   writeFileSync(path.join(scenarioDir, "borders.geojson"), JSON.stringify(collection), "utf8");
   console.log(
     `[borders] 국경 세그먼트 ${stats.segments.frontier} → ${stats.parts}줄 · ` +
@@ -689,7 +711,8 @@ writeFileSync(
   if (stats.coast.segments > 0) {
     console.log(
       `[borders]   해안 출하(비-intact): ${stats.coast.segments}세그 → ${stats.coast.parts}줄 ` +
-      `${stats.coast.points}점 (eps ${stats.coast.eps}° · 잔조각 ${stats.coast.droppedSmallParts}개 계수 드롭)`,
+      `${stats.coast.points}점 (eps ${stats.coast.eps}° · 잔조각 ${stats.coast.droppedSmallParts}개 · ` +
+      `클립 이음새 ${stats.coast.seamDropped}개 계수 드롭)`,
     );
   }
   if (stats.segments.overCounted > 0) {
