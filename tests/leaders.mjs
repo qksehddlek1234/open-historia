@@ -324,6 +324,9 @@ await (async () => {
     "colonial-1650: Irish Catholic Confederation",
     "napoleonic-1804: Septinsular Republic",
   ];
+  // (2026-08-19 B-4의 Columbia Department는 여기 오지 않는다 — "Columbia
+  // District" 별칭으로 레퍼런스가 즉시 답한다: 심프슨 총독. 새 폴리티가 전부
+  // 이 목록에 실리는 게 아니라는 증거가 하나 더 늘었다.)
   assert.deepEqual(failures, HANDOVER_2026_08_18,
     "every post-1444 preset polity must resolve — or stand in the named handover list, which may only shrink");
 

@@ -138,8 +138,11 @@ export default {
       "España": ["PRT"],
       // 56면 조립이 데려온 오스트리아 면이 갈리치아와 함께 **크라쿠프 자유시 칸**
       // (POL.6)을 물었다 — 빈 회의가 세운 자유시는 1846년 병합까지 오스트리아가
-      // 아니다. 조립본에 Wolne Miasto Kraków 면이 따로 있으므로, 큰 면을 이 칸에서
-      // 물리면 작은 면과 KRA 지역 행이 자리를 되찾는다.
+      // 아니다. B-1(2026-08-19)부터 지역 행은 AUT(갈리치아)이고 자유시는 작은
+      // Wolne Miasto Kraków 면이 era 분할로 갖는다. 이 울타리는 그대로 필요하다:
+      // 오스트리아 **면**을 들이면 era 권위가 칸을 면 모양으로 자르는데, 그 면은
+      // 갈리치아 북부에서 자유시 면과 겹쳐 다투고, 지역 행(AUT)만으로 이미 답이
+      // 같다 — 큰 면은 물러나 있고 작은 면만 들어온다.
       "Kaiserthum Oesterreich": ["POL.6"],
       "Hohenzollern-Sigmaringen": ["DEU.DE12", "DEU.DE13", "DEU.DEB3"],
       // 오만 면(55.2~59.8°E)이 동부 에미리트를 물고 있었다 — 실측: ARE 7칸 중 5칸이
@@ -181,6 +184,14 @@ export default {
         // 부코비나도 아니다 — 1775년부터 합스부르크령이라 오스트리아 행에 있다.
         "ROU.24", "ROU.7", "ROU.30", "ROU.4", "ROU.41", "ROU.19",
         "ROU.42",
+        // ★ 부코비나 두 칸 (사용자 보고 B-2, 2026-08-19). 이 목록에 빠져 있어서
+        // 오스만 면이 수체아바(ROU.36)와 체르니우치(UKR.3)의 남동 조각을 잘라
+        // era_12·era_13으로 세우고 **자기 소유로 가져갔다** — 화면에선 몰다비아와
+        // 오스트리아 사이에 오스만 월경지 둘이 떠 있었다. 두 칸 다 위 지역 배정이
+        // AUT라(부코비나, 1775년 할양) 울타리만 치면 통짜로 오스트리아에 돌아온다.
+        // 헤르차·수체아바 남동 귀퉁이는 실제론 몰다비아지만, 칸 하나가 갈릴 땐 큰
+        // 쪽에 준다는 결정이 이미 ROU.36_1 행에 적혀 있다 — 같은 결정을 따른다.
+        "ROU.36", "UKR.3",
         // 세르비아 공국 12칸 — 베오그라드 파샬리크 + 1833년 하티셰리프가 넘긴 여섯
         // 나히예(크라이나·츠르나레카·바냐·크루셰바츠·스타리블라흐·야다르). 밀로시
         // 오브레노비치의 공국이다.
@@ -286,7 +297,14 @@ export default {
     // 허드슨만 회사는 나라가 아니라 **특허회사**인데 루퍼츠랜드와 노스웨스턴 준주를
     // 통치한다 — 이 보드가 동인도회사를 폴리티로 세운 것과 같은 이유다. 회사가
     // 그 땅의 정부다.
-    HBC: { name: "Hudson's Bay Company", color: "#7b5e3b", aliases: ["허드슨만 회사", "HBC", "Rupert's Land", "루퍼츠랜드", "North-West Territories", "Columbia District"] },
+    HBC: { name: "Hudson's Bay Company", color: "#7b5e3b", aliases: ["허드슨만 회사", "HBC", "Rupert's Land", "루퍼츠랜드", "North-West Territories"] },
+    // 오리건 컨트리 — 사용자 답(B-4, 2026-08-19): "원본은 영국 콜롬비아 부서로
+    // 되어 있다." 판례 (다) 그대로 원본 명칭의 별도 폴리티로 세운다 — GBR도 HBC도
+    // 아니다. "Columbia District" 별칭은 HBC에서 이관(같은 별칭이 두 폴리티에
+    // 있으면 조회가 갈린다). 첫 별칭은 사용자 표기("콜롬비아"), 통용 표기
+    // "컬럼비아"는 둘째. 지도자는 그 별칭으로 레퍼런스가 즉시 답한다(심프슨
+    // 총독) — 부서의 실제 통치자라 맞다.
+    CBD: { name: "Columbia Department", color: "#9a7f52", aliases: ["콜롬비아 부서", "컬럼비아 부서", "Columbia District", "Oregon Country"] },
     // 어퍼·로어 캐나다는 1791년 헌법법이 가른 별개 식민지다. 둘이 합쳐지는 것은
     // 1841년 연합법이라 5년 뒤이고, 1837년 반란이 그 사이에 있다.
     UPC: { name: "Province of Upper Canada", color: "#cf6f8f", aliases: ["어퍼 캐나다", "Upper Canada", "Canada West"] },
@@ -824,13 +842,17 @@ export default {
 
     // ══ 크라쿠프 ══════════════════════════════════════════════════════════
     // 빈 회의가 만든 자유·독립·중립시. 오스트리아 병합은 1846년이라 이 보드에서는
-    // 아직 자기 나라다. GADM 소폴란드가 자유시보다 열 배 넓다는 것이 유보다.
-    "POL.6_1": "KRA",
+    // 아직 자기 나라다. 한동안 이 행이 KRA였고 "GADM 소폴란드가 자유시보다 열 배
+    // 넓다"는 유보가 달려 있었다 — 사용자 보고(B-1, 2026-08-19)로 유보를 닫는다:
+    // 칸은 갈리치아(오스트리아)로 주고, 자유시는 조립본의 rung-1 면
+    // Wolne Miasto Kraków(도시 반경, name:ko가 KRA 별칭[0]과 일치해 매칭)가
+    // era 분할로 잘라 간다. 부코비나 두 칸과 같은 메커니즘, 의도한 방향.
+    "POL.6_1": "AUT",
     // ── The Americas ──
     "USA.44_1": "MEX",  // 코아우일라이테하스 — 무장 반란 중이지만 공화국 선포는 1836-03-02이다(위 참조)
     "USA.32_1": "MEX", "USA.3_1": "MEX", "USA.5_1": "MEX", "USA.29_1": "MEX", "USA.45_1": "MEX", // Mexican north
     "USA.6_1": "MEX",   // Colorado — mostly Mexican above the Arkansas
-    "USA.48_1": "GBR", "USA.38_1": "GBR", "USA.13_1": "GBR", // Oregon Country — jointly occupied, HBC in fact
+    "USA.48_1": "CBD", "USA.38_1": "CBD", "USA.13_1": "CBD", // Oregon Country — 공동 점유, 실효는 콜롬비아 부서(B-4, 원본 명칭)
     "USA.2_1": "RUS",   // Russian America
     "USA.12_1": "HAW",  // the Kamehameha kingdom
     // 인도 지역 배정은 위 동인도회사 블록으로 옮겼다 — 1836년 인도를 쥔 것은
@@ -1083,9 +1105,9 @@ export default {
     "telegraph is a laboratory toy until the 1840s; news crosses oceans in weeks; " +
     "cholera recurs without warning or cure. MAP APPROXIMATIONS the rules carry: the " +
     "German Confederation aggregate stands for thirty-odd sovereign states (Bavaria, " +
-    "Saxony, Hanover, Württemberg chief among them); Kraków is a free city drawn Austrian; " +
-    "Oregon is jointly occupied and drawn British where the Hudson's Bay Company actually " +
-    "trades; princely India rides inside the Company's color; Sindh's emirs ride inside " +
+    "Saxony, Hanover, Württemberg chief among them); Oregon is jointly occupied and drawn " +
+    "as the Columbia Department where the Company actually trades; princely India rides " +
+    "inside the Company's color; Sindh's emirs ride inside " +
     "the Sikh color; the Ottoman Balkans are autonomous in fact wherever the map shows " +
     "them ruled; Haiti's color covers Santo Domingo because Boyer's army does. Sovereignty " +
     "moves only with occupation; player actions are attempts, never decrees.",
