@@ -195,6 +195,63 @@ test("a clip seam — an edge the seed never drew — is cut from the coast AND 
   assert.equal(open.stats.coast.segments, 8);
 });
 
+test("a closed ring around a LAKE is cut from the coast, an island's ring is not", () => {
+  // 긁힘 species 2 (2026-08-19, reopened the same day species 1 died): closed
+  // mini-rings of ORIGINAL seed vertices — lake holes and coverage voids —
+  // pass the seed filter honestly, then RDP crushes them into the ㄱ-strokes
+  // the user saw inland. The discriminator is the ring's OUTSIDE, not its
+  // inside: an island's ring has unpainted sea beyond it, a lake/void ring is
+  // embedded in painted land. (The interior test was tried first and kept 16
+  // Austrian lakes — the lakes are coverage gaps that a neighbour's simplified
+  // outline slops over, so "is the inside covered" cannot tell them from
+  // islands.) Cowork measured 7,070 closed rings on shipped 1836, 6,322 of
+  // them under 0.5° — those are the scratches.
+  const lakeRegion = {
+    type: "Feature",
+    properties: { id: "A", gid0: "AAA", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [
+      [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]],
+      [[0.2, 0.2], [0.5, 0.2], [0.5, 0.5], [0.2, 0.5], [0.2, 0.2]], // scratch-class lake (diag 0.42)
+    ] },
+  };
+  const neighbour = {
+    type: "Feature",
+    properties: { id: "B", gid0: "BBB", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [[[1, 0], [2, 0], [2, 1], [1, 1], [1, 0]]] },
+  };
+  // One owner across two codes → both codes non-intact → their coast ships.
+  const { collection, stats } = buildOwnerBorders([lakeRegion, neighbour]);
+  assert.equal(stats.coast.voidRingsDropped, 1, "the lake ring is cut and counted");
+  const coast = collection.features.find((f) => f.properties.kind === "coast");
+  assert.equal(coast.geometry.coordinates.length, 1, "the outer perimeter — sea beyond it — still ships");
+  const shippedYs = coast.geometry.coordinates[0].map(([, y]) => y);
+  assert.ok(!shippedYs.some((y) => y > 0.15 && y < 0.55 - 1e-9),
+    "no shipped vertex lies at the lake's latitudes — the ring that survived is the outer one");
+});
+
+test("a BIG lake keeps its shoreline — the Caspian rule", () => {
+  // The Caspian, Ladoga and Balaton are coverage gaps embedded in land exactly
+  // like the scratch rings; the size floor (0.6°, measured — scratches top out
+  // ~0.5°, Balaton starts ~0.9°) is what separates cartography from noise.
+  const bigLakeRegion = {
+    type: "Feature",
+    properties: { id: "A", gid0: "AAA", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [
+      [[0, 0], [2, 0], [2, 2], [0, 2], [0, 0]],
+      [[0.5, 0.5], [1.5, 0.5], [1.5, 1.5], [0.5, 1.5], [0.5, 0.5]], // diag 1.41 — a real shore
+    ] },
+  };
+  const neighbour = {
+    type: "Feature",
+    properties: { id: "B", gid0: "BBB", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [[[2, 0], [3, 0], [3, 2], [2, 2], [2, 0]]] },
+  };
+  const { collection, stats } = buildOwnerBorders([bigLakeRegion, neighbour]);
+  assert.equal(stats.coast.voidRingsDropped, 0, "a shore this large is not a scratch");
+  const coast = collection.features.find((f) => f.properties.kind === "coast");
+  assert.equal(coast.geometry.coordinates.length, 2, "outer perimeter AND the lake shore both ship");
+});
+
 test("an islet below the size floor is dropped AND counted, never silently", () => {
   // A 0.01-degree speck belonging to a non-intact code: invisible at any zoom
   // where a coastline outline reads, so it goes — but 침묵 캡 금지, the drop

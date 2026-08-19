@@ -712,7 +712,7 @@ writeFileSync(
     console.log(
       `[borders]   해안 출하(비-intact): ${stats.coast.segments}세그 → ${stats.coast.parts}줄 ` +
       `${stats.coast.points}점 (eps ${stats.coast.eps}° · 잔조각 ${stats.coast.droppedSmallParts}개 · ` +
-      `클립 이음새 ${stats.coast.seamDropped}개 계수 드롭)`,
+      `클립 이음새 ${stats.coast.seamDropped}개 · 호수/틈 링 ${stats.coast.voidRingsDropped}개 계수 드롭)`,
     );
   }
   if (stats.segments.overCounted > 0) {

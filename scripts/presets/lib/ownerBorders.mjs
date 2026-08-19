@@ -119,6 +119,74 @@ const chainSegments = (segments) => {
 const COAST_SIMPLIFY_EPS = 0.02;
 const COAST_MIN_PART_DIAG = 0.1;
 
+// ── 긁힘 2종 (2026-08-19, 같은 날 재개): CLOSED RINGS AROUND NOTHING ─────────
+//
+// The seed-membership filter killed the clip seams, and the scratches stayed —
+// second species. Cowork's pixel forensics on the shipped file: 7,070 of 7,447
+// coast parts are CLOSED rings, 6,322 of them under 0.5° across (36% of all
+// coast points), 25 inside one Austrian box matching the screen strokes 1:1.
+// These are ORIGINAL seed vertices — edges with no neighbouring region — but
+// the nothing on the other side is not the sea: it is a LAKE (a polygon's
+// interior ring) or a coverage void between regions. RDP then flattens a tiny
+// lake ring into three or four corners, which reads as a ㄱ-shaped scratch,
+// not as water.
+//
+// The discriminator is what sits on the ring's OUTSIDE. An island's ring has
+// unpainted sea beyond it; a lake or void ring is embedded in painted land
+// (the lakes are coverage gaps ringed by several regions, and a neighbour's
+// simplified outline may even slop over the water — which is exactly why the
+// obvious interior test fails; see the comment at the call site). One sample
+// point just above each closed ring's top vertex, point-in-coverage against
+// the board's land regions — covered drops (inland scratch), uncovered keeps
+// (open water), and every drop is counted in meta.coast.voidRingsDropped.
+// Open chains are untouched: a mainland coast broken by an intact neighbour's
+// excluded segments is open, and openness already means it wraps nothing.
+//
+// Even-odd ray cast over every ring of a feature — a point in a polygon's lake
+// hole crosses outer+hole an even number of times, so holes come out excluded
+// with no orientation bookkeeping.
+const insideRings = (rings, px, py) => {
+  let inside = false;
+  for (const ring of rings) {
+    for (let i = 0; i + 1 < ring.length; i += 1) {
+      const [x1, y1] = ring[i];
+      const [x2, y2] = ring[i + 1];
+      if ((y1 <= py) === (y2 <= py)) continue;
+      if (px < x1 + ((py - y1) / (y2 - y1)) * (x2 - x1)) inside = !inside;
+    }
+  }
+  return inside;
+};
+
+const buildLandCoverage = (features, land) => {
+  const entries = [];
+  for (let index = 0; index < features.length; index += 1) {
+    if (!land[index]) continue;
+    const rings = ringsOf(features[index]?.geometry);
+    if (rings.length === 0) continue;
+    let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+    for (const ring of rings) {
+      for (const [x, y] of ring) {
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
+      }
+    }
+    entries.push({ rings, minX, minY, maxX, maxY });
+  }
+  return {
+    // Any land region covers the point (bbox-prefiltered).
+    anywhere: (px, py) => {
+      for (const entry of entries) {
+        if (px < entry.minX || px > entry.maxX || py < entry.minY || py > entry.maxY) continue;
+        if (insideRings(entry.rings, px, py)) return true;
+      }
+      return false;
+    },
+  };
+};
+
 // Iterative Douglas-Peucker — the chained coast runs reach tens of thousands of
 // points and a recursive version would be flirting with the stack.
 const simplifyRun = (points, eps) => {
@@ -311,8 +379,10 @@ export const buildOwnerBorders = (features, options = {}) => {
     coastSegments.push(segment);
   }
   let coastDroppedParts = 0;
+  let coastVoidRings = 0;
   let coastPoints = 0;
   const coastParts = [];
+  const coveredByLand = buildLandCoverage(features, land);
   for (const run of chainSegments(coastSegments)) {
     let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
     for (const [x, y] of run) {
@@ -322,6 +392,37 @@ export const buildOwnerBorders = (features, options = {}) => {
       if (y > maxY) maxY = y;
     }
     if (Math.hypot(maxX - minX, maxY - minY) < COAST_MIN_PART_DIAG) { coastDroppedParts += 1; continue; }
+    // A closed ring is a coast only if the SEA is on its outside — tested on
+    // the RAW run, before RDP crushes a small ring into the ㄱ-stroke the user
+    // saw on screen.
+    //
+    // Two interior tests died before this one line was found. "Does any region
+    // cover the interior" kept 16 Austrian lakes — the lakes are coverage GAPS
+    // ringed by several regions' outer edges, and a neighbour's seed-simplified
+    // ring (Salzburg, at the Attersee) slops over the gap and answers
+    // "covered". Testing the single contributing region instead fails the same
+    // way, because these rings have several contributors. But islands and
+    // scratches differ on the OTHER side of the line: an island's ring has
+    // unpainted sea beyond it, a lake/void ring is embedded in painted land.
+    // So: sample just above the ring's topmost vertex — covered means inland
+    // scratch, uncovered means open water. The known cost is an islet whose
+    // northern strait is narrower than the probe offset (~1km); at 0.6× weight
+    // and these zooms that loss is invisible, and it is counted, not silent.
+    // …except a BIG water body. The Caspian, Ladoga, Balaton are coverage gaps
+    // embedded in land exactly like the scratches, and their shorelines are
+    // real cartography this file exists to ship. The two populations do not
+    // overlap in size: every measured scratch ring sits at or under ~0.5°
+    // across (quartiles 0.084/0.123/0.165/0.267 on shipped 1836) while the
+    // smallest shore worth drawing is Balaton at ~0.9°. The floor is 0.6°,
+    // measured, not felt (절대원칙 6).
+    const LAKE_KEEP_DIAG = 0.6;
+    const closed = run.length > 3
+      && run[0][0] === run[run.length - 1][0] && run[0][1] === run[run.length - 1][1];
+    if (closed && Math.hypot(maxX - minX, maxY - minY) < LAKE_KEEP_DIAG) {
+      let topX = run[0][0]; let topY = run[0][1];
+      for (const [x, y] of run) { if (y > topY) { topY = y; topX = x; } }
+      if (coveredByLand.anywhere(topX, topY + 0.01)) { coastVoidRings += 1; continue; }
+    }
     const simplified = simplifyRun(run, COAST_SIMPLIFY_EPS).map(([x, y]) => [round5(x), round5(y)]);
     coastPoints += simplified.length;
     coastParts.push(simplified);
@@ -351,9 +452,12 @@ export const buildOwnerBorders = (features, options = {}) => {
         parts: coastParts.length,
         points: coastPoints,
         droppedSmallParts: coastDroppedParts,
-        // Clip-seam edges the seed never drew (the inland scratches) — cut by
+        // Clip-seam edges the seed never drew (scratch species 1) — cut by
         // the seedSegmentKeys filter, counted here.
         seamDropped: coastSeamDropped,
+        // Closed rings around ground the board does not cover — lakes and void
+        // pockets (scratch species 2), cut by the interior-point coverage test.
+        voidRingsDropped: coastVoidRings,
         eps: COAST_SIMPLIFY_EPS,
         minPartDiag: COAST_MIN_PART_DIAG,
       },
