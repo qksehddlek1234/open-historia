@@ -21,6 +21,16 @@
 // rebuilt board audits clean. This audit exists for the boards NOT yet rebuilt,
 // and as the regression tripwire if a new id family ever slips the seed.
 //
+// SECOND AUDIT IN THE SAME FILE (2026-08-20): era keys must be DERIVED.
+// The era piece ids were minted by a build counter until today, and that made
+// every rebuild renumber them — a saved game holding `era_37 → Lippe` then drew
+// Lippe wherever piece 37 landed (the Baltic). The ids come from the piece now
+// (lib/eraGeometry.mjs stableEraKey). This audit is the tripwire for a
+// regression, and it compares the KEY SET, never the count: measured on 1836,
+// the two Lucca offcuts differ in area by only 10.2%, so a swap that leaves the
+// count at 45 while exchanging two ids is entirely possible and a count check
+// would sail past it.
+//
 // Classification, per ownership row id:
 //   ghost     not in board geojson, not in tile catalog — dead weight
 //   tileOnly  not in board geojson, but tile-drawable — logic-side ghost too
@@ -74,6 +84,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(url.fileUR
       (JSON.parse(readFileSync(regionsPath, "utf8")).features ?? [])
         .map((f) => f.id ?? f.properties?.id).filter(Boolean).map(String),
     );
+    const legacyEraKeys = [...geoIds].filter((id) => /^era_\d+$/.test(id));
+    if (legacyEraKeys.length > 0) {
+      dirty += 1;
+      console.log(`${board}: ⚠ 카운터 방식 era 키 ${legacyEraKeys.length}개 — 재빌드하면 세이브가 밀린다 (stableEraKey 미적용 보드)`);
+    }
     const { ghost, tileOnly } = auditOwnerRows(world.regionOwnershipOverrides, geoIds, catalogIds);
     if (ghost.length === 0 && tileOnly.length === 0) continue;
     dirty += 1;

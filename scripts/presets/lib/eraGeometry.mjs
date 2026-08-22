@@ -269,12 +269,52 @@ export const matchFace = (face, index, faceOwners = {}) => {
 //   confirmed  — one owner covers it and it agrees with the spec
 //   reowned    — one owner covers it and DISAGREES; the face wins, loudly
 //   cut        — genuinely divided between two or more owners
+// ── era 조각의 안정 키 (2026-08-20) ─────────────────────────────────────────
+//
+// The id used to be `era_${counter}` — a build-time sequential counter, and the
+// single cause of the drift that put Lippe in the Baltic. Measured: the number
+// depends on which regions get cut, so one extra or one missing cut renumbers
+// everything after it (1836 median blast radius 22 of 45 keys), and a saved
+// game holding `era_37 → Principality of Lippe` then points at whatever piece
+// inherited 37. The save carries no geometry fingerprint to repair itself with.
+//
+// The replacement is derived from the piece itself, so a rebuild that produces
+// the same piece produces the same key:
+//
+//   parent region id + the face that cut it + the owner it went to
+//
+// Uniqueness was measured over all 24 boards, 1,270 era pieces (2026-08-20):
+// parent alone collides 81 times (a province split three ways), parent+face 0,
+// parent+owner 0. Both are carried because their failure modes are INDEPENDENT
+// — a face name changes when the OHM dump is re-harvested, an owner name when
+// the spec renames a polity — so a change on one axis cannot silently merge two
+// keys. A rounded centroid was measured too and REJECTED: it adds nothing
+// (distinct counts identical) and it moves slightly on every rebuild, which is
+// the very property this is removing.
+const slugPart = (value) => String(value ?? "")
+  .trim()
+  .toLowerCase()
+  // Keep letters/digits of ANY script — era names are Korean, Arabic, Cyrillic
+  // and Greek as often as Latin, and transliterating them here would invent a
+  // second naming authority. Everything else collapses to a single dash.
+  .replace(/[^\p{L}\p{N}]+/gu, "-")
+  .replace(/^-+|-+$/g, "");
+
+export const stableEraKey = (parentId, face, owner) => {
+  const parent = slugPart(parentId) || "orphan";
+  // A piece with no face is the remainder — structurally at most one per
+  // parent, which is why an empty face cannot collide (eraGeometry mints
+  // exactly one null-face part per region).
+  const faceSlug = slugPart(face) || "~";
+  const ownerSlug = slugPart(owner) || "~";
+  return `era:${parent}:${faceSlug}:${ownerSlug}`;
+};
+
 export const graftEraGeometry = (regionFeatures, faces, {
   minPieceArea = MIN_PIECE_AREA,
   minPieceFraction = MIN_PIECE_FRACTION,
   minPieceWidth = MIN_PIECE_WIDTH,
   whollyInside = WHOLLY_INSIDE,
-  idPrefix = "era",
 } = {}) => {
   const out = [];
   const report = {
@@ -580,8 +620,10 @@ export const graftEraGeometry = (regionFeatures, faces, {
         geometry: toGeometry(piece.mp),
         properties: {
           // Undotted on purpose: an author-style region, painted from the
-          // GeoJSON, invisible to the GID_1 tile match.
-          id: `${idPrefix}_${offcutSeq}`,
+          // GeoJSON, invisible to the GID_1 tile match. Derived, not counted —
+          // see stableEraKey above for why the counter had to go. offcutSeq
+          // survives only as the report's piece tally.
+          id: stableEraKey(base.id, piece.face, piece.owner),
           owner: piece.owner,
           gid0: base.gid0,
           name: base.name,

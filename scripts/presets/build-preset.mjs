@@ -669,7 +669,10 @@ if (eraSpec) {
       const { id, owner } = feature.properties;
       if (!id || !owner) continue;
       if (overrides[id] === owner) continue;
-      if (feature.properties.edited || String(id).startsWith("era_") || overrides[id] !== undefined) {
+      // "era_" was the counter-minted prefix; stable keys carry "era:" since
+      // 2026-08-20. Both are matched so a board built before the change still
+      // syncs if one is ever rebuilt from an old checkout.
+      if (feature.properties.edited || /^era[_:]/.test(String(id)) || overrides[id] !== undefined) {
         overrides[id] = owner;
         syncedOverrides += 1;
       }

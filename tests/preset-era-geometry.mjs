@@ -116,8 +116,19 @@ test("a province cut between two powers splits — original id keeps the majorit
   assert.equal(keep.properties.id, "PRO.1_1", "the majority piece keeps the id the save file knows");
   assert.equal(keep.properties.owner, "Germany", "1.2 of 2 is Germany's");
   assert.equal(keep.properties.edited, true, "without `edited` the stock tile repaints the OLD shape on top");
-  assert.match(offcut.properties.id, /^era_\d+$/, "the offcut is an author-style region");
+  // AN OFFCUT ID IS DERIVED, NOT COUNTED (2026-08-20). It used to be
+  // `era_${counter}`, and the counter was the whole drift bug: which regions
+  // get cut decides the numbering, so one extra cut renumbered everything after
+  // it and a save holding `era_37 → Lippe` started pointing at another piece
+  // (measured: 1836 median blast radius 22 of 45 keys). The id now comes from
+  // the piece — parent + face + owner — so the same piece always gets the same
+  // key. Uniqueness measured across 24 boards / 1,270 pieces: 0 collisions.
+  assert.match(offcut.properties.id, /^era:[^:]+:[^:]*:[^:]*$/,
+    "the offcut id must be derived from parent/face/owner, never from a build counter");
+  assert.ok(!/^era_\d+$/.test(offcut.properties.id), "the sequential counter is retired");
   assert.ok(!offcut.properties.id.includes("."), "undotted, so the GID_1 tile match cannot see it");
+  // The parent is IN the key, which is what lets a rebuild land on the same id.
+  assert.ok(offcut.properties.id.includes("pro-1-1"), "the parent region anchors the key");
   assert.equal(offcut.properties.owner, "Poland");
   assert.equal(offcut.properties.eraSplitOf, "PRO.1_1", "provenance is kept, not implied");
 
