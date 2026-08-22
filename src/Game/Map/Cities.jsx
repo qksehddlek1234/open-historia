@@ -101,14 +101,71 @@ const customLabelTierFilter = [
 
 // The stock lane's same rule, ranked the only way that database can be: the
 // modern set has no authored tiers, so names wait on population where the
-// custom lane waits on rank. Capitals exempt, big cities (the ◆ threshold,
-// 2.5M) from z5, the rest from z6 — the DOTS still follow populationFilter,
-// which already staggers who exists at all by zoom.
+// custom lane waits on rank.
+//
+// MEASURED AGAINST THE ORIGINAL (2026-08-19). The first cut of this gate was
+// "capitals always, 2.5M from z5, everyone else from z6", and on a wide screen
+// that is a mat. Counted on the same canvas (2560px) over the same ground:
+//
+//     z4.3 East Asia   original 0 names   ours ~20-60   (all capitals)
+//     z5.8 Beijing→Tokyo  original 27     ours 82       (measured on screen,
+//                                                        style-model said 84)
+//     z6.7 Korea→Kansai   original 14     ours 11*      (*this session hides
+//                                                        promoted cities)
+//
+// Two things were wrong. The gate opened FULLY at z6, so China, Japan and Korea
+// — where dozens of cities clear any population bar — went from a handful to a
+// wall in one step, while Europe and South America barely moved (z5: 157 names
+// over Korea/Japan, 47 over the Ruhr, 11 over São Paulo). And the original
+// starts naming cities somewhere above z4.3, where we were already printing
+// every national capital on earth.
+//
+// So the rungs are a population staircase that trails the DOT staircase in
+// populationFilter by roughly a zoom and a half, and capitals join at z5 with
+// everyone else instead of being exempt at world zoom. Modelling the same
+// collision on the same data puts this at 36 names where the original draws 27
+// and 15 where it draws 14 — the closest of the variants tried (a version that
+// favoured admin capitals matched at z5.8 and doubled the original at z6.7).
+//
+// Integer stops, for the reason the custom ladder gives: a filter re-evaluates
+// zoom at integer boundaries, so a 9.5 would act at 10 anyway — it is written
+// as 10 so the code says what it does.
 const stockLabelGateFilter = [
     "any",
-    ["==", ["get", "capital"], "primary"],
-    ["all", [">=", ["get", "population"], 2500000], [">=", ["zoom"], 5]],
-    [">=", ["zoom"], 6],
+    ["all", ["==", ["get", "capital"], "primary"], [">=", ["zoom"], 5]],
+    ["all", [">=", ["get", "population"], 5000000], [">=", ["zoom"], 5]],
+    ["all", [">=", ["get", "population"], 2500000], [">=", ["zoom"], 6]],
+    ["all", [">=", ["get", "population"], 1000000], [">=", ["zoom"], 7]],
+    ["all", [">=", ["get", "population"], 500000], [">=", ["zoom"], 8]],
+    [">=", ["zoom"], 10],
+];
+
+// RANK IS VISIBLE IN THE TYPE, NOT ONLY IN THE MARKER. The original prints
+// SEOUL and TOKYO about half again the size of Daegu or Kanazawa, and that is
+// half of why its map reads calm at the same density: a big name owns a big
+// collision box, so it clears space around itself and the
+// small ones fill in only where there is room. Ours drew every stock city at
+// one size (8px → 10px), which is both flatter than the original and weaker at
+// thinning.
+//
+// Three steps, matching the ★/◆/■ the shapes layer already draws: primary
+// capital, then the ◆ class (an admin capital or 2.5M+), then everything else.
+// Composite expression — zoom outside, the rank case inside each stop — which
+// is the only shape MapLibre accepts for a property that varies with both.
+const stockLabelSize = [
+    "interpolate", ["linear"], ["zoom"],
+    3, [
+        "case",
+        ["==", ["get", "capital"], "primary"], 11,
+        ["any", ["==", ["get", "capital"], "admin"], [">=", ["get", "population"], 2500000]], 9.5,
+        8,
+    ],
+    10, [
+        "case",
+        ["==", ["get", "capital"], "primary"], 13,
+        ["any", ["==", ["get", "capital"], "admin"], [">=", ["get", "population"], 2500000]], 11.5,
+        10,
+    ],
 ];
 
 // Capitals first, exactly as the stock layer does it, so an authored capital is
@@ -232,11 +289,7 @@ const StockCities = ({ label, filter, labelFilter, fontStack }) => (
                     "text-font": fontStack,
                     "text-padding": 5,
                     "text-radial-offset": 0.7,
-                    "text-size": [
-                        "interpolate", ["linear"], ["zoom"],
-                        3, 8,
-                        10, 10,
-                    ],
+                    "text-size": stockLabelSize,
                     // ONE ANCHOR, ALWAYS. This was text-variable-anchor over
                     // [top, bottom, left, right]: MapLibre tries each spot in
                     // order and takes the first that fits, so a name sat below

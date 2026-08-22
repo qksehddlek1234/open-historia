@@ -1135,4 +1135,81 @@ test("the coastline draws from the border file, thinner, and never stacks on a b
     "0.6x the national line at every stop — thinner, the player's call (가늘게)");
 });
 
+test("the stock name ladder is a population staircase, measured against the original", () => {
+  // Counted on the same 2560px canvas over the same ground (2026-08-19): the
+  // original draws 0 city names at z4.3, 27 at z5.8 (Beijing→Tokyo) and 14 at
+  // z6.7 (Korea→Kansai). The first version of this gate — capitals always,
+  // 2.5M from z5, everyone else from z6 — measured 82 on our own screen at
+  // z5.8 against those 27, because the gate opened fully one zoom too early
+  // and did it everywhere at once.
+  const gate = CITIES.slice(CITIES.indexOf("const stockLabelGateFilter"), CITIES.indexOf("const stockLabelSize"));
+  assert.match(gate, /\["all", \["==", \["get", "capital"\], "primary"\], \[">=", \["zoom"\], 5\]\]/,
+    "capitals join at z5 — the original names nothing at z4.3, us included now");
+  for (const [pop, zoom] of [[5000000, 5], [2500000, 6], [1000000, 7], [500000, 8]]) {
+    assert.match(gate, new RegExp(`\\["all", \\[">=", \\["get", "population"\\], ${pop}\\], \\[">=", \\["zoom"\\], ${zoom}\\]\\]`),
+      `${pop / 1000000}M joins at z${zoom}`);
+  }
+  assert.match(gate, /\[">=", \["zoom"\], 10\],\n\];/,
+    "everyone else at z10 — written as an integer because a filter evaluates zoom at integers");
+  assert.doesNotMatch(gate, /\[">=", \["zoom"\], 6\],\n\];/,
+    "the old 'everyone from z6' rung is gone — that was the mat");
+});
+
+test("a stock city name is sized by its rank, the way the original sizes them", () => {
+  assert.match(CITIES, /"text-size": stockLabelSize,/,
+    "the stock label layer takes the ranked size…");
+  const size = CITIES.slice(CITIES.indexOf("const stockLabelSize"), CITIES.indexOf("const stockShapeLayout"));
+  assert.doesNotMatch(CITIES, /"interpolate", \["linear"\], \["zoom"\],\n\s+3, 8,\n\s+10, 10,/,
+    "…and the one-size-for-everyone ramp is gone");
+  assert.equal((size.match(/"==", \["get", "capital"\], "primary"\], 1[13]/g) ?? []).length, 2,
+    "a primary capital is the largest at both ends of the ramp (11 → 13)");
+  assert.match(size, /\["any", \["==", \["get", "capital"\], "admin"\], \[">=", \["get", "population"\], 2500000\]\]/,
+    "the ◆ class — an admin capital or 2.5M — is the middle step");
+});
+
+test("…and MapLibre accepts the two city expressions as composite", async () => {
+  let spec;
+  try { spec = await import("@maplibre/maplibre-gl-style-spec"); } catch { console.log("  (style-spec not installed here — structural pins above still stand)"); return; }
+  const { createPropertyExpression, latest } = spec;
+  // text-size varies with zoom AND with the feature, which MapLibre allows only
+  // as zoom-outside/data-inside. Written the other way it is refused at style
+  // load and the layer silently never draws — the leader-line bug, again.
+  const size = [
+    "interpolate", ["linear"], ["zoom"],
+    3, ["case", ["==", ["get", "capital"], "primary"], 11,
+        ["any", ["==", ["get", "capital"], "admin"], [">=", ["get", "population"], 2500000]], 9.5, 8],
+    10, ["case", ["==", ["get", "capital"], "primary"], 13,
+         ["any", ["==", ["get", "capital"], "admin"], [">=", ["get", "population"], 2500000]], 11.5, 10],
+  ];
+  const built = createPropertyExpression(size, latest.layout_symbol["text-size"]);
+  assert.equal(built.result, "success", JSON.stringify(built.value?.map?.((e) => e.message)));
+  assert.equal(built.value.kind, "composite");
+  const at = (zoom, properties) => built.value.evaluate({ zoom }, { type: "Point", properties });
+  assert.equal(at(3, { capital: "primary", population: 9000000 }), 11);
+  assert.equal(at(10, { capital: "primary", population: 9000000 }), 13);
+  assert.equal(at(3, { capital: "admin", population: 400000 }), 9.5, "an admin capital reads as ◆ however small");
+  assert.equal(at(3, { capital: "", population: 3000000 }), 9.5, "so does a 2.5M+ city with no rank");
+  assert.equal(at(3, { capital: "minor", population: 120000 }), 8, "everyone else is ■");
+  // The gate itself, evaluated as a filter the way the renderer would.
+  const gate = ["any",
+    ["all", ["==", ["get", "capital"], "primary"], [">=", ["zoom"], 5]],
+    ["all", [">=", ["get", "population"], 5000000], [">=", ["zoom"], 5]],
+    ["all", [">=", ["get", "population"], 2500000], [">=", ["zoom"], 6]],
+    ["all", [">=", ["get", "population"], 1000000], [">=", ["zoom"], 7]],
+    ["all", [">=", ["get", "population"], 500000], [">=", ["zoom"], 8]],
+    [">=", ["zoom"], 10]];
+  const filt = spec.featureFilter ? spec.featureFilter(gate) : null;
+  if (filt) {
+    const passes = (zoom, properties) => filt.filter({ zoom }, { type: 1, properties });
+    assert.equal(passes(4, { capital: "primary", population: 20000000 }), false, "no capitals at z4 — the original prints none");
+    assert.equal(passes(5, { capital: "primary", population: 300000 }), true, "capitals from z5");
+    assert.equal(passes(5, { capital: "", population: 6000000 }), true, "5M from z5");
+    assert.equal(passes(5, { capital: "", population: 3000000 }), false, "2.5M waits for z6");
+    assert.equal(passes(6, { capital: "", population: 3000000 }), true);
+    assert.equal(passes(7, { capital: "", population: 1200000 }), true);
+    assert.equal(passes(9, { capital: "", population: 300000 }), false, "a small town waits for z10");
+    assert.equal(passes(10, { capital: "", population: 300000 }), true);
+  }
+});
+
 console.log(`\n${pass} passed\n`);
