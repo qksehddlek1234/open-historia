@@ -185,7 +185,7 @@ test("a clip seam — an edge the seed never drew — is cut from the coast AND 
     }
   }
   seedSegmentKeys.delete("0,0|0,1");
-  const { stats } = buildOwnerBorders(boardFeatures, { seedSegmentKeys });
+  const { stats } = buildOwnerBorders(boardFeatures, { seedCoastKeys: seedSegmentKeys });
   assert.equal(stats.coast.seamDropped, 1, "the not-in-seed edge is cut and counted");
   assert.equal(stats.coast.segments, 7, "the seven real perimeter edges still ship");
   // And without a seed set the filter stays out of the way (the tests above
@@ -193,6 +193,61 @@ test("a clip seam — an edge the seed never drew — is cut from the coast AND 
   const open = buildOwnerBorders(boardFeatures);
   assert.equal(open.stats.coast.seamDropped, 0);
   assert.equal(open.stats.coast.segments, 8);
+});
+
+test("an edge the seed drew as an INTERNAL border is not coast, however it was clipped", () => {
+  // Species 4's first half. Era clipping rewrites one side of a border and
+  // leaves the other side's original segments unpaired — they are genuine seed
+  // vertices, so the seam test clears them, and they can run past real water
+  // (Utah's 37N line passes Lake Powell), so the water test clears them too.
+  // The seed's own count settles it: an edge it drew TWICE had a neighbour and
+  // was never coast.
+  const spanning = GRID.map(([id, gid0, owner, x, y]) => [id, gid0, id === "D" ? "X" : owner, x, y]);
+  const boardFeatures = board(spanning);
+  const coastKeys = new Set();
+  const sharedKeys = new Set();
+  const ringsOf = (g) => (g.type === "Polygon" ? g.coordinates : g.coordinates.flat());
+  for (const f of boardFeatures) {
+    for (const ring of ringsOf(f.geometry)) {
+      for (let i = 0; i + 1 < ring.length; i += 1) {
+        const ka = `${ring[i][0]},${ring[i][1]}`;
+        const kb = `${ring[i + 1][0]},${ring[i + 1][1]}`;
+        if (ka === kb) continue;
+        coastKeys.add(ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`);
+      }
+    }
+  }
+  // The seed says this perimeter edge had a neighbour; the board lost it.
+  coastKeys.delete("0,0|0,1");
+  sharedKeys.add("0,0|0,1");
+  const { stats } = buildOwnerBorders(boardFeatures, { seedCoastKeys: coastKeys, seedSharedKeys: sharedKeys });
+  assert.equal(stats.coast.seedInteriorDropped, 1, "counted apart from a seam — different species, different number");
+  assert.equal(stats.coast.seamDropped, 0, "and NOT counted as a seam: the seed did draw these vertices");
+});
+
+test("an edge with another region's edge in the same cell is a border, not a coast", () => {
+  // Species 4's second half, and the one that actually killed Utah: the two
+  // sides of that line are digitised at different vertex densities (6 vertices
+  // against 8 on the seed), so exact-key pairing never matched them and BOTH
+  // sides were called coast. Here B's western edge is redrawn with an extra
+  // midpoint — same line, different vertices — which is exactly that defect.
+  const west = {
+    type: "Feature",
+    properties: { id: "A", gid0: "AAA", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] },
+  };
+  // One owner across both codes, so neither keeps its level-0 outline and the
+  // coast lane is the one that would have to draw this line.
+  const east = {
+    type: "Feature",
+    properties: { id: "B", gid0: "BBB", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [[[1, 0], [2, 0], [2, 1], [1, 1], [1, 0.5], [1, 0]]] },
+  };
+  const { stats } = buildOwnerBorders([west, east]);
+  assert.ok(stats.coast.neighbourDropped >= 2,
+    `the shared line's mismatched halves must not ship as coast (got ${stats.coast.neighbourDropped})`);
+  // The outer perimeter is untouched — nobody else's edge is near it.
+  assert.ok(stats.coast.segments >= 6, `the real perimeter still ships (got ${stats.coast.segments})`);
 });
 
 test("a closed ring around a LAKE is cut from the coast, an island's ring is not", () => {
@@ -291,14 +346,28 @@ test("a part with no vertex near real water is not a coast — the Utah rule", (
     geometry: { type: "Polygon", coordinates: [[[2, 0], [3, 0], [3, 2], [2, 2], [2, 0]]] },
   };
   // Reference knows the sea beyond the outer perimeter — nothing about the lake.
-  const sea = { grid: 0.05, points: [[0, -2], [20, -2], [40, -2], [60, -2], [0, 42], [40, 42], [-2, 0], [-2, 20], [62, 20]] };
+  // Laid down densely (the real cloud is Natural Earth at 0.05°, which is dense
+  // everywhere); a sparse ring would break the perimeter into pieces at the
+  // gaps, which is a property of the fixture and not of the rule.
+  const ring = [];
+  for (let t = -0.2; t <= 3.2; t += 0.1) { ring.push([t, -0.15], [t, 2.15]); }
+  for (let t = -0.2; t <= 2.2; t += 0.1) { ring.push([-0.15, t], [3.15, t]); }
+  const toCells = (pts) => ({ grid: 0.05, points: pts.map(([x, y]) => [Math.round(x / 0.05), Math.round(y / 0.05)]) });
+  const sea = toCells(ring);
   const dry = buildOwnerBorders([bigLakeRegion, neighbour], { coastReference: sea });
-  assert.equal(dry.stats.coast.waterlessDropped, 1, "the waterless lake ring is cut and counted");
+  // Counted in SEGMENTS since 2026-08-20: the test moved ahead of chaining, so
+  // that one wet touch could no longer vouch for a whole dry run (Kashmir rode
+  // in on Pangong Tso, Bavaria-Bohemia on Bodensee) and so chaining could not
+  // weld a real shore to an inland line (a 292-point part was the Pacific coast
+  // fused to the 42N state border).
+  assert.ok(dry.stats.coast.waterlessDropped > 0, "the waterless lake ring is cut and counted");
   assert.equal(dry.collection.features.find((f) => f.properties.kind === "coast").geometry.coordinates.length, 1,
     "the outer perimeter — near the reference sea — still ships");
   // Teach the reference the lake and the shore comes back: this is why
   // build-coastline-reference.mjs merges NE lakes into the cloud.
-  const withLake = { grid: 0.05, points: [...sea.points, [10, 10], [30, 10], [30, 30], [10, 30]] };
+  const lakeRing = [];
+  for (let t = 0.4; t <= 1.6; t += 0.1) { lakeRing.push([t, 0.5], [t, 1.5], [0.5, t], [1.5, t]); }
+  const withLake = { grid: 0.05, points: [...sea.points, ...toCells(lakeRing).points] };
   const wet = buildOwnerBorders([bigLakeRegion, neighbour], { coastReference: withLake });
   assert.equal(wet.stats.coast.waterlessDropped, 0);
   assert.equal(wet.collection.features.find((f) => f.properties.kind === "coast").geometry.coordinates.length, 2);

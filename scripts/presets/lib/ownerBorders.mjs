@@ -244,6 +244,62 @@ const simplifyRun = (points, eps) => {
 // is harmless (중복 안전).
 const WATER_NEAR_DEG = 0.25;
 
+// ── 긁힘 4종 (2026-08-20): A COAST HAS NO NEIGHBOUR ON THE OTHER SIDE ────────
+//
+// Utah's 37N line survived every filter above and kept drawing a modern state
+// border across 1836 Mexico. It is not a seam (the seed drew those vertices),
+// not a void ring (it is an open run), and not waterless (Lake Powell sits on
+// it). What it is, is a border whose two sides were digitised at DIFFERENT
+// VERTEX DENSITIES: measured on the seed, Utah draws that line with 6 vertices
+// and Arizona with 8, sharing only two of them. So the exact-key pairing above
+// never matched them, both sides came out unpaired, and each was called coast.
+//
+// The pairing has to tolerate that, and the codebase already knows how — the
+// `intact` test below was corrected the same way in 2026-08-16 ("NEIGHBOURS
+// ARE FOUND ON A GRID, NOT BY SHARED SEGMENTS"). Here the grid holds SEGMENTS,
+// not vertices: every land edge is rasterised into ~1.1km cells, and a coast
+// candidate whose midpoint cell also carries another region's edge is not a
+// coast — it is a border, and the frontier lane above already draws it when
+// the owners differ (when they match, it is interior and belongs to nobody).
+//
+// Measured on victorian-1836, midpoint test at 0.01°:
+//
+//   Utah 37N   12/12 dropped     Nepal 95%   Kashmir 94%   Lesotho 95%   DE/AT 91%
+//   Crete 0%   England 2%        Norway 3%   Corfu 4%    ← real coast barely touched
+//
+// The residue on a real shore is where a province boundary meets the sea: one
+// ~1km cell, invisible under the 0.02° simplification the file already ships.
+// Testing all three points instead of the midpoint was measured too and is
+// worse on both counts (DE/AT 91→72%, Sicily 15→14%).
+const NEIGHBOUR_GRID_DEG = 0.01;
+
+// Rasterise every land edge into grid cells: cell → the single region index
+// that stamped it, or -1 once two regions have. Sampling at 0.7 cells keeps a
+// long straight edge (Utah's line is 1.5°) from stepping over cells.
+const buildNeighbourGrid = (segments) => {
+  const cellRegion = new Map();
+  const stamp = (x, y, index) => {
+    const key = Math.round(x / NEIGHBOUR_GRID_DEG) * 4194304 + Math.round(y / NEIGHBOUR_GRID_DEG);
+    const seen = cellRegion.get(key);
+    if (seen === undefined) cellRegion.set(key, index);
+    else if (seen !== index && seen !== -1) cellRegion.set(key, -1);
+  };
+  const rasterise = (a, b, index) => {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (NEIGHBOUR_GRID_DEG * 0.7)));
+    for (let t = 0; t <= steps; t += 1) stamp(a[0] + (dx * t) / steps, a[1] + (dy * t) / steps, index);
+  };
+  for (const segment of segments) {
+    rasterise(segment.a, segment.b, segment.i);
+    if (segment.j !== -1) rasterise(segment.a, segment.b, segment.j);
+  }
+  return (x, y, index) => {
+    const seen = cellRegion.get(Math.round(x / NEIGHBOUR_GRID_DEG) * 4194304 + Math.round(y / NEIGHBOUR_GRID_DEG));
+    return seen === -1 || (seen !== undefined && seen !== index);
+  };
+};
+
 const buildWaterQuery = (reference) => {
   const grid = Number(reference?.grid);
   const points = reference?.points;
@@ -269,19 +325,26 @@ const buildWaterQuery = (reference) => {
 };
 
 // features: the board's final region features (properties.owner / gid0 / kind).
-// options.seedSegmentKeys — the seed's own segment-key set ("x,y|x,y", smaller
-// key first, same shape as the internal map below). When given, a coast
-// candidate must be an edge THE SEED DREW: era clipping preserves original
-// vertices bit-identically, so a real shoreline passes, while a clip seam is
-// made of new vertices and fails. Without this filter the seams shipped as
-// coast and the user saw them — dozens of short black scratches through
-// Austria and Podolia, tracing face joints and river-cut edges (2026-08-19).
+// options.seedCoastKeys / options.seedSharedKeys — the seed's own segments
+// ("x,y|x,y", smaller key first), split by how often the seed drew them: once
+// means nothing was on the other side (coast), twice means two regions shared
+// it (an internal border). Era clipping preserves original vertices
+// bit-identically, so a board coast candidate lands in one of three classes:
+//
+//   in seedCoastKeys   real shoreline — keep
+//   in seedSharedKeys  the seed had a NEIGHBOUR here and era clipping rewrote
+//                      it, leaving this side unpaired — Utah's 37N line, the
+//                      dead DE/AT frontier (650 segments on 1836). Never coast.
+//   in neither         a clip seam of new vertices (2,631) — the scratches
+//                      through Austria and Podolia (2026-08-19).
+//
 // Absent (the synthetic tests, callers without a seed), every candidate keeps.
 // options.coastReference — the water vertex cloud above; absent, the water
 // filter is off (synthetic tests, callers without the data file).
 // Returns { collection, stats } — collection is ready to write as borders.geojson.
 export const buildOwnerBorders = (features, options = {}) => {
-  const seedSegmentKeys = options.seedSegmentKeys ?? null;
+  const seedCoastKeys = options.seedCoastKeys ?? null;
+  const seedSharedKeys = options.seedSharedKeys ?? null;
   const nearWater = buildWaterQuery(options.coastReference);
   const owners = [];
   const codes = [];
@@ -421,15 +484,46 @@ export const buildOwnerBorders = (features, options = {}) => {
   // seam is COUNTED, never silent.
   const intactSet = new Set(intact);
   let coastSeamDropped = 0;
+  let coastSeedInterior = 0;
+  let coastNeighbourDropped = 0;
+  let coastWaterless = 0;
   const coastSegments = [];
+  const hasNeighbourEdge = buildNeighbourGrid(segments.values());
   for (const { key, segment } of exteriorSegments) {
     if (intactSet.has(codes[segment.i])) continue;
-    if (seedSegmentKeys && !seedSegmentKeys.has(key)) { coastSeamDropped += 1; continue; }
+    if (seedCoastKeys && !seedCoastKeys.has(key)) {
+      // Which wrong class, so the two species stay countable apart.
+      if (seedSharedKeys?.has(key)) coastSeedInterior += 1;
+      else coastSeamDropped += 1;
+      continue;
+    }
+    // THE WATER TEST IS PER SEGMENT, AND IT RUNS BEFORE CHAINING. It used to
+    // run per finished part ("does any vertex sit near water"), and any-vertex
+    // leaked two ways, both measured by Cowork on the shipped file:
+    //
+    //   (a) one wet touch vouched for a whole dry chain — the 171+115-point
+    //       Bavaria-Bohemia line rode in on Bodensee, Kashmir's 248 points on
+    //       Pangong Tso, Utah's NV/UT edge on Lake Mead.
+    //   (b) chaining fused a real coast to an inland run through one shared
+    //       vertex — a 292-point part spanning [-124.7,32 → -94.4,49] was the
+    //       Pacific shore welded to the 42N/41N state lines, and its sea
+    //       distance read 0.00 because of the wet half.
+    //
+    // Judging the SEGMENT kills both: a dry edge never enters the graph, so a
+    // chain can only grow through water, and the weld in (b) cannot form
+    // because the dry side is already gone.
+    const [ax, ay] = segment.a;
+    const [bx, by] = segment.b;
+    const midX = (ax + bx) / 2;
+    const midY = (ay + by) / 2;
+    // Species 4 first: it is a hash lookup, and it is exact about what a coast
+    // is not (see NEIGHBOUR_GRID_DEG above).
+    if (hasNeighbourEdge(midX, midY, segment.i)) { coastNeighbourDropped += 1; continue; }
+    if (nearWater && !nearWater(midX, midY)) { coastWaterless += 1; continue; }
     coastSegments.push(segment);
   }
   let coastDroppedParts = 0;
   let coastVoidRings = 0;
-  let coastWaterless = 0;
   let coastPoints = 0;
   const coastParts = [];
   const coveredByLand = buildLandCoverage(features, land);
@@ -474,9 +568,6 @@ export const buildOwnerBorders = (features, options = {}) => {
       if (coveredByLand.anywhere(topX, topY + 0.01)) { coastVoidRings += 1; continue; }
     }
     const simplified = simplifyRun(run, COAST_SIMPLIFY_EPS).map(([x, y]) => [round5(x), round5(y)]);
-    // Species 3: no vertex near real water means this is not a coast, whatever
-    // its shape — open Kashmir chains and the closed Utah rectangle alike.
-    if (nearWater && !simplified.some(([x, y]) => nearWater(x, y))) { coastWaterless += 1; continue; }
     coastPoints += simplified.length;
     coastParts.push(simplified);
   }
@@ -505,14 +596,24 @@ export const buildOwnerBorders = (features, options = {}) => {
         parts: coastParts.length,
         points: coastPoints,
         droppedSmallParts: coastDroppedParts,
-        // Clip-seam edges the seed never drew (scratch species 1) — cut by
-        // the seedSegmentKeys filter, counted here.
+        // Clip-seam edges the seed never drew (scratch species 1) — new
+        // vertices, in neither seed set.
         seamDropped: coastSeamDropped,
+        // Edges the seed drew as an INTERNAL border whose neighbour era
+        // clipping rewrote. The water filter cannot catch these: they run
+        // past real lakes.
+        seedInteriorDropped: coastSeedInterior,
+        // Edges with another region's edge in the same ~1.1km cell (scratch
+        // species 4 — borders digitised at mismatched vertex densities, Utah's
+        // 37N line). A border is the frontier lane's job, not the coast's.
+        neighbourDropped: coastNeighbourDropped,
         // Closed rings around ground the board does not cover — lakes and void
         // pockets (scratch species 2), cut by the interior-point coverage test.
         voidRingsDropped: coastVoidRings,
-        // Parts with no vertex near real water (scratch species 3 — state
-        // borders, seed defects), cut against the Natural Earth reference.
+        // SEGMENTS whose midpoint sits nowhere near real water (scratch
+        // species 3 — state borders, seed defects), cut against the Natural
+        // Earth reference before chaining. Counted in segments, not parts:
+        // the unit moved on 2026-08-20 and the number moved with it.
         waterlessDropped: coastWaterless,
         eps: COAST_SIMPLIFY_EPS,
         minPartDiag: COAST_MIN_PART_DIAG,

@@ -155,12 +155,21 @@ const UK_LEGACY_KEYS = new Set(["GBR.1_1", "GBR.2_1", "GBR.3_1", "GBR.4_1"]);
 // a separate, heavy job. An id in EITHER is a real region.
 const seedFeatures = JSON.parse(readFileSync(REGIONS_SEED_PATH, "utf8")).features ?? [];
 const seedIds = new Set(seedFeatures.map((feature) => String(feature?.properties?.id ?? "")));
-// The seed's SEGMENT set, for the coast builder's seam filter (B-7 긁힘 수리):
-// a real coast edge is an edge the seed itself drew — clipping preserves those
-// vertices bit-identically — while an era-clip seam is made of NEW vertices.
-// Measured on victorian-1836 before this was wired: 1,060,116 coast candidates
-// in the seed vs 2,631 not (99.75% : 0.25%, the scratches all on the far side).
-const seedSegmentKeys = new Set();
+// THE SEED ALREADY KNOWS WHICH EDGES ARE COAST, and the coast builder asks it
+// twice (B-7 긁힘 수리 1종·4종). Every seed segment appears exactly once or
+// exactly twice — measured over the whole seed: 2,003,514 once, 529,622 twice,
+// never three times — and that count IS the answer:
+//
+//   once  → nothing was on the other side → the seed drew this as coast
+//   twice → two regions shared it         → an internal border, never coast
+//
+// A board coast candidate is then classified exactly, with no geometry test:
+// in the once-set it is real coast; in the twice-set era clipping rewrote the
+// NEIGHBOUR and left this side unpaired (Utah's 37N line, the dead DE/AT
+// frontier — 650 segments on 1836); in neither set it is a clip seam made of
+// new vertices (2,631). Both wrong classes are dropped and counted separately.
+const seedCoastKeys = new Set();
+const seedSharedKeys = new Set();
 {
   const seedRingsOf = (geometry) => {
     if (geometry?.type === "Polygon") return geometry.coordinates ?? [];
@@ -174,7 +183,11 @@ const seedSegmentKeys = new Set();
         const ka = `${ring[i][0]},${ring[i][1]}`;
         const kb = `${ring[i + 1][0]},${ring[i + 1][1]}`;
         if (ka === kb) continue;
-        seedSegmentKeys.add(ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`);
+        const key = ka < kb ? `${ka}|${kb}` : `${kb}|${ka}`;
+        // Second sighting moves it from the coast set to the shared set; the
+        // seed has no third sighting, so this stays a two-state classification.
+        if (seedCoastKeys.delete(key) || seedSharedKeys.has(key)) seedSharedKeys.add(key);
+        else seedCoastKeys.add(key);
       }
     }
   }
@@ -706,7 +719,7 @@ writeFileSync(
   let coastReference = null;
   if (existsSync(COAST_REF_PATH)) coastReference = JSON.parse(readFileSync(COAST_REF_PATH, "utf8"));
   else console.warn("[borders] ⚠ coastline-reference.json 없음 — 물 거리 필터 꺼짐 (build-coastline-reference.mjs로 생성)");
-  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal, { seedSegmentKeys, coastReference });
+  const { collection, stats } = buildOwnerBorders(regionFeaturesFinal, { seedCoastKeys, seedSharedKeys, coastReference });
   writeFileSync(path.join(scenarioDir, "borders.geojson"), JSON.stringify(collection), "utf8");
   console.log(
     `[borders] 국경 세그먼트 ${stats.segments.frontier} → ${stats.parts}줄 · ` +
@@ -719,8 +732,8 @@ writeFileSync(
     console.log(
       `[borders]   해안 출하(비-intact): ${stats.coast.segments}세그 → ${stats.coast.parts}줄 ` +
       `${stats.coast.points}점 (eps ${stats.coast.eps}° · 잔조각 ${stats.coast.droppedSmallParts}개 · ` +
-      `클립 이음새 ${stats.coast.seamDropped}개 · 호수/틈 링 ${stats.coast.voidRingsDropped}개 · ` +
-      `물 없는 파트 ${stats.coast.waterlessDropped}개 계수 드롭)`,
+      `클립 이음새 ${stats.coast.seamDropped} · 시드 내부변 ${stats.coast.seedInteriorDropped} · 이웃 접촉 ${stats.coast.neighbourDropped}세그 · ` +
+      `호수/틈 링 ${stats.coast.voidRingsDropped}개 · 물 없는 세그 ${stats.coast.waterlessDropped}개 계수 드롭)`,
     );
   }
   if (stats.segments.overCounted > 0) {
