@@ -1,5 +1,6 @@
 {
   "_comment": "Large world-map binaries used to be tracked in Git LFS, whose free bandwidth (1 GB/mo, shared org-wide) was exhausted by a handful of installs. They now live as assets on a GitHub Release, whose download bandwidth is free and unmetered. scripts/fetch-map-assets.mjs reads this manifest and downloads any listed file that is missing or out of date; the launcher and updater call it instead of touching Git LFS. When a map file changes: upload the new asset to the release below and update its sha256 + bytes here.",
+  "_localNote": "이 클론에서 regions-seed.geojson과 server/data/scenarios/default/regions.geojson 두 항목을 일부러 뺐다(사용자 결정 2026-08-20, ②안). 두 파일은 B-6(SAU level-2)과 그 이전 확장으로 릴리스 판과 갈라졌고(시드 67,302,742 B vs 릴리스 55,350,393 B · default 66,629,580 B vs 55,401,660 B), 목록에 남겨두면 런처가 부르는 fetch-map-assets --ensure가 크기 불일치를 보고 릴리스 판으로 덮어써 1836 빌드가 unknown GID_1로 죽는다. 백업: 바탕화면 OH-지도백업. 릴리스에 새 파일을 올려 되살릴 때는 두 항목을 bytes/sha256과 함께 되돌리면 된다.",
   "owner": "Open-Historia",
   "repo": "open-historia",
   "release": "map-data",
@@ -7,8 +8,6 @@
     { "path": "public/assets/regions.pmtiles", "asset": "regions.pmtiles", "bytes": 105827424, "sha256": "510b6808be0439d4ae140532487806cddea47d4eb4eaf9b0b2c77e22c901e0d4" },
     { "path": "public/assets/countries.pmtiles", "asset": "countries.pmtiles", "bytes": 62739546, "sha256": "596e3dffb0aba5bf6f2dd103c441020730161c55b67a6993dc3e0fb924fe1727" },
     { "path": "public/assets/cities.pmtiles", "asset": "cities.pmtiles", "bytes": 1547924, "sha256": "41edf847114a0c1b04c9a11e9501fc97e680a105b2ec618f5caffca3df61e87a" },
-    { "path": "public/assets/cities-seed.json", "asset": "cities-seed.json", "bytes": 7857627, "sha256": "2138650914b87fa7036b065a9d18bd88cbb97ec6c67e9ec22f2be1a9f8bff101" },
-    { "path": "public/assets/regions-seed.geojson", "asset": "regions-seed-z8.geojson", "bytes": 55350393, "sha256": "64f1e3708e1f17016f38f86d3b6f928971c7842e8126d74efa65eb04654c770d" },
-    { "path": "server/data/scenarios/default/regions.geojson", "asset": "default-regions-names.geojson", "bytes": 55401660, "sha256": "ec77627d2f081339cef679147a4a5aa53d73af89991225b11173e96c2ba131f2" }
+    { "path": "public/assets/cities-seed.json", "asset": "cities-seed.json", "bytes": 7857627, "sha256": "2138650914b87fa7036b065a9d18bd88cbb97ec6c67e9ec22f2be1a9f8bff101" }
   ]
 }
