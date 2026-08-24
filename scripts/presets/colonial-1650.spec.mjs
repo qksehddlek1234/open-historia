@@ -195,7 +195,9 @@ export default {
     // "Safavid Persia"라 면이 떨어졌다 — 별칭 한 줄이 그 간극이다.
     SAFA:  { name: "Safavid Persia", color: "#34869a", aliases: ["사파비 페르시아", "Persia", "Iran", "the Safavids", "Safavid Empire"] },
     MUGH:  { name: "Mughal Empire", color: "#3a7d4f", aliases: ["무굴 제국", "Hindustan", "the Mughals"] },
-    QING:  { name: "Qing Dynasty", color: "#c9a227", aliases: ["청나라", "China", "the Manchus"] },
+    // 일통 왕조 大 규칙 (2026-08-21). 같은 왕조가 보드마다 청/청나라로 갈려 있던 것도
+    // 이 교체로 통일된다.
+    QING:  { name: "Qing Dynasty", color: "#c9a227", aliases: ["대청국", "청나라", "China", "the Manchus"] },
     JOSE:  { name: "Joseon", color: "#5a9a7a", aliases: ["조선", "Korea"] },
     TOKU:  { name: "Tokugawa Japan", color: "#c0507a", aliases: ["도쿠가와 일본", "Japan", "the Shogunate"] },
     SIAM:  { name: "Ayutthaya", color: "#d0b060", aliases: ["아유타야", "Siam"] },

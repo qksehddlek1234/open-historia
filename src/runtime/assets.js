@@ -73,6 +73,9 @@ export const JSON_URLS = {
   game: "",
   prompts: "",
   regionsGeojson: "",
+  // The far lane's simplified copy — absent on boards built before 2026-08-21,
+  // and absent is safe (the lane falls back to the exact geometry).
+  regionsFarGeojson: "",
   citiesGeojson: "",
   bordersGeojson: "",
   backgroundData: "",
@@ -283,6 +286,7 @@ export const setRuntimeAssetEndpoints = ({ token = "" } = {}) => {
   JSON_URLS.prompts = withRuntimeToken("/api/runtime/json/prompts");
   JSON_URLS.snapshots = withRuntimeToken("/api/runtime/json/snapshots");
   JSON_URLS.regionsGeojson = withRuntimeToken("/api/runtime/json/regionsGeojson");
+  JSON_URLS.regionsFarGeojson = withRuntimeToken("/api/runtime/json/regionsFarGeojson");
   JSON_URLS.citiesGeojson = withRuntimeToken("/api/runtime/json/citiesGeojson");
   JSON_URLS.bordersGeojson = withRuntimeToken("/api/runtime/json/bordersGeojson");
   JSON_URLS.backgroundData = withRuntimeToken("/api/runtime/json/backgroundData");

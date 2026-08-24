@@ -312,6 +312,12 @@ const SCENARIO_GEOJSON_ASSET_FILES = {
   // outline. A scenario without one keeps drawing GADM level 0, exactly as
   // before — absent is safe here, wrong is not.
   bordersGeojson: "borders.geojson",
+  // The far lane's own copy of the region geometry, simplified per shared ARC
+  // at build time (scripts/presets/lib/simplifyTopology.mjs). It exists so the
+  // low-zoom lane can draw at tolerance 0 — the only setting that cannot split
+  // a shared border into the white wedges the player saw. Absent is safe: the
+  // far lane falls back to the exact geometry and looks exactly like today.
+  regionsFarGeojson: "regions-far.geojson",
   // A custom map background uploaded in the editor (an image placed by extent, or
   // a vector overlay). Small descriptor lives in world.background; this holds the
   // heavy payload ({ dataUrl } for images, { geojson } for vector) so world.json
@@ -2298,8 +2304,11 @@ const readRuntimeJsonAsset = (assetKey) => {
       // Day's border is drawing the 2026 map over its world, which is the exact
       // fault this asset exists to end. Nothing means "keep drawing level 0",
       // which is what that board did yesterday.
+      // A board with no map of its own borrows Modern Day's — and it must borrow
+      // the FAR copy from the same place, or the far lane would draw this
+      // board's absent geometry while the near lane draws default's.
       const borrowsDefaultMap = assetKey === "regionsGeojson"
-        || (assetKey === "bordersGeojson"
+        || ((assetKey === "bordersGeojson" || assetKey === "regionsFarGeojson")
           && !fs.existsSync(getScenarioUploadPath(scenario.id, "regionsGeojson")));
       if (borrowsDefaultMap && scenario.id !== DEFAULT_SCENARIO_ID) {
         // Borrowing the Modern Day map. Migrate it as DEFAULT'S record, not this

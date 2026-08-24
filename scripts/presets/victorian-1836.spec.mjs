@@ -351,7 +351,11 @@ export default {
     QAJ: { name: "Qajar Persia", color: "#b07a3e", aliases: ["카자르 페르시아", "페르시아", "Persia", "Iran"] },
     AFG: { name: "Emirate of Kabul", color: "#6b7a5a", aliases: ["카불 토후국", "아프가니스탄", "Afghanistan", "Dost Mohammad's emirate"] },
     SIK: { name: "Sikh Empire", color: "#d8b83e", aliases: ["시크 제국", "라호르 왕국", "Punjab", "Ranjit Singh's empire"] },
-    QIN: { name: "Qing Empire", color: "#b23b3b", aliases: ["청", "청나라", "China", "Qing China"] },
+    // 중원 일통 왕조는 大를 붙여 부른다 — 사용자 결정(2026-08-21), 우리 규칙으로
+    // 세운 것이지 고증 전용 규칙은 아니다(大金·大遼·大宋·대한제국도 실재한다).
+    // 청은 1636년에 국호가 아예 大清이었고 공문서도 大清國/大清帝國을 썼다.
+    // 옛 표시명은 뒤로 밀어 검색 키로 남긴다.
+    QIN: { name: "Qing Empire", color: "#b23b3b", aliases: ["대청국", "청나라", "청", "China", "Qing China"] },
     JOS: { name: "Joseon", color: "#5b7fae", aliases: ["조선", "Korea", "South Korea", "North Korea"] },
     JAP: { name: "Tokugawa Japan", color: "#a85454", aliases: ["에도 막부", "일본", "Japan", "Tokugawa shogunate"] },
     SIA: { name: "Siam", color: "#4a7ab0", aliases: ["시암", "라따나꼬신", "Thailand", "Rattanakosin"] },

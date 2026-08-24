@@ -273,7 +273,9 @@ export default {
     MLI: { name: "Mali Empire", color: "#c8b83e", aliases: ["말리 제국", "말리", "Mali"] },
     KON: { name: "Kingdom of Kongo", color: "#b4bc49", aliases: ["콩고 왕국", "콩고", "Kongo"] },
     // ── Asia ──
-    MNG: { name: "Ming Empire", color: "#ca9887", aliases: ["명", "명나라", "Ming", "China", "Great Ming"] },
+    // 일통 왕조 大 규칙 (2026-08-21). 한국어 위키백과 첫 줄이 "대명국(大明國) 또는
+    // 대명(大明), 약칭 명(明)"이다. 북원은 중원을 잃은 뒤라 이 규칙 밖(아래 그대로).
+    MNG: { name: "Ming Empire", color: "#ca9887", aliases: ["대명국", "명나라", "명", "Ming", "China", "Great Ming"] },
     JOS: { name: "Joseon", color: "#571aff", aliases: ["조선", "Korea", "세종의 조선", "South Korea", "North Korea"] },
     JAP: { name: "Ashikaga Japan", color: "#9293b9", aliases: ["무로마치 일본", "일본", "Japan", "Muromachi shogunate"] },
     DEL: { name: "Delhi Sultanate", color: "#969b4e", aliases: ["델리 술탄국", "델리", "Delhi", "Sayyid sultanate"] },

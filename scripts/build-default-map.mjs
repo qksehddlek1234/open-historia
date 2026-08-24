@@ -11,6 +11,10 @@
 //   node scripts/build-default-map.mjs
 
 import { readFileSync, writeFileSync, existsSync, copyFileSync } from "fs";
+import { simplifyTopology } from "./presets/lib/simplifyTopology.mjs";
+
+// Same resolution the preset builder uses — see build-preset.mjs for why 0.01.
+const SIMPLIFY_EPS = 0.01;
 import path from "path";
 import { fileURLToPath } from "url";
 import COUNTRY_NAMES from "../src/runtime/generated/countryNames.js";
@@ -108,6 +112,27 @@ writeFileSync(
   JSON.stringify({ type: "FeatureCollection", features }),
   "utf8",
 );
+
+// The far lane's copy, simplified per shared ARC so the low-zoom lane can draw
+// at tolerance 0 without splitting borders into white wedges (the measurements
+// are in scripts/presets/lib/simplifyTopology.mjs). This board matters twice:
+// it is the Modern Day map AND the map every board without one borrows, so
+// nine other scenarios get their far geometry from this file.
+{
+  const t0 = Date.now();
+  const simplified = simplifyTopology(features, { eps: SIMPLIFY_EPS });
+  const st = simplified.stats;
+  writeFileSync(
+    path.join(SCENARIO_DIR, "regions-far.geojson"),
+    JSON.stringify({ type: "FeatureCollection", features: simplified.features }),
+    "utf8",
+  );
+  console.log(
+    `[simplify] regions-far.geojson eps ${st.eps}° · 정점 ${st.pointsIn.toLocaleString()} → ` +
+    `${st.pointsOut.toLocaleString()} (${((100 * st.pointsOut) / Math.max(1, st.pointsIn)).toFixed(1)}%) · ` +
+    `공유 아크 ${st.arcsShared}(재사용 ${st.cacheHits}) · 바닥 유지 링 ${st.ringsFloored} · ${Date.now() - t0}ms`,
+  );
+}
 writeFileSync(path.join(SCENARIO_DIR, "colors.json"), `${JSON.stringify(colors, null, 2)}\n`, "utf8");
 
 // Merge customRegions into the existing world.json (keep any other fields).

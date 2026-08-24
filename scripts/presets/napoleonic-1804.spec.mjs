@@ -117,7 +117,8 @@ export default {
     SIK: { name: "Sikh Empire", color: "#d8b83e", aliases: ["시크 제국", "라호르 왕국", "Punjab", "Ranjit Singh's empire"] },
     MRA: { name: "Maratha Confederacy", color: "#c87a3e", aliases: ["마라타 동맹", "마라타", "Marathas"] },
     NEJ: { name: "Emirate of Diriyah", color: "#9a8a4a", aliases: ["디리야 토후국", "제1차 사우디 국가", "Nejd", "Wahhabi state"] },
-    QIN: { name: "Qing Empire", color: "#b23b3b", aliases: ["청", "청나라", "China", "Qing China"] },
+    // 일통 왕조 大 규칙 (2026-08-21) — victorian-1836에 사연이 있다.
+    QIN: { name: "Qing Empire", color: "#b23b3b", aliases: ["대청국", "청나라", "청", "China", "Qing China"] },
     JOS: { name: "Joseon", color: "#5b7fae", aliases: ["조선", "Korea", "South Korea", "North Korea"] },
     JAP: { name: "Tokugawa Japan", color: "#a85454", aliases: ["에도 막부", "일본", "Japan", "Tokugawa shogunate"] },
     SIA: { name: "Siam", color: "#4a7ab0", aliases: ["시암", "라따나꼬신", "Thailand", "Rattanakosin"] },

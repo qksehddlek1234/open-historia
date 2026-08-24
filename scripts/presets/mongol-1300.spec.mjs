@@ -120,7 +120,10 @@ export default {
 
   polities: {
     // — The Mongol khanates —
-    YUAN:  { name: "Yuan Dynasty", color: "#c9a227", aliases: ["원나라", "Great Khanate", "Yuan China", "Khanbaliq", "the Great Khan"] },
+    // 일통 왕조 大 규칙 (2026-08-21). 원은 정식 국호가 大元이고 몽골어 병기가
+    // 대원대몽골국(Dai-ön Yeke Mongγol Ulus) — 1271년 건국호조가 역경의 "大哉乾元"에서
+    // 취했다고 밝힌다. 그래서 여기만 병기형을 표시명으로 쓴다.
+    YUAN:  { name: "Yuan Dynasty", color: "#c9a227", aliases: ["대원대몽골국", "대원", "원나라", "Great Khanate", "Yuan China", "Khanbaliq", "the Great Khan"] },
     GHOR:  { name: "Golden Horde", color: "#b06a2e", aliases: ["킵차크 칸국", "Ulus of Jochi", "Kipchak Khanate", "the Horde"] },
     CHAG:  { name: "Chagatai Khanate", color: "#8a5aa0", aliases: ["차가타이 칸국", "Chagatai ulus", "Transoxiana"] },
     ILKH:  { name: "Ilkhanate", color: "#34869a", aliases: ["일 칸국", "Ilkhans", "Hulaguids", "Mongol Persia"] },
