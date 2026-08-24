@@ -174,7 +174,14 @@ const jsonLoadedUrls = new Set();
 // again — resurrecting the exact leak, on the scenario-switch path.
 const isNoStoreJsonUrl = (url) =>
   url === JSON_URLS.regionsGeojson || url === JSON_URLS.citiesGeojson
-  || url === JSON_URLS.bordersGeojson;
+  || url === JSON_URLS.bordersGeojson
+  // The far lane's 26MB copy belongs with its siblings above: `force: true`
+  // only skips the READ, the post-await set() still runs, so without this line
+  // a second reader would strand a parsed copy in jsonValueCache that nobody
+  // ever reads back (the ~190MB-on-a-55MB-file leak the comment above
+  // describes). Nations.jsx already passes cache:false; this is the belt for
+  // the next caller who does not know the trap.
+  || url === JSON_URLS.regionsFarGeojson;
 
 const pmtilesProtocol = new Protocol();
 let pmtilesProtocolReady = false;

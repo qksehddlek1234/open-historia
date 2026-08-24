@@ -294,8 +294,31 @@ const STOCK_GEOMETRY_FILTER = ["all", GADM_GEOMETRY_FILTER, ["!=", ["get", "edit
 // world view, the seed geometry takes over through the middle, and the stock vector
 // tiles take the close range. Seed geometry was extracted at tile-zoom 5, so it hands
 // off to the tiles just past that.
-const FAR_FILL_FADE = ["interpolate", ["linear"], ["zoom"], 5.5, 0.72, 6.5, 0];
-const TILE_FILL_FADE = ["interpolate", ["linear"], ["zoom"], 5.5, 0, 6.5, 0.72];
+//
+// THE BAND MOVES WITH THE FAR LANE'S DATA. [5.5, 6.5] is what shipped while the
+// far layers drew from the PRECISE 65MB seed: they had to get out of the way
+// early, because holding full-detail GeoJSON past 6.5 is what cost 32s and 778MB
+// (measured 2026-08-20). With regions-far.geojson (build-time topology-preserving
+// arc simplification, eps 0.01°) the far lane is CHEAPER than the tiles at every
+// zoom — 3x3 tile vertices at z7: 53,493 far vs 88,850 precise — so it can hold
+// the middle instead of fleeing it, and that is where it is needed: regions.pmtiles
+// drops 2.672% of its regions at z6 and 1.370% at z7 (the Korean west-coast crack
+// at z6.74). Handing off at [6.5, 7.5] puts the far lane at FULL weight exactly
+// where the tiles are worst, and retires it where they are fine (z8 misses <1%).
+//
+// z7.5 IS THE CEILING, not a round number: eps 0.01° is 1.1km, which is ~0.9px at
+// z6, ~1.3px at z7 and ~2px at z7.5 — sub-pixel to barely-visible. At z9 it is
+// 5.5px and the arcs read as facets. The tiles must have it by then.
+//
+// THE TWO CURVES ARE ONE CURVE. They are complements — 0.72 total at every zoom —
+// and moving one endpoint without the other is not a smaller change, it is a bug:
+// far 0.36 + tile 0.72 at z6.5 composites to 0.82 alpha against a 0.72 field, the
+// same double-coat that produced the A-3 "gradual bleach" report. Move them as a
+// pair or not at all.
+const FAR_HANDOFF_LEGACY = [5.5, 6.5];
+const FAR_HANDOFF_ARCS = [6.5, 7.5];
+const farFillFade = ([start, end]) => ["interpolate", ["linear"], ["zoom"], start, 0.72, end, 0];
+const tileFillFade = ([start, end]) => ["interpolate", ["linear"], ["zoom"], start, 0, end, 0.72];
 
 // ---- Owner labels for custom maps -----------------------------------------
 // The stock label pipeline labels modern countries from countries.pmtiles, which
@@ -965,6 +988,19 @@ const WorldMap = ({ isGlobe = false }) => {
   const [curvedLabelData, setCurvedLabelData] = useState(EMPTY_FEATURE_COLLECTION);
   const [leaderLineData, setLeaderLineData] = useState(EMPTY_FEATURE_COLLECTION);
   const [customRegionData, setCustomRegionData] = useState(EMPTY_FEATURE_COLLECTION);
+  // The far lane's OWN geometry (regions-far.geojson): the same seed run through
+  // build-time topology-preserving arc simplification, so shared borders are
+  // simplified ONCE and neighbours cannot drift apart. That is what finally kills
+  // the white wedges — geojson-vt's per-feature simplification at tolerance 0.6 was
+  // the cause (measured 2026-08-20: 0.6 -> 0.51% unpainted cells, 0.375 -> 0.28%,
+  // 0 -> 0%), and it only works PAIRED with tolerance 0 on the source below
+  // (arcs + 0.6 still left 345 missing cells).
+  //
+  // `null`, not EMPTY_FEATURE_COLLECTION, is the initial value on purpose: it means
+  // "the fetch has not settled", which is different from "this board ships none".
+  // The far layers wait for that answer instead of mounting into one source and
+  // then hopping to the other a beat later.
+  const [customRegionFarData, setCustomRegionFarData] = useState(null);
   const [ownerBorderData, setOwnerBorderData] = useState(EMPTY_FEATURE_COLLECTION);
   const countriesUrl = PMTILES_PROTOCOL_URLS.countries;
   const regionsUrl = PMTILES_PROTOCOL_URLS.regions;
@@ -1025,6 +1061,7 @@ const WorldMap = ({ isGlobe = false }) => {
   // Re-read on each render so a runtime token change (switching games/scenarios)
   // refetches the geometry, mirroring the live-URL world poll below.
   const regionsGeojsonUrl = JSON_URLS.regionsGeojson;
+  const regionsFarGeojsonUrl = JSON_URLS.regionsFarGeojson;
   const bordersGeojsonUrl = JSON_URLS.bordersGeojson;
   // Countries owning at least one region here — used to hide labels for nations
   // that don't exist in this scenario (e.g. modern states over medieval land).
@@ -1282,9 +1319,11 @@ const WorldMap = ({ isGlobe = false }) => {
     // world) may skip the stock tiles: there a click on its empty sea must
     // resolve to nothing, not the leftover Earth country underneath. A HYBRID
     // map — GADM seed geometry plus a few drawn shapes — must keep querying
-    // regions-fill: above z~6.5 the seed far-layer has faded out and the stock
-    // tiles are the only clickable geometry for every GADM region, so skipping
-    // them made region clicks silently dead when zoomed in.
+    // regions-fill: above the handoff band (z~7.5 with regions-far.geojson,
+    // z~6.5 without) the seed far-layer has faded out and the stock tiles are the
+    // only clickable geometry for every GADM region, so skipping them made region
+    // clicks silently dead when zoomed in. The far layer is .filter()ed out of this
+    // list while it is unmounted, so the loading window resolves to the tiles.
     const queryLayers = (hasDrawnGeometry && !hasStockGeometry
       ? ["custom-regions-fill", "custom-regions-fill-far"]
       : ["custom-regions-fill", "custom-regions-fill-far", "regions-fill"]
@@ -1436,6 +1475,50 @@ const WorldMap = ({ isGlobe = false }) => {
     };
   }, [customFlag, regionsGeojsonUrl]);
 
+  // Same fetch, the simplified twin. EVERY FAILURE PATH ENDS AT AN EMPTY
+  // COLLECTION, never at `null`: a board that ships no far file, a 404, a bad
+  // runtime token, a parse error — all of them must SETTLE, because the far
+  // layers fall back to the precise source only once they know the answer, and a
+  // fetch that never settles would leave the world view unpainted forever. That
+  // is also why this does not throw on a missing JSON_URLS entry: an older
+  // runtime without regionsFarGeojson resolves to undefined, readJson returns the
+  // default, and the fallback below draws exactly what shipped before.
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!customFlag) {
+      setCustomRegionFarData(EMPTY_FEATURE_COLLECTION);
+      return undefined;
+    }
+    if (!regionsFarGeojsonUrl) {
+      setCustomRegionFarData(EMPTY_FEATURE_COLLECTION);
+      return undefined;
+    }
+
+    // cache: false, not just force: true. `force` only skips the READ of the value
+    // cache — the write still happens unless the URL is in assets.js's
+    // isNoStoreJsonUrl set, and regionsFarGeojson is NOT in that set (checked
+    // 2026-08-24). Without this the 26MB far file would be parsed twice over and
+    // one copy pinned in jsonValueCache for nobody, which is the exact leak the
+    // comment above isNoStoreJsonUrl describes for regions.geojson. Setting it
+    // here also makes the opt-out travel with the reader that knows it holds the
+    // only long-lived copy, instead of depending on a list in another file.
+    readJson(regionsFarGeojsonUrl, { defaultValue: EMPTY_FEATURE_COLLECTION, force: true, cache: false })
+      .then((data) => {
+        if (cancelled) return;
+        setCustomRegionFarData(data && Array.isArray(data.features) ? data : EMPTY_FEATURE_COLLECTION);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.warn("Far region geometry unavailable, falling back to the precise seed:", error);
+        setCustomRegionFarData(EMPTY_FEATURE_COLLECTION);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customFlag, regionsFarGeojsonUrl]);
+
   // The board's own national border, built beside its geometry (scripts/presets/
   // lib/ownerBorders.mjs). Static per scenario like the regions themselves, and
   // ~1.4MB against their 67MB. A board that ships none leaves this empty and the
@@ -1541,8 +1624,13 @@ const WorldMap = ({ isGlobe = false }) => {
   // — a constant GL expression that never needs recompilation. Ownership-override
   // colours, owner-based colours, and the neutral fallback are all computed in
   // fast JS and baked into the GeoJSON data itself.
-  const enrichedCustomRegionData = useMemo(() => {
-    if (!regionData?.features) return regionData;
+  // TAKES ITS SOURCE AS AN ARGUMENT, because there are now two collections that
+  // need the identical treatment: the precise seed and its arc-simplified twin.
+  // The colours MUST be computed the same way for both or a region would change
+  // shade as the crossfade hands it over — same overrides, same unowned set, same
+  // stripe ids, same fallbacks, one function.
+  const enrichRegions = useCallback((source) => {
+    if (!source?.features) return source;
 
     const overrideColor = {};
     for (const [regionId, ownerCode] of Object.entries(regionOwnershipOverrides)) {
@@ -1555,8 +1643,8 @@ const WorldMap = ({ isGlobe = false }) => {
     const rgbForOwner = (owner) => resolveOwnerRgb(owner) ?? fallbackRgbFromOwner(owner);
 
     return {
-      ...regionData,
-      features: regionData.features.map((f) => {
+      ...source,
+      features: source.features.map((f) => {
         const props = f.properties || {};
         const id = props.id;
         // Sea regions (public/data/sea-regions.json, always merged in; dot-less
@@ -1624,7 +1712,23 @@ const WorldMap = ({ isGlobe = false }) => {
         };
       }),
     };
-  }, [regionData, colorMap, regionOwnershipOverrides, unownedRegionIds, regionClaimants, ownerColorCss, resolveOwnerRgb]);
+  }, [colorMap, regionOwnershipOverrides, unownedRegionIds, regionClaimants, ownerColorCss, resolveOwnerRgb]);
+
+  const enrichedCustomRegionData = useMemo(() => enrichRegions(regionData), [enrichRegions, regionData]);
+  // The far twin. No sea merge: the far layers all filter on STOCK_GEOMETRY_FILTER,
+  // and sea ids ("sea_...") carry no dot, so they never reach these layers anyway —
+  // the seas draw from the precise source at every zoom, as they always have.
+  const enrichedFarRegionData = useMemo(() => enrichRegions(customRegionFarData), [enrichRegions, customRegionFarData]);
+  // Two states, not one boolean. `settled` is "the fetch answered"; `ready` is "and
+  // the answer had geometry in it". The far layers mount in the NEW source when
+  // ready, fall back into the precise source when settled-but-empty, and mount
+  // NOWHERE while the answer is still in flight — which is the same thing they draw
+  // today at that moment, since the precise source has not loaded either.
+  const farGeometrySettled = customRegionFarData !== null;
+  const farGeometryReady = Array.isArray(customRegionFarData?.features) && customRegionFarData.features.length > 0;
+  const farHandoff = farGeometryReady ? FAR_HANDOFF_ARCS : FAR_HANDOFF_LEGACY;
+  const farFillFadeExpr = useMemo(() => farFillFade(farHandoff), [farHandoff]);
+  const tileFillFadeExpr = useMemo(() => tileFillFade(farHandoff), [farHandoff]);
 
   // GADM disputed regions also paint the stock tiles (the crisp z>6.5 layer):
   // GID_1 -> stripe-tile id stops for the tile twin of the disputed layer.
@@ -1779,11 +1883,11 @@ const WorldMap = ({ isGlobe = false }) => {
       // ramp's output stops, where it never sees the zoom.
       "fill-opacity": editedStockIds.length
         ? ["interpolate", ["linear"], ["zoom"],
-          5.5, 0,
-          6.5, ["case", ["in", ["get", "GID_1"], ["literal", editedStockIds]], 0, 0.72]]
-        : TILE_FILL_FADE,
+          farHandoff[0], 0,
+          farHandoff[1], ["case", ["in", ["get", "GID_1"], ["literal", editedStockIds]], 0, 0.72]]
+        : tileFillFadeExpr,
     };
-  }, [customActive, ownerByRegionId, colorMap, ownerColorCss, editedStockIds]);
+  }, [customActive, ownerByRegionId, colorMap, ownerColorCss, editedStockIds, farHandoff, tileFillFadeExpr]);
 
   // Stock country fills/borders render ONLY once the world is known to be a
   // stock world. Gating on the customRegions FLAG (not customActive, which
@@ -2062,6 +2166,66 @@ const WorldMap = ({ isGlobe = false }) => {
     "text-opacity": buildCountryTextOpacity(MINOR_LABEL_SCALE, isGlobe ? GLOBE_LAT_CORRECTION : null, 0.75),
   }), [labelLayerPaint, isGlobe]);
 
+  // THE THREE FAR LAYERS, BUILT ONCE AND MOUNTED IN WHICHEVER SOURCE CAN FEED THEM.
+  //
+  // An ARRAY, not a fragment: react-map-gl's <Source> injects `source={id}` into its
+  // children with React.Children.map, and React.Children.map treats a Fragment as ONE
+  // child and does not traverse into it — the Layers inside would come out with no
+  // source and silently never mount. An array IS flattened, so each Layer is reached.
+  const farRegionLayers = [
+    /* Zoomed-out fill for GADM regions from the seed geometry — the stock
+       tiles are too simplified at low zoom and show sliver gaps there. */
+    <Layer
+      key="custom-regions-fill-far"
+      id="custom-regions-fill-far"
+      type="fill"
+      maxzoom={farHandoff[1] + 0.5}
+      filter={STOCK_GEOMETRY_FILTER}
+      paint={{ "fill-color": CUSTOM_FILL_COLOR, "fill-opacity": customActive ? farFillFadeExpr : 0 }}
+    />,
+    /* Far hairlines from the SAME seed geometry as the far fills, so
+       zoomed-out region borders sit exactly on the colored areas. They
+       hand off to the stock-tile hairlines with the fill crossfade. */
+    <Layer
+      key="custom-regions-hairline-far"
+      id="custom-regions-hairline-far"
+      type="line"
+      maxzoom={farHandoff[1] + 0.5}
+      filter={STOCK_GEOMETRY_FILTER}
+      paint={{
+        "line-color": "#000",
+        "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.3 * borderScale, 6.5, 0.6 * borderScale],
+        // OFF. This layer drew a hairline on every province edge from z3 to
+        // z6.5 — the whole planet's internal subdivisions, at the zoom where the
+        // player is reading which country is which. Pushing the TILE hairlines
+        // back to z7.5 without touching this one produced the exact inversion
+        // reported: borders visible zoomed out, gone zoomed in, because these
+        // were the ones being seen.
+        //
+        // Nothing is lost by silencing them. Every region is filled with its
+        // OWNER's colour, so two provinces of one country share a fill and the
+        // hairline between them is the only thing that ever made a country look
+        // subdivided — while two different countries meet at a colour change,
+        // which reads as a border without any line at all. Silencing this is
+        // what makes a country render as one mass at world zoom, which is how
+        // the original looks.
+        "line-opacity": 0,
+      }}
+    />,
+    /* Striped fill over disputed regions: far twin for GADM seed geometry,
+       all-zoom twin for author-drawn shapes. The stripes REPLACE the solid
+       look (they sit above it at the same opacity, administrator's color
+       first), so a contested border reads at a glance. */
+    <Layer
+      key="custom-regions-disputed-far"
+      id="custom-regions-disputed-far"
+      type="fill"
+      maxzoom={farHandoff[1] + 0.5}
+      filter={["all", STOCK_GEOMETRY_FILTER, ["has", "_stripes"]]}
+      paint={{ "fill-pattern": ["get", "_stripes"], "fill-opacity": customActive ? farFillFadeExpr : 0 }}
+    />,
+  ];
+
   return (
     <>
       {/* maxzoom 8, not the archive's 10, because 8 is what the editor can
@@ -2088,9 +2252,11 @@ const WorldMap = ({ isGlobe = false }) => {
           this source is not decoration on a custom map, it IS the map. On a
           re-ownership scenario (Modern Day, Rome, WWII: stock GADM geometry,
           nothing hand-drawn) regions-fill is the ONLY thing painting owners
-          above z6.5, because custom-regions-fill-far stops at maxzoom 7 and
-          FAR_FILL_FADE has already faded it to 0 by 6.5 — the crossfade hands
-          off to these tiles by design. Unmounting it here left every such map
+          above the handoff band, because custom-regions-fill-far stops at
+          maxzoom farHandoff[1] + 0.5 and the far fade has already reached 0 by
+          farHandoff[1] — the crossfade hands off to these tiles by design. That
+          band is [6.5, 7.5] once regions-far.geojson is loaded and [5.5, 6.5]
+          when it is not; see FAR_HANDOFF_ARCS. Unmounting it here left every such map
           blank past 6.5 and, via the getLayer() filter at the click handler,
           unclickable too. The hairlines are needed on stock maps as well:
           regionsOutlinePaint is gated on worldKnown, not on customActive. */}
@@ -2115,7 +2281,7 @@ const WorldMap = ({ isGlobe = false }) => {
               : ["in", ["get", "GID_1"], ["literal", disputedTileStops.filter((_, i) => i % 2 === 0)]]}
             paint={{
               "fill-pattern": ["match", ["get", "GID_1"], ...disputedTileStops, disputedTileStops[1]],
-              "fill-opacity": customActive && worldKnown ? TILE_FILL_FADE : 0,
+              "fill-opacity": customActive && worldKnown ? tileFillFadeExpr : 0,
             }}
           />
         )}
@@ -2127,6 +2293,30 @@ const WorldMap = ({ isGlobe = false }) => {
           paint={regionsOutlinePaint}
         />
       </Source>
+
+      {/* THE FAR LANE'S OWN SOURCE — the whole point of which is tolerance={0}.
+          geojson-vt simplifies every feature INDEPENDENTLY, so at any tolerance > 0
+          two regions that share a border keep different subsets of the shared
+          vertices and the border splits into a pair of lines with a white wedge
+          between them (measured 2026-08-20 at Utah z5.2 on a 20px grid: tolerance
+          0.6 left 0.51% of cells unpainted, 0.375 left 0.28%, 0 left none).
+          Tolerance 0 on the PRECISE seed was unaffordable — world z3 went from
+          192,810 to 2,723,594 vertices and the heap from 768MB to 1,554MB. The
+          answer was to move the simplification BEFORE the tiler, where it can be
+          topology-aware: regions-far.geojson is simplified along shared ARCS, so a
+          border is simplified once and both sides get the same line. That only
+          works paired with tolerance 0 here — arcs at 0.6 still left 345 missing
+          cells, because geojson-vt would simplify the shared arc apart again. */}
+      {farGeometryReady && (
+        <Source
+          id="custom-regions-far-source"
+          type="geojson"
+          data={enrichedFarRegionData || EMPTY_FEATURE_COLLECTION}
+          tolerance={0}
+        >
+          {farRegionLayers}
+        </Source>
+      )}
 
       {/* Author-DRAWN geometry only (splits/new regions) — GADM regions paint the
           stock tiles above for crisp borders at every zoom. Empty (and inert)
@@ -2140,54 +2330,13 @@ const WorldMap = ({ isGlobe = false }) => {
           old note here as if it described the code cost an audit pass — the value
           is deliberate, not a regression. */}
       <Source id="custom-regions-source" type="geojson" data={enrichedCustomRegionData} tolerance={0.6}>
-        {/* Zoomed-out fill for GADM regions from the seed geometry — the stock
-            tiles are too simplified at low zoom and show sliver gaps there. */}
-        <Layer
-          id="custom-regions-fill-far"
-          type="fill"
-          maxzoom={7}
-          filter={STOCK_GEOMETRY_FILTER}
-          paint={{ "fill-color": CUSTOM_FILL_COLOR, "fill-opacity": customActive ? FAR_FILL_FADE : 0 }}
-        />
-        {/* Far hairlines from the SAME seed geometry as the far fills, so
-            zoomed-out region borders sit exactly on the colored areas. They
-            hand off to the stock-tile hairlines with the fill crossfade. */}
-        <Layer
-          id="custom-regions-hairline-far"
-          type="line"
-          maxzoom={7}
-          filter={STOCK_GEOMETRY_FILTER}
-          paint={{
-            "line-color": "#000",
-            "line-width": ["interpolate", ["linear"], ["zoom"], 3, 0.3 * borderScale, 6.5, 0.6 * borderScale],
-            // OFF. This layer drew a hairline on every province edge from z3 to
-            // z6.5 — the whole planet's internal subdivisions, at the zoom where the
-            // player is reading which country is which. Pushing the TILE hairlines
-            // back to z7.5 without touching this one produced the exact inversion
-            // reported: borders visible zoomed out, gone zoomed in, because these
-            // were the ones being seen.
-            //
-            // Nothing is lost by silencing them. Every region is filled with its
-            // OWNER's colour, so two provinces of one country share a fill and the
-            // hairline between them is the only thing that ever made a country look
-            // subdivided — while two different countries meet at a colour change,
-            // which reads as a border without any line at all. Silencing this is
-            // what makes a country render as one mass at world zoom, which is how
-            // the original looks.
-            "line-opacity": 0,
-          }}
-        />
-        {/* Striped fill over disputed regions: far twin for GADM seed geometry,
-            all-zoom twin for author-drawn shapes. The stripes REPLACE the solid
-            look (they sit above it at the same opacity, administrator's color
-            first), so a contested border reads at a glance. */}
-        <Layer
-          id="custom-regions-disputed-far"
-          type="fill"
-          maxzoom={7}
-          filter={["all", STOCK_GEOMETRY_FILTER, ["has", "_stripes"]]}
-          paint={{ "fill-pattern": ["get", "_stripes"], "fill-opacity": customActive ? FAR_FILL_FADE : 0 }}
-        />
+        {/* FALLBACK ONLY — the far layers live in custom-regions-far-source above
+            whenever that file exists. They come back here if, and only if, the far
+            fetch has SETTLED with nothing: an old build with no regions-far.geojson,
+            a board outside the borrow rule, a 404. Then they draw from the precise
+            seed at the legacy [5.5, 6.5] band, exactly as they did before the far
+            lane existed — white wedges and all, but a wedge beats a blank map. */}
+        {farGeometrySettled && !farGeometryReady && farRegionLayers}
         <Layer
           id="custom-regions-fill"
           type="fill"

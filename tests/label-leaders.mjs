@@ -1212,4 +1212,91 @@ test("…and MapLibre accepts the two city expressions as composite", async () =
   }
 });
 
+console.log("\nThe far lane draws from its own file, at tolerance 0 — the white wedges");
+
+test("the far layers have their own source, and the whole point of it is tolerance 0", () => {
+  // geojson-vt simplifies every feature INDEPENDENTLY, so at any tolerance > 0
+  // two regions sharing a border keep different subsets of the shared vertices
+  // and the border splits into two lines with a white wedge between them.
+  // Measured on the live screen at Utah z5.2, 20px sample grid (2026-08-20):
+  // tolerance 0.6 left 0.51% of cells unpainted, 0.375 left 0.28% (still
+  // visible), 0 left none. Tolerance 0 on the PRECISE seed was unaffordable —
+  // world z3 went 192,810 -> 2,723,594 vertices, heap 768 -> 1,554 MB. So the
+  // simplification moved BEFORE the tiler, where it can be topology-aware
+  // (lib/simplifyTopology.mjs, eps 0.01): shared arcs are simplified once and
+  // both sides get the same line. That only works PAIRED with tolerance 0 here
+  // — arcs at 0.6 still left 345 missing cells.
+  assert.match(NATIONS, /<Source\s+id="custom-regions-far-source"[\s\S]{0,240}tolerance=\{0\}/,
+    "the far source exists and is tolerance 0");
+  assert.match(NATIONS, /id="custom-regions-source"[^\n]*tolerance=\{0\.6\}/,
+    "…while the precise source keeps 0.6 — tolerance 0 on THAT is the 1.5GB heap");
+  assert.match(NATIONS, /const regionsFarGeojsonUrl = JSON_URLS\.regionsFarGeojson;/,
+    "fed through the runtime JSON API, like every other per-scenario asset");
+  assert.match(NATIONS, /readJson\(regionsFarGeojsonUrl, \{ defaultValue: EMPTY_FEATURE_COLLECTION, force: true, cache: false \}\)/,
+    "cache: false — `force` only skips the READ; without this the 26MB file is parsed twice and one copy pinned for nobody");
+  for (const id of ["custom-regions-fill-far", "custom-regions-hairline-far", "custom-regions-disputed-far"]) {
+    assert.equal((NATIONS.match(new RegExp(`id="${id}"`, "g")) || []).length, 1,
+      `${id} is declared exactly once — two copies would double-coat the fill`);
+    assert.match(NATIONS, new RegExp(`key="${id}"`),
+      "…and carries a key, because the three are an ARRAY");
+  }
+  assert.match(NATIONS, /const farRegionLayers = \[/,
+    "AN ARRAY, NOT A FRAGMENT: <Source> injects source={id} with React.Children.map, which treats a Fragment as ONE child and never enters it — the Layers inside would mount with no source and silently never draw");
+  assert.match(NATIONS, /const enrichRegions = useCallback\(\(source\) => \{/,
+    "one enrichment function…");
+  assert.match(NATIONS, /enrichedFarRegionData = useMemo\(\(\) => enrichRegions\(customRegionFarData\)/,
+    "…run over the far collection too, or a region would change shade mid-crossfade");
+});
+
+test("a board with no far file falls back to the precise seed instead of going blank", () => {
+  assert.match(NATIONS, /useState\(null\);/,
+    "null is 'the fetch has not answered' — distinct from 'this board ships none'");
+  assert.ok((NATIONS.match(/setCustomRegionFarData\(/g) || []).length >= 4,
+    "every failure path settles: not custom, no URL, resolved, rejected");
+  assert.match(NATIONS, /\{farGeometrySettled && !farGeometryReady && farRegionLayers\}/,
+    "the far layers come back into the precise source only once the answer is known to be empty");
+  assert.match(NATIONS, /\{farGeometryReady && \(\s*<Source/,
+    "…and the far source is not mounted at all until there is geometry for it");
+  assert.doesNotMatch(NATIONS, /\bFAR_FILL_FADE\b/, "the frozen constants are gone…");
+  assert.doesNotMatch(NATIONS, /\bTILE_FILL_FADE\b/, "…both of them");
+});
+
+test("the crossfade is one curve in two halves — and it now covers the zooms the tiles drop", async () => {
+  // regions.pmtiles drops 2.672% of its regions at z6 and 1.370% at z7 — the
+  // Korean west-coast crack at z6.74, where the far lane had already faded out
+  // at 6.5 and the tiles had a hole. The far file is CHEAPER than the precise
+  // one at every zoom (3x3 tile vertices at z7: 53,493 vs 88,850), so the band
+  // moves to [6.5, 7.5]: full far weight where the tiles are worst, retired by
+  // 7.5 where eps 0.01 would start to read as facets (2px) and the tiles miss
+  // under 1%.
+  assert.match(NATIONS, /const FAR_HANDOFF_LEGACY = \[5\.5, 6\.5\];/, "the pre-far band is kept for the fallback");
+  assert.match(NATIONS, /const FAR_HANDOFF_ARCS = \[6\.5, 7\.5\];/, "and the arc-file band is the one that ships");
+  assert.match(NATIONS, /maxzoom=\{farHandoff\[1\] \+ 0\.5\}/,
+    "maxzoom follows the band end — a layer that stops at 7 cannot draw a fade that ends at 7.5");
+  let spec;
+  try { spec = await import("@maplibre/maplibre-gl-style-spec"); } catch { console.log("  (style-spec not installed here — structural pins above still stand)"); return; }
+  const { createPropertyExpression, latest } = spec;
+  const far = ([a, b]) => ["interpolate", ["linear"], ["zoom"], a, 0.72, b, 0];
+  const tile = ([a, b]) => ["interpolate", ["linear"], ["zoom"], a, 0, b, 0.72];
+  const ev = (expr, zoom) => {
+    const compiled = createPropertyExpression(expr, latest.paint_fill["fill-opacity"]);
+    assert.equal(compiled.result, "success", JSON.stringify(compiled.value));
+    return compiled.value.evaluate({ zoom });
+  };
+  // THE TWO HALVES MUST SUM TO 0.72 AT EVERY ZOOM. Moving one endpoint without
+  // the other is not a smaller change, it is a bug: far 0.36 over tile 0.72
+  // composites to 0.82 alpha against a 0.72 field — the same double coat that
+  // produced the A-3 "gradual bleach" report (Vienna z6.8: 0.72 vs ~0.92).
+  for (const band of [[5.5, 6.5], [6.5, 7.5]]) {
+    for (let z = 3; z <= 10; z += 0.25) {
+      assert.ok(Math.abs(ev(far(band), z) + ev(tile(band), z) - 0.72) < 1e-9,
+        `band ${band} leaks at z${z}`);
+    }
+  }
+  assert.equal(ev(far([5.5, 6.5]), 6.74).toFixed(3), "0.000", "the old band was already gone at the reported crack");
+  assert.ok(ev(far([6.5, 7.5]), 6.74) > 0.5, "the new one is still carrying it");
+  assert.equal(ev(far([6.5, 7.5]), 6.0).toFixed(3), "0.720", "full weight at z6, where the tiles drop the most");
+  assert.equal(ev(far([6.5, 7.5]), 7.5).toFixed(3), "0.000", "and gone by 7.5 — eps 0.01 is 2px there");
+});
+
 console.log(`\n${pass} passed\n`);
