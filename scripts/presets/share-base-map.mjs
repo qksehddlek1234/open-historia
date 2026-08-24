@@ -147,6 +147,12 @@ for (const scenarioId of fs.readdirSync(SCENARIOS).sort()) {
       gamesBackfilled += 1;
     }
     fs.rmSync(regionsPath);
+    // The far lane's simplified copy goes with it (added 2026-08-20). A board
+    // that borrows the base map must not keep a private second copy of the
+    // geometry — it would be 27MB of a map the store never serves, and the far
+    // lane would draw THIS board's shapes under the base board's ownership.
+    const farPath = path.join(SCENARIOS, scenarioId, "regions-far.geojson");
+    if (fs.existsSync(farPath)) fs.rmSync(farPath);
   } else {
     for (const gameId of games) {
       const gameWorld = readJson(path.join(GAMES, gameId, "world.json"));

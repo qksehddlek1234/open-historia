@@ -29,6 +29,7 @@ import {
   graftEraGeometry, buildFaceNameIndex, matchFace, toMultiPolygon, bboxOf, decimateFaceMp,
 } from "./lib/eraGeometry.mjs";
 import { buildOwnerBorders } from "./lib/ownerBorders.mjs";
+import { simplifyTopology } from "./lib/simplifyTopology.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
@@ -37,6 +38,13 @@ const DEFAULT_SCENARIO_DIR = path.join(SCENARIOS_DIR, "default");
 const MANIFEST_PATH = path.join(PROJECT_ROOT, "server", "data", "scenario-manifest.json");
 const BASE_COLORS_PATH = path.join(PROJECT_ROOT, "public", "assets", "colors.json");
 const REGIONS_SEED_PATH = path.join(PROJECT_ROOT, "public", "assets", "regions-seed.geojson");
+
+// Build-time geometry resolution for the shipped boards. 0.01° (~1.1km) was
+// chosen by measurement, not feel: at z6.5 — where the far lane fades out and
+// this data stops being drawn — one pixel is 0.0078°, so 0.01 is about 1.3px
+// of error at the closest zoom that ever sees it. Coarser (0.02) halves the
+// world-view vertex count again but reads as visibly faceted at z5.
+const SIMPLIFY_EPS = 0.01;
 
 const hexToRgb = (hex) => {
   const h = String(hex).replace("#", "").trim();
@@ -708,6 +716,46 @@ writeFileSync(
   JSON.stringify({ type: "FeatureCollection", features: regionFeaturesFinal }),
   "utf8",
 );
+
+// ── regions-far.geojson — the far lane's own, topology-simplified copy ────────
+// A SECOND FILE, NOT A SIMPLER FIRST ONE, and the reason is measured. The white
+// wedges come from the runtime simplifying each feature on its own
+// (lib/simplifyTopology.mjs carries the numbers), and the cure is to simplify
+// per shared ARC at build time and let the runtime draw at tolerance 0. But the
+// same source feeds two lanes with opposite needs:
+//
+//   far lane      custom-regions-fill-far, maxzoom 7, faded out by z6.5
+//                 → 1.1km of error is a pixel there. Wants the simplified copy.
+//   authored lane custom-regions-fill, EVERY zoom, carries the 1,462 tiled:false
+//                 regions (India 634, China 346, Italy 110…)
+//                 → the player zooms to z12 on these. 1.1km would read as facets.
+//
+// Simplifying in place served the first and wrecked the second, and it also
+// broke borders.geojson: ownerBorders identifies real coast by matching
+// segments against the SEED's own segment keys, and simplification deletes the
+// vertices those keys are made of (measured: clip-seam drops 2,631 → 157,393,
+// coast output 2,763 runs → 597). So regions.geojson stays exact — borders and
+// the authored lane both read it — and the far lane gets this copy instead.
+//
+// Wiring the far lane to it is a Nations.jsx change, which is Cowork's lock.
+// Until that lands this file is written and unused, which costs a rebuild
+// second and nothing else.
+{
+  const t0 = Date.now();
+  const simplified = simplifyTopology(regionFeaturesFinal, { eps: SIMPLIFY_EPS });
+  const st = simplified.stats;
+  writeFileSync(
+    path.join(scenarioDir, "regions-far.geojson"),
+    JSON.stringify({ type: "FeatureCollection", features: simplified.features }),
+    "utf8",
+  );
+  console.log(
+    `[simplify] regions-far.geojson eps ${st.eps}° · 정점 ${st.pointsIn.toLocaleString()} → ` +
+    `${st.pointsOut.toLocaleString()} (${((100 * st.pointsOut) / Math.max(1, st.pointsIn)).toFixed(1)}%) · ` +
+    `공유 아크 ${st.arcsShared}(재사용 ${st.cacheHits}) · 단독 ${st.arcsLone} · ` +
+    `바닥 유지 링 ${st.ringsFloored} · ${Date.now() - t0}ms`,
+  );
+}
 
 // The board's own national border (lib/ownerBorders.mjs says why level 0 could
 // not stay). Written for every board, including the modern ones where it agrees
