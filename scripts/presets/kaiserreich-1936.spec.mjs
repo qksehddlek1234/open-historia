@@ -116,11 +116,15 @@ export default {
     RUS: { name: "Russian State", color: "#8a5a4a", aliases: ["러시아국", "Russian State", "Russia", "Petrograd", "Kerensky", "Savinkov"] },
     USA: { name: "United States", color: "#4a8f7a", aliases: ["미국", "United States", "America", "Washington"] },
     JAP: { name: "Empire of Japan", color: "#b23b3b", aliases: ["일본 제국", "Japan", "Tokyo", "Co-Prosperity"] },
-    // ★ 보드 재량 미결(ㄱ-2): KR 정본 1936에 '이탈리아 왕국'이 없다 — 이탈리아
-    // 연방은 1930 해산, 이후 공화국. 남부 왕국 의도면 두시칠리아 로어(부르봉),
-    // 아니면 보드 독자 설정 — 사용자 결정 대기라 leadership을 비워 둔다(정직한
-    // 미기록). 결정되면 여기 로어 한 줄이면 된다.
-    ITA: { name: "Kingdom of Italy", color: "#4f7942", aliases: ["이탈리아 왕국", "Kingdom of Italy", "Naples", "남이탈리아", "Savoy"] },
+    // 일통 이탈리아 왕국은 KR 정본에 없음 — 사용자 결정으로 양시칠리아 로어
+    // 차용(2026-08-25). 표시명은 판례대로 보드 원문 유지, 지도자·왕조만 차용:
+    // 국왕 페르디난도 3세(부르봉-양시칠리아) ◇ — KR 위키 문서 제목으로 방증,
+    // 실존 대응은 페르디난도 피오 칼라브리아 공(1934년부터 가문 수장).
+    ITA: {
+      name: "Kingdom of Italy", color: "#4f7942",
+      aliases: ["이탈리아 왕국", "Kingdom of Italy", "Naples", "남이탈리아", "Savoy"],
+      leadership: { leader: "국왕 페르디난도 3세" },
+    },
     ESP: {
       name: "Kingdom of Spain", color: "#d0a02e",
       aliases: ["스페인 왕국", "Spain", "Madrid"],
