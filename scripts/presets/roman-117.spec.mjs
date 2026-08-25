@@ -87,7 +87,9 @@ export default {
     ROM:  { name: "Roman Empire", color: "#a31c1c", aliases: ["로마 제국", "Rome", "SPQR", "the Empire"] },
     PART: { name: "Parthian Empire", color: "#8a6d3b", aliases: ["파르티아 제국", "Parthia", "Arsacids"] },
     KUSH: { name: "Kushan Empire", color: "#c07830", aliases: ["쿠샨 제국", "Kushans", "Kusana"] },
-    HAN:  { name: "Han Dynasty", color: "#b8860b", aliases: ["한나라", "Han China", "Eastern Han", "China"] },
+    // 117년은 후한(동한) — 표시명은 사용자 결정(결-1: "대한국" 기각, 후한 유지).
+    // 大漢 규칙 예외가 아니라 시대 명칭이다: 一統 왕조 大~국 규칙은 청·명·원에만 적용.
+    HAN:  { name: "Han Dynasty", color: "#b8860b", aliases: ["후한", "한나라", "Han China", "Eastern Han", "China"] },
     XION: { name: "Xiongnu", color: "#7a5c8a", aliases: ["흉노", "Northern Xiongnu", "the steppe confederacy"] },
     GOGU: { name: "Goguryeo", color: "#4a7a9a", aliases: ["고구려", "Koguryo"] },
     AKSM: { name: "Kingdom of Aksum", color: "#3f7a4f", aliases: ["악숨 왕국", "Axum", "Aksumite Empire"] },
