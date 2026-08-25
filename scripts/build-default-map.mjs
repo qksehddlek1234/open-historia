@@ -146,6 +146,12 @@ const farDrawable = (feature) => {
     `${st.pointsOut.toLocaleString()} (${((100 * st.pointsOut) / Math.max(1, st.pointsIn)).toFixed(1)}%) · ` +
     `공유 아크 ${st.arcsShared}(재사용 ${st.cacheHits}) · 바닥 유지 링 ${st.ringsFloored} · far 밖 피처 ${farDropped}개 제외 · ${Date.now() - t0}ms`,
   );
+  const rp = st.repair;
+  console.log(
+    `[simplify] 유효성 복구: 결함 피처 ${rp.featuresRepaired} (교차 ${rp.crossings} · 탈출 구멍 ${rp.escapedHoles} · ` +
+    `중첩 셸 ${rp.nestedShells}) → 아크 ${rp.arcsRestored} 세분화(그중 원본 복원 ${rp.arcsVerbatim}), ${rp.iterations}라운드 · ` +
+    `원본유래 invalid ${rp.sourceInvalid} · 잔여 ${rp.residualInvalid}${rp.residualInvalid > 0 ? " ⚠" : ""}`,
+  );
 }
 writeFileSync(path.join(SCENARIO_DIR, "colors.json"), `${JSON.stringify(colors, null, 2)}\n`, "utf8");
 

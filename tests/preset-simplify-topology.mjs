@@ -85,6 +85,61 @@ test("a ring that would collapse below a triangle keeps its original shape, coun
   assert.equal(stats.ringsFloored, 1, "the floor must be counted, not silent");
 });
 
+console.log("\nSimplification must not make a polygon lie about itself");
+
+const inRing = (pt, ring) => {
+  const [x, y] = pt;
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i, i += 1) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+};
+
+test("an escaped hole is repaired by restoring the arcs, and the repair is counted", () => {
+  // ㄴ-6 (2026-08-25), the 경북 double-coat mechanism in miniature: the shell
+  // has a bump (deviation 0.05 < eps 0.1) holding a hole. Simplification
+  // flattens the bump, the hole lands OUTSIDE the shell, and tessellation would
+  // paint shell + escaped hole — one feature, two coats. The repair must put
+  // the ORIGINAL arcs back rather than patch the feature: the 대구 hole is the
+  // enclave's shell on the neighbour, and only arc-level restoration keeps the
+  // two identical.
+  const bumped = {
+    type: "Feature",
+    properties: { id: "K", gid0: "KOR", owner: "조선" },
+    geometry: {
+      type: "Polygon",
+      coordinates: [
+        [[0, 0], [1, 0], [1, 1], [0.6, 1], [0.55, 1.05], [0.5, 1], [0, 1], [0, 0]],
+        [[0.54, 1.01], [0.56, 1.01], [0.56, 1.03], [0.54, 1.03], [0.54, 1.01]],
+      ],
+    },
+  };
+  const { features, stats } = simplifyTopology([bumped], { eps: 0.1 });
+  const [shell, hole] = features[0].geometry.coordinates;
+  assert.ok(hole.every((pt) => inRing(pt, shell) || shell.some(([sx, sy]) => sx === pt[0] && sy === pt[1])),
+    "after repair every hole vertex must be back inside its shell");
+  assert.equal(stats.repair.escapedHoles, 1, "the defect must be counted, not silently cured");
+  assert.equal(stats.repair.featuresRepaired, 1);
+  assert.equal(stats.repair.residualInvalid, 0, "the loop must actually converge");
+});
+
+test("a feature that was invalid in the SOURCE is left alone and counted", () => {
+  // The exact lane draws the original as-is either way — "repairing" it would
+  // silently change data we did not damage. Bowtie in, bowtie out, counted.
+  const bowtie = {
+    type: "Feature",
+    properties: { id: "X", gid0: "XXX", owner: "X" },
+    geometry: { type: "Polygon", coordinates: [[[0, 0], [1, 1], [1, 0], [0, 1], [0, 0]]] },
+  };
+  const { features, stats } = simplifyTopology([bowtie], { eps: 0.0001 });
+  assert.deepEqual(features[0].geometry.coordinates, bowtie.geometry.coordinates);
+  assert.equal(stats.repair.sourceInvalid, 1, "not our damage — but never a silent pass");
+  assert.equal(stats.repair.arcsRestored, 0, "no arcs spent on a defect we did not make");
+});
+
 console.log("\nThe far lane gets its own file, and the exact one stays exact");
 
 test("the builder writes regions-far.geojson and leaves regions.geojson alone", () => {
