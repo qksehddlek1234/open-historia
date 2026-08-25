@@ -310,20 +310,13 @@ await (async () => {
   // Bukhara, Oman — the reference already knew them). These twelve are named BY
   // NAME so the list can only shrink, and deepEqual is what makes a seat the
   // pack fills LEAVE the list (the Bahrain rule above).
-  const HANDOVER_2026_08_18 = [
-    "colonial-1650: Duchy of Modena",
-    "colonial-1650: Duchy of Parma",
-    "colonial-1650: Duchy of Savoy",
-    "colonial-1650: Duchy of Guastalla",
-    "colonial-1650: Duchy of Massa and Carrara",
-    "colonial-1650: Duchy of Mirandola",
-    "colonial-1650: Principality of Neuchâtel",
-    "colonial-1650: Republic of Valais",
-    "colonial-1650: Swiss Confederacy",
-    "colonial-1650: Three Leagues",
-    "colonial-1650: Irish Catholic Confederation",
-    "napoleonic-1804: Septinsular Republic",
-  ];
+  // ── 그리고 네 번째 목록도 비었다 (2026-08-25, ㄴ-1) ──────────────────────
+  // ㄱ-2 고증 표(외부 전거 검증 25건 + 라구사 9건)가 열두 자리를 전부 채웠다 —
+  // 이탈리아 여섯 공국과 뇌샤텔은 사람으로, 발레·스위스·삼동맹은 제도+이유로
+  // (라구사 줄의 '이유'는 팩에 그대로 실렸다), 아일랜드는 오먼드 화약의 당사자로,
+  // 셉틴술라르는 코무토스로. 열두 이름의 원문은 git(2f21133 이전)에 남는다.
+  // 예언대로 "다섯 번째 목록"은 또 올 것이다 — 스펙과 팩은 다른 세션이 쥔다.
+  const HANDOVER_2026_08_18 = [];
   // (2026-08-19 B-4의 Columbia Department는 여기 오지 않는다 — "Columbia
   // District" 별칭으로 레퍼런스가 즉시 답한다: 심프슨 총독. 새 폴리티가 전부
   // 이 목록에 실리는 게 아니라는 증거가 하나 더 늘었다.)

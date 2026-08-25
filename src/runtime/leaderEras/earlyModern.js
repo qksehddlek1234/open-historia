@@ -17,6 +17,62 @@ export const REFERENCE = {
       { name: "공작 카를로 2세 곤차가", from: "1637-09-21", until: "1665-08-14" },
     ],
   },
+  // ---- ㄴ-1 (2026-08-25): ㄱ-2 고증 표의 나머지 — 1650 이탈리아·스위스권 ------
+  // 라구사 처리 줄의 '이유'는 지우지 않는다(ㄱ-2 인계 조건). 원칙은 파일 상단과
+  // 같다: 확실한 인물만 이름, 불확실하면 제도+이유.
+  "Duchy of Modena": {
+    leader: [{ name: "공작 프란체스코 1세 데스테", from: "1629-09-11", until: "1658-10-14" }],
+  },
+  "Duchy of Parma": {
+    leader: [{ name: "공작 라누초 2세 파르네세", from: "1646-09-11", until: "1694-12-11" }],
+  },
+  "Duchy of Guastalla": {
+    leader: [{ name: "공작 페란테 3세 곤차가", from: "1632-01-01", until: "1678-01-11" }],
+  },
+  "Duchy of Massa and Carrara": {
+    leader: [{ name: "공작 카를로 1세 치보말라스피나", from: "1623-01-01", until: "1662-02-18" }],
+  },
+  "Duchy of Mirandola": {
+    leader: [{ name: "공작 알레산드로 2세 피코", from: "1637-01-01", until: "1691-02-02" }],
+  },
+  "Principality of Neuchâtel": {
+    leader: [{ name: "공 앙리 2세 오를레앙롱빌", from: "1595-04-24", until: "1663-05-03" }],
+  },
+  "Republic of Valais": {
+    // 라구사 — 제도가 수반이다: 이름이 없어서가 아니라 전거가 그 날짜의 이름을
+    // 지탱하지 못해서(ㄱ-2).
+    leader: [{ name: "란데스하웁트만 (7관구 공화국 · 1650년 재임자 이름 전거 미확보)" }],
+  },
+  "Swiss Confederacy": {
+    // 단일 국가원수가 없는 연합 — 1836 팩 스위스와 같은 처리(ㄱ-2). 1444 창은
+    // 구 취리히 전쟁(1440–1446) 한복판이라 따로 적는다.
+    leader: [
+      { name: "(단일 국가원수 없음 — 구 취리히 전쟁 중)", from: "1440-11-02", until: "1446-06-12" },
+      { name: "(단일 국가원수 없음 — 주 대표자 회의 Tagsatzung)", from: "1446-06-13", until: "1749-12-31" },
+    ],
+  },
+  "Three Leagues": {
+    leader: [{ name: "(단일 국가원수 없음 — 3동맹 연합)" }],
+  },
+  "Irish Catholic Confederation": {
+    // 주의(ㄱ-2): 연맹 자체는 1649-01 2차 오먼드 화약으로 해산, 신탁위원 12인
+    // 체제 — 1650-01 보드에 이 폴리티가 서 있는 것 자체가 반년 어긋남. 존치는
+    // 보드 설계 판단이고, 서 있는 동안의 수반은 화약의 당사자 오먼드다.
+    leader: [{ name: "총독 오먼드 후작 제임스 버틀러", from: "1649-01-17", until: "1650-12-11" }],
+  },
+  // ---- ㄴ-1: 1650 아시아·아프리카 (ㄱ-2 고증 표) ------------------------------
+  "Imamate of Oman": {
+    // 야루바 왕조 — 1650-01 마스카트에서 포르투갈을 몰아낸 당사자.
+    leader: [{ name: "이맘 술탄 빈 사이프", from: "1649-01-01", until: "1679-10-04" }],
+  },
+  "Qasimid Yemen": {
+    leader: [{ name: "이맘 알무타와킬 이스마일", from: "1644-01-01", until: "1676-08-13" }],
+  },
+  "Khalkha Mongols": {
+    // 주의(ㄱ-2): 할하는 투셰트/자삭트/세첸 3칸 분립으로 단일 군주가 없다 —
+    // 최유력인 투셰트 칸을 세웠다(사용자 라구사 전환 시 "3칸 분립"으로).
+    leader: [{ name: "투셰트 칸 곰보도르지", until: "1655-12-31" }],
+  },
   // ---- colonial-1650 보강: 비유럽·원주민 정치체 -------------------------------
   // 원칙은 이 파일 전체와 같다: 확실한 인물만 이름으로 적고, 재위가 불확실하거나
   // 애초에 단일 수반이 없는 정치체는 개인을 지어내지 않고 제도를 적는다.
@@ -395,7 +451,10 @@ export const REFERENCE = {
   },
   "Shan States": { leader: [{ name: "샨 사오파들" }] },
   "Lan Xang": {
-    leader: [{ name: "국왕 사이냐착카팟", from: "1441-01-01", until: "1478-01-01" }],
+    leader: [
+      { name: "국왕 사이냐착카팟", from: "1441-01-01", until: "1478-01-01" },
+      { name: "국왕 수리냐 봉사", from: "1637-01-01", until: "1694-01-01" },
+    ],
   },
   "Sultanate of Brunei": { leader: [{ name: "브루나이 술탄들 (초기 왕통 불명)" }] },
   "Northern Yuan": {
@@ -519,6 +578,8 @@ export const REFERENCE = {
       { name: "도제 라파엘레 아도르노", from: "1443-01-28", until: "1447-01-04" },
       { name: "도제 자노 프레고소", from: "1447-01-30", until: "1448-12-16" },
       { name: "도제 피에트로 프레고소", from: "1450-12-08", until: "1458-05-11" },
+      // 도제는 2년 임기제(1528 개혁) — 1650-01-01의 재임자는 1648-08 취임분(ㄱ-2).
+      { name: "도제 자코모 데 프란키 토소", from: "1648-08-01", until: "1650-08-01" },
     ],
   },
   "Novgorod Republic": {
@@ -656,6 +717,8 @@ export const REFERENCE = {
   },
   Austria: {
     leader: [
+      // 1440 로마왕 선출, 황제 대관은 1452 — 1444 창의 칭호는 로마왕이다(ㄱ-2).
+      { name: "로마왕 프리드리히 3세 (합스부르크)", from: "1440-02-02", until: "1493-08-19" },
       { name: "대공 막시밀리안 1세", from: "1493-08-19", until: "1519-01-12" },
       { name: "대공 카를 1세 (카를 5세)", from: "1519-01-12", until: "1521-04-28" },
       { name: "대공 페르디난트 1세", from: "1521-04-28", until: "1564-07-25" },
@@ -742,10 +805,15 @@ export const REFERENCE = {
   },
   "Bukhara Khanate": {
     leader: [
+      // 아불하이르의 칸국이 샤이바니조의 전신이다(ㄱ-2 — magna-1444의 Uzbek
+      // Khanate가 이 키로 별칭 해석된다).
+      { name: "칸 아불하이르", from: "1428", until: "1468" },
       { name: "칸 무함마드 샤이바니", from: "1500", until: "1510-12-02" },
       { name: "칸 우바이둘라", from: "1533", until: "1540" },
       { name: "칸 압둘라 2세", from: "1583", until: "1598" },
       { name: "칸 이맘 쿨리", from: "1611", until: "1642" },
+      { name: "칸 압둘아지즈", from: "1645", until: "1681" }, // 아스트라한 왕조
+
     ],
     headOfState: [
       { name: "(없음)" },
@@ -899,6 +967,8 @@ export const REFERENCE = {
   },
   Granada: {
     leader: [
+      // 3차 재위(ㄱ-2 검증) — 유수프 5세의 반란은 1445, 1444-11엔 아직 재위 중.
+      { name: "술탄 무함마드 9세", from: "1432", until: "1445" },
       { name: "술탄 아불 하산 알리", from: "1464", until: "1482" },
       { name: "술탄 무함마드 12세 (보압딜)", from: "1482", until: "1483" },
       { name: "술탄 아불 하산 알리", from: "1483", until: "1485" },
@@ -953,7 +1023,9 @@ export const REFERENCE = {
   },
   Japan: {
     leader: [
-      { name: "쇼군 아시카가 요시마사", from: "1449", until: "1473" },
+      // 1443 옹립(요시카쓰 사후 즉시), 정식 쇼군 임명은 1449 — 1444 보드가
+      // 걸치는 것은 옹립 쪽이다(ㄱ-2 검증).
+      { name: "쇼군 아시카가 요시마사", from: "1443", until: "1473" },
       { name: "쇼군 아시카가 요시히사", from: "1473", until: "1489-04-26" },
       { name: "쇼군 아시카가 요시타네", from: "1490", until: "1493" },
       { name: "쇼군 아시카가 요시즈미", from: "1494", until: "1508" },
@@ -1023,6 +1095,8 @@ export const REFERENCE = {
     leader: [
       { name: "칸 카심", from: "1511", until: "1521" },
       { name: "칸 하크나자르", from: "1538", until: "1580" },
+      // 즉위 연대는 전거가 갈린다(1628/29설, 1643설) — 1650 재위는 일치(ㄱ-2).
+      { name: "칸 살캄 자한기르", from: "1643", until: "1652" },
       { name: "칸 타우케", from: "1680", until: "1715" },
     ],
     headOfState: [
@@ -1031,6 +1105,9 @@ export const REFERENCE = {
   },
   Kongo: {
     leader: [
+      // 라구사(ㄱ-2 magna-1444): 주앙 1세(1470경 즉위) 이전 왕계는 전승이라
+      // 1444년 재위자를 이름으로 세울 전거가 없다.
+      { name: "마니콩고 (1444년 재위자 전거 부재 — 주앙 1세 이전 왕계는 전승)", until: "1470-01-01" },
       { name: "국왕 아폰수 1세", from: "1509-01-01", until: "1543-01-01" },
       { name: "국왕 페드루 1세", from: "1543-01-01", until: "1545-01-01" },
       { name: "국왕 디오구 1세", from: "1545-01-01", until: "1561-01-01" },
@@ -1059,6 +1136,9 @@ export const REFERENCE = {
   },
   Mali: {
     leader: [
+      // 라구사(ㄱ-2 magna-1444): 15세기 중반 왕명록은 전거 공백 — 이븐 할둔
+      // 이후 기록 단절. 이름을 세우지 않는다.
+      { name: "만사 (15세기 중반 왕명록은 전거 공백 — 이븐 할둔 이후 기록 단절)", from: "1400-01-01", until: "1496-01-01" },
       { name: "만사 마흐무드 3세", from: "1496-01-01", until: "1559-01-01" },
       { name: "만사 마흐무드 4세", from: "1590-01-01", until: "1610-01-01" },
     ],
@@ -1114,11 +1194,15 @@ export const REFERENCE = {
   },
   Morocco: {
     leader: [
+      // 마린 왕조 말기(ㄱ-2 magna-1444) — 실권은 와타스 섭정 아부 자카리야 야히야.
+      { name: "술탄 압드 알하크 2세", from: "1420", until: "1465" },
       { name: "술탄 무함마드 알셰이크", from: "1549", until: "1557-10-23" },
       { name: "술탄 압달라 알갈리브", from: "1557-10-23", until: "1574-01" },
       { name: "술탄 무함마드 알무타와킬", from: "1574-01", until: "1576" },
       { name: "술탄 압드 알말리크", from: "1576", until: "1578-08-04" },
       { name: "술탄 아흐마드 알만수르", from: "1578-08-04", until: "1603-08-25" },
+      // 사드 왕조 말기(ㄱ-2 colonial-1650) — 마라케시 중심, 알라위 발흥기.
+      { name: "술탄 무함마드 알샤이흐 알사기르", from: "1636", until: "1655" },
       { name: "술탄 물레이 라시드", from: "1666", until: "1672-04-09" },
       { name: "술탄 물레이 이스마일", from: "1672-04", until: "1727-03-22" },
     ],
@@ -1147,8 +1231,12 @@ export const REFERENCE = {
   },
   Myanmar: {
     leader: [
+      // 아바 왕국(ㄱ-2 magna-1444) — "Kingdom of Ava"가 이 키로 별칭 해석된다.
+      { name: "국왕 나라파티 1세", from: "1442", until: "1468" },
       { name: "국왕 따빈슈웨티", from: "1530-11-24", until: "1550-04-30" },
       { name: "국왕 바인나웅", from: "1550", until: "1581-10-10" },
+      // 퉁구 왕조 후기(ㄱ-2 colonial-1650).
+      { name: "국왕 핀달레", from: "1648", until: "1661" },
     ],
     headOfState: [
       { name: "(없음)" },
@@ -1537,9 +1625,11 @@ export const REFERENCE = {
   },
   Thailand: {
     leader: [
+      { name: "국왕 보롬마라차티랏 2세", from: "1424", until: "1448" }, // ㄱ-2 magna-1444
       { name: "국왕 뜨라일로까낫", from: "1448", until: "1488" },
       { name: "국왕 라마티보디 2세", from: "1491", until: "1529" },
       { name: "국왕 나레수안", from: "1590", until: "1605-04-25" },
+      { name: "국왕 쁘라삿텅", from: "1629", until: "1656" }, // ㄱ-2 colonial-1650
       { name: "국왕 나라이", from: "1656-10-26", until: "1688-07-11" },
       { name: "국왕 보롬마꼿", from: "1733", until: "1758" },
     ],
@@ -1583,6 +1673,9 @@ export const REFERENCE = {
       { name: "여왕 엘리자베스 1세", from: "1558-11-17", until: "1603-03-24" },
       { name: "국왕 제임스 1세", from: "1603-03-24", until: "1625-03-27" },
       { name: "국왕 찰스 1세", from: "1625-03-27", until: "1649-01-30" },
+      // 공위기 전반(ㄱ-2): 국무회의 의장은 1649-03 브래드쇼 임명 — 월례 순환제는
+      // 1651-11부터라 1650-01엔 의장이 실재한다. 크롬웰 호국경 취임 전의 수반.
+      { name: "국무회의 의장 존 브래드쇼", from: "1649-03-10", until: "1651-11-01" },
       { name: "호국경 올리버 크롬웰", from: "1653-12-16", until: "1658-09-03" },
       { name: "호국경 리처드 크롬웰", from: "1658-09-03", until: "1659-05-25" },
       { name: "국왕 찰스 2세", from: "1660-05-29", until: "1685-02-06" },
@@ -1664,7 +1757,11 @@ export const REFERENCE = {
   },
   Vietnam: {
     leader: [
+      // 1444 창(ㄱ-2): 유충 즉위 — 실권은 모후 응우옌 티 아인 섭정.
+      { name: "황제 레 년 똥", from: "1442-11-07", until: "1459-10-28" },
       { name: "황제 레 타인 통", from: "1460-06-26", until: "1497-03-03" },
+      // 1650 창(ㄱ-2): 복위 재위 — 실권은 찐 짱(찐 주).
+      { name: "황제 레 턴 똥 (복위)", from: "1649-10-01", until: "1662-11-01" },
     ],
     headOfState: [
       { name: "(없음)" },
@@ -1883,8 +1980,17 @@ export const ALIASES = {
   "Asante": "Ashanti",
   "Asante Empire": "Ashanti",
   "Ashanti Empire": "Ashanti",
+  "Ashikaga Japan": "Japan",
   "Ashikaga Shogunate": "Japan",
   "Austria-Hungary": "Austria",
+  // ㄴ-1 (2026-08-25): 보드 폴리티명 — 체인은 이미 있는데 이름이 안 닿아
+  // 미기록으로 새던 것들 (사보이아는 1650을 늘 덮고 있었다).
+  "Commonwealth of England": "United Kingdom",
+  "Duchy of Savoy": "Savoy",
+  "Habsburg Austria": "Austria",
+  "Kingdom of Ava": "Myanmar",
+  "Sultanate of Morocco": "Morocco",
+  "Toungoo Burma": "Myanmar",
   "Ayutthaya": "Thailand",
   "Aztec": "Aztec Empire",
   "Benin": "Benin Empire",

@@ -112,7 +112,13 @@ export default {
     TUR: { name: "Republic of Türkiye", color: "#c05a4a", aliases: ["튀르키예 공화국", "Turkey", "Ankara", "Kemalist"] },
 
     // ── 대동아공영권 ──────────────────────────────────────────────────────────
-    MCK: { name: "Manchukuo", color: "#c9a05a", aliases: ["만주국", "Manchukuo", "Hsinking", "Xinjing"] },
+    MCK: {
+      name: "Manchukuo", color: "#c9a05a",
+      aliases: ["만주국", "Manchukuo", "Hsinking", "Xinjing"],
+      // TNO 로어(ㄱ-2, tno.wiki.gg): 강덕제 재위 지속 — 실권은 관동군 파벌이라
+      // 개인 2인자를 세우지 않는다(파벌은 사람이 아니다).
+      leadership: { leader: "강덕제 (아이신기오로 푸이)" },
+    },
     // 남경 정부. 키를 "Republic of China"로 쓰면 leaderReference의 장제스 항목을
     // 덮어써 역사 보드가 깨진다 — 카이저라이히에서 한 번 밟은 함정이다.
     NAN: { name: "Nanjing Government", color: "#4a6db5", aliases: ["남경 정부", "Nanjing", "Reorganized Government", "Republic of China (Nanjing)", "Wang Jingwei"] },
@@ -121,7 +127,12 @@ export default {
     SHX: { name: "Shanxi Clique", color: "#7d8f5a", aliases: ["산시 군벌", "Shanxi", "Yan Xishan", "Chinese Warlord"] },
     MAC: { name: "Ma Clique", color: "#a8946a", aliases: ["마가군벌", "Ma Clique", "Qinghai", "Ningxia", "Chinese Warlord"] },
     XIN: { name: "Xinjiang Clique", color: "#6f8f7a", aliases: ["신장 군벌", "Xinjiang", "Urumqi", "Chinese Warlord"] },
-    TIB: { name: "Tibet", color: "#c8c0a0", aliases: ["티베트", "Tibet", "Lhasa"] },
+    TIB: {
+      name: "Tibet", color: "#c8c0a0",
+      aliases: ["티베트", "Tibet", "Lhasa"],
+      // TNO 로어(ㄱ-2): 1940 즉위 이래 재위 — 이 세계선에선 망명이 없다.
+      leadership: { leader: "달라이 라마 14세 텐진 갸초" },
+    },
     SIA: { name: "Thailand", color: "#b08a5a", aliases: ["태국", "Thailand", "Siam", "Bangkok"] },
     // 원본이 이 보드의 대리전 하나로 명시하는 말라야 비상사태의 두 당사자.
     SHO: { name: "Military Governate of Shonan Marai", color: "#9a5a5a", aliases: ["쇼난 군정", "Shonan", "Malaya", "Singapore", "Japanese Malaya"] },

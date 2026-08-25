@@ -343,6 +343,7 @@ export const REFERENCE = {
 
   "British Raj": {
     leader: [
+      { name: "인도 부왕 하딩 경 (찰스 하딩)", from: "1910-11-23", until: "1916-04-04" }, // ㄱ-2 ww1-1914
       { name: "인도 부왕 어윈 남작", from: "1926-04-03", until: "1931-04-18" },
       { name: "인도 부왕 윌링던 후작", from: "1931-04-18", until: "1936-04-18" },
       { name: "인도 부왕 린리스고 후작", from: "1936-04-18", until: "1943-10-01" },
@@ -449,6 +450,7 @@ export const REFERENCE = {
   },
   "Dutch East Indies": {
     leader: [
+      { name: "총독 알렉산더르 이덴뷔르흐", from: "1909-12-18", until: "1916-03-21" }, // ㄱ-2 ww1-1914
       { name: "총독 보니파시위스 더용어", from: "1931-09-12", until: "1936-09-16" },
       { name: "총독 알리디위스 취아르다 판 스타르컨보르흐 스타하우어르", from: "1936-09-16", until: "1942-03-09" },
     ],
@@ -1973,6 +1975,17 @@ export const REFERENCE = {
       { name: "술탄 사이드 빈 타이무르", from: "1932-02-10", until: "1970-07-23" },
       { name: "술탄 카부스 빈 사이드", from: "1970-07-23", until: "2020-01-10" },
     ],
+  },
+  // ---- ㄴ-1 (2026-08-25): ㄱ-2 고증 표 — ww1-1914의 진짜 미해석 ------------
+  // 신정 군주는 그 자리가 곧 정부수반이라 leader 레인이 맞다. 부왕·총독은
+  // 위의 기존 키(British Raj·Dutch East Indies)에 1914 창을 합쳤다 — 같은 키를
+  // 여기 다시 선언하면 뒤의 것이 이겨 1926–47 체인이 통째로 사라진다(실측:
+  // coldwar-1946 웨이벌·wwii-1935 더용어가 미기록으로 퇴행했다).
+  "Bogd Khanate of Mongolia": {
+    leader: [
+      { name: "복드 칸 (제8대 젭춘담바 후툭투)", from: "1911-12-29", until: "1924-05-20" },
+    ],
+    headOfState: [{ name: "(없음)" }],
   },
   "Ottoman Empire": {
     leader: [

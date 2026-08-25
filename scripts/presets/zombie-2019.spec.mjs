@@ -69,6 +69,8 @@ export default {
       color: "#3a3f33",
       speechless: true,
       aliases: ["죽은 자", "The Dead", "Zombies", "the horde", "the infected", "감염체"],
+      // 라구사(ㄱ-2): 무리에는 수반이 없다 — 공백이 아니라 사실의 기록이다.
+      leadership: { leader: "(지도자 없음 — 무리)" },
     },
   },
   countryAssignments: modern2020.countryAssignments,

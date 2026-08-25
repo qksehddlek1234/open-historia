@@ -186,7 +186,9 @@ test("every polity the spec declares can be answered", () => {
   // truthy 핀은 통과하지만, REFERENCE 표에 1836을 덮는 실제 통치자 행은 없다.
   // 1836년의 왕은 기록마다 갈리는 구간이라(안드레 2세/앙리크 2세 사이)
   // 지어내지 않는다 — 팩 레인 몫. 채워지면 이 이름은 떠나야 한다.
-  const awaitingLeaderPack = ["Kingdom of Kongo"];
+  // ㄴ-1 (2026-08-25): 콩고가 revolutions 팩에서 답한다 — 국왕 앙드레 2세
+  // (1830–1842, ㄱ-2 위키 검증). 목록은 다시 비었고, 비어 있는 게 정상 상태다.
+  const awaitingLeaderPack = [];
   assert.deepEqual(unanswered.sort().filter((n) => !awaitingLeaderPack.includes(n)), [],
     "a name added here without a leader row is a to-do, not a decision");
   // 목록이 자기 원인보다 오래 살면 안 된다 — 답이 생긴 이름은 빠져야 한다.

@@ -158,6 +158,9 @@ export const REFERENCE = {
   },
   Belgium: {
     leader: [
+      // 건국 초 국왕 친정기(ㄱ-2 victorian-1836): 통합주의 시기의 내각은 국왕이
+      // 주도한다 — 1847 로지에 내각(정당내각 시초)부터 총리가 수반이다.
+      { name: "국왕 레오폴드 1세", from: "1831-07-21", until: "1847-08-12" },
       { name: "총리 샤를 로지에", from: "1847-08-12", until: "1852-10-31" },
       { name: "총리 샤를 로지에", from: "1857-11-09", until: "1868-01-03" },
       { name: "총리 발테르 프레르오르방", from: "1868-01-03", until: "1870-07-02" },
@@ -1366,7 +1369,25 @@ export const REFERENCE = {
   },
   "Duchy of Lucca": {
     leader: [
+      // 라구사(ㄱ-2 napoleonic-1804): 1801 헌법의 행정수반 — 1804-12 재임자
+      // 이름은 전거 미확보. 1805-06 엘리자 보나파르트의 공국으로 넘어간다.
+      { name: "정의집정관 (1801 헌법의 행정수반 — 1804-12 재임자 이름 전거 미확보)", from: "1801-01-01", until: "1805-06-23" },
       { name: "공작 카를로 로도비코", from: "1824-03-13", until: "1847-10-05" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Batavian Republic": {
+    // 라구사(ㄱ-2): Staatsbewind 집단지도·의장 순환 — 1805-04 심멜페닝크
+    // (라드펜시오나리스) 취임 전이라 개인을 세울 수 없다.
+    leader: [
+      { name: "국가섭정단 (Staatsbewind 집단지도·의장 순환 — 1805-04 심멜페닝크 취임 전)", from: "1801-10-17", until: "1805-04-29" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Septinsular Republic": {
+    // 1803-11 테오토키스 사후 선출(ㄱ-2 검증) — 1807 틸지트로 프랑스령.
+    leader: [
+      { name: "원로원 의장 안토니오스 코무토스", from: "1803-11-01", until: "1807-07-07" },
     ],
     headOfState: [{ name: "(없음)" }],
   },
@@ -1403,6 +1424,7 @@ export const REFERENCE = {
   },
   "Prince-Bishopric of Montenegro": {
     leader: [
+      { name: "주교공 페타르 1세 페트로비치녜고시", from: "1782-10-13", until: "1830-10-30" }, // ㄱ-2 napoleonic-1804
       { name: "주교공 페타르 2세 페트로비치녜고시", from: "1830-10-30", until: "1851-10-31" },
       { name: "공 다닐로 1세", from: "1851-10-31", until: "1860-08-13" },
     ],
@@ -1411,6 +1433,14 @@ export const REFERENCE = {
   "Omani Empire": {
     leader: [
       { name: "술탄 사이드 빈 술탄", from: "1804-11-14", until: "1856-10-19" },
+    ],
+    headOfState: [{ name: "(없음)" }],
+  },
+  "Kingdom of Kongo": {
+    // ㄱ-2 victorian-1836 (André II Mvizi a Lukeni — 위키 검증). early-modern
+    // 팩의 콩고 왕계는 1718에서 멈추므로 이 창은 여기 산다.
+    leader: [
+      { name: "국왕 앙드레 2세", from: "1830", until: "1842" },
     ],
     headOfState: [{ name: "(없음)" }],
   },
@@ -1427,6 +1457,7 @@ export const REFERENCE = {
   },
   "Emirate of Bukhara": {
     leader: [
+      { name: "에미르 하이다르", from: "1800", until: "1826" }, // 망기트 왕조 (ㄱ-2 napoleonic-1804)
       { name: "아미르 나스룰라 칸", from: "1827", until: "1860-10-20" },
     ],
     headOfState: [{ name: "(없음)" }],
@@ -1876,6 +1907,10 @@ export const REFERENCE = {
     // 제도를 기본값으로 깔고 1836년의 실제 재임자를 그 위에 얹는다 —
     // 창이 늦게 열리는 쪽이 이기므로 1836년만 사람이 답한다.
     leader: [
+      // 중재법 시기(1803–1813)의 정식 칭호가 란트암만이다 — 1804년도 재임자는
+      // 베른의 폰 바텐빌(ㄱ-2 독일어 위키 검증). 위 경고("란트암만은 여기 오면
+      // 안 된다")는 1815년 이후 창을 지키는 말이고, 이 행은 그 시기 자체다.
+      { name: "연방 란트암만 니클라우스 루돌프 폰 바텐빌 (의장주 베른)", from: "1804-01-01", until: "1804-12-31" },
       { name: "연방의회 의장 (취리히·베른·루체른이 2년씩 맡는 의장주의 시장·샤울트하이스)", from: "1815-08-07", until: "1848-09-11" },
       { name: "연방의회 의장 카를 프리드리히 폰 차르너 (의장주 베른)", from: "1836-01-01", until: "1836-12-31" },
       { name: "연방대통령 (연방평의회 7인이 1년씩 윤번)", from: "1848-09-12", until: "1899-12-31" },
@@ -2715,6 +2750,7 @@ export const ALIASES = {
   "Sandwich Islands": "Hawaii",
   "Siam": "Thailand",
   "South Korea": "Joseon",
+  "Republic of Lucca": "Duchy of Lucca",
   "Sultanate of Morocco": "Morocco",
   "Tokugawa Shogunate": "Japan",
   "Turkey": "Ottoman Empire",

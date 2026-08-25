@@ -370,6 +370,18 @@ await ensureReferenceEra(startDateForLeaders);
 const leaderReport = { hits: [], misses: [] };
 for (const [code, p] of Object.entries(spec.polities ?? {})) {
   const name = polityName(code);
+  // ── 보드 로어 지도자 (ㄴ-1, 2026-08-25) ────────────────────────────────────
+  // 알트히스토리 보드(카이저라이히·TNO·좀비)의 수반은 실사가 아니라 모드
+  // 로어다(ㄱ-2 원칙 ③). 실사 팩에 로어를 넣으면 역사 보드가 오염되고, 넣지
+  // 않으면 별칭이 실사 행으로 샌다 — "Austria-Hungary"가 1936 실사 오스트리아
+  // (슈슈니크)로 풀리는 식. 그래서 스펙이 `leadership`을 직접 들면 그것이
+  // 레퍼런스보다 먼저다. 센티널만 든 로어는 로어가 아니라 공백이므로 통과시켜
+  // 아래 레퍼런스 탐색(과 정직한 미기록)으로 보낸다.
+  if (p.leadership && (hasOfficeholder(p.leadership.leader) || hasOfficeholder(p.leadership.headOfState))) {
+    polityOverrides[name].leadership = { asOf: startDateForLeaders, via: "보드 로어(스펙)", ...p.leadership };
+    leaderReport.hits.push(`${name} → ${p.leadership.leader ?? p.leadership.headOfState} (로어)`);
+    continue;
+  }
   let resolved = null;
   let via = null;
   for (const key of [name, ...(Array.isArray(p.aliases) ? p.aliases : [])]) {

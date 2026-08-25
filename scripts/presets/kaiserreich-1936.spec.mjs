@@ -68,17 +68,40 @@ export default {
   polities: {
     // ── 라이히스팍트와 미텔오이로파 ───────────────────────────────────────────
     GER: { name: "German Empire", color: "#3a3a4a", aliases: ["독일 제국", "German Empire", "Deutsches Kaiserreich", "Germany", "Berlin", "Reichspakt"] },
-    AUH: { name: "Austria-Hungary", color: "#c0a060", aliases: ["오스트리아-헝가리", "Austria-Hungary", "Habsburg", "Vienna", "Danubian"] },
-    OTT: { name: "Ottoman Empire", color: "#7a9a5a", aliases: ["오스만 제국", "Ottoman Empire", "Sublime Porte", "Constantinople"] },
+    // ㄴ-1 (2026-08-25): 알트 보드 수반은 실사가 아니라 KR 로어 기준(ㄱ-2 원칙
+    // ③, 전거는 KR 위키·TVTropes). leadership은 스펙 로어가 레퍼런스보다 먼저다
+    // — 실사 팩에 로어를 넣으면 역사 보드가 오염된다(build-preset의 로어 단락).
+    AUH: {
+      name: "Austria-Hungary", color: "#c0a060",
+      aliases: ["오스트리아-헝가리", "Austria-Hungary", "Habsburg", "Vienna", "Danubian"],
+      // KR 로어 1916 즉위 유지 — 실사에선 1922 사망이지만 로어가 정본.
+      leadership: { leader: "황제 카를 1세" },
+    },
+    OTT: {
+      name: "Ottoman Empire", color: "#7a9a5a",
+      aliases: ["오스만 제국", "Ottoman Empire", "Sublime Porte", "Constantinople"],
+      // KR 로어 1926 즉위 — 실권은 대재상 케말(개혁파)이라 2인자로 적는다.
+      leadership: { leader: "술탄-칼리프 압뒬메지트 2세", deputy: "대재상 무스타파 케말" },
+    },
     BUL: { name: "Kingdom of Bulgaria", color: "#9a7a5a", aliases: ["불가리아 왕국", "Bulgaria", "Sofia"] },
     // 오스트-슈타텐 — 베를린이 세운 동유럽 위성 왕국들.
     POL: { name: "Kingdom of Poland", color: "#b0705a", aliases: ["폴란드 왕국", "Kingdom of Poland", "Regency Kingdom", "Warsaw"] },
     LIT: { name: "Kingdom of Lithuania", color: "#9a8aaa", aliases: ["리투아니아 왕국", "Kingdom of Lithuania", "Mindaugas II", "Kaunas"] },
     UBD: { name: "United Baltic Duchy", color: "#8a7a9a", aliases: ["발트 연합공국", "United Baltic Duchy", "Baltic Duchy", "Riga"] },
-    WRU: { name: "White Ruthenia", color: "#8d6236", aliases: ["백루테니아", "White Ruthenia", "Belarus", "Minsk"] },
+    WRU: {
+      name: "White Ruthenia", color: "#8d6236",
+      aliases: ["백루테니아", "White Ruthenia", "Belarus", "Minsk"],
+      // ◇ 중확신(ㄱ-2): KR 1936 시작 국가원수 — 판본에 따라 총리로 기재되기도.
+      leadership: { leader: "대통령 브라니슬라우 타라시케비치" },
+    },
     UKR: { name: "Ukrainian State", color: "#c9a05a", aliases: ["우크라이나国", "Ukrainian State", "Hetmanate", "Skoropadskyi", "Kyiv"] },
     FIN: { name: "Kingdom of Finland", color: "#7a8a9a", aliases: ["핀란드 왕국", "Kingdom of Finland", "Helsinki"] },
-    FLW: { name: "Flanders-Wallonia", color: "#b0902e", aliases: ["플란데런-왈로니아", "Flanders-Wallonia", "Belgium", "Brussels"] },
+    FLW: {
+      name: "Flanders-Wallonia", color: "#b0902e",
+      aliases: ["플란데런-왈로니아", "Flanders-Wallonia", "Belgium", "Brussels"],
+      // KR 로어 1922-02-17 즉위(호엔촐레른) — 독일의 위성 왕국.
+      leadership: { leader: "국왕 아달베르트 1세" },
+    },
     NLD: { name: "Netherlands", color: "#e08a2e", aliases: ["네덜란드", "Netherlands", "Holland", "Amsterdam"] },
     // ── 제3인터내셔널: 혁명이 이긴 곳 ─────────────────────────────────────────
     UOB: { name: "Union of Britain", color: "#a03030", aliases: ["영국 사회주의 연방", "Union of Britain", "Syndicalist Britain", "London", "TUC"] },
@@ -93,8 +116,17 @@ export default {
     RUS: { name: "Russian State", color: "#8a5a4a", aliases: ["러시아국", "Russian State", "Russia", "Petrograd", "Kerensky", "Savinkov"] },
     USA: { name: "United States", color: "#4a8f7a", aliases: ["미국", "United States", "America", "Washington"] },
     JAP: { name: "Empire of Japan", color: "#b23b3b", aliases: ["일본 제국", "Japan", "Tokyo", "Co-Prosperity"] },
+    // ★ 보드 재량 미결(ㄱ-2): KR 정본 1936에 '이탈리아 왕국'이 없다 — 이탈리아
+    // 연방은 1930 해산, 이후 공화국. 남부 왕국 의도면 두시칠리아 로어(부르봉),
+    // 아니면 보드 독자 설정 — 사용자 결정 대기라 leadership을 비워 둔다(정직한
+    // 미기록). 결정되면 여기 로어 한 줄이면 된다.
     ITA: { name: "Kingdom of Italy", color: "#4f7942", aliases: ["이탈리아 왕국", "Kingdom of Italy", "Naples", "남이탈리아", "Savoy"] },
-    ESP: { name: "Kingdom of Spain", color: "#d0a02e", aliases: ["스페인 왕국", "Spain", "Madrid"] },
+    ESP: {
+      name: "Kingdom of Spain", color: "#d0a02e",
+      aliases: ["스페인 왕국", "Spain", "Madrid"],
+      // ◇ 중확신(ㄱ-2): KR 로어의 1936 스페인 왕국 — 위키 접근 차단으로 방증만.
+      leadership: { leader: "국왕 알폰소 13세" },
+    },
     POR: { name: "Portugal", color: "#2e7d6b", aliases: ["포르투갈", "Portugal", "Lisbon"] },
     SWE: { name: "Sweden", color: "#5a7a9a", aliases: ["스웨덴", "Sweden", "Stockholm"] },
     NOR: { name: "Norway", color: "#6a8aaa", aliases: ["노르웨이", "Norway", "Oslo"] },

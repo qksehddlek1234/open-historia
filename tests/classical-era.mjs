@@ -78,6 +78,18 @@ test("the preset builder tests for a real person before accepting a match", () =
     "the bare truthiness test is what let '(없음)' end the alias search");
 });
 
+test("board lore outranks the record, and sentinel-only lore is not lore", () => {
+  // ㄴ-1 (2026-08-25): alt-history boards (kaiserreich/TNO/zombie) hold their
+  // rulers in the SPEC, because both other homes are wrong — lore in the real
+  // packs poisons historical boards, and without lore the alias chain leaks
+  // real leaders into alt boards ("Belgium" answering for Flanders-Wallonia).
+  // The lore branch must run BEFORE the reference loop and must apply the same
+  // officeholder test — sentinel-only lore falls through to an honest miss.
+  assert.match(BUILD, /p\.leadership && \(hasOfficeholder\(p\.leadership\.leader\) \|\| hasOfficeholder\(p\.leadership\.headOfState\)\)/,
+    "spec lore is gated by the same real-person test as the reference");
+  assert.match(BUILD, /보드 로어\(스펙\)/, "and the seeded via names its source");
+});
+
 test("every spelling of the sentinel is refused, and a real name is not", () => {
   for (const value of ["(없음)", "없음", "(미확인)", "공석", "vacant", "n/a", "—"]) {
     assert.ok(isRoleSentinel(value), `${value} must read as a sentinel`);
