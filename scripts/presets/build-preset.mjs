@@ -680,7 +680,13 @@ if (eraSpec) {
       // "era_" was the counter-minted prefix; stable keys carry "era:" since
       // 2026-08-20. Both are matched so a board built before the change still
       // syncs if one is ever rebuilt from an old checkout.
-      if (feature.properties.edited || /^era[_:]/.test(String(id)) || overrides[id] !== undefined) {
+      //
+      // `eraFace` (key test, not truthiness — the stamp can be "") covers the
+      // REOWNED path: a face that covers a whole region changes the owner
+      // without cutting, so no `edited` — and until 2026-08-25 the sync skipped
+      // those, leaving the polity landless in the game while it painted on the
+      // map (colonial-1650: Mantua 1 · Andorra 7 · San Marino 2 regions).
+      if (feature.properties.edited || feature.properties.eraFace !== undefined || /^era[_:]/.test(String(id)) || overrides[id] !== undefined) {
         overrides[id] = owner;
         syncedOverrides += 1;
       }

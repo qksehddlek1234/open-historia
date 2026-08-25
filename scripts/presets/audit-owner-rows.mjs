@@ -38,6 +38,16 @@
 //             tiles could resurrect or orphan them differently
 // Rows whose id the board geojson carries are healthy regardless of the
 // catalog: geojson is what the map draws from.
+//
+// THIRD AUDIT (2026-08-25): the ghost's OPPOSITE POLARITY. An owner that paints
+// ≥1 geojson feature but holds ZERO ownership rows is invisible to the game:
+// isPolityLandless (gameState) counts only the table, so the polity draws land
+// on the map while the game calls it landless — neutral flag, zero regions in
+// stats. Cause: graftEraGeometry's REOWNED path (whole-cover, no cut) set the
+// owner without the `edited` stamp the table sync keyed off. The builder now
+// stamps `eraFace` there and syncs on it; this audit is the tripwire for boards
+// built before the fix and for any new rowless path. Skipped when the board
+// ships an EMPTY table — that means "owns via the stock base map" by design.
 
 import { readFileSync, readdirSync, existsSync } from "fs";
 import path from "path";
@@ -66,6 +76,22 @@ export const auditOwnerRows = (ownership, geoIds, catalogIds) => {
   return { ghost, tileOnly };
 };
 
+// Third audit: owners painting features with zero table rows (see header).
+// `featureOwners` is the list of every land feature's owner string; returns
+// { owner: featureCount } for the rowless ones. An empty table means the board
+// owns via the stock base map — nothing to compare, nothing flagged.
+export const auditRowlessOwners = (ownership, featureOwners) => {
+  const entries = Object.entries(ownership ?? {});
+  if (entries.length === 0) return {};
+  const rowOwners = new Set(entries.map(([, owner]) => String(owner)));
+  const rowless = {};
+  for (const owner of featureOwners) {
+    if (!owner || rowOwners.has(String(owner))) continue;
+    rowless[owner] = (rowless[owner] ?? 0) + 1;
+  }
+  return rowless;
+};
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(url.fileURLToPath(import.meta.url))) {
   const { loadRegionCatalog } = await import("./lib/regionCatalog.mjs");
@@ -80,21 +106,39 @@ if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(url.fileUR
     const regionsPath = path.join(SCENARIOS_DIR, board, "regions.geojson");
     if (!existsSync(worldPath) || !existsSync(regionsPath)) continue;
     const world = JSON.parse(readFileSync(worldPath, "utf8"));
+    const geoFeatures = JSON.parse(readFileSync(regionsPath, "utf8")).features ?? [];
     const geoIds = new Set(
-      (JSON.parse(readFileSync(regionsPath, "utf8")).features ?? [])
-        .map((f) => f.id ?? f.properties?.id).filter(Boolean).map(String),
+      geoFeatures.map((f) => f.id ?? f.properties?.id).filter(Boolean).map(String),
     );
     const legacyEraKeys = [...geoIds].filter((id) => /^era_\d+$/.test(id));
     if (legacyEraKeys.length > 0) {
       dirty += 1;
       console.log(`${board}: ⚠ 카운터 방식 era 키 ${legacyEraKeys.length}개 — 재빌드하면 세이브가 밀린다 (stableEraKey 미적용 보드)`);
     }
+    // 바다는 소유가 world의 "sea_…" 행에 따로 살므로 3차 검사에서 뺀다.
+    const landOwners = geoFeatures
+      .filter((f) => f.properties?.kind !== "sea")
+      .map((f) => f.properties?.owner)
+      .filter(Boolean);
+    const rowless = auditRowlessOwners(world.regionOwnershipOverrides, landOwners);
+    const rowlessNames = Object.keys(rowless);
     const { ghost, tileOnly } = auditOwnerRows(world.regionOwnershipOverrides, geoIds, catalogIds);
-    if (ghost.length === 0 && tileOnly.length === 0) continue;
+    if (ghost.length === 0 && tileOnly.length === 0 && rowlessNames.length === 0) continue;
     dirty += 1;
-    console.log(`${board}: 유령 ${ghost.length}${ghost.length ? ` (${byCountry(ghost)})` : ""}` +
-      ` · 타일만 ${tileOnly.length}${tileOnly.length ? ` (${byCountry(tileOnly)})` : ""}` +
-      " — 재빌드가 처방이다 (builder가 번역/드롭을 인쇄한다)");
+    const parts = [];
+    if (ghost.length || tileOnly.length) {
+      parts.push(`유령 ${ghost.length}${ghost.length ? ` (${byCountry(ghost)})` : ""}` +
+        ` · 타일만 ${tileOnly.length}${tileOnly.length ? ` (${byCountry(tileOnly)})` : ""}`);
+    }
+    if (rowlessNames.length) {
+      // 두 종이 있다: 시대 파이프라인이 재소유한 지역(재빌드가 처방 — eraFace
+      // 동기화, 2026-08-25)과 스톡 현대 소유를 그대로 둔 지역(재빌드로 안 낫는다
+      // — countryAssignments 밖 국가는 애초에 행을 받은 적이 없다. 처방은 엔진
+      // 설계 판단, WORKLOG 2026-08-25 참조). 재빌드 후에도 남으면 후자다.
+      parts.push(`행 없는 소유주 ${rowlessNames.length} — 지도는 그리는데 게임은 무토지로 본다: ` +
+        rowlessNames.map((o) => `${o} ${rowless[o]}지역`).join(", "));
+    }
+    console.log(`${board}: ${parts.join(" · ")} — 유령/타일만은 재빌드가 처방 (builder가 번역/드롭/동기화를 인쇄한다)`);
   }
-  console.log(dirty === 0 ? "\n함대 깨끗 — 지오메트리 없는 소유 행 0" : `\n${dirty}개 보드에 잔여 — 위 보드를 재빌드할 것`);
+  console.log(dirty === 0 ? "\n함대 깨끗 — 유령 행 0 · 행 없는 소유주 0" : `\n${dirty}개 보드에 잔여 — 종별 처방은 각 줄 참조`);
 }

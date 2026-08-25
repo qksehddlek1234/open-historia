@@ -557,6 +557,14 @@ export const graftEraGeometry = (regionFeatures, faces, {
       else if (coverage >= whollyInside || kept[0].faces.length > 0) {
         report.reowned.push({ id: feature.properties.id, from: specOwner, to: owner, face: kept[0].faces[0] ?? "", coverage: +coverage.toFixed(3) });
         feature.properties.owner = owner;
+        // The ownership-table sync keys off era involvement, and a reowned
+        // region carries no `edited` on purpose (geometry untouched — the stock
+        // tiles stay sharper). Without a mark the sync skips it and the polity
+        // goes LANDLESS in the game while still painting on the map — Mantua,
+        // Andorra and San Marino on colonial-1650 (2026-08-25). `eraFace` is
+        // the existing mark for "the era pipeline decided this owner"; the sync
+        // tests for the KEY, not truthiness, so "" still counts.
+        feature.properties.eraFace = kept[0].faces[0] ?? "";
       } else {
         report.untouched += 1;
       }

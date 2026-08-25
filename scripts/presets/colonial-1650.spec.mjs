@@ -245,6 +245,10 @@ export default {
     GUAS:  { name: "Duchy of Guastalla", color: "#66bf40", aliases: ["과스탈라 공국"] },
     MASS:  { name: "Duchy of Massa and Carrara", color: "#66bf40", aliases: ["마사카라라 공국"] },
     MIRA:  { name: "Duchy of Mirandola", color: "#66bf40", aliases: ["미란돌라 공국"] },
+    // 만토바는 위 승격 때 빠졌던 마지막 하나 — 면이 만토바 주를 통째로 덮어
+    // 재소유(reowned) 경로로만 살았고, 그 경로가 소유 테이블에 안 실리던 버그로
+    // 무토지 오판까지 겹쳤다(2026-08-25 진단). 색은 팔레트 매니페스트 실측 핀.
+    MANT:  { name: "Duchy of Mantua", color: "#66bf40", aliases: ["만토바 공국"] },
     TUSC:  { name: "Grand Duchy of Tuscany", color: "#66bf40", aliases: ["토스카나 대공국"] },
     NEUC:  { name: "Principality of Neuchâtel", color: "#84bf40", aliases: ["뇌샤텔 공국"] },
     VALA:  { name: "Republic of Valais", color: "#84bf40", aliases: ["발레 공화국"] },

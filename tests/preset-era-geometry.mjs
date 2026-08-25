@@ -100,6 +100,14 @@ test("a region wholly inside a face keeps its sharp geometry and only the owner 
     { id: "BLR.3_1", from: "Soviet Union", to: "Poland" },
   );
   assert.equal(out2.features[0].properties.owner, "Poland");
+  // The reowned region must be MARKED for the ownership-table sync. It stays
+  // un-`edited` on purpose (geometry untouched, stock tiles stay on), so the
+  // sync needs another mark — without one the polity paints on the map but the
+  // game calls it landless (Mantua/Andorra/San Marino on 1650, 2026-08-25).
+  assert.notEqual(out2.features[0].properties.eraFace, undefined,
+    "reowned must stamp eraFace so the table sync sees it");
+  assert.equal(out2.features[0].properties.edited, undefined,
+    "but must NOT stamp edited — that would switch off the stock tiles");
 });
 
 test("a province cut between two powers splits — original id keeps the majority, marked edited", () => {
@@ -202,6 +210,11 @@ test("build-preset restates grafted owners into the game's ownership table", () 
   assert.match(BUILD, /syncedOverrides/, "the sync is real code, not a comment");
   assert.match(BUILD, /overrides\[id\] = owner;/, "world.regionOwnershipOverrides gets the grafted owner");
   assert.match(BUILD, /가짜 정복선/, "and the reason is written down: a stale table draws conquest borders on turn one");
+  // The eraFace test must be a KEY test (!== undefined): the stamp is "" when a
+  // face has no name, and a truthiness test would re-open the landless hole for
+  // exactly those. Pinned against tidy-minded refactoring.
+  assert.match(BUILD, /feature\.properties\.eraFace !== undefined/,
+    "reowned features (eraFace stamped, no edited) must sync too — key test, not truthiness");
 });
 
 test("the graft is opt-in, and a missing dump degrades to the modern composition out loud", () => {

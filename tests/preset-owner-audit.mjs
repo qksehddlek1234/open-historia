@@ -19,7 +19,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
-import { auditOwnerRows } from "../scripts/presets/audit-owner-rows.mjs";
+import { auditOwnerRows, auditRowlessOwners } from "../scripts/presets/audit-owner-rows.mjs";
 
 let pass = 0;
 const test = (name, fn) => { fn(); pass += 1; console.log(`  ok  ${name}`); };
@@ -47,6 +47,27 @@ test("a row only the tile catalog knows is a logic ghost, and says which kind", 
   assert.deepEqual(tileOnly, ["CHN.10_1"]);
   // XXX.1_1: nothing anywhere knows it — dead weight outright.
   assert.deepEqual(ghost, ["XXX.1_1"]);
+});
+
+console.log("\nAnd the opposite polarity — an owner painting features with no row at all");
+
+test("an owner with features but zero rows is flagged with its feature count", () => {
+  // The Mantua shape (2026-08-25): the map paints the polity, the table has
+  // never heard of it, isPolityLandless calls it landless. The audit reports
+  // the owner NAME and how much land the game cannot see.
+  const rowless = auditRowlessOwners(
+    { "ITA.10.10_1": "Spanish Empire" },
+    ["Spanish Empire", "Duchy of Mantua", "Andorra", "Andorra"],
+  );
+  assert.deepEqual(rowless, { "Duchy of Mantua": 1, Andorra: 2 });
+});
+
+test("an empty table flags nothing — that board owns via the stock base map", () => {
+  // isPolityLandless's own escape hatch: no override list at all means the
+  // polity owns its country through the base tiles. The audit must not turn
+  // every stock modern board into noise.
+  assert.deepEqual(auditRowlessOwners({}, ["Japan", "France"]), {});
+  assert.deepEqual(auditRowlessOwners(undefined, ["Japan"]), {});
 });
 
 test("the builder translates catalog ids instead of emitting them raw", () => {
