@@ -104,4 +104,20 @@ test("the builder writes regions-far.geojson and leaves regions.geojson alone", 
     "the pass must never overwrite the exact features in place");
 });
 
+test("the far file ships only what the far lane draws, filtered AFTER simplification", () => {
+  // ㄴ-5 (2026-08-24): the far layers filter on STOCK_GEOMETRY_FILTER, so the
+  // ~1,600 authored/tiled:false features per board were parsed and indexed but
+  // never drawn — a third of the file. Order matters and is the real invariant:
+  // simplifyTopology decides "is this edge shared" from the FULL feature set,
+  // and filtering first would reclassify borders against dropped neighbours as
+  // lone arcs. Both writers carry the same rule.
+  for (const rel of ["scripts/presets/build-preset.mjs", "scripts/build-default-map.mjs"]) {
+    const src = fs.readFileSync(path.join(ROOT, ...rel.split("/")), "utf8");
+    assert.match(src, /const farDrawable = \(feature\)/, `${rel}: the drawable filter must exist`);
+    assert.match(src, /simplified\.features\.filter\(farDrawable\)/,
+      `${rel}: the filter must run on the SIMPLIFIED output, never before the pass`);
+    assert.match(src, /features: farFeatures/, `${rel}: the far file must ship the filtered set`);
+  }
+});
+
 console.log(`\n${pass} passed\n`);

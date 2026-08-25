@@ -717,6 +717,18 @@ writeFileSync(
   "utf8",
 );
 
+// ── ㄴ-5 (2026-08-24): ship only what the far lane can draw ──────────────────
+// The far layers filter on STOCK_GEOMETRY_FILTER (dotted id · not edited · not
+// tiled:false), so the 1,609 authored/tiled:false features per board were being
+// parsed, indexed and never drawn — measured by Cowork, a third of the 26MB.
+// The filter runs AFTER simplification on purpose: simplifyTopology decides
+// "is this edge shared" from the full feature set, and dropping neighbours
+// first would reclassify their shared borders as lone arcs.
+const farDrawable = (feature) => {
+  const props = feature?.properties ?? {};
+  return String(props.id ?? "").includes(".") && props.edited !== true && props.tiled !== false;
+};
+
 // ── regions-far.geojson — the far lane's own, topology-simplified copy ────────
 // A SECOND FILE, NOT A SIMPLER FIRST ONE, and the reason is measured. The white
 // wedges come from the runtime simplifying each feature on its own
@@ -743,17 +755,19 @@ writeFileSync(
 {
   const t0 = Date.now();
   const simplified = simplifyTopology(regionFeaturesFinal, { eps: SIMPLIFY_EPS });
+  const farFeatures = simplified.features.filter(farDrawable);
+  const farDropped = simplified.features.length - farFeatures.length;
   const st = simplified.stats;
   writeFileSync(
     path.join(scenarioDir, "regions-far.geojson"),
-    JSON.stringify({ type: "FeatureCollection", features: simplified.features }),
+    JSON.stringify({ type: "FeatureCollection", features: farFeatures }),
     "utf8",
   );
   console.log(
     `[simplify] regions-far.geojson eps ${st.eps}° · 정점 ${st.pointsIn.toLocaleString()} → ` +
     `${st.pointsOut.toLocaleString()} (${((100 * st.pointsOut) / Math.max(1, st.pointsIn)).toFixed(1)}%) · ` +
     `공유 아크 ${st.arcsShared}(재사용 ${st.cacheHits}) · 단독 ${st.arcsLone} · ` +
-    `바닥 유지 링 ${st.ringsFloored} · ${Date.now() - t0}ms`,
+    `바닥 유지 링 ${st.ringsFloored} · far 밖 피처 ${farDropped}개 제외 · ${Date.now() - t0}ms`,
   );
 }
 

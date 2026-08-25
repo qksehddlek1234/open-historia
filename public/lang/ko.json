@@ -1875,5 +1875,20 @@
   "Singapore": "싱가포르",
   "Nauru": "나우루",
   "Tuvalu": "투발루",
-  "San Marino": "산마리노"
+  "San Marino": "산마리노",
+  "Regions Owned (": "소유한 지역 (",
+  "Character": "성향",
+  "Filter by importance": "중요도별 필터링",
+  "Internal: Head of Military": "내부: 군 총사령관",
+  "Internal: Diplomatic Representative": "내부: 외교 대표",
+  "Internal: Economic Advisor": "내부: 경제 고문",
+  "Internal: Head of Intelligence": "내부: 정보국장",
+  "Internal: Media Chief": "내부: 언론 책임자",
+  "Internal: Research Director": "내부: 연구 책임자",
+  "Internal: Foreign Minister": "내부: 외무 장관",
+  "Internal: Trade Minister": "내부: 무역 장관",
+  "Internal: Interior Minister": "내부: 내무 장관",
+  "Internal: Religious Leader": "내부: 종교 지도자",
+  "Domestic: Civilians": "국내: 민간인",
+  "Domestic: Newspaper": "국내: 신문"
 }
