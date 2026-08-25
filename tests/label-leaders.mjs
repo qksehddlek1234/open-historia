@@ -1299,4 +1299,49 @@ test("the crossfade is one curve in two halves — and it now covers the zooms t
   assert.equal(ev(far([6.5, 7.5]), 7.5).toFixed(3), "0.000", "and gone by 7.5 — eps 0.01 is 2px there");
 });
 
+console.log("\nProvince names appear with zoom and never outrank a country label");
+
+test("province labels are POINTS from the largest ring, seas skipped, names through the fix table", () => {
+  // Labelling the polygons directly would re-place the name in every tile the
+  // polygon is clipped into — duplicate names at every tile seam. So one point
+  // per region, at the shoelace centroid of the largest ring.
+  assert.match(NATIONS, /const regionLabelData = useMemo\(\(\) => \{/, "the point collection is memoized on regionData");
+  assert.match(NATIONS, /if \(props\.kind === "sea"\) continue;/, "sea grid cells are not places — skipped");
+  assert.match(NATIONS, /resolveRegionName\(id, props\.name \?\? props\.NAME_1 \?\? ""\)/,
+    "names go through the SAME fix table as the region popup — and stay English (user call 2026-08-24/25)");
+  assert.match(NATIONS, /const best = largestRingOf\(f\.geometry\);/, "anchor ring = the same largest-ring notion the rest of the file uses");
+  assert.match(NATIONS, /geometry: \{ type: "Point", coordinates: \[cx, cy\] \}/, "one Point per region");
+});
+
+test("province labels cut in by LAYER minzoom, fade in by opacity, and stay under country names", () => {
+  // ON/OFF is minzoom, not opacity: below minzoom the layer is not evaluated at
+  // all, so hidden names hold no collision boxes — the A-2 lesson, applied here.
+  assert.match(NATIONS, /id="region-labels"\s+type="symbol"\s+minzoom=\{6\.9\}/, "hard cut-in at 6.9 (band handoff done by 7.5)");
+  assert.match(NATIONS, /"text-opacity": \["interpolate", \["linear"\], \["zoom"\], 6\.9, 0, 7\.6, 0\.6\]/,
+    "fade tops out at 0.6 — under the country labels' 0.75 peak, a rank below by construction");
+  const srcIdx = NATIONS.indexOf('id="region-label-source"');
+  const countryIdx = NATIONS.indexOf('id="country-point-label-source"');
+  assert.ok(srcIdx > -1 && countryIdx > -1 && srcIdx < countryIdx,
+    "region labels mount BEFORE the country label sources — country names always draw on top");
+  assert.match(NATIONS, /\{customActive && \(\s*<Source id="region-label-source"/, "stock scenarios (no region set) mount nothing");
+});
+
+test("…and MapLibre accepts the province label expressions", async () => {
+  let spec;
+  try { spec = await import("@maplibre/maplibre-gl-style-spec"); } catch { console.log("  (style-spec not installed here — structural pins above still stand)"); return; }
+  const { createPropertyExpression, latest } = spec;
+  const size = ["interpolate", ["linear"], ["zoom"], 7, 10, 10, 13];
+  const opacity = ["interpolate", ["linear"], ["zoom"], 6.9, 0, 7.6, 0.6];
+  for (const [expr, propSpec, name] of [
+    [size, latest.layout_symbol["text-size"], "text-size"],
+    [opacity, latest.paint_symbol["text-opacity"], "text-opacity"],
+  ]) {
+    const compiled = createPropertyExpression(expr, propSpec);
+    assert.equal(compiled.result, "success", name + ": " + JSON.stringify(compiled.value));
+  }
+  const ev = createPropertyExpression(opacity, latest.paint_symbol["text-opacity"]).value;
+  assert.equal(ev.evaluate({ zoom: 6.9 }), 0, "invisible at cut-in");
+  assert.ok(Math.abs(ev.evaluate({ zoom: 7.6 }) - 0.6) < 1e-9, "0.6 by 7.6");
+});
+
 console.log(`\n${pass} passed\n`);

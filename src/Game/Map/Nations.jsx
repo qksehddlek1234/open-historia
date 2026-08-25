@@ -1032,6 +1032,51 @@ const WorldMap = ({ isGlobe = false }) => {
     return { type: "FeatureCollection", features: [...land, ...seaFeatures] };
   }, [customRegionData, seaFeatures]);
   const customActive = customFlag && Array.isArray(regionData?.features) && regionData.features.length > 0;
+  // ---- Province name labels (user request 2026-08-25: "프로빈스 레이블에도 줌인
+  // 줌아웃 할때 보이거나 안보이는 기능") -------------------------------------
+  // One POINT per land region, so MapLibre places exactly one name per province.
+  // Labelling the polygons directly would re-place the name in every tile the
+  // polygon is clipped into — duplicate names at every tile seam. The point is
+  // the centroid of the region's largest ring (small shapes read fine from it,
+  // and it reuses the same "largest ring" notion as the click/label anchors).
+  //
+  // Names go through resolveRegionName — the same fix table the region popup
+  // uses — and stay in the source language (English), matching the user's
+  // city-name call (2026-08-24, "번역으로 소스 잡아먹는 게 줄어야지"): province
+  // names add zero translation load. Sea regions are skipped: their names are
+  // grid labels, not places, and the faint sea fill should stay quiet.
+  const regionLabelData = useMemo(() => {
+    const features = [];
+    for (const f of regionData?.features ?? []) {
+      const props = f?.properties || {};
+      if (props.kind === "sea") continue;
+      const id = String(props.id ?? "");
+      const name = resolveRegionName(id, props.name ?? props.NAME_1 ?? "");
+      if (!name) continue;
+      const best = largestRingOf(f.geometry);
+      if (!best) continue;
+      // Shoelace centroid of the largest ring — cheap, and for the rare ring
+      // whose centroid falls outside itself (crescents) a province-rank label
+      // sitting slightly off is acceptable at these zooms.
+      const ring = best.ring;
+      let a = 0, cx = 0, cy = 0;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const w = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+        a += w;
+        cx += (ring[j][0] + ring[i][0]) * w;
+        cy += (ring[j][1] + ring[i][1]) * w;
+      }
+      if (a === 0) continue;
+      cx /= 3 * a;
+      cy /= 3 * a;
+      features.push({
+        type: "Feature",
+        geometry: { type: "Point", coordinates: [cx, cy] },
+        properties: { id, name },
+      });
+    }
+    return { type: "FeatureCollection", features };
+  }, [regionData]);
   // True for maps with their OWN drawn/generated geometry (region ids like
   // "reg_fmg_…", no dot) rather than re-ownership on the stock GADM tiles (ids like
   // "USA.1_1"). On such a map the stock regions-fill layer is Earth left over
@@ -2012,6 +2057,28 @@ const WorldMap = ({ isGlobe = false }) => {
     [labelFont],
   );
 
+  // Province names: quiet, upright, small — a rank below every country label.
+  // ON/OFF IS THE LAYER'S minzoom, not opacity: below minzoom the layer is not
+  // evaluated at all, so hidden province names hold no collision boxes (the
+  // A-2 lesson). The opacity ramp only shapes the fade-in AFTER the layer
+  // exists; it ends well under the country labels' 0.75 peak so province text
+  // never reads as a second country name.
+  const regionLabelLayout = useMemo(() => ({
+    "text-field": ["get", "name"],
+    "text-font": labelFontStack,
+    "text-size": ["interpolate", ["linear"], ["zoom"], 7, 10, 10, 13],
+    "text-anchor": "center",
+    "text-letter-spacing": 0.05,
+    "text-max-width": 8,
+    "text-padding": 6,
+  }), [labelFontStack]);
+  const regionLabelPaint = useMemo(() => ({
+    "text-color": labelTextColor || "#FFFFFF",
+    "text-halo-color": labelHaloColor || "rgba(15, 23, 42, 0.55)",
+    "text-halo-width": 0.6,
+    "text-opacity": ["interpolate", ["linear"], ["zoom"], 6.9, 0, 7.6, 0.6],
+  }), [labelTextColor, labelHaloColor]);
+
   const pointLabelLayoutBase = useMemo(() => ({
     "text-field": ["get", "name"],
     "text-font": labelFontStack,
@@ -2465,6 +2532,24 @@ const WorldMap = ({ isGlobe = false }) => {
             source-layer="regions"
             filter={["in", ["get", "GID_1"], ["literal", divergedRegionIds]]}
             paint={divergedBorderPaint}
+          />
+        </Source>
+      )}
+
+      {/* PROVINCE NAMES — mounted BEFORE every country-label source so a
+          province name always sits UNDER country names in the draw order, and
+          gated to customActive maps only (a stock scenario has no region set
+          of its own to name). minzoom 6.9: the far→tile handoff has finished
+          (band ends 7.5) and the map is reading provinces, which is where the
+          hairlines come up too — names and their borders arrive together. */}
+      {customActive && (
+        <Source id="region-label-source" type="geojson" data={regionLabelData}>
+          <Layer
+            id="region-labels"
+            type="symbol"
+            minzoom={6.9}
+            layout={regionLabelLayout}
+            paint={regionLabelPaint}
           />
         </Source>
       )}
