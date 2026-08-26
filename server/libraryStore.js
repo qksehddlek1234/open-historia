@@ -318,6 +318,12 @@ const SCENARIO_GEOJSON_ASSET_FILES = {
   // a shared border into the white wedges the player saw. Absent is safe: the
   // far lane falls back to the exact geometry and looks exactly like today.
   regionsFarGeojson: "regions-far.geojson",
+  // ㄴ-8: the far lane's border lines, emitted from the SAME simplified arcs
+  // as regions-far so line and fill edge cannot diverge (the 벨기에 z7 jag).
+  // Frontiers are per-board (ownership differs even on a shared map); the
+  // coast rides along verbatim from borders.geojson. Absent is safe — the
+  // border lanes keep drawing the precise file alone, which is today's screen.
+  bordersFarGeojson: "borders-far.geojson",
   // A custom map background uploaded in the editor (an image placed by extent, or
   // a vector overlay). Small descriptor lives in world.background; this holds the
   // heavy payload ({ dataUrl } for images, { geojson } for vector) so world.json
@@ -2308,7 +2314,7 @@ const readRuntimeJsonAsset = (assetKey) => {
       // the FAR copy from the same place, or the far lane would draw this
       // board's absent geometry while the near lane draws default's.
       const borrowsDefaultMap = assetKey === "regionsGeojson"
-        || ((assetKey === "bordersGeojson" || assetKey === "regionsFarGeojson")
+        || ((assetKey === "bordersGeojson" || assetKey === "regionsFarGeojson" || assetKey === "bordersFarGeojson")
           && !fs.existsSync(getScenarioUploadPath(scenario.id, "regionsGeojson")));
       if (borrowsDefaultMap && scenario.id !== DEFAULT_SCENARIO_ID) {
         // Borrowing the Modern Day map. Migrate it as DEFAULT'S record, not this

@@ -140,6 +140,40 @@ test("a feature that was invalid in the SOURCE is left alone and counted", () =>
   assert.equal(stats.repair.arcsRestored, 0, "no arcs spent on a defect we did not make");
 });
 
+console.log("\nThe far border line IS the fill edge — same arc, zero divergence");
+
+test("an owner-differing shared arc comes back as a frontier line with the fill's own vertices", () => {
+  // ㄴ-8 (2026-08-25), the 벨기에 z7 jag: the precise border line jittered AND
+  // strayed off the simplified fill edge because they were different geometry.
+  // The frontier line must be the very arc the two fills ship — compare the
+  // vertices, not the idea.
+  const { features, frontier } = simplifyTopology([west, east], { eps: 0.01 });
+  assert.equal(frontier.length, 1, "one shared border between two owners → one frontier line");
+  assert.equal(frontier[0].properties.kind, "frontier", "styled exactly like the precise file's frontier");
+  const line = frontier[0].geometry.coordinates.map(([x, y]) => `${x},${y}`);
+  const a = borderOf(features[0]);
+  const lineOriented = line[0] === a[0] ? line : [...line].reverse();
+  assert.deepEqual(lineOriented, a, "the line must carry the fill edge's OWN vertices");
+});
+
+test("a border between two regions of the SAME owner draws no frontier", () => {
+  const twin = {
+    ...east,
+    properties: { ...east.properties, owner: "X" },
+  };
+  const { frontier } = simplifyTopology([west, twin], { eps: 0.01 });
+  assert.equal(frontier.length, 0, "internal same-owner edges are not frontiers");
+});
+
+test("the builder ships borders-far from the same pass, coast riding verbatim", () => {
+  const src = fs.readFileSync(path.join(ROOT, "scripts", "presets", "build-preset.mjs"), "utf8");
+  assert.match(src, /farFrontier = simplified\.frontier/,
+    "the frontier must come from the simplify pass, never a second simplifier");
+  assert.match(src, /kind === "coast"/,
+    "the coast is copied from the precise borders file — already eps-0.02 calm, identical for the crossfade");
+  assert.match(src, /borders-far\.geojson/, "and the far border file is a separate artifact");
+});
+
 console.log("\nThe far lane gets its own file, and the exact one stays exact");
 
 test("the builder writes regions-far.geojson and leaves regions.geojson alone", () => {

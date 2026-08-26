@@ -330,6 +330,9 @@ export const simplifyTopology = (features, { eps = 0.01 } = {}) => {
   // shared-border invariant holds at every rung.
   const VERBATIM = 3;
   const refine = new Map();
+  // ㄴ-8 (2026-08-25): shared arcs kept by ORIGINAL vertices, so the far
+  // border lines can be emitted from the SAME final arcs the fill uses.
+  const sharedArcInfo = new Map();
 
   // Cut the ring where "shared" flips: each run of same-state edges is an arc.
   const arcsOf = (ring) => {
@@ -363,6 +366,7 @@ export const simplifyTopology = (features, { eps = 0.01 } = {}) => {
       }
       let simplified;
       const level = refine.get(h) ?? 0;
+      if (count && arc.shared && !sharedArcInfo.has(h)) sharedArcInfo.set(h, { key, points: arc.points });
       if (level >= VERBATIM) {
         simplified = arc.points;
       } else if (level > 0) {
@@ -496,7 +500,37 @@ export const simplifyTopology = (features, { eps = 0.01 } = {}) => {
     for (const ring of ringsOf(feature.geometry)) stats.pointsOut += ring.length;
   }
 
-  return { features: simplifiedFeatures, stats: { ...stats, eps, repair: { ...repair, ms: Date.now() - startedAt } } };
+  // ── ㄴ-8: far frontier lines, from the SAME final arcs as the fill ─────────
+  //
+  // The jagged-border complaint (벨기에 z7, 2026-08-25) had two causes: the
+  // precise border line jitters at far zooms (ⓐ), and it is DIFFERENT geometry
+  // from the simplified fill edge, so it strays 1–2px into one colour (ⓑ). A
+  // line emitted from the very arc the fill ships kills both at once — same
+  // vertices, same refinement rung, zero divergence. Only owner-DIFFERING
+  // shared arcs are frontiers; same-owner internal edges draw nothing.
+  //
+  // Accepted limit: rings shorter than 5 points skip the arc walk, and floored
+  // rings ship their original geometry while the frontier line stays at the
+  // arc's rung — both are islet-scale, subpixel at the zooms this lane serves.
+  const frontier = [];
+  for (const [h, info] of sharedArcInfo) {
+    const users = [...new Set(arcUsers.get(h) ?? [])];
+    if (users.length < 2) continue;
+    const owners = [...new Set(users.map((idx) => features[idx]?.properties?.owner).filter(Boolean))];
+    if (owners.length < 2) continue;
+    const level = refine.get(h) ?? 0;
+    const points = level >= VERBATIM ? info.points
+      : level > 0 ? simplifyRun(info.points, eps / 4 ** level)
+        : (cache.get(info.key) ?? info.points);
+    if (points.length < 2) continue;
+    frontier.push({
+      type: "Feature",
+      properties: { kind: "frontier" },
+      geometry: { type: "LineString", coordinates: points },
+    });
+  }
+
+  return { features: simplifiedFeatures, frontier, stats: { ...stats, eps, repair: { ...repair, ms: Date.now() - startedAt } } };
 };
 
 export default simplifyTopology;

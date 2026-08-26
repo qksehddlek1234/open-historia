@@ -78,6 +78,9 @@ export const JSON_URLS = {
   regionsFarGeojson: "",
   citiesGeojson: "",
   bordersGeojson: "",
+  // ㄴ-8: far border lines — same arcs as regionsFarGeojson, absent is safe
+  // (the border lanes keep drawing the precise file alone).
+  bordersFarGeojson: "",
   backgroundData: "",
   world: "",
 };
@@ -181,7 +184,9 @@ const isNoStoreJsonUrl = (url) =>
   // ever reads back (the ~190MB-on-a-55MB-file leak the comment above
   // describes). Nations.jsx already passes cache:false; this is the belt for
   // the next caller who does not know the trap.
-  || url === JSON_URLS.regionsFarGeojson;
+  || url === JSON_URLS.regionsFarGeojson
+  // ㄴ-8: the far border file is a multi-MB sibling with the same trap.
+  || url === JSON_URLS.bordersFarGeojson;
 
 const pmtilesProtocol = new Protocol();
 let pmtilesProtocolReady = false;
@@ -296,6 +301,7 @@ export const setRuntimeAssetEndpoints = ({ token = "" } = {}) => {
   JSON_URLS.regionsFarGeojson = withRuntimeToken("/api/runtime/json/regionsFarGeojson");
   JSON_URLS.citiesGeojson = withRuntimeToken("/api/runtime/json/citiesGeojson");
   JSON_URLS.bordersGeojson = withRuntimeToken("/api/runtime/json/bordersGeojson");
+  JSON_URLS.bordersFarGeojson = withRuntimeToken("/api/runtime/json/bordersFarGeojson");
   JSON_URLS.backgroundData = withRuntimeToken("/api/runtime/json/backgroundData");
   JSON_URLS.world = withRuntimeToken("/api/runtime/json/world");
 

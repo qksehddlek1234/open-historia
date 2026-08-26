@@ -770,9 +770,13 @@ const farDrawable = (feature) => {
 // Wiring the far lane to it is a Nations.jsx change, which is Cowork's lock.
 // Until that lands this file is written and unused, which costs a rebuild
 // second and nothing else.
+// ㄴ-8: the far border lines ride the same simplify pass — assembled with the
+// coast copy in the borders block below.
+let farFrontier = [];
 {
   const t0 = Date.now();
   const simplified = simplifyTopology(regionFeaturesFinal, { eps: SIMPLIFY_EPS });
+  farFrontier = simplified.frontier;
   const farFeatures = simplified.features.filter(farDrawable);
   const farDropped = simplified.features.length - farFeatures.length;
   const st = simplified.stats;
@@ -810,6 +814,19 @@ const farDrawable = (feature) => {
   else console.warn("[borders] ⚠ coastline-reference.json 없음 — 물 거리 필터 꺼짐 (build-coastline-reference.mjs로 생성)");
   const { collection, stats } = buildOwnerBorders(regionFeaturesFinal, { seedCoastKeys, seedSharedKeys, coastReference });
   writeFileSync(path.join(scenarioDir, "borders.geojson"), JSON.stringify(collection), "utf8");
+  // ㄴ-8 (2026-08-25): the far lane's border file. Frontiers come from the
+  // SAME final arcs as the far fill (simplifyTopology.frontier — the 벨기에
+  // z7 jag was the precise line jittering AND straying off the simplified fill
+  // edge; one geometry ends both). The coast rides along VERBATIM from the
+  // precise file: it is already chained+simplified (eps 0.02), so ⓐ does not
+  // bite it, and identical coordinates make the crossfade invisible there.
+  const coastFar = collection.features.filter((f) => f?.properties?.kind === "coast");
+  writeFileSync(
+    path.join(scenarioDir, "borders-far.geojson"),
+    JSON.stringify({ type: "FeatureCollection", features: [...farFrontier, ...coastFar] }),
+    "utf8",
+  );
+  console.log(`[borders] borders-far.geojson: 전선 ${farFrontier.length}줄(far 채움과 같은 아크) + 해안 ${coastFar.length}줄(정밀본 그대로)`);
   console.log(
     `[borders] 국경 세그먼트 ${stats.segments.frontier} → ${stats.parts}줄 · ` +
     `내부 ${stats.segments.interior} · 해안 ${stats.segments.exterior} · ` +
