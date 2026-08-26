@@ -2095,16 +2095,17 @@ const WorldMap = ({ isGlobe = false }) => {
     [labelFont],
   );
 
-  // Province names: quiet, upright, small — a rank below every country label.
+  // Province names: absent zoomed out, quiet on arrival, the main text deep in.
   // ON/OFF IS THE LAYER'S minzoom, not opacity: below minzoom the layer is not
   // evaluated at all, so hidden province names hold no collision boxes (the
   // A-2 lesson). The opacity ramp only shapes the fade-in AFTER the layer
-  // exists; it ends well under the country labels' 0.75 peak so province text
-  // never reads as a second country name.
+  // exists; it arrives quiet, stays under the country labels' 0.75 peak, and
+  // only passes it deep (8.7+) where country names have already outgrown their
+  // own px fade window.
   const regionLabelLayout = useMemo(() => ({
     "text-field": ["get", "name"],
     "text-font": labelFontStack,
-    "text-size": ["interpolate", ["linear"], ["zoom"], 7, 10, 10, 13],
+    "text-size": ["interpolate", ["linear"], ["zoom"], 7.5, 10, 8.7, 13, 10, 15.5],
     "text-anchor": "center",
     "text-letter-spacing": 0.05,
     "text-max-width": 8,
@@ -2113,8 +2114,14 @@ const WorldMap = ({ isGlobe = false }) => {
   const regionLabelPaint = useMemo(() => ({
     "text-color": labelTextColor || "#FFFFFF",
     "text-halo-color": labelHaloColor || "rgba(15, 23, 42, 0.55)",
-    "text-halo-width": 0.6,
-    "text-opacity": ["interpolate", ["linear"], ["zoom"], 6.9, 0, 7.6, 0.6],
+    "text-halo-width": 1,
+    // TWO STATIONS, BOTH PAST THE FAR BAND (user calls 2026-08-26, in order:
+    // "no difference between zooms" then "still too visible zoomed out"). The
+    // first cut tried 0.5 inside the handoff zone — that is exactly what "too
+    // visible zoomed out" was. So: nothing at all before the 7.5 cut-in, a
+    // quiet 0.35 at 8, and 0.9 by 8.7, where country names have outgrown
+    // their own px fade window and the provinces are the layer being read.
+    "text-opacity": ["interpolate", ["linear"], ["zoom"], 7.5, 0, 8, 0.35, 8.7, 0.9],
   }), [labelTextColor, labelHaloColor]);
 
   const pointLabelLayoutBase = useMemo(() => ({
@@ -2225,8 +2232,18 @@ const WorldMap = ({ isGlobe = false }) => {
 
   const labelLayerPaint = useMemo(() => ({
     "text-color": labelTextColor || "#FFFFFF",
-    "text-halo-color": labelHaloColor || "rgba(0, 0, 0, 0.5)",
-    "text-halo-width": 1,
+    // HALO IS WHAT KEEPS A SMALL NAME ALIVE ON A PALE FILL. Measured 2026-08-26
+    // (Central Asia, z4.1): the khanates' names computed text-opacity 0.75 —
+    // the full peak — yet read as ghosts, because ~20px white glyphs over the
+    // board's desaturated fills have almost no luminance edge and 1px of 50%
+    // black was not supplying one. 2px at 80% made the same labels legible in
+    // the same frame; on a 150px name the same 2px is proportionally nothing,
+    // so the big labels keep their look. (User report 2026-08-26: "몇몇
+    // 국가명이 거의 안 보이는 채로 바뀌었어" — the toggle test cleared this
+    // round's new layers, and the opacity window was already at peak: the
+    // missing piece was contrast, and this is the contrast dial.)
+    "text-halo-color": labelHaloColor || "rgba(0, 0, 0, 0.8)",
+    "text-halo-width": 2,
     // A COUNTRY LABEL FADES ON ITS OWN SIZE ON SCREEN, NOT ON ZOOM.
     //
     // This used to ramp 0.75 at z5 down to 0 at z8, so the closer the player
@@ -2258,16 +2275,16 @@ const WorldMap = ({ isGlobe = false }) => {
     // now sits in pointLabelLayoutBase and the curved layout beside it.
   }), [labelHaloColor, labelTextColor, isGlobe]);
 
-  // Halo is the other half of weight. A 1px halo around a name set 40% smaller
-  // is proportionally twice the outline, which is what makes a shrunken heavy
-  // face read as a bolder blob rather than a quieter label — the exact thing
-  // reported ("province and country labels are the same weight"). Halving it
-  // keeps the halo the same fraction of the glyph it wraps. And the fade window
-  // reads the size this rank actually draws at — MINOR_LABEL_SCALE of the
-  // areaScale — or a repeat would fade in 40% too early.
+  // Halo is the other half of weight. The main lane's halo around a name set
+  // 40% smaller is proportionally twice the outline, which is what makes a
+  // shrunken heavy face read as a bolder blob rather than a quieter label — the
+  // exact thing reported ("province and country labels are the same weight").
+  // Halving it keeps the halo the same fraction of the glyph it wraps. And the
+  // fade window reads the size this rank actually draws at — MINOR_LABEL_SCALE
+  // of the areaScale — or a repeat would fade in 40% too early.
   const minorLabelLayerPaint = useMemo(() => ({
     ...labelLayerPaint,
-    "text-halo-width": 0.5,
+    "text-halo-width": 1,
     "text-opacity": buildCountryTextOpacity(MINOR_LABEL_SCALE, isGlobe ? GLOBE_LAT_CORRECTION : null, 0.75),
   }), [labelLayerPaint, isGlobe]);
 
@@ -2482,11 +2499,22 @@ const WorldMap = ({ isGlobe = false }) => {
             // at world zoom. Fixing the fill without this would have traded one
             // reported defect for a louder one.
             //
-            // Now it comes up where the tiles' own hairlines do — nothing below
-            // 6.5, full by 8 — so the two lanes fade in together and the line
-            // appears as you zoom into it rather than being there all along.
+            // Now it runs the SAME curve as the tiles' own hairlines
+            // (fadeStops — nothing before 7.5 by default, and the player's
+            // Border Fade Range moves both lanes together). It used to start a
+            // full zoom earlier (6.5→0.6 by 8), which put PRECISE z8-detail
+            // squiggles over the far band's generalized fills and calm swapped
+            // frontier lines — the reported "province jaggedness is back"
+            // (user 2026-08-26): authored countries sat covered in wiggly
+            // internal detail at a zoom where every stock neighbour was clean.
+            // Same stops, same caps as regionsOutlinePaint above, duplicated
+            // here rather than shared so that lane's pinned block stays whole.
             "line-opacity": customActive
-              ? ["interpolate", ["linear"], ["zoom"], 6.5, 0, 8, 0.6]
+              ? ["interpolate", ["linear"], ["zoom"],
+                fadeStops[0], 0,
+                fadeStops[1], Math.min(0.85, 0.35 * borderScale),
+                fadeStops[2], Math.min(0.85, 0.65 * borderScale),
+                fadeStops[3], Math.min(0.85, 0.8 * borderScale)]
               : 0,
           }}
         />
@@ -2602,15 +2630,17 @@ const WorldMap = ({ isGlobe = false }) => {
       {/* PROVINCE NAMES — mounted BEFORE every country-label source so a
           province name always sits UNDER country names in the draw order, and
           gated to customActive maps only (a stock scenario has no region set
-          of its own to name). minzoom 6.9: the far→tile handoff has finished
-          (band ends 7.5) and the map is reading provinces, which is where the
-          hairlines come up too — names and their borders arrive together. */}
+          of its own to name). minzoom 7.5: past the WHOLE far band — fills,
+          frontier lines and hairlines are all precise from here, and the
+          hairline fade begins at this same stop, so names and their borders
+          arrive together. (User call #2 2026-08-26: zoomed out, nothing
+          province-shaped should be on the map at all.) */}
       {customActive && (
         <Source id="region-label-source" type="geojson" data={regionLabelData}>
           <Layer
             id="region-labels"
             type="symbol"
-            minzoom={6.9}
+            minzoom={7.5}
             layout={regionLabelLayout}
             paint={regionLabelPaint}
           />

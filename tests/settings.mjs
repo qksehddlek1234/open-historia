@@ -514,7 +514,11 @@ test("…and every border layer scales, provinces included", () => {
   // border added (+5), 21 until the owner-coasts layer landed (B-7,
   // 2026-08-19: coastlines at 0.6× national weight — five more width stops,
   // every one riding borderScale, which is exactly what this pin demands).
-  assert.equal((NATIONS.match(/\* borderScale/g) || []).length, 26);
+  // 29 since ㄷ-3 (2026-08-26): the authored internal-line lane joined the
+  // tile lane's fade curve — its three stops ride borderScale too, so the
+  // Border Fade Range slider moves BOTH lanes together (the one-zoom gap
+  // between them was the "들쭉날쭉 재발" the player saw).
+  assert.equal((NATIONS.match(/\* borderScale/g) || []).length, 29);
   assert.match(NATIONS, /const borderScale = useDisplayScale\("borderWidth"\);/);
 });
 

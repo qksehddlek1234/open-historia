@@ -363,7 +363,10 @@ test("the minor rank is smaller, thinner-haloed, and cullable", () => {
   assert.match(layout, /"text-allow-overlap": false/,
     "an archipelago prints one repeat per island group; they must be allowed to lose");
   const paintAt = NATIONS.indexOf("const minorLabelLayerPaint");
-  assert.match(NATIONS.slice(paintAt, paintAt + 300), /"text-halo-width": 0\.5/);
+  // 0.5 → 1 with the 2026-08-26 contrast fix (main halo 1 → 2; the minor lane
+  // keeps its halved ratio). Cowork edit, notified in WORKLOG — the pinned
+  // invariant here is "thinner than the main lane", and 1 < 2 still is.
+  assert.match(NATIONS.slice(paintAt, paintAt + 300), /"text-halo-width": 1,/);
   const scale = Number(NATIONS.match(/const MINOR_LABEL_SCALE = ([\d.]+)/)?.[1]);
   assert.ok(scale > 0 && scale < 1, `the minor rank must actually be smaller (got ${scale})`);
 });

@@ -1316,9 +1316,10 @@ test("province labels are POINTS from the largest ring, seas skipped, names thro
 test("province labels cut in by LAYER minzoom, fade in by opacity, and stay under country names", () => {
   // ON/OFF is minzoom, not opacity: below minzoom the layer is not evaluated at
   // all, so hidden names hold no collision boxes — the A-2 lesson, applied here.
-  assert.match(NATIONS, /id="region-labels"\s+type="symbol"\s+minzoom=\{6\.9\}/, "hard cut-in at 6.9 (band handoff done by 7.5)");
-  assert.match(NATIONS, /"text-opacity": \["interpolate", \["linear"\], \["zoom"\], 6\.9, 0, 7\.6, 0\.6\]/,
-    "fade tops out at 0.6 — under the country labels' 0.75 peak, a rank below by construction");
+  assert.match(NATIONS, /id="region-labels"\s+type="symbol"\s+minzoom=\{7\.5\}/,
+    "hard cut-in at 7.5 — past the WHOLE far band, so zoomed out there is nothing province-shaped at all (user call #2 2026-08-26)");
+  assert.match(NATIONS, /"text-opacity": \["interpolate", \["linear"\], \["zoom"\], 7\.5, 0, 8, 0\.35, 8\.7, 0\.9\]/,
+    "quiet 0.35 at 8 (under the country peak 0.75), 0.9 by 8.7 where country names have outgrown their px window");
   const srcIdx = NATIONS.indexOf('id="region-label-source"');
   const countryIdx = NATIONS.indexOf('id="country-point-label-source"');
   assert.ok(srcIdx > -1 && countryIdx > -1 && srcIdx < countryIdx,
@@ -1330,8 +1331,8 @@ test("…and MapLibre accepts the province label expressions", async () => {
   let spec;
   try { spec = await import("@maplibre/maplibre-gl-style-spec"); } catch { console.log("  (style-spec not installed here — structural pins above still stand)"); return; }
   const { createPropertyExpression, latest } = spec;
-  const size = ["interpolate", ["linear"], ["zoom"], 7, 10, 10, 13];
-  const opacity = ["interpolate", ["linear"], ["zoom"], 6.9, 0, 7.6, 0.6];
+  const size = ["interpolate", ["linear"], ["zoom"], 7.5, 10, 8.7, 13, 10, 15.5];
+  const opacity = ["interpolate", ["linear"], ["zoom"], 7.5, 0, 8, 0.35, 8.7, 0.9];
   for (const [expr, propSpec, name] of [
     [size, latest.layout_symbol["text-size"], "text-size"],
     [opacity, latest.paint_symbol["text-opacity"], "text-opacity"],
@@ -1340,8 +1341,46 @@ test("…and MapLibre accepts the province label expressions", async () => {
     assert.equal(compiled.result, "success", name + ": " + JSON.stringify(compiled.value));
   }
   const ev = createPropertyExpression(opacity, latest.paint_symbol["text-opacity"]).value;
-  assert.equal(ev.evaluate({ zoom: 6.9 }), 0, "invisible at cut-in");
-  assert.ok(Math.abs(ev.evaluate({ zoom: 7.6 }) - 0.6) < 1e-9, "0.6 by 7.6");
+  assert.equal(ev.evaluate({ zoom: 7.5 }), 0, "invisible at cut-in");
+  assert.ok(Math.abs(ev.evaluate({ zoom: 8 }) - 0.35) < 1e-9, "first station: a quiet 0.35 by 8");
+  assert.ok(Math.abs(ev.evaluate({ zoom: 8.7 }) - 0.9) < 1e-9, "second station: 0.9 by 8.7");
+  assert.ok(Math.abs(ev.evaluate({ zoom: 10 }) - 0.9) < 1e-9, "clamped past the last stop — never brighter than 0.9");
+});
+
+test("authored hairlines run the tile hairlines' own fade — nothing province-shaped inside the far band", () => {
+  // The authored outline lane used to fade in from 6.5 while the tile lane
+  // waited for fadeStops[0] (7.5 by default): authored countries sat covered
+  // in PRECISE z8-detail squiggles over the far band's generalized fills — the
+  // reported "province jaggedness is back" (user 2026-08-26). Both lanes now
+  // run the same fadeStops curve; the expression is duplicated, not shared,
+  // so borders.mjs's pinned regionsOutlinePaint block stays whole.
+  assert.doesNotMatch(NATIONS, /\["zoom"\], 6\.5, 0, 8, 0\.6\]/,
+    "the early 6.5-cut-in authored curve is gone");
+  const at = NATIONS.indexOf('id="custom-regions-outline"');
+  assert.notEqual(at, -1);
+  const block = NATIONS.slice(at, at + 2600);
+  assert.match(block, /"line-opacity": customActive\s*\n?\s*\? \["interpolate", \["linear"\], \["zoom"\],\s*\n?\s*fadeStops\[0\], 0,/,
+    "authored lane opacity starts at fadeStops[0] — the same stop the tile lane and the province labels use");
+  const caps = [...block.matchAll(/Math\.min\(0\.85, 0\.(?:35|65|8) \* borderScale\)/g)];
+  assert.ok(caps.length >= 3, "the three capped stops mirror regionsOutlinePaint");
+});
+
+console.log("\nSmall names on pale fills: the 2026-08-26 contrast fix");
+
+test("country halo carries the contrast: 2px at 80%, minor lane half, provinces grow and get 1px", () => {
+  // Measured before the fix (Central Asia, z4.1): khanate names computed
+  // text-opacity 0.75 — the full peak — yet read as ghosts. White glyphs over
+  // the board's pale fills have almost no luminance edge; the halo is what
+  // makes one. 1px of 50% black was not enough at ~20px; 2px of 80% is, and on
+  // a 150px name the same 2px is proportionally nothing.
+  assert.match(NATIONS, /"text-halo-color": labelHaloColor \|\| "rgba\(0, 0, 0, 0\.8\)",\n\s*"text-halo-width": 2,/,
+    "main country lanes: 2px at 80% black");
+  assert.match(NATIONS, /\.\.\.labelLayerPaint,\n\s*"text-halo-width": 1,/,
+    "minor lane keeps the halved ratio (2 -> 1) that stops repeats reading as bold blobs");
+  assert.match(NATIONS, /"rgba\(15, 23, 42, 0\.55\)",\n\s*"text-halo-width": 1,/,
+    "province names get 1px of the same slate halo — readable at 0.9 without outranking the country face");
+  assert.match(NATIONS, /"text-size": \["interpolate", \["linear"\], \["zoom"\], 7\.5, 10, 8\.7, 13, 10, 15\.5\]/,
+    "province text GROWS with zoom (10 -> 15.5) — size is the other half of feeling it");
 });
 
 console.log("\nThe frontier line draws from the fills' own arcs at far zooms");
