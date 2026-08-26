@@ -1129,8 +1129,8 @@ test("the coastline draws from the border file, thinner, and never stacks on a b
   assert.match(NATIONS, /id="owner-coasts"/, "the coast has its own layer on the owner-border source");
   assert.match(NATIONS, /filter=\{\["==", \["get", "kind"\], "coast"\]\}/,
     "it draws exactly the builder's kind:\"coast\" segments (WORKLOG contract)");
-  assert.match(NATIONS, /id="owner-borders"\n          type="line"\n          filter=\{\["!=", \["get", "kind"\], "coast"\]\}/,
-    "…and the national-border layer excludes them, so the two weights never stack");
+  assert.match(NATIONS, /id="owner-borders"\n          type="line"\n          minzoom=\{farBordersReady \? 7\.5 : 0\}\n          filter=\{\["!=", \["get", "kind"\], "coast"\]\}/,
+    "…and the national-border layer excludes them, so the two weights never stack (minzoom pairs with the far border lane)");
   assert.match(NATIONS, /2, 0\.36 \* borderScale,\n              4, 0\.6 \* borderScale,/,
     "0.6x the national line at every stop — thinner, the player's call (가늘게)");
 });
@@ -1342,6 +1342,38 @@ test("…and MapLibre accepts the province label expressions", async () => {
   const ev = createPropertyExpression(opacity, latest.paint_symbol["text-opacity"]).value;
   assert.equal(ev.evaluate({ zoom: 6.9 }), 0, "invisible at cut-in");
   assert.ok(Math.abs(ev.evaluate({ zoom: 7.6 }) - 0.6) < 1e-9, "0.6 by 7.6");
+});
+
+console.log("\nThe frontier line draws from the fills' own arcs at far zooms");
+
+test("the far border lane exists, frontier-only, and swaps hard at the band end", () => {
+  // A hard swap, NOT an opacity crossfade: two half-opaque black strokes offset
+  // by a pixel read as a doubled border for a whole zoom band; a swap at 7.5
+  // moves the line by under ~2px in the same frame the fill lane finishes its
+  // own handoff. Same paint object on both layers — width/opacity curves are
+  // identical, only the geometry changes.
+  assert.match(NATIONS, /const bordersFarGeojsonUrl = JSON_URLS\.bordersFarGeojson;/, "fed through the runtime JSON API");
+  assert.match(NATIONS, /readJson\(bordersFarGeojsonUrl, \{ defaultValue: EMPTY_FEATURE_COLLECTION, force: true, cache: false \}\)/,
+    "cache: false — force only skips the READ (the far-fill lesson, applied)");
+  assert.match(NATIONS, /id="owner-borders-far"\s+type="line"\s+maxzoom=\{7\.5\}\s+filter=\{\["==", \["get", "kind"\], "frontier"\]\}/,
+    "far lane draws ONLY kind:frontier to 7.5");
+  assert.match(NATIONS, /minzoom=\{farBordersReady \? 7\.5 : 0\}/,
+    "the precise line starts exactly where the far line stops — and drops to 0 when no far file exists");
+  const farCount = (NATIONS.match(/paint=\{countriesOutlinePaint\}/g) || []).length;
+  assert.ok(farCount >= 3, "both border lanes and the L0 outline share countriesOutlinePaint — identical curves by construction");
+});
+
+test("the far border fetch settles on every path and coasts stay on the precise lane", () => {
+  assert.match(NATIONS, /const \[ownerBorderFarData, setOwnerBorderFarData\] = useState\(null\);/,
+    "null = unsettled; the precise line draws alone until the answer arrives");
+  assert.ok((NATIONS.match(/setOwnerBorderFarData\(/g) || []).length >= 4,
+    "not custom / no URL / resolved / rejected all settle");
+  assert.match(NATIONS, /\{farBordersReady && \(\s*<Source id="owner-border-far-source"/,
+    "no far file -> the far source is not mounted at all");
+  const coastIdx = NATIONS.indexOf('id="owner-coasts"');
+  const farSrcIdx = NATIONS.indexOf('id="owner-border-far-source"');
+  assert.ok(coastIdx > farSrcIdx && farSrcIdx > -1,
+    "owner-coasts stays on the precise source at every zoom — the far file's coast copy is identical data, so drawing it twice would only stack alpha");
 });
 
 console.log(`\n${pass} passed\n`);

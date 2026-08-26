@@ -1002,6 +1002,14 @@ const WorldMap = ({ isGlobe = false }) => {
   // then hopping to the other a beat later.
   const [customRegionFarData, setCustomRegionFarData] = useState(null);
   const [ownerBorderData, setOwnerBorderData] = useState(EMPTY_FEATURE_COLLECTION);
+  // The frontier's ARC-SIMPLIFIED twin (borders-far.geojson): the same shared
+  // arcs the far fills draw, emitted as kind:"frontier" lines, so below the
+  // handoff the border line and the fill edge are the SAME geometry — the two
+  // halves of the 2026-08-25 "국경선 들쭉날쭉" report (precise-detail jitter at
+  // mid zoom, and the line wandering off the simplified fill edge) die at once.
+  // `null` = the fetch has not settled; the precise line keeps drawing alone
+  // until the answer arrives (exactly today's look, never a blank border).
+  const [ownerBorderFarData, setOwnerBorderFarData] = useState(null);
   const countriesUrl = PMTILES_PROTOCOL_URLS.countries;
   const regionsUrl = PMTILES_PROTOCOL_URLS.regions;
   // The seas are ALWAYS on the map now — command of a strait, a blockade, a
@@ -1108,6 +1116,7 @@ const WorldMap = ({ isGlobe = false }) => {
   const regionsGeojsonUrl = JSON_URLS.regionsGeojson;
   const regionsFarGeojsonUrl = JSON_URLS.regionsFarGeojson;
   const bordersGeojsonUrl = JSON_URLS.bordersGeojson;
+  const bordersFarGeojsonUrl = JSON_URLS.bordersFarGeojson;
   // Countries owning at least one region here — used to hide labels for nations
   // that don't exist in this scenario (e.g. modern states over medieval land).
   const ownedCountryCodes = useMemo(() => {
@@ -1589,6 +1598,34 @@ const WorldMap = ({ isGlobe = false }) => {
     };
   }, [customFlag, bordersGeojsonUrl]);
 
+  // The arc twin. Every failure path SETTLES to an empty collection (missing
+  // key on an older runtime, 404, parse error) — the precise line then simply
+  // keeps drawing at every zoom, which is exactly the pre-far behaviour.
+  useEffect(() => {
+    let cancelled = false;
+    if (!customFlag) {
+      setOwnerBorderFarData(EMPTY_FEATURE_COLLECTION);
+      return undefined;
+    }
+    if (!bordersFarGeojsonUrl) {
+      setOwnerBorderFarData(EMPTY_FEATURE_COLLECTION);
+      return undefined;
+    }
+    readJson(bordersFarGeojsonUrl, { defaultValue: EMPTY_FEATURE_COLLECTION, force: true, cache: false })
+      .then((data) => {
+        if (cancelled) return;
+        setOwnerBorderFarData(data && Array.isArray(data.features) ? data : EMPTY_FEATURE_COLLECTION);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.warn("Far border geometry unavailable, precise borders keep drawing:", error);
+        setOwnerBorderFarData(EMPTY_FEATURE_COLLECTION);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [customFlag, bordersFarGeojsonUrl]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -1769,6 +1806,7 @@ const WorldMap = ({ isGlobe = false }) => {
   // ready, fall back into the precise source when settled-but-empty, and mount
   // NOWHERE while the answer is still in flight — which is the same thing they draw
   // today at that moment, since the precise source has not loaded either.
+  const farBordersReady = Array.isArray(ownerBorderFarData?.features) && ownerBorderFarData.features.length > 0;
   const farGeometrySettled = customRegionFarData !== null;
   const farGeometryReady = Array.isArray(customRegionFarData?.features) && customRegionFarData.features.length > 0;
   const farHandoff = farGeometryReady ? FAR_HANDOFF_ARCS : FAR_HANDOFF_LEGACY;
@@ -2479,10 +2517,35 @@ const WorldMap = ({ isGlobe = false }) => {
           is the board as it opened. That is the gap diverged-borders fills, at
           this same weight — and why it is mounted AFTER this layer, so a line
           drawn by a conquest sits above the line the board shipped with. */}
+      {/* THE FRONTIER AT FAR ZOOMS, FROM THE FILLS' OWN ARCS. Below the handoff
+          this layer draws the national line from the SAME simplified arcs the
+          far fills are cut from, so line and colour edge cannot disagree (the
+          들쭉날쭉 report's cause ⓑ) and the z8-detail jitter never reaches the
+          screen (cause ⓐ). A HARD SWAP at the band end — far line to 7.5, the
+          precise line from 7.5 — not an opacity crossfade: two half-opaque
+          black strokes offset by a pixel read as a doubled/blurry border for a
+          whole zoom band, where a swap at 7.5 moves the line by under ~2px in
+          the same frame the fill lane finishes its own handoff. Same paint
+          object on both layers, so width/opacity curves are identical and the
+          only thing that changes at 7.5 is which geometry carries them. */}
+      {farBordersReady && (
+        <Source id="owner-border-far-source" type="geojson" data={ownerBorderFarData}>
+          <Layer
+            id="owner-borders-far"
+            type="line"
+            maxzoom={7.5}
+            filter={["==", ["get", "kind"], "frontier"]}
+            layout={{ "line-cap": "round", "line-join": "round" }}
+            paint={countriesOutlinePaint}
+          />
+        </Source>
+      )}
+
       <Source id="owner-border-source" type="geojson" data={ownerBorderData}>
         <Layer
           id="owner-borders"
           type="line"
+          minzoom={farBordersReady ? 7.5 : 0}
           filter={["!=", ["get", "kind"], "coast"]}
           layout={{ "line-cap": "round", "line-join": "round" }}
           paint={countriesOutlinePaint}

@@ -43,8 +43,14 @@ ensureBasemapProtocol();
 // labels and are hidden — the game supplies its own political labels.
 const OWN_MAP_SOURCES = new Set([
   "countries-source", "countries-fill-source", "regions-source",
-  "custom-regions-source", "diverged-borders-source",
+  "custom-regions-source", "custom-regions-far-source", "diverged-borders-source",
   "country-curved-label-source", "country-point-label-source",
+  // Province names (2026-08-25). THIS LIST IS THE GATE: the sweep below hides
+  // every symbol layer whose source is not listed here, so a new game source
+  // with a symbol layer that is missing from this set ships invisible — that is
+  // exactly how region-labels arrived dead on its first build. Fill layers on
+  // unlisted sources are unaffected (the sweep only touches type "symbol").
+  "region-label-source",
   "cities-source", "cities-label-source",
   "markers-source", "markers-label-source",
   "units-source", "units-label-source",
